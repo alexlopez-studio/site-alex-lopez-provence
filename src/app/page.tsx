@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
 import {
   ArrowRight,
   CheckCircle2,
@@ -24,8 +23,7 @@ export const metadata: Metadata = {
     'Estimation gratuite, données DVF, analyse des risques. Mandataire IAD Provence — Haut-Var, Verdon, Barjols, Varages, Quinson, Montmeyan.',
   openGraph: {
     title: 'Alex Lopez — Mandataire IAD Provence',
-    description:
-      'Estimation gratuite, données DVF, analyse des risques. Réseau IAD Provence.',
+    description: 'Estimation gratuite, données DVF, analyse des risques. Réseau IAD Provence.',
     url: env.siteUrl,
   },
 }
@@ -67,15 +65,8 @@ const SERVICES = [
 ]
 
 const COMMUNES_TEASER = [
-  'Varages',
-  'Barjols',
-  'Montmeyan',
-  'Quinson',
-  'Fox-Amphoux',
-  'Tavernes',
-  'Rians',
-  'Aups',
-  'Salernes',
+  'Varages', 'Barjols', 'Montmeyan', 'Quinson',
+  'Fox-Amphoux', 'Tavernes', 'Rians', 'Aups', 'Salernes',
 ]
 
 const AVIS_TEASER = [
@@ -98,109 +89,80 @@ const AVIS_TEASER = [
 
 export default function HomePage() {
   const assistantUrl = appUrl('') || '/assistant'
-  const biens = biensUrl()
 
   return (
     <>
       {/* ===== HERO — Full Bleed ===== */}
-      <section
-        className="relative min-h-screen overflow-hidden bg-white"
-        style=
-          background:
-            'radial-gradient(ellipse 80% 90% at 75% 50%, #EEF5FF 0%, #ffffff 55%)',
-        
-      >
-        {/* Watermark */}
+      <section className="hero-bg relative min-h-screen overflow-hidden">
+        {/*
+         * Watermark « ALEX LOPEZ » — très grand, très transparent
+         * Positioné à droite derrière la photo
+         */}
         <div
           aria-hidden="true"
-          className="pointer-events-none select-none absolute inset-0 flex items-center justify-end overflow-hidden"
+          className="hero-watermark pointer-events-none select-none absolute inset-0 flex items-center justify-end overflow-hidden font-black tracking-tighter text-brand whitespace-nowrap leading-none"
         >
-          <span
-            className="font-black tracking-tighter text-brand whitespace-nowrap leading-none"
-            style=
-              fontSize: 'clamp(100px, 18vw, 260px)',
-              opacity: 0.04,
-              marginRight: '-0.05em',
-            
-          >
-            ALEX LOPEZ
-          </span>
+          ALEX LOPEZ
         </div>
 
-        {/* Photo — absolute, full height, droite, fond blanc mixé */}
+        {/*
+         * Photo full-bleed — pleine hauteur, coté droit
+         * Placez votre photo dans /public/alex-lopez.png (fond blanc)
+         * mix-blend-mode:multiply fusionne le fond blanc de la photo avec le fond de la page
+         */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute right-0 top-0 bottom-0 w-full lg:w-[58%] flex items-end justify-center"
         >
-          {/*
-           * Placez votre photo dans /public/alex-lopez.png
-           * La photo doit avoir un fond blanc pour que mix-blend-mode: multiply
-           * fonctionne et fonde naturellement le fond dans la page.
-           */}
           <img
             src="/alex-lopez.png"
             alt=""
-            className="h-full w-auto object-cover object-top max-h-[100vh]"
-            style= mixBlendMode: 'multiply' 
+            className="hero-photo h-full w-auto object-cover object-top max-h-screen"
           />
         </div>
 
-        {/* Fondu bord gauche de la photo (readability du texte) */}
+        {/* Fondu gauche — lisibilité du texte sur desktop */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 hidden lg:block"
-          style=
-            left: '38%',
-            width: '120px',
-            background: 'linear-gradient(to right, #ffffff, transparent)',
-          
+          className="hero-left-fade pointer-events-none absolute inset-y-0 hidden lg:block"
         />
 
-        {/* Fondu bord bas (transition douce vers la section suivante) */}
+        {/* Fondu bas — transition douce vers section suivante */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute bottom-0 inset-x-0 h-32"
-          style=
-            background: 'linear-gradient(to bottom, transparent, #ffffff)',
-          
+          className="hero-bottom-fade pointer-events-none absolute bottom-0 inset-x-0 h-32"
         />
 
-        {/* Contenu texte */}
+        {/* Contenu texte — z-index au-dessus de la photo */}
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-10 min-h-screen flex flex-col justify-center pt-28 pb-20">
           <div className="max-w-lg">
-            {/* Label */}
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand mb-6">
               Mandataire IAD — Provence, Haut-Var, Verdon
             </p>
 
-            {/* H1 */}
-            <h1
-              className="font-black text-foreground leading-[1.05] tracking-tight mb-6"
-              style= fontSize: 'clamp(44px, 7vw, 88px)' 
-            >
+            <h1 className="hero-h1 font-black text-foreground leading-[1.05] tracking-tight mb-6">
               Vendez.
               <br />
               Achetez.
               <br />
-              <span className="text-brand">En toute
-              <br />confiance.</span>
+              <span className="text-brand">
+                En toute
+                <br />
+                confiance.
+              </span>
             </h1>
 
-            {/* Sous-titre */}
             <p className="text-lg text-muted leading-relaxed mb-10 max-w-sm">
               Estimation gratuite ancrée dans les données réelles, analyse des risques,
               accompagnement personnalisé. Lancé en 2–3 minutes.
             </p>
 
-            {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-4 mb-10">
               <Button asChild size="lg" variant="primary">
                 <Link
                   href={assistantUrl}
                   target={assistantUrl.startsWith('http') ? '_blank' : undefined}
-                  rel={
-                    assistantUrl.startsWith('http') ? 'noopener noreferrer' : undefined
-                  }
+                  rel={assistantUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
                 >
                   Lancer l&apos;assistant <ArrowRight size={18} />
                 </Link>
@@ -286,9 +248,7 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
             <MapPin size={18} className="text-brand" />
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand">
-              Zone couverte
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand">Zone couverte</p>
           </div>
           <h2 className="text-3xl md:text-4xl font-black text-foreground mb-4">
             Haut-Var &amp; Verdon,{' '}
@@ -309,10 +269,7 @@ export default function HomePage() {
             ))}
             <span className="px-3 py-1.5 text-sm text-muted">&amp; bien d&apos;autres…</span>
           </div>
-          <Link
-            href="/marche"
-            className="inline-flex items-center gap-2 text-brand font-semibold hover:underline"
-          >
+          <Link href="/marche" className="inline-flex items-center gap-2 text-brand font-semibold hover:underline">
             Voir toutes les communes <ArrowRight size={16} />
           </Link>
         </div>
@@ -322,12 +279,9 @@ export default function HomePage() {
       <section className="py-20 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">
-              Témoignages
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">Témoignages</p>
             <h2 className="text-3xl md:text-4xl font-black text-foreground">
-              Ils m&apos;ont{' '}
-              <span className="text-brand">fait confiance</span>
+              Ils m&apos;ont <span className="text-brand">fait confiance</span>
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
@@ -344,10 +298,7 @@ export default function HomePage() {
             ))}
           </div>
           <div className="text-center">
-            <Link
-              href="/avis"
-              className="inline-flex items-center gap-2 text-brand font-semibold hover:underline"
-            >
+            <Link href="/avis" className="inline-flex items-center gap-2 text-brand font-semibold hover:underline">
               Voir tous les avis <ArrowRight size={16} />
             </Link>
           </div>
@@ -357,20 +308,14 @@ export default function HomePage() {
       {/* ===== CTA FINAL ===== */}
       <section className="py-20 px-4 bg-foreground">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
-            Votre projet commence ici.
-          </h2>
-          <p className="text-white/60 mb-8 leading-relaxed">
-            Estimation gratuite, sans engagement, en 2–3 minutes.
-          </p>
+          <h2 className="text-3xl md:text-4xl font-black text-white mb-4">Votre projet commence ici.</h2>
+          <p className="text-white/60 mb-8 leading-relaxed">Estimation gratuite, sans engagement, en 2–3 minutes.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" variant="primary">
               <Link
                 href={assistantUrl}
                 target={assistantUrl.startsWith('http') ? '_blank' : undefined}
-                rel={
-                  assistantUrl.startsWith('http') ? 'noopener noreferrer' : undefined
-                }
+                rel={assistantUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
               >
                 Lancer l&apos;assistant <ArrowRight size={18} />
               </Link>
