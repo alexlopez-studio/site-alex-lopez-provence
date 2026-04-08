@@ -31,39 +31,15 @@ body {
 }
 
 /* ================================================
-   HERO — Full Bleed
+   HERO — H1 fluid
    ================================================ */
-
-/* Fond dégradé radial centré à droite */
-.hero-bg {
-  background: radial-gradient(ellipse 80% 90% at 75% 50%, #EEF5FF 0%, #ffffff 55%);
-}
-
-/* Watermark « ALEX LOPEZ » en arrière-plan */
-.hero-watermark {
-  font-size: clamp(100px, 18vw, 260px);
-  opacity: 0.04;
-  margin-right: -0.05em;
-}
-
-/* Photo : fond blanc fondu dans la page via multiply */
-.hero-photo {
-  mix-blend-mode: multiply;
-}
-
-/* Fondu blanc de gauche pour lisibilité du texte */
-.hero-left-fade {
-  left: 38%;
-  width: 120px;
-  background: linear-gradient(to right, #ffffff, transparent);
-}
-
-/* Fondu blanc en bas pour transition douce */
-.hero-bottom-fade {
-  background: linear-gradient(to bottom, transparent, #ffffff);
-}
-
-/* H1 responsive fluid */
 .hero-h1 {
-  font-size: clamp(44px, 7vw, 88px);
+  font-size: clamp(32px, 4.5vw, 58px);
+}
+
+/* Photo arrondie — cadre droit avec overflow hidden */
+.hero-photo-frame {
+  border-radius: 24px;
+  overflow: hidden;
+  background: #f0f0ee;
 }
