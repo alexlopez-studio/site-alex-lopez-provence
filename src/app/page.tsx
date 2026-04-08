@@ -6,9 +6,8 @@ import {
   Star,
   ShieldCheck,
   Clock,
-  CalendarDays,
-  Users,
   BadgeCheck,
+  CalendarDays,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { appUrl, env } from '@/lib/env'
@@ -24,16 +23,16 @@ export const metadata: Metadata = {
   },
 }
 
-const STATS = [
-  { value: '0€', label: 'Frais cachés' },
-  { value: '100%', label: 'Accompagnement' },
-  { value: '2-3 min', label: 'Pour estimer' },
-]
-
 const TRUST_BADGES = [
   { icon: BadgeCheck, label: 'Réseau IAD France' },
   { icon: Star, label: 'Estimation gratuite' },
   { icon: Clock, label: 'Disponible 7j/7' },
+]
+
+const STATS = [
+  { value: '0€', label: 'Frais cachés' },
+  { value: '100%', label: 'Accompagnement' },
+  { value: '2-3 min', label: 'Pour estimer' },
 ]
 
 const SERVICES = [
@@ -94,12 +93,31 @@ export default function HomePage() {
 
   return (
     <>
-      {/* ===== HERO ===== */}
-      <section className="min-h-screen bg-white px-6 md:px-10 pt-20">
-        <div className="max-w-7xl mx-auto h-full grid grid-cols-1 lg:grid-cols-2 gap-10 items-center min-h-[calc(100vh-5rem)] py-12">
+      {/* ===== HERO — Style James David ===== */}
+      <section className="hero-jd-bg relative min-h-screen overflow-hidden">
 
-          {/* Colonne gauche — texte */}
-          <div className="flex flex-col justify-center">
+        {/* Watermark nom — arrière-plan */}
+        <div aria-hidden="true" className="hero-jd-watermark">ALEX LOPEZ</div>
+
+        {/*
+          Photo pleine hauteur — droite
+          • Placez /public/alex-lopez.png (fond blanc)
+          • mix-blend-mode:multiply fusionne le fond blanc
+            de la photo avec le bleu du hero → effet seamless
+        */}
+        <img
+          src="/alex-lopez.png"
+          alt=""
+          aria-hidden="true"
+          className="hero-jd-photo"
+        />
+
+        {/* Fondu gauche (lisibilité du texte) */}
+        <div aria-hidden="true" className="hero-jd-fade-left" />
+
+        {/* Contenu texte — premier plan */}
+        <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 min-h-screen flex flex-col justify-center pt-24 pb-16">
+          <div className="max-w-[520px]">
 
             {/* Zone */}
             <div className="flex items-center gap-2 mb-6">
@@ -110,7 +128,7 @@ export default function HomePage() {
             </div>
 
             {/* H1 */}
-            <h1 className="hero-h1 font-black text-foreground leading-[1.1] tracking-tight mb-5">
+            <h1 className="hero-jd-h1 font-black text-foreground tracking-tight mb-5">
               Votre mandataire
               <br />
               immobilier
@@ -119,10 +137,9 @@ export default function HomePage() {
             </h1>
 
             {/* Description */}
-            <p className="text-base text-muted leading-relaxed mb-8 max-w-md">
-              Mandataire IAD en Provence — j&apos;utilise les données DVF réelles et un
-              assistant intelligent pour vous donner une vision claire de votre bien et du
-              marché local. Toujours disponible, sans frais cachés.
+            <p className="text-base text-foreground/70 leading-relaxed mb-8 max-w-sm">
+              Mandataire IAD en Provence — estimation gratuite ancrée dans les données DVF,
+              analyse des risques, accompagnement transparent de A à Z.
             </p>
 
             {/* Stats */}
@@ -130,7 +147,7 @@ export default function HomePage() {
               {STATS.map(({ value, label }) => (
                 <div key={label}>
                   <p className="text-2xl font-black text-brand">{value}</p>
-                  <p className="text-xs text-muted mt-0.5">{label}</p>
+                  <p className="text-xs text-foreground/60 mt-0.5">{label}</p>
                 </div>
               ))}
             </div>
@@ -156,35 +173,19 @@ export default function HomePage() {
             {/* Trust badges */}
             <div className="flex flex-wrap gap-5">
               {TRUST_BADGES.map(({ icon: Icon, label }) => (
-                <div key={label} className="flex items-center gap-2 text-xs text-muted">
+                <div key={label} className="flex items-center gap-2 text-xs text-foreground/60">
                   <Icon size={14} className="text-brand" />
                   <span>{label}</span>
                 </div>
               ))}
             </div>
-          </div>
 
-          {/* Colonne droite — photo dans un cadre arrondi */}
-          <div className="hidden lg:flex items-center justify-center">
-            <div className="hero-photo-frame w-full max-w-[480px] aspect-[3/4] relative">
-              {/*
-               * Placez votre photo dans /public/alex-lopez.png
-               * Format portrait (3/4) recommandé pour ce cadre.
-               * Fond neutre (blanc, gris clair) idéal.
-               */}
-              <img
-                src="/alex-lopez.png"
-                alt="Alex Lopez — Mandataire IAD Provence"
-                className="w-full h-full object-cover object-top"
-              />
-            </div>
           </div>
-
         </div>
       </section>
 
       {/* ===== SERVICES ===== */}
-      <section className="py-20 px-6 bg-surface">
+      <section className="py-20 px-6 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">
@@ -201,7 +202,7 @@ export default function HomePage() {
                 href={href || '/assistant'}
                 target={(href || '').startsWith('http') ? '_blank' : undefined}
                 rel={(href || '').startsWith('http') ? 'noopener noreferrer' : undefined}
-                className="group p-8 rounded-2xl border border-border bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+                className="group p-8 rounded-2xl border border-border bg-surface hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
               >
                 <div className="text-3xl mb-5">{emoji}</div>
                 <h3 className="text-xl font-black text-foreground mb-3">{title}</h3>
@@ -216,7 +217,7 @@ export default function HomePage() {
       </section>
 
       {/* ===== ZONE COUVERTE ===== */}
-      <section className="py-20 px-6 bg-white">
+      <section className="py-20 px-6 bg-surface">
         <div className="max-w-4xl mx-auto text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
             <MapPin size={18} className="text-brand" />
@@ -231,7 +232,7 @@ export default function HomePage() {
           </p>
           <div className="flex flex-wrap justify-center gap-2 mb-8">
             {COMMUNES_TEASER.map((c) => (
-              <span key={c} className="px-3 py-1.5 bg-surface rounded-full border border-border text-sm text-foreground">
+              <span key={c} className="px-3 py-1.5 bg-white rounded-full border border-border text-sm text-foreground">
                 {c}
               </span>
             ))}
@@ -244,7 +245,7 @@ export default function HomePage() {
       </section>
 
       {/* ===== AVIS TEASER ===== */}
-      <section className="py-20 px-6 bg-surface">
+      <section className="py-20 px-6 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">Témoignages</p>
@@ -254,7 +255,7 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
             {AVIS_TEASER.map((avis) => (
-              <div key={avis.name} className="p-6 rounded-2xl border border-border bg-white">
+              <div key={avis.name} className="p-6 rounded-2xl border border-border bg-surface">
                 <div className="flex gap-1 mb-3">
                   {Array.from({ length: avis.note }).map((_, i) => (
                     <Star key={i} size={14} className="text-brand fill-brand" />

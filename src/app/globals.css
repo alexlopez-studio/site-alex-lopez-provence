@@ -31,15 +31,58 @@ body {
 }
 
 /* ================================================
-   HERO — H1 fluid
+   HERO — Style "James David"
+   Fond coloré plein, photo qui se fond dans le bg
+   via mix-blend-mode:multiply
    ================================================ */
-.hero-h1 {
-  font-size: clamp(32px, 4.5vw, 58px);
+
+/* Fond dégradé bleu IAD */
+.hero-jd-bg {
+  background: linear-gradient(135deg, #cce0ff 0%, #dbeeff 60%, #e8f4ff 100%);
 }
 
-/* Photo arrondie — cadre droit avec overflow hidden */
-.hero-photo-frame {
-  border-radius: 24px;
-  overflow: hidden;
-  background: #f0f0ee;
+/* Photo absolue — droite, pleine hauteur, fondue via multiply */
+.hero-jd-photo {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 55%;
+  object-fit: cover;
+  object-position: top center;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+/* Fondu blanc gauche pour lisibilité texte */
+.hero-jd-fade-left {
+  position: absolute;
+  top: 0;
+  left: 42%;
+  height: 100%;
+  width: 100px;
+  background: linear-gradient(to right, #dbeeff, transparent);
+  pointer-events: none;
+}
+
+/* Watermark nom en arrière-plan */
+.hero-jd-watermark {
+  position: absolute;
+  right: -0.02em;
+  bottom: 4%;
+  font-size: clamp(64px, 12vw, 180px);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: #0066FF;
+  opacity: 0.1;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* H1 fluid */
+.hero-jd-h1 {
+  font-size: clamp(34px, 5vw, 64px);
+  line-height: 1.1;
 }
