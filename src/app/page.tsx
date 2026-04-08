@@ -4,10 +4,13 @@ import {
   ArrowRight,
   MapPin,
   Star,
-  ShieldCheck,
   Clock,
   BadgeCheck,
   CalendarDays,
+  Home,
+  Search,
+  ClipboardCheck,
+  Sparkles,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { appUrl, env } from '@/lib/env'
@@ -18,21 +21,29 @@ export const metadata: Metadata = {
     'Estimation gratuite, données DVF, analyse des risques. Mandataire IAD Provence — Haut-Var, Verdon, Barjols, Varages, Quinson, Montmeyan.',
   openGraph: {
     title: 'Alex Lopez — Mandataire IAD Provence',
-    description: 'Estimation gratuite, données DVF, analyse des risques. Réseau IAD Provence.',
+    description: 'Estimation gratuite, données DVF, analyse des risques.',
     url: env.siteUrl,
   },
 }
+
+// Badges flottants autour de la photo (style MGR)
+const FLOATING_BADGES = [
+  { label: 'Vendre', icon: Home, position: 'top-[12%] -left-[18%]', color: 'bg-brand text-white' },
+  { label: 'Acheter', icon: Search, position: 'top-[8%] -right-[18%]', color: 'bg-success text-white' },
+  { label: 'Audit express', icon: ClipboardCheck, position: 'bottom-[22%] -left-[20%]', color: 'bg-white text-foreground border border-border shadow-sm' },
+  { label: 'IAD France', icon: Sparkles, position: 'bottom-[18%] -right-[18%]', color: 'bg-white text-foreground border border-border shadow-sm' },
+]
+
+// Ticker items (s'affichent deux fois pour la boucle seamless)
+const TICKER_ITEMS = [
+  'Vendre', 'Acheter', 'Estimer', 'Provence', 'IAD', 'Haut-Var',
+  'Verdon', 'DVF', 'Gratuit', 'Transparent', 'Disponible 7j/7', 'Confiance',
+]
 
 const TRUST_BADGES = [
   { icon: BadgeCheck, label: 'Réseau IAD France' },
   { icon: Star, label: 'Estimation gratuite' },
   { icon: Clock, label: 'Disponible 7j/7' },
-]
-
-const STATS = [
-  { value: '0€', label: 'Frais cachés' },
-  { value: '100%', label: 'Accompagnement' },
-  { value: '2-3 min', label: 'Pour estimer' },
 ]
 
 const SERVICES = [
@@ -91,33 +102,17 @@ const AVIS_TEASER = [
 export default function HomePage() {
   const assistantUrl = appUrl('') || '/assistant'
 
+  // Dupliquer les items du ticker pour la boucle seamless
+  const tickerItems = [...TICKER_ITEMS, ...TICKER_ITEMS]
+
   return (
     <>
-      {/* ===== HERO — Style James David ===== */}
-      <section className="hero-jd-bg relative min-h-screen overflow-hidden">
+      {/* ===== HERO — Style MGR ===== */}
+      <section className="bg-white min-h-screen px-6 md:px-12 pt-20">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[calc(100vh-5rem)] py-12">
 
-        {/* Watermark nom — arrière-plan */}
-        <div aria-hidden="true" className="hero-jd-watermark">ALEX LOPEZ</div>
-
-        {/*
-          Photo pleine hauteur — droite
-          • Placez /public/alex-lopez.png (fond blanc)
-          • mix-blend-mode:multiply fusionne le fond blanc
-            de la photo avec le bleu du hero → effet seamless
-        */}
-        <img
-          src="/alex-lopez.png"
-          alt=""
-          aria-hidden="true"
-          className="hero-jd-photo"
-        />
-
-        {/* Fondu gauche (lisibilité du texte) */}
-        <div aria-hidden="true" className="hero-jd-fade-left" />
-
-        {/* Contenu texte — premier plan */}
-        <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 min-h-screen flex flex-col justify-center pt-24 pb-16">
-          <div className="max-w-[520px]">
+          {/* Colonne gauche — texte */}
+          <div className="flex flex-col justify-center">
 
             {/* Zone */}
             <div className="flex items-center gap-2 mb-6">
@@ -128,7 +123,7 @@ export default function HomePage() {
             </div>
 
             {/* H1 */}
-            <h1 className="hero-jd-h1 font-black text-foreground tracking-tight mb-5">
+            <h1 className="hero-mgr-h1 font-black text-foreground tracking-tight mb-5">
               Votre mandataire
               <br />
               immobilier
@@ -137,23 +132,13 @@ export default function HomePage() {
             </h1>
 
             {/* Description */}
-            <p className="text-base text-foreground/70 leading-relaxed mb-8 max-w-sm">
-              Mandataire IAD en Provence — estimation gratuite ancrée dans les données DVF,
-              analyse des risques, accompagnement transparent de A à Z.
+            <p className="text-base text-muted leading-relaxed mb-8 max-w-md">
+              Estimation gratuite basée sur les données DVF réelles, analyse des risques,
+              accompagnement transparent de A à Z. Sans frais cachés.
             </p>
 
-            {/* Stats */}
-            <div className="flex gap-8 mb-8">
-              {STATS.map(({ value, label }) => (
-                <div key={label}>
-                  <p className="text-2xl font-black text-brand">{value}</p>
-                  <p className="text-xs text-foreground/60 mt-0.5">{label}</p>
-                </div>
-              ))}
-            </div>
-
             {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-3 mb-10">
+            <div className="flex flex-col sm:flex-row gap-3 mb-8">
               <Button asChild size="lg" variant="secondary">
                 <Link
                   href={assistantUrl}
@@ -170,19 +155,69 @@ export default function HomePage() {
               </Button>
             </div>
 
-            {/* Trust badges */}
-            <div className="flex flex-wrap gap-5">
-              {TRUST_BADGES.map(({ icon: Icon, label }) => (
-                <div key={label} className="flex items-center gap-2 text-xs text-foreground/60">
-                  <Icon size={14} className="text-brand" />
-                  <span>{label}</span>
-                </div>
-              ))}
+            {/* Social proof */}
+            <div className="flex items-center gap-3">
+              <div className="flex -space-x-2">
+                {['👤', '👤', '👤', '👤'].map((_, i) => (
+                  <div key={i} className="w-8 h-8 rounded-full bg-surface border-2 border-white flex items-center justify-center text-xs">
+                    {['SM', 'PL', 'IR', 'JT'][i]}
+                  </div>
+                ))}
+              </div>
+              <p className="text-sm text-muted">
+                <span className="font-bold text-foreground">47+</span> clients accompagnés
+              </p>
             </div>
 
           </div>
+
+          {/* Colonne droite — photo + forme + floating badges */}
+          <div className="hidden lg:block">
+            <div className="relative mx-auto w-[380px] h-[480px]">
+
+              {/* Forme colorée derrière la photo */}
+              <div className="hero-mgr-shape" />
+
+              {/*
+                Photo de la personne
+                • Placez /public/alex-lopez.png (fond blanc)
+                • mix-blend-mode:multiply fusionne le fond blanc
+                  de la photo avec la forme bleue
+              */}
+              <img
+                src="/alex-lopez.png"
+                alt="Alex Lopez — Mandataire IAD Provence"
+                className="hero-mgr-photo"
+              />
+
+              {/* Floating badges */}
+              {FLOATING_BADGES.map(({ label, icon: Icon, position, color }) => (
+                <div
+                  key={label}
+                  className={`absolute ${position} flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold ${color} shadow-md z-20 whitespace-nowrap`}
+                >
+                  <Icon size={13} />
+                  {label}
+                </div>
+              ))}
+
+            </div>
+          </div>
+
         </div>
       </section>
+
+      {/* ===== TICKER ===== */}
+      <div className="ticker-wrapper">
+        <div className="ticker-track">
+          {tickerItems.map((item, i) => (
+            <span key={i} className="inline-flex items-center gap-4 px-6 text-white text-sm font-semibold uppercase tracking-widest">
+              <span className="text-brand">✦</span>
+              {item}
+            </span>
+          ))}
+        </div>
+      </div>
 
       {/* ===== SERVICES ===== */}
       <section className="py-20 px-6 bg-white">
@@ -263,9 +298,7 @@ export default function HomePage() {
                 </div>
                 <p className="text-sm text-foreground leading-relaxed mb-4">{avis.text}</p>
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-surface border border-border flex items-center justify-center text-xs font-bold text-muted">
-                    {avis.name[0]}
-                  </div>
+                  <div className="w-7 h-7 rounded-full bg-surface border border-border flex items-center justify-center text-xs font-bold text-muted">{avis.name[0]}</div>
                   <div>
                     <p className="text-xs font-semibold text-foreground">{avis.name}</p>
                     <p className="text-xs text-muted">{avis.lieu}</p>
@@ -285,12 +318,8 @@ export default function HomePage() {
       {/* ===== CTA FINAL ===== */}
       <section className="py-20 px-6 bg-foreground">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
-            Votre projet commence ici.
-          </h2>
-          <p className="text-white/60 mb-8 leading-relaxed">
-            Estimation gratuite, sans engagement, en 2–3 minutes.
-          </p>
+          <h2 className="text-3xl md:text-4xl font-black text-white mb-4">Votre projet commence ici.</h2>
+          <p className="text-white/60 mb-8 leading-relaxed">Estimation gratuite, sans engagement, en 2–3 minutes.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" variant="primary">
               <Link
