@@ -51,7 +51,7 @@ const SERVICES = [
     icon: Search,
     title: 'Acheter',
     description:
-      'Décrivez votre projet en quelques secondes. L’assistant identifie les biens correspondants et anticipe les points de négociation.',
+      'Décrivez votre projet en quelques secondes. L'assistant identifie les biens correspondants et anticipe les points de négociation.',
     cta: 'Décrire mon projet',
     href: appUrl('/acheter'),
   },
@@ -59,8 +59,8 @@ const SERVICES = [
     icon: ClipboardCheck,
     title: 'Audit immobilier express',
     description:
-      'Avant de vendre ou d’achèter, identifiez tous les risques — juridiques, techniques, environnementaux — pour négocier en confiance.',
-    cta: 'Lancer l’audit',
+      'Avant de vendre ou d'achèter, identifiez tous les risques — juridiques, techniques, environnementaux — pour négocier en confiance.',
+    cta: 'Lancer l'audit',
     href: appUrl('/audit'),
   },
 ]
@@ -74,17 +74,17 @@ const AVIS_TEASER = [
   {
     name: 'Sophie M.',
     note: 5,
-    text: '\u00abAlex a su estimer notre maison au juste prix. Vendu en 3 semaines, sans stress.\u00bb',
+    text: '«Alex a su estimer notre maison au juste prix. Vendu en 3 semaines, sans stress.»',
   },
   {
     name: 'Pierre & Marion L.',
     note: 5,
-    text: '\u00abL’assistant nous a permis de préparer la visite parfaitement. Un vrai avantage.\u00bb',
+    text: '«L'assistant nous a permis de préparer la visite parfaitement. Un vrai avantage.»',
   },
   {
     name: 'Isabelle R.',
     note: 5,
-    text: '\u00abPrésent, réactif, transparent. Exactement ce qu’on cherchait dans un mandataire.\u00bb',
+    text: '«Présent, réactif, transparent. Exactement ce qu'on cherchait dans un mandataire.»',
   },
 ]
 
@@ -95,36 +95,66 @@ export default function HomePage() {
   return (
     <>
       {/* ===== HERO ===== */}
-      <section className="min-h-[92vh] flex flex-col items-center justify-center text-center px-4 pt-24 pb-16 bg-white">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-6">
-          Mandataire IAD — Provence, Haut-Var, Verdon
-        </p>
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-foreground leading-[1.1] tracking-tight max-w-3xl mb-6">
-          Vendez. Achetez.
-          <br />
-          <span className="text-brand">En toute confiance.</span>
-        </h1>
-        <p className="text-lg text-muted max-w-xl leading-relaxed mb-10">
-          Estimation gratuite ancrée dans les données réelles, analyse des risques,
-          accompagnement personnalisé. Lancé en 2–3 minutes.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button asChild size="lg" variant="primary">
-            <Link
-              href={assistantUrl}
-              target={assistantUrl.startsWith('http') ? '_blank' : undefined}
-              rel={assistantUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
-            >
-              Lancer l’assistant <ArrowRight size={18} />
-            </Link>
-          </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link href={env.calcomUrl} target="_blank" rel="noopener noreferrer">
-              Prendre RDV
-            </Link>
-          </Button>
-        </div>
-      </section>
+      <div className="bg-white">
+        <section className="bg-[#FCF8F1] bg-opacity-30 py-10 sm:py-16 lg:py-24">
+          <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div className="grid items-center grid-cols-1 gap-12 lg:grid-cols-2">
+
+              {/* Left — Text */}
+              <div>
+                <p className="text-base font-semibold tracking-wider text-blue-600 uppercase">
+                  A social media for learners
+                </p>
+                <h1 className="mt-4 text-4xl font-bold text-black lg:mt-8 sm:text-6xl xl:text-8xl">
+                  Connect &amp; learn from the experts
+                </h1>
+                <p className="mt-4 text-base text-black lg:mt-8 sm:text-xl">
+                  Grow your career fast with right mentor.
+                </p>
+                <a
+                  href="#"
+                  title=""
+                  className="inline-flex items-center px-6 py-4 mt-8 font-semibold text-black transition-all duration-200 bg-yellow-300 rounded-full lg:mt-16 hover:bg-yellow-400 focus:bg-yellow-400"
+                  role="button"
+                >
+                  Join for free
+                  <svg
+                    className="w-6 h-6 ml-8 -mr-2"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </a>
+                <p className="mt-5 text-gray-600">
+                  Already joined us?{' '}
+                  <a href="#" title="" className="text-black transition-all duration-200 hover:underline">
+                    Log in
+                  </a>
+                </p>
+              </div>
+
+              {/* Right — Image */}
+              <div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  className="w-full"
+                  src="https://cdn.rareblocks.xyz/collection/celebration/images/hero/1/hero-img.png"
+                  alt=""
+                />
+              </div>
+
+            </div>
+          </div>
+        </section>
+      </div>
 
       {/* ===== USP CHIPS ===== */}
       <section className="bg-surface py-8 px-4">
@@ -190,8 +220,8 @@ export default function HomePage() {
             <span className="text-brand">ma Provence</span>
           </h2>
           <p className="text-muted leading-relaxed mb-8 max-w-2xl mx-auto">
-            Basé à Varages (83670), j’interviens sur l’ensemble du Haut-Var et des communes
-            limitrophes des Alpes-de-Haute-Provence, jusqu’aux Gorges du Verdon.
+            Basé à Varages (83670), j'interviens sur l'ensemble du Haut-Var et des communes
+            limitrophes des Alpes-de-Haute-Provence, jusqu'aux Gorges du Verdon.
           </p>
           <div className="flex flex-wrap justify-center gap-2 mb-8">
             {COMMUNES_TEASER.map((c) => (
@@ -202,7 +232,7 @@ export default function HomePage() {
                 {c}
               </span>
             ))}
-            <span className="px-3 py-1.5 text-sm text-muted">&amp; bien d’autres…</span>
+            <span className="px-3 py-1.5 text-sm text-muted">&amp; bien d'autres…</span>
           </div>
           <Link
             href="/marche"
@@ -221,7 +251,7 @@ export default function HomePage() {
               Témoignages
             </p>
             <h2 className="text-3xl md:text-4xl font-black text-foreground">
-              Ils m’ont{' '}
+              Ils m'ont{' '}
               <span className="text-brand">fait confiance</span>
             </h2>
           </div>
@@ -268,7 +298,7 @@ export default function HomePage() {
                 target={assistantUrl.startsWith('http') ? '_blank' : undefined}
                 rel={assistantUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
               >
-                Lancer l’assistant <ArrowRight size={18} />
+                Lancer l'assistant <ArrowRight size={18} />
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline">
