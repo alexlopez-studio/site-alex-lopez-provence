@@ -4,8 +4,6 @@ import {
   ArrowRight,
   MapPin,
   Star,
-  Clock,
-  BadgeCheck,
   Home,
   Search,
   ClipboardCheck,
@@ -129,14 +127,25 @@ export default function HomePage() {
                 </p>
               </div>
 
-              {/* Right — Image */}
-              <div>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  className="w-full"
-                  src="https://cdn.rareblocks.xyz/collection/celebration/images/hero/1/hero-img.png"
-                  alt=""
-                />
+              {/* Right — Photo + shape animée */}
+              <div className="flex items-center justify-center">
+                <div className="hero-photo-wrapper">
+                  {/* Shape secondaire (profondeur) */}
+                  <div className="hero-photo-shape-2" />
+                  {/* Shape principale (blob morphing + glow) */}
+                  <div className="hero-photo-shape" />
+                  {/*
+                    Photo de la personne.
+                    Placez votre photo dans /public/alex-lopez.png
+                    Fond blanc recommandé pour le mix-blend-mode: multiply
+                  */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    className="hero-photo-img"
+                    src="/alex-lopez.png"
+                    alt="Alex Lopez — Mandataire IAD Provence"
+                  />
+                </div>
               </div>
 
             </div>

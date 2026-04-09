@@ -22,26 +22,44 @@ body {
 }
 
 /* ================================================
-   HERO — Style MGR
-   Fond blanc + forme colorée + floating badges
+   HERO — Photo + Shape animée premium
    ================================================ */
 
-.hero-mgr-h1 {
-  font-size: clamp(34px, 5vw, 60px);
-  line-height: 1.08;
+.hero-photo-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  aspect-ratio: 3 / 4;
 }
 
-/* La forme colorée arrondie derrière la photo */
-.hero-mgr-shape {
+/* Shape principale — blob morphing + glow */
+.hero-photo-shape {
   position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, #dbeeff 0%, #cce0ff 100%);
-  border-radius: 28px;
+  inset: 10% 10% 0% 15%;
+  background: linear-gradient(135deg, #0066FF 0%, #6C3BFF 60%, #9B59FF 100%);
+  border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  animation:
+    blob-morph 9s ease-in-out infinite,
+    glow-pulse 5s ease-in-out infinite;
   z-index: 0;
 }
 
-/* Photo de la personne */
-.hero-mgr-photo {
+/* Shape secondaire — profondeur, décalée et floutée */
+.hero-photo-shape-2 {
+  position: absolute;
+  inset: 25% -8% 15% 5%;
+  background: linear-gradient(135deg, rgba(0, 102, 255, 0.18) 0%, rgba(108, 59, 255, 0.12) 100%);
+  border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+  animation:
+    blob-morph 12s ease-in-out infinite reverse,
+    float 7s ease-in-out infinite;
+  z-index: 0;
+  filter: blur(4px);
+}
+
+/* Photo */
+.hero-photo-img {
   position: relative;
   z-index: 1;
   width: 100%;
@@ -49,6 +67,37 @@ body {
   object-fit: cover;
   object-position: top center;
   mix-blend-mode: multiply;
+  animation: float 6s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* ---- Keyframes ---- */
+
+@keyframes blob-morph {
+  0%,  100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+  20%        { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+  40%        { border-radius: 50% 40% 30% 60% / 30% 60% 70% 40%; }
+  60%        { border-radius: 40% 60% 55% 45% / 45% 45% 55% 55%; }
+  80%        { border-radius: 55% 45% 40% 60% / 60% 40% 55% 45%; }
+}
+
+@keyframes float {
+  0%,  100% { transform: translateY(0px) rotate(0deg); }
+  33%        { transform: translateY(-10px) rotate(0.3deg); }
+  66%        { transform: translateY(-6px) rotate(-0.2deg); }
+}
+
+@keyframes glow-pulse {
+  0%,  100% {
+    box-shadow:
+      0 20px 60px rgba(0, 102, 255, 0.20),
+      0  0px  0px rgba(108, 59, 255, 0.00);
+  }
+  50% {
+    box-shadow:
+      0 30px 90px rgba(0, 102, 255, 0.40),
+      0  0px 50px rgba(108, 59, 255, 0.20);
+  }
 }
 
 /* ================================================
