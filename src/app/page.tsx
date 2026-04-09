@@ -6,11 +6,9 @@ import {
   Star,
   Clock,
   BadgeCheck,
-  CalendarDays,
   Home,
   Search,
   ClipboardCheck,
-  Sparkles,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { appUrl, env } from '@/lib/env'
@@ -26,29 +24,9 @@ export const metadata: Metadata = {
   },
 }
 
-// Badges flottants autour de la photo (style MGR)
-const FLOATING_BADGES = [
-  { label: 'Vendre', icon: Home, position: 'top-[12%] -left-[18%]', color: 'bg-brand text-white' },
-  { label: 'Acheter', icon: Search, position: 'top-[8%] -right-[18%]', color: 'bg-success text-white' },
-  { label: 'Audit express', icon: ClipboardCheck, position: 'bottom-[22%] -left-[20%]', color: 'bg-white text-foreground border border-border shadow-sm' },
-  { label: 'IAD France', icon: Sparkles, position: 'bottom-[18%] -right-[18%]', color: 'bg-white text-foreground border border-border shadow-sm' },
-]
-
-// Ticker items (s'affichent deux fois pour la boucle seamless)
-const TICKER_ITEMS = [
-  'Vendre', 'Acheter', 'Estimer', 'Provence', 'IAD', 'Haut-Var',
-  'Verdon', 'DVF', 'Gratuit', 'Transparent', 'Disponible 7j/7', 'Confiance',
-]
-
-const TRUST_BADGES = [
-  { icon: BadgeCheck, label: 'Réseau IAD France' },
-  { icon: Star, label: 'Estimation gratuite' },
-  { icon: Clock, label: 'Disponible 7j/7' },
-]
-
 const SERVICES = [
   {
-    emoji: '🏠',
+    icon: Home,
     title: 'Vendre',
     description:
       'Estimation ancrée dans les données DVF réelles, analyse des risques, stratégie de vente sur mesure.',
@@ -56,7 +34,7 @@ const SERVICES = [
     href: appUrl('/vendre'),
   },
   {
-    emoji: '🔍',
+    icon: Search,
     title: 'Acheter',
     description:
       "Décrivez votre projet en quelques secondes. L'assistant identifie les biens et anticipe les négociations.",
@@ -64,10 +42,10 @@ const SERVICES = [
     href: appUrl('/acheter'),
   },
   {
-    emoji: '📋',
+    icon: ClipboardCheck,
     title: 'Audit immobilier express',
     description:
-      "Identifiez tous les risques avant de vendre ou d'acheter — juridiques, techniques, environnementaux.",
+      "Identifiez tous les risques avant de vendre ou d'achèter — juridiques, techniques, environnementaux.",
     cta: "Lancer l'audit",
     href: appUrl('/audit'),
   },
@@ -102,121 +80,68 @@ const AVIS_TEASER = [
 export default function HomePage() {
   const assistantUrl = appUrl('') || '/assistant'
 
-  // Dupliquer les items du ticker pour la boucle seamless
-  const tickerItems = [...TICKER_ITEMS, ...TICKER_ITEMS]
-
   return (
     <>
-      {/* ===== HERO — Style MGR ===== */}
-      <section className="bg-white min-h-screen px-6 md:px-12 pt-20">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[calc(100vh-5rem)] py-12">
+      {/* ===== HERO ===== */}
+      <div className="bg-white">
+        <section className="bg-[#FCF8F1] bg-opacity-30 py-10 sm:py-16 lg:py-24">
+          <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div className="grid items-center grid-cols-1 gap-12 lg:grid-cols-2">
 
-          {/* Colonne gauche — texte */}
-          <div className="flex flex-col justify-center">
-
-            {/* Zone */}
-            <div className="flex items-center gap-2 mb-6">
-              <MapPin size={14} className="text-brand" />
-              <span className="text-sm font-semibold text-brand">
-                Haut-Var &amp; Verdon · 83670
-              </span>
-            </div>
-
-            {/* H1 */}
-            <h1 className="hero-mgr-h1 font-black text-foreground tracking-tight mb-5">
-              Votre mandataire
-              <br />
-              immobilier
-              <br />
-              <span className="text-brand">de confiance</span>
-            </h1>
-
-            {/* Description */}
-            <p className="text-base text-muted leading-relaxed mb-8 max-w-md">
-              Estimation gratuite basée sur les données DVF réelles, analyse des risques,
-              accompagnement transparent de A à Z. Sans frais cachés.
-            </p>
-
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-3 mb-8">
-              <Button asChild size="lg" variant="secondary">
-                <Link
-                  href={assistantUrl}
-                  target={assistantUrl.startsWith('http') ? '_blank' : undefined}
-                  rel={assistantUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
+              {/* Left — Text */}
+              <div>
+                <p className="text-base font-semibold tracking-wider text-blue-600 uppercase">
+                  A social media for learners
+                </p>
+                <h1 className="mt-4 text-4xl font-bold text-black lg:mt-8 sm:text-6xl xl:text-8xl">
+                  Connect &amp; learn from the experts
+                </h1>
+                <p className="mt-4 text-base text-black lg:mt-8 sm:text-xl">
+                  Grow your career fast with right mentor.
+                </p>
+                <a
+                  href="#"
+                  title=""
+                  className="inline-flex items-center px-6 py-4 mt-8 font-semibold text-black transition-all duration-200 bg-yellow-300 rounded-full lg:mt-16 hover:bg-yellow-400 focus:bg-yellow-400"
+                  role="button"
                 >
-                  <CalendarDays size={18} /> Lancer l&apos;assistant
-                </Link>
-              </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link href={env.calcomUrl} target="_blank" rel="noopener noreferrer">
-                  Prendre RDV
-                </Link>
-              </Button>
-            </div>
-
-            {/* Social proof */}
-            <div className="flex items-center gap-3">
-              <div className="flex -space-x-2">
-                {['👤', '👤', '👤', '👤'].map((_, i) => (
-                  <div key={i} className="w-8 h-8 rounded-full bg-surface border-2 border-white flex items-center justify-center text-xs">
-                    {['SM', 'PL', 'IR', 'JT'][i]}
-                  </div>
-                ))}
+                  Join for free
+                  <svg
+                    className="w-6 h-6 ml-8 -mr-2"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </a>
+                <p className="mt-5 text-gray-600">
+                  Already joined us?{' '}
+                  <a href="#" title="" className="text-black transition-all duration-200 hover:underline">
+                    Log in
+                  </a>
+                </p>
               </div>
-              <p className="text-sm text-muted">
-                <span className="font-bold text-foreground">47+</span> clients accompagnés
-              </p>
-            </div>
 
-          </div>
-
-          {/* Colonne droite — photo + forme + floating badges */}
-          <div className="hidden lg:block">
-            <div className="relative mx-auto w-[380px] h-[480px]">
-
-              {/* Forme colorée derrière la photo */}
-              <div className="hero-mgr-shape" />
-
-              {/*
-                Photo de la personne
-                • Placez /public/alex-lopez.png (fond blanc)
-                • mix-blend-mode:multiply fusionne le fond blanc
-                  de la photo avec la forme bleue
-              */}
-              <img
-                src="/alex-lopez.png"
-                alt="Alex Lopez — Mandataire IAD Provence"
-                className="hero-mgr-photo"
-              />
-
-              {/* Floating badges */}
-              {FLOATING_BADGES.map(({ label, icon: Icon, position, color }) => (
-                <div
-                  key={label}
-                  className={`absolute ${position} flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold ${color} shadow-md z-20 whitespace-nowrap`}
-                >
-                  <Icon size={13} />
-                  {label}
-                </div>
-              ))}
+              {/* Right — Image */}
+              <div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  className="w-full"
+                  src="https://cdn.rareblocks.xyz/collection/celebration/images/hero/1/hero-img.png"
+                  alt=""
+                />
+              </div>
 
             </div>
           </div>
-
-        </div>
-      </section>
-
-      {/* ===== TICKER ===== */}
-      <div className="ticker-wrapper">
-        <div className="ticker-track">
-          {tickerItems.map((item, i) => (
-            <span key={i} className="inline-flex items-center gap-4 px-6 text-white text-sm font-semibold uppercase tracking-widest">
-              <span className="text-brand">✦</span>
-              {item}
-            </span>
-          ))}
-        </div>
+        </section>
       </div>
 
       {/* ===== SERVICES ===== */}
@@ -231,7 +156,7 @@ export default function HomePage() {
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {SERVICES.map(({ emoji, title, description, cta, href }) => (
+            {SERVICES.map(({ icon: Icon, title, description, cta, href }) => (
               <Link
                 key={title}
                 href={href || '/assistant'}
@@ -239,7 +164,9 @@ export default function HomePage() {
                 rel={(href || '').startsWith('http') ? 'noopener noreferrer' : undefined}
                 className="group p-8 rounded-2xl border border-border bg-surface hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
               >
-                <div className="text-3xl mb-5">{emoji}</div>
+                <div className="w-12 h-12 rounded-xl bg-surface flex items-center justify-center mb-5">
+                  <Icon size={22} className="text-brand" />
+                </div>
                 <h3 className="text-xl font-black text-foreground mb-3">{title}</h3>
                 <p className="text-sm text-muted leading-relaxed mb-5">{description}</p>
                 <span className="text-sm font-semibold text-brand flex items-center gap-1 group-hover:gap-2 transition-all">
@@ -298,7 +225,7 @@ export default function HomePage() {
                 </div>
                 <p className="text-sm text-foreground leading-relaxed mb-4">{avis.text}</p>
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-surface border border-border flex items-center justify-center text-xs font-bold text-muted">{avis.name[0]}</div>
+                  <div className="w-7 h-7 rounded-full bg-surface border border-border flex items-center justify-center text-xs font-bold">{avis.name[0]}</div>
                   <div>
                     <p className="text-xs font-semibold text-foreground">{avis.name}</p>
                     <p className="text-xs text-muted">{avis.lieu}</p>
