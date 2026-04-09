@@ -66,9 +66,9 @@ const PHONE_DISPLAY = '06 13 18 01 68'
 const FAQ_ITEMS = [
   { question: 'Quelle est la différence entre un mandataire et une agence immobilière ?', answer: "Un mandataire immobilier est un professionnel indépendant rattaché à un réseau (ici IAD France). Il propose les mêmes services qu'une agence (estimation, vente, achat) mais avec des honoraires souvent inférieurs, car il n'a pas de local commercial à entretenir." },
   { question: 'Combien coûte une estimation immobilière en Provence Verte et Haut-Var ?', answer: "L'estimation est entièrement gratuite et sans engagement. Elle s'appuie sur les prix réels des ventes récentes dans votre secteur et la connaissance terrain de la Provence Verte et du Haut-Var." },
-  { question: 'Quelles communes couvrez-vous en Provence Verte et Haut-Var ?', answer: "J'interviens sur l'ensemble de la Provence Verte et du Haut-Var : Barjols, Montmeyan, Quinson, Fox-Amphoux, Tavernes, Rians, Aups, Salernes, Ginasservis, Varages, Esparron-de-Verdon, Artignosc-sur-Verdon et toutes les communes limitrophes." },
+  { question: 'Quelles communes couvrez-vous en Provence Verte et Haut-Var ?', answer: "J'interviens sur l'ensemble de la Provence Verte et du Haut-Var : Barjols, Montmeyan, Quinson, Fox-Amphoux, Tavernes, Rians, Aups, Salernes, Ginasservis, Varages, Esparron-de-Verdon, Artignosc-sur-Verdon et toutes les communes limitrophes." },
   { question: 'Combien de temps faut-il pour vendre un bien en Provence Verte ?', answer: 'Le délai moyen de vente dépend du bien et de son positionnement prix. Avec une estimation juste et une stratégie de diffusion adaptée, la majorité des biens en Provence Verte et Haut-Var trouvent preneur en 4 à 12 semaines.' },
-  { question: "Qu'est-ce que l'audit immobilier express ?", answer: "C'est un bilan gratuit de votre bien réalisé en quelques minutes. Il identifie les points de vigilance — légaux, techniques, environnementaux — pour que vous puissiez vendre ou acheter en toute connaissance de cause." },
+  { question: "Qu'est-ce que l'audit immobilier express ?", answer: "C'est un bilan gratuit de votre bien réalisé en quelques minutes. Il identifie les points de vigilance — légaux, techniques, environnementaux — pour que vous puissiez vendre ou acheter en toute connaissance de cause." },
 ]
 
 const USP_CHIPS = [
@@ -83,28 +83,28 @@ const SERVICES = [
   { icon: Home, title: 'Vendre votre bien', description: 'Je vous aide à fixer le bon prix, valoriser votre bien et trouver le bon acheteur — rapidement et sans stress.', cta: 'Estimer mon bien', href: '/vendre', external: false },
   { icon: Search, title: 'Acheter sereinement', description: 'Je cherche pour vous, négocie à votre place et vérifie tous les points importants avant de signer.', cta: 'Décrire mon projet', href: '/acheter', external: false },
   { icon: ClipboardCheck, title: 'Bilan immobilier gratuit', description: "Avant de vendre ou d'acheter, je passe votre bien au crible pour éviter les mauvaises surprises.", cta: 'Lancer le bilan', href: '/audit', external: false },
-  { icon: Users, title: 'Devenir mandataire IAD', description: 'Vous souhaitez vous reconvertir en Provence ? Je vous accompagne de A à Z dans votre lancement.', cta: 'En savoir plus', href: 'https://www.iadfrance.fr/rejoindre-iad', external: true },
+  { icon: Users, title: 'Devenir mandataire IAD', description: 'Vous souhaitez vous reconvertir en Provence ? Je vous accompagne de A à Z dans votre lancement.', cta: 'En savoir plus', href: 'https://www.iadfrance.fr/rejoindre-iad', external: true },
 ]
 
 const COMMUNES_TEASER = ['Barjols', 'Montmeyan', 'Quinson', 'Fox-Amphoux', 'Tavernes', 'Rians', 'Aups', 'Salernes', 'Ginasservis', 'Varages', 'Esparron-de-Verdon', 'Artignosc-sur-Verdon']
 
 const BIENS_VENTE = [
-  { tag: 'NOUVEAU', tagColor: 'bg-success text-white', type: 'Maison de village', commune: 'Barjols (83670)', prix: '245 000 €', surface: '110 m²', pieces: '4 pièces' },
-  { tag: 'NOUVEAU', tagColor: 'bg-success text-white', type: 'Bastide provençale', commune: 'Rians (83560)', prix: '385 000 €', surface: '180 m²', pieces: '6 pièces' },
-  { tag: 'BAISSE DE PRIX', tagColor: 'bg-brand text-white', type: 'Maison avec terrain', commune: 'Montmeyan (83670)', prix: '198 000 €', surface: '95 m²', pieces: '3 pièces' },
+  { tag: 'NOUVEAU', tagColor: 'bg-success text-white', type: 'Maison de village', commune: 'Barjols (83670)', prix: '245 000 €', surface: '110 m²', pieces: '4 pièces' },
+  { tag: 'NOUVEAU', tagColor: 'bg-success text-white', type: 'Bastide provençale', commune: 'Rians (83560)', prix: '385 000 €', surface: '180 m²', pieces: '6 pièces' },
+  { tag: 'BAISSE DE PRIX', tagColor: 'bg-brand text-white', type: 'Maison avec terrain', commune: 'Montmeyan (83670)', prix: '198 000 €', surface: '95 m²', pieces: '3 pièces' },
 ]
 
 const BIENS_VENDUS = [
-  { type: 'Maison de caractère', commune: 'Barjols', prix: '265 000 €' },
-  { type: 'Mas provençal', commune: 'Aups', prix: '420 000 €' },
-  { type: 'Villa avec piscine', commune: 'Rians', prix: '345 000 €' },
-  { type: 'Maison de village', commune: 'Salernes', prix: '185 000 €' },
+  { type: 'Maison de caractère', commune: 'Barjols', prix: '265 000 €' },
+  { type: 'Mas provençal', commune: 'Aups', prix: '420 000 €' },
+  { type: 'Villa avec piscine', commune: 'Rians', prix: '345 000 €' },
+  { type: 'Maison de village', commune: 'Salernes', prix: '185 000 €' },
 ]
 
 const AVIS = [
   { name: 'Sophie M.', transaction: 'VENTE', note: 5, text: '«Alex a su estimer notre maison au juste prix. Vendu en 3 semaines, sans stress. Une présence et une transparence exemplaires tout au long du processus.»' },
-  { name: 'Pierre & Marion L.', transaction: 'ACHAT', note: 5, text: '«Il connaît chaque commune de la Provence Verte. Grâce à lui, on a trouvé exactement ce qu’on cherchait, au bon prix et sans mauvaise surprise.»' },
-  { name: 'Isabelle R.', transaction: 'VENTE', note: 5, text: '«Présent, réactif, transparent. Notre bien à Barjols a été vendu en moins d’un mois. Je recommande sans hésiter.»' },
+  { name: 'Pierre & Marion L.', transaction: 'ACHAT', note: 5, text: '«Il connaît chaque commune de la Provence Verte. Grâce à lui, on a trouvé exactement ce qu\u2019on cherchait, au bon prix et sans mauvaise surprise.»' },
+  { name: 'Isabelle R.', transaction: 'VENTE', note: 5, text: '«Présent, réactif, transparent. Notre bien à Barjols a été vendu en moins d\u2019un mois. Je recommande sans hésiter.»' },
 ]
 
 // ─── Component ─────────────────────────────────────────────────────────────────────
@@ -115,102 +115,100 @@ export default function HomepageContent() {
 
   return (
     <>
-      {/* ===== HERO ===== */}
-      <section className="min-h-[92vh] grid grid-cols-1 lg:grid-cols-[55%_45%]">
-        {/* Left — texte staggeré */}
-        <motion.div
-          variants={stagger}
-          initial="initial"
-          animate="animate"
-          className="flex flex-col justify-center px-6 sm:px-10 lg:px-16 xl:px-20 py-20 lg:py-0 bg-white order-2 lg:order-1"
-        >
-          <motion.p variants={fadeInUp} className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-5">
-            Mandataire IAD — Provence Verte &amp; Haut-Var
-          </motion.p>
-          <motion.h1 variants={stagger} className="text-4xl sm:text-5xl xl:text-6xl font-extrabold text-foreground leading-[1.1] tracking-tight mb-6">
-            <motion.span variants={fadeInUp} className="block">Vendez. Achetez.</motion.span>
-            <motion.span variants={fadeInUp} className="block text-brand">En toute confiance.</motion.span>
-          </motion.h1>
-          <motion.p variants={fadeInUp} className="text-lg text-muted leading-relaxed mb-10 max-w-md">
-            Estimation gratuite, prix du marché local, accompagnement de A à Z
-            en Provence Verte et Haut-Var.
-          </motion.p>
-          <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-3 mb-8">
-            <Button asChild size="lg" variant="primary">
-              <Link href={assistantUrl} target={assistantUrl.startsWith('http') ? '_blank' : undefined}
-                rel={assistantUrl.startsWith('http') ? 'noopener noreferrer' : undefined}>
-                Estimer mon bien <ArrowRight size={18} />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href={env.calcomUrl} target="_blank" rel="noopener noreferrer">Prendre RDV</Link>
-            </Button>
-          </motion.div>
-          <motion.a variants={fadeInUp} href={'tel:' + PHONE_RAW}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-muted hover:text-brand transition-colors w-fit">
-            <Phone size={14} className="text-brand" />{PHONE_DISPLAY}
-          </motion.a>
-        </motion.div>
+      {/* ===== HERO — split background, max-w-75rem aligné ===== */}
+      <section className="min-h-[92vh] relative overflow-hidden" aria-label="Hero">
+        {/* Fond split pleine largeur : blanc gauche / surface droite */}
+        <div className="absolute inset-0 hidden lg:grid lg:grid-cols-[55%_45%] pointer-events-none" aria-hidden="true">
+          <div className="bg-white" />
+          <div className="bg-surface" />
+        </div>
+        <div className="absolute inset-0 bg-white lg:hidden" aria-hidden="true" />
 
-        {/* Right — photo + carte flottante */}
-        <motion.div
-          initial={heroRightInitial}
-          animate={heroRightAnimate}
-          transition={heroRightTransition}
-          className="relative bg-surface flex items-center justify-center overflow-hidden min-h-[50vh] lg:min-h-full order-1 lg:order-2"
-        >
-          <div className="w-full h-full flex items-end justify-center px-8 pt-12 pb-0">
-            <div className="w-full max-w-sm aspect-[3/4] bg-border/30 rounded-t-[3rem] flex items-center justify-center">
-              <span className="text-muted text-sm">Photo Alex Lopez</span>
-            </div>
-          </div>
+        {/* Grille de contenu centrée — même max-w que toutes les autres sections */}
+        <div className="relative max-w-[75rem] mx-auto grid grid-cols-1 lg:grid-cols-[55%_45%] min-h-[92vh]">
 
-          {/* Carte estimation flottante */}
+          {/* Left — texte staggeré */}
           <motion.div
-            initial={floatingCardInitial}
-            animate={floatingCardAnimate}
-            transition={floatingCardTransition}
-            className="absolute bottom-8 left-6 lg:left-8 bg-white rounded-2xl shadow-xl p-5 w-64"
+            variants={stagger}
+            initial="initial"
+            animate="animate"
+            className="flex flex-col justify-center px-6 py-20 lg:py-0 order-2 lg:order-1"
           >
-            <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-1">Estimation de votre bien</p>
-            <p className="text-2xl font-extrabold text-foreground mb-0.5">245 000 €</p>
-            <p className="text-xs text-muted mb-3">Basé sur 14 ventes récentes à Barjols</p>
-            <div className="w-full bg-surface rounded-full h-1.5 mb-3">
-              <motion.div
-                className="bg-brand h-1.5 rounded-full"
-                initial={progressBarInitial}
-                animate={progressBarAnimate}
-                transition={progressBarTransition}
-              />
-            </div>
-            <p className="text-xs text-brand font-semibold flex items-center gap-1">
-              <TrendingUp size={11} /> Marché stable · +2% sur 6 mois
-            </p>
+            <motion.p variants={fadeInUp} className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-5">
+              Mandataire IAD — Provence Verte &amp; Haut-Var
+            </motion.p>
+            <motion.h1 variants={stagger} className="text-4xl sm:text-5xl xl:text-6xl font-extrabold text-foreground leading-[1.1] tracking-tight mb-6">
+              <motion.span variants={fadeInUp} className="block">Vendez. Achetez.</motion.span>
+              <motion.span variants={fadeInUp} className="block text-brand">En toute confiance.</motion.span>
+            </motion.h1>
+            <motion.p variants={fadeInUp} className="text-lg text-muted leading-relaxed mb-10 max-w-md">
+              Estimation gratuite, prix du marché local, accompagnement de A à Z
+              en Provence Verte et Haut-Var.
+            </motion.p>
+            <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-3 mb-8">
+              <Button asChild size="lg" variant="primary">
+                <Link href={assistantUrl} target={assistantUrl.startsWith('http') ? '_blank' : undefined}
+                  rel={assistantUrl.startsWith('http') ? 'noopener noreferrer' : undefined}>
+                  Estimer mon bien <ArrowRight size={18} />
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link href={env.calcomUrl} target="_blank" rel="noopener noreferrer">Prendre RDV</Link>
+              </Button>
+            </motion.div>
+            <motion.a variants={fadeInUp} href={'tel:' + PHONE_RAW}
+              className="inline-flex items-center gap-2 text-sm font-semibold text-muted hover:text-brand transition-colors w-fit">
+              <Phone size={14} className="text-brand" />{PHONE_DISPLAY}
+            </motion.a>
           </motion.div>
 
-          {/* Badge 5/5 */}
+          {/* Right — photo + carte flottante */}
           <motion.div
-            initial={badgeInitial}
-            animate={badgeAnimate}
-            transition={badgeTransition}
-            className="absolute top-6 right-6 bg-white rounded-xl shadow-md px-3 py-2 flex items-center gap-2"
+            initial={heroRightInitial}
+            animate={heroRightAnimate}
+            transition={heroRightTransition}
+            className="relative flex items-center justify-center overflow-hidden min-h-[50vh] lg:min-h-full order-1 lg:order-2"
           >
-            <div className="flex gap-0.5">
-              {[1,2,3,4,5].map(i => <Star key={i} size={11} className="text-brand fill-brand" />)}
+            <div className="w-full h-full flex items-end justify-center px-8 pt-12 pb-0">
+              <div className="w-full max-w-sm aspect-[3/4] bg-border/30 rounded-t-[3rem] flex items-center justify-center">
+                <span className="text-muted text-sm">Photo Alex Lopez</span>
+              </div>
             </div>
-            <span className="text-xs font-semibold text-foreground">5/5</span>
+
+            {/* Carte estimation flottante */}
+            <motion.div
+              initial={floatingCardInitial}
+              animate={floatingCardAnimate}
+              transition={floatingCardTransition}
+              className="absolute bottom-8 left-4 bg-white rounded-2xl shadow-xl p-5 w-60"
+            >
+              <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-1">Estimation de votre bien</p>
+              <p className="text-2xl font-extrabold text-foreground mb-0.5">245 000 €</p>
+              <p className="text-xs text-muted mb-3">Basé sur 14 ventes récentes à Barjols</p>
+              <div className="w-full bg-surface rounded-full h-1.5 mb-3">
+                <motion.div className="bg-brand h-1.5 rounded-full"
+                  initial={progressBarInitial} animate={progressBarAnimate} transition={progressBarTransition} />
+              </div>
+              <p className="text-xs text-brand font-semibold flex items-center gap-1">
+                <TrendingUp size={11} /> Marché stable · +2% sur 6 mois
+              </p>
+            </motion.div>
+
+            {/* Badge 5/5 */}
+            <motion.div initial={badgeInitial} animate={badgeAnimate} transition={badgeTransition}
+              className="absolute top-6 right-4 bg-white rounded-xl shadow-md px-3 py-2 flex items-center gap-2">
+              <div className="flex gap-0.5">
+                {[1,2,3,4,5].map(i => <Star key={i} size={11} className="text-brand fill-brand" />)}
+              </div>
+              <span className="text-xs font-semibold text-foreground">5/5</span>
+            </motion.div>
           </motion.div>
-        </motion.div>
+        </div>
       </section>
 
       {/* ===== USP CHIPS ===== */}
-      <motion.section
-        variants={staggerFast}
-        initial="initial"
-        whileInView="animate"
-        viewport={vpOnce}
-        className="bg-white border-b border-border py-6 px-6"
-      >
+      <motion.section variants={staggerFast} initial="initial" whileInView="animate" viewport={vpOnce}
+        className="bg-white border-b border-border py-6 px-6">
         <div className="max-w-[75rem] mx-auto flex flex-wrap justify-center gap-3">
           {USP_CHIPS.map(chip => {
             const Icon = chip.icon
@@ -239,20 +237,19 @@ export default function HomepageContent() {
             </motion.h2>
             <motion.div variants={stagger} className="space-y-4 text-muted leading-relaxed mb-8">
               <motion.p variants={fadeInUp}>
-                Je suis Alex Lopez, mandataire immobilier IAD implanté en Provence Verte et Haut-Var. Après une carrière en stratégie et organisation, j&apos;ai choisi l&apos;immobilier pour une raison simple : c&apos;est un métier de lien, de confiance et d&apos;utilité concrète.
+                Je suis Alex Lopez, mandataire immobilier IAD implanté en Provence Verte et Haut-Var. Après une carrière en stratégie et organisation, j&apos;ai choisi l&apos;immobilier pour une raison simple : c&apos;est un métier de lien, de confiance et d&apos;utilité concrète.
               </motion.p>
               <motion.p variants={fadeInUp}>
-                Ici, pas de discours commercial. Je connais chaque commune de ma zone, ses prix réels, ses atouts et ses contraintes. Mon rôle : vous accompagner de l&apos;estimation à la signature, avec transparence et réactivité.
+                Ici, pas de discours commercial. Je connais chaque commune de ma zone, ses prix réels, ses atouts et ses contraintes. Mon rôle : vous accompagner de l&apos;estimation à la signature, avec transparence et réactivité.
               </motion.p>
             </motion.div>
-            {/* Stats avec compteurs animés */}
             <motion.div variants={stagger} className="grid grid-cols-3 gap-6 mb-8 text-center">
               <motion.div variants={scaleIn}>
                 <p className="text-2xl font-extrabold text-brand"><Counter target={100} suffix="%" /></p>
                 <p className="text-xs text-muted mt-1">Accompagnement</p>
               </motion.div>
               <motion.div variants={scaleIn}>
-                <p className="text-2xl font-extrabold text-brand">0 €</p>
+                <p className="text-2xl font-extrabold text-brand">0 €</p>
                 <p className="text-xs text-muted mt-1">Frais cachés</p>
               </motion.div>
               <motion.div variants={scaleIn}>
@@ -275,7 +272,7 @@ export default function HomepageContent() {
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-14">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">Mes services</p>
             <h2 className="text-3xl md:text-4xl font-extrabold text-foreground">
-              Vente, achat, audit : <span className="text-brand">je vous accompagne.</span>
+              Vente, achat, audit : <span className="text-brand">je vous accompagne.</span>
             </h2>
           </motion.div>
           <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
@@ -454,7 +451,7 @@ export default function HomepageContent() {
           <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce} className="lg:pt-2">
             <motion.p variants={fadeInUp} className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-4">Me contacter</motion.p>
             <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-extrabold text-foreground mb-6 leading-tight">
-              Un projet ? <span className="text-brand">Parlons-en.</span>
+              Un projet ? <span className="text-brand">Parlons-en.</span>
             </motion.h2>
             <motion.p variants={fadeInUp} className="text-muted leading-relaxed mb-8">
               Que vous souhaitiez vendre ou acheter en Provence Verte et Haut-Var, je vous réponds sous 24h. Sans engagement, sans pression.
@@ -511,13 +508,8 @@ export default function HomepageContent() {
       </section>
 
       {/* ===== CTA FINAL ===== */}
-      <motion.section
-        variants={scaleIn}
-        initial="initial"
-        whileInView="animate"
-        viewport={vpOnce}
-        className="py-24 px-6 bg-brand-light"
-      >
+      <motion.section variants={scaleIn} initial="initial" whileInView="animate" viewport={vpOnce}
+        className="py-24 px-6 bg-brand-light">
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-4">Gratuit · Sans engagement</p>
           <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-4">Votre projet commence ici.</h2>
