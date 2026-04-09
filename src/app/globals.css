@@ -1,30 +1,45 @@
 @import "tailwindcss";
 
+/* ─── Design Tokens ─────────────────────────────────────────────── */
 @theme {
-  --color-brand: #0066FF;
-  --color-brand-hover: #0052CC;
-  --color-foreground: #1A1A2E;
-  --color-muted: #64748B;
-  --color-success: #10B981;
+  /* Brand */
+  --color-brand:         #0066FF;
+  --color-brand-hover:   #0052CC;
+  --color-brand-light:   #EFF6FF;
+
+  /* Neutrals */
+  --color-foreground:    #0F172A;
+  --color-muted:         #64748B;
+  --color-border:        #E2E8F0;
+  --color-surface:       #F8FAFC;
+
+  /* Feedback */
+  --color-success:       #10B981;
   --color-success-hover: #059669;
-  --color-border: #E2E8F0;
-  --color-surface: #F8FAFC;
+  --color-error:         #EF4444;
+
+  /* Font */
   --font-family-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
-* { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+/* ─── Base Reset ─────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: #1A1A2E;
+  color: var(--color-foreground);
   background: #ffffff;
+  line-height: 1.6;
 }
 
-/* ================================================
-   HERO — Photo + Shape (parallaxe au scroll)
-   ================================================ */
-
+/* ─── Hero Photo Shape ───────────────────────────────────────────── */
 .hero-photo-wrapper {
   position: relative;
   width: 100%;
@@ -34,7 +49,6 @@ body {
   overflow: visible;
 }
 
-/* Shape principale */
 .hero-photo-shape {
   position: absolute;
   inset: 10% 10% 0% 15%;
@@ -46,7 +60,6 @@ body {
   transition: box-shadow 0.3s ease;
 }
 
-/* Shape secondaire (profondeur) */
 .hero-photo-shape-2 {
   position: absolute;
   inset: 25% -8% 15% 5%;
@@ -61,7 +74,6 @@ body {
   will-change: transform;
 }
 
-/* Photo — s'affiche normalement par-dessus les shapes */
 .hero-photo-img {
   position: relative;
   z-index: 1;
@@ -70,28 +82,4 @@ body {
   object-fit: cover;
   object-position: top center;
   will-change: transform;
-}
-
-/* ================================================
-   TICKER — bande noire défilante
-   ================================================ */
-.ticker-wrapper {
-  overflow: hidden;
-  background: #1A1A2E;
-  padding: 14px 0;
-}
-
-.ticker-track {
-  display: flex;
-  white-space: nowrap;
-  animation: ticker-scroll 28s linear infinite;
-}
-
-.ticker-track:hover {
-  animation-play-state: paused;
-}
-
-@keyframes ticker-scroll {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
 }
