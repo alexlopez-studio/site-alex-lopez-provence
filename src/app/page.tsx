@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { appUrl, env } from '@/lib/env'
+import { HeroPhotoShape } from '@/components/sections/HeroPhotoShape'
 
 export const metadata: Metadata = {
   title: 'Vendez & Achetez en Provence — Alex Lopez, Mandataire IAD',
@@ -127,25 +128,9 @@ export default function HomePage() {
                 </p>
               </div>
 
-              {/* Right — Photo + shape animée */}
+              {/* Right — Photo + shape avec parallaxe */}
               <div className="flex items-center justify-center">
-                <div className="hero-photo-wrapper">
-                  {/* Shape secondaire (profondeur) */}
-                  <div className="hero-photo-shape-2" />
-                  {/* Shape principale (blob morphing + glow) */}
-                  <div className="hero-photo-shape" />
-                  {/*
-                    Photo de la personne.
-                    Placez votre photo dans /public/alex-lopez.png
-                    Fond blanc recommandé pour le mix-blend-mode: multiply
-                  */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    className="hero-photo-img"
-                    src="/alex-lopez.png"
-                    alt="Alex Lopez — Mandataire IAD Provence"
-                  />
-                </div>
+                <HeroPhotoShape />
               </div>
 
             </div>
