@@ -20,7 +20,7 @@ import { getCategoryLabel, formatDate } from '@/lib/blog-utils'
 // ─── Config catégories ───────────────────────────────────────────────────────
 
 const CATEGORY_CONFIG: Record<BlogCategory | 'all', { label: string; icon: React.ElementType }> = {
-  all: { label: 'Tous', icon: LayoutGrid },
+  all: { label: 'Tous les articles', icon: LayoutGrid },
   'conseils-vendeurs': { label: 'Conseils vendeurs', icon: Home },
   'conseils-acheteurs': { label: 'Conseils acheteurs', icon: Search },
   'marche-local': { label: 'Marché local', icon: BarChart2 },
@@ -135,6 +135,45 @@ function FeaturedArticle({ post }: { post: BlogPost }) {
   )
 }
 
+// ─── Category Filter Card (horizontal) ──────────────────────────────────
+
+function CategoryCard({
+  catKey,
+  label,
+  icon: Icon,
+  count,
+  isActive,
+  onClick,
+}: {
+  catKey: string
+  label: string
+  icon: React.ElementType
+  count: number
+  isActive: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={'flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm w-full ' +
+        (isActive ? 'border-brand bg-brand-light shadow-sm' : 'border-border bg-white')}
+    >
+      <div className={'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ' +
+        (isActive ? 'bg-brand' : 'bg-surface')}>
+        <Icon size={17} className={isActive ? 'text-white' : 'text-muted'} />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className={'text-[13px] font-semibold leading-tight truncate ' + (isActive ? 'text-brand' : 'text-foreground')}>
+          {label}
+        </p>
+        <p className="text-[11px] text-muted mt-0.5">
+          {count} {count > 1 ? 'articles' : 'article'}
+        </p>
+      </div>
+    </button>
+  )
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function BlogPageClient({ posts }: { posts: BlogPost[] }) {
@@ -166,8 +205,6 @@ export default function BlogPageClient({ posts }: { posts: BlogPost[] }) {
   }
 
   const calUrl = process.env.NEXT_PUBLIC_CALCOM_URL || 'https://cal.com/alex-lopez/consultation-gratuite'
-
-  // Catégories avec au moins 1 article
   const availableCategories = ALL_CATEGORIES.filter((cat) => posts.some((p) => p.category === cat))
 
   return (
@@ -190,7 +227,7 @@ export default function BlogPageClient({ posts }: { posts: BlogPost[] }) {
             </p>
 
             {/* Search */}
-            <div className="mx-auto mb-10 max-w-[520px]">
+            <div className="mx-auto mb-8 max-w-[520px]">
               <div className="flex items-center gap-3 rounded-full border border-border bg-white px-6 py-3">
                 <Search size={16} className="text-muted shrink-0" />
                 <input
@@ -203,52 +240,31 @@ export default function BlogPageClient({ posts }: { posts: BlogPost[] }) {
               </div>
             </div>
 
-            {/* Filtres — cards avec icônes */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+            {/* Filtres — cards horizontales */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 text-left">
               {/* Tous */}
-              {(function () {
-                const cfg = CATEGORY_CONFIG['all']
-                const Icon = cfg.icon
-                const isActive = activeCategory === 'all'
-                return (
-                  <button
-                    key="all"
-                    onClick={() => handleCategoryClick('all')}
-                    className={'flex flex-col items-center gap-2 rounded-xl border p-4 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm ' +
-                      (isActive ? 'border-brand bg-brand-light shadow-sm' : 'border-border bg-white')}
-                  >
-                    <Icon size={22} className={isActive ? 'text-brand' : 'text-muted'} />
-                    <span className={'text-[13px] font-semibold ' + (isActive ? 'text-brand' : 'text-foreground')}>
-                      {cfg.label}
-                    </span>
-                    <span className="text-[11px] text-muted">
-                      {posts.length} {posts.length > 1 ? 'articles' : 'article'}
-                    </span>
-                  </button>
-                )
-              })()}
-
+              <CategoryCard
+                catKey="all"
+                label={CATEGORY_CONFIG['all'].label}
+                icon={CATEGORY_CONFIG['all'].icon}
+                count={posts.length}
+                isActive={activeCategory === 'all'}
+                onClick={() => handleCategoryClick('all')}
+              />
               {/* Catégories */}
               {availableCategories.map(function (cat) {
                 const cfg = CATEGORY_CONFIG[cat]
-                const Icon = cfg.icon
                 const count = posts.filter((p) => p.category === cat).length
-                const isActive = activeCategory === cat
                 return (
-                  <button
+                  <CategoryCard
                     key={cat}
+                    catKey={cat}
+                    label={cfg.label}
+                    icon={cfg.icon}
+                    count={count}
+                    isActive={activeCategory === cat}
                     onClick={() => handleCategoryClick(cat)}
-                    className={'flex flex-col items-center gap-2 rounded-xl border p-4 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm ' +
-                      (isActive ? 'border-brand bg-brand-light shadow-sm' : 'border-border bg-white')}
-                  >
-                    <Icon size={22} className={isActive ? 'text-brand' : 'text-muted'} />
-                    <span className={'text-[13px] font-semibold ' + (isActive ? 'text-brand' : 'text-foreground')}>
-                      {cfg.label}
-                    </span>
-                    <span className="text-[11px] text-muted">
-                      {count} {count > 1 ? 'articles' : 'article'}
-                    </span>
-                  </button>
+                  />
                 )
               })}
             </div>

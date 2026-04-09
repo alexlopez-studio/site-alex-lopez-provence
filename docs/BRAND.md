@@ -1,20 +1,20 @@
 # Brand — Tokens UI
 
-## Couleurs IAD France (officielles)
+## Couleurs
 
-| Token CSS | Valeur | Nom IAD | Usage | Classe Tailwind |
-|-----------|--------|---------|-------|-----------------|
-| `--color-brand` | `#00B4EC` | Cerulean | Accent principal, CTAs, liens actifs | `bg-brand`, `text-brand` |
-| `--color-brand-hover` | `#0099CC` | Cerulean sombre | Hover boutons primaires | `hover:bg-brand-hover` |
-| `--color-brand-light` | `#E0F5FD` | Cerulean clair | Fonds teintés, badges, CTA final | `bg-brand-light` |
-| `--color-foreground` | `#0F172A` | — | Texte principal, titres | `text-foreground` |
-| `--color-muted` | `#64748B` | — | Texte secondaire | `text-muted` |
-| `--color-border` | `#E2E8F0` | — | Bordures, séparateurs | `border-border` |
-| `--color-surface` | `#F8FAFC` | — | Sections alternées, fonds de cards | `bg-surface` |
-| `--color-success` | `#10B981` | — | Tags "VENDU", badges positifs | `bg-success`, `text-success` |
-| `--color-error` | `#EF4444` | — | Messages d'erreur | `text-error` |
+| Token CSS | Valeur | Nom | Usage | Classe Tailwind |
+|-----------|--------|-----|-------|------------------|
+| `--color-brand` | `#0077B6` | Bleu Méditerranée | Accent principal, CTAs, liens actifs | `bg-brand`, `text-brand` |
+| `--color-brand-hover` | `#005F96` | Bleu profond | Hover boutons primaires | `hover:bg-brand-hover` |
+| `--color-brand-light` | `#E0F0FA` | Bleu clair | Fonds teintés, badges, CTA final | `bg-brand-light` |
+| `--color-foreground` | `#0F172A` | Anthracite | Texte principal, titres | `text-foreground` |
+| `--color-muted` | `#64748B` | Gris | Texte secondaire | `text-muted` |
+| `--color-border` | `#E2E8F0` | Gris clair | Bordures, séparateurs | `border-border` |
+| `--color-surface` | `#F8FAFC` | Off-white | Sections alternées, fonds de cards | `bg-surface` |
+| `--color-success` | `#10B981` | Vert | Tags "VENDU", badges positifs | `bg-success`, `text-success` |
+| `--color-error` | `#EF4444` | Rouge | Messages d'erreur | `text-error` |
 
-> **Note :** La couleur secondaire IAD (Danube `#6192D4`) peut être utilisée pour des éléments décoratifs ou des dégradés, mais pas comme couleur d'action principale.
+> **Note IAD** : La couleur `#0077B6` (Bleu Méditerranée) est une déclinaison premium du bleu IAD, plus profonde et adaptée au positionnement immobilier Provence Verte.
 
 ## Typographie
 
@@ -36,40 +36,15 @@
 
 | Variante | Style |
 |----------|-------|
-| `primary` | Fond `#00B4EC`, texte blanc, `rounded-full` |
+| `primary` | Fond `#0077B6`, texte blanc, `rounded-full` |
 | `secondary` | Fond `#0F172A`, texte blanc, `rounded-full` |
 | `outline` | Bordure `border-border`, fond blanc, `rounded-full` |
 | `ghost` | Transparent, texte foreground |
 
-## Composants clés
-
-### Cards
-```
-fond blanc, rounded-2xl, padding 28-32px
-bordure 1px solid #E2E8F0
-hover : shadow-md + -translate-y-0.5
-transition : 200ms ease
-```
-
-### Navbar
-```
-sticky fixed top-0 z-50
-défaut : bg-white, border-b transparent, py-5
-scrollé > 48px : bg-white/95 backdrop-blur-md, shadow-sm, border-b border-border, py-3
-transition : duration-300
-```
-
-### Sections
-```
-alternance bg-white / bg-surface (#F8FAFC)
-padding vertical : py-24 (96px)
-container : max-w-[75rem] mx-auto px-6
-```
-
 ## Règles importantes
 - Style : épuré, premium, moderne — mobile-first
 - Ne jamais utiliser le mot **"agence"** (mandataire)
-- CTAs : orientés action ("Estimer mon bien", "Lancer l'assistant", "Prendre RDV")
-- Téléphone **06 13 18 01 68** toujours en texte HTML pur (indexable)
+- CTAs : orientés action ("Estimer mon bien", "Prendre RDV")
+- Téléphone **06 13 18 01 68** toujours en texte HTML pur
 - Aucune section sombre — alternance blanc/surface uniquement
-- CTA final : fond `bg-brand-light` (#E0F5FD)
+- CTA final : fond `bg-brand-light` (#E0F0FA)
