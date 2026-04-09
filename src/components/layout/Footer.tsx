@@ -30,8 +30,8 @@ export function Footer() {
               </p>
             </div>
             <p className="text-sm text-muted leading-relaxed max-w-xs">
-              Mandataire immobilier IAD basé à Varages (83670).
-              Vente et achat en Haut-Var et Verdon.
+              Mandataire immobilier IAD en Provence Verte et Haut-Var.
+              Vente et achat immobilier dans le Var.
             </p>
           </div>
 
@@ -91,16 +91,10 @@ export function Footer() {
             IAD France SAS — 40 rue de Paradis, 75010 Paris
           </p>
           <div className="flex items-center gap-6 shrink-0">
-            <Link
-              href="/mentions-legales"
-              className="text-xs text-muted hover:text-foreground transition-colors"
-            >
+            <Link href="/mentions-legales" className="text-xs text-muted hover:text-foreground transition-colors">
               Mentions légales
             </Link>
-            <Link
-              href="/politique-confidentialite"
-              className="text-xs text-muted hover:text-foreground transition-colors"
-            >
+            <Link href="/politique-confidentialite" className="text-xs text-muted hover:text-foreground transition-colors">
               Confidentialité
             </Link>
           </div>
