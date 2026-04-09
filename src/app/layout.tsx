@@ -13,11 +13,11 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | Alex Lopez — Mandataire IAD Provence',
-    default: 'Alex Lopez — Mandataire IAD Provence | Vente & Achat Immobilier',
+    template: '%s | Alex Lopez — Mandataire IAD',
+    default: 'Alex Lopez — Mandataire IAD Haut-Var & Verdon',
   },
   description:
-    'Vendez ou achetez votre bien immobilier en Provence avec Alex Lopez, mandataire IAD. Estimation gratuite, accompagnement personnalisé, données DVF.',
+    'Mandataire immobilier IAD basé à Varages (83670). Estimation gratuite, vente et achat en Haut-Var et Verdon. Appelez le 06 13 18 01 68.',
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? 'https://alexlopez-provence.fr'
   ),
@@ -41,7 +41,8 @@ export default function RootLayout({
     <html lang="fr" className={inter.variable}>
       <body className="font-sans antialiased">
         <Header />
-        <main>{children}</main>
+        {/* pt-20 compense la navbar fixe (~80px) */}
+        <main className="pt-20">{children}</main>
         <Footer />
       </body>
     </html>
