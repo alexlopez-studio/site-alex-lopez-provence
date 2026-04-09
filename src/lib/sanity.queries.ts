@@ -1,4 +1,4 @@
-import { client } from './sanity.client'
+import { client, isSanityConfigured } from './sanity.client'
 import type { BlogPost } from '@/types/blog'
 
 const authorFields = `
@@ -56,6 +56,7 @@ function mapSanityToBlogPost(doc: any): BlogPost {
 }
 
 export async function getPublishedArticles(): Promise<BlogPost[]> {
+  if (!isSanityConfigured || !client) return []
   const articles = await client.fetch(
     `*[_type == "article" && status == "publie"] | order(publishedAt desc) { ${articleFields} }`,
     {},
@@ -65,6 +66,7 @@ export async function getPublishedArticles(): Promise<BlogPost[]> {
 }
 
 export async function getFeaturedArticles(limit = 3): Promise<BlogPost[]> {
+  if (!isSanityConfigured || !client) return []
   const articles = await client.fetch(
     `*[_type == "article" && status == "publie"] | order(publishedAt desc) [0...$limit] { ${articleFields} }`,
     { limit },
@@ -74,6 +76,7 @@ export async function getFeaturedArticles(limit = 3): Promise<BlogPost[]> {
 }
 
 export async function getArticleBySlug(slug: string): Promise<BlogPost | null> {
+  if (!isSanityConfigured || !client) return null
   const article = await client.fetch(
     `*[_type == "article" && slug.current == $slug && status == "publie"][0] { ${articleFields} }`,
     { slug },
@@ -84,6 +87,7 @@ export async function getArticleBySlug(slug: string): Promise<BlogPost | null> {
 }
 
 export async function getAllArticleSlugs(): Promise<string[]> {
+  if (!isSanityConfigured || !client) return []
   return client.fetch(
     `*[_type == "article" && status == "publie"].slug.current`,
     {},
@@ -92,7 +96,7 @@ export async function getAllArticleSlugs(): Promise<string[]> {
 }
 
 export async function getRelatedArticles(slugs: string[]): Promise<BlogPost[]> {
-  if (!slugs || slugs.length === 0) return []
+  if (!isSanityConfigured || !client || !slugs || slugs.length === 0) return []
   const articles = await client.fetch(
     `*[_type == "article" && status == "publie" && slug.current in $slugs] { ${articleFields} }`,
     { slugs },
