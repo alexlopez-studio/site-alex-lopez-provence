@@ -9,13 +9,13 @@ import {
   Star,
   ShieldCheck,
   Clock,
-  BarChart2,
-  Gift,
+  CheckCircle2,
   Lock,
   Users,
   ChevronDown,
   Send,
   Phone,
+  TrendingUp,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { appUrl, biensUrl, env } from '@/lib/env'
@@ -23,11 +23,11 @@ import { appUrl, biensUrl, env } from '@/lib/env'
 export const metadata: Metadata = {
   title: 'Mandataire Immobilier Provence Verte & Haut-Var — Alex Lopez IAD',
   description:
-    'Alex Lopez, mandataire IAD en Provence Verte et Haut-Var. Estimation gratuite, vente et achat immobilier — données DVF officielles + analyse des risques.',
+    'Alex Lopez, mandataire IAD en Provence Verte et Haut-Var. Estimation gratuite, vente et achat immobilier. Prix du marché local + accompagnement personnalisé.',
   openGraph: {
     title: 'Alex Lopez — Mandataire IAD Provence Verte & Haut-Var',
     description:
-      'Estimation gratuite, données DVF, analyse des risques. Réseau IAD — Barjols, Montmeyan, Quinson, Aups, Salernes, Rians.',
+      'Estimation gratuite, prix du marché local, accompagnement de A à Z. Réseau IAD — Barjols, Montmeyan, Quinson, Aups, Salernes, Rians.',
     url: env.siteUrl,
   },
 }
@@ -61,7 +61,7 @@ const FAQ_ITEMS = [
   {
     question: 'Combien coûte une estimation immobilière en Provence Verte et Haut-Var ?',
     answer:
-      "L'estimation est entièrement gratuite et sans engagement. Elle s'appuie sur les données DVF (Demandes de Valeurs Foncières) officielles et la connaissance terrain de la Provence Verte et du Haut-Var.",
+      "L'estimation est entièrement gratuite et sans engagement. Elle s'appuie sur les prix réels des ventes récentes dans votre secteur et la connaissance terrain de la Provence Verte et du Haut-Var.",
   },
   {
     question: 'Quelles communes couvrez-vous en Provence Verte et Haut-Var ?',
@@ -76,15 +76,15 @@ const FAQ_ITEMS = [
   {
     question: "Qu'est-ce que l'audit immobilier express ?",
     answer:
-      "C'est un outil gratuit qui analyse en 2–3 minutes les risques juridiques, techniques et environnementaux d'un bien. Il vous permet de négocier en toute connaissance de cause, que vous soyez vendeur ou acheteur en Provence Verte.",
+      "C'est un bilan gratuit de votre bien réalisé en quelques minutes. Il identifie les points de vigilance — légaux, techniques, environnementaux — pour que vous puissiez vendre ou acheter en toute connaissance de cause, sans mauvaise surprise.",
   },
 ]
 
 const USP_CHIPS = [
-  { icon: Gift, label: 'Estimation offerte' },
-  { icon: BarChart2, label: 'Données DVF officielles' },
-  { icon: ShieldCheck, label: 'Analyse des risques' },
-  { icon: Clock, label: '2–3 min chrono' },
+  { icon: CheckCircle2, label: 'Estimation gratuite' },
+  { icon: TrendingUp, label: 'Prix du marché local' },
+  { icon: ShieldCheck, label: 'Bilan complet du bien' },
+  { icon: Clock, label: 'Réponse sous 24h' },
   { icon: Lock, label: 'Sans engagement' },
 ]
 
@@ -93,7 +93,7 @@ const SERVICES = [
     icon: Home,
     title: 'Vendre votre bien',
     description:
-      "Estimation DVF, mise en valeur et commercialisation ciblée pour obtenir le juste prix en Provence Verte et Haut-Var, sans stress.",
+      "Je vous aide à fixer le bon prix, valoriser votre bien et trouver le bon acheteur — rapidement et sans stress.",
     cta: 'Estimer mon bien',
     href: '/vendre',
     external: false,
@@ -102,17 +102,17 @@ const SERVICES = [
     icon: Search,
     title: 'Acheter sereinement',
     description:
-      "Recherche personnalisée, négociation au juste prix et vérifications clés pour sécuriser votre acquisition en Provence Verte.",
+      "Je cherche pour vous, négocie à votre place et vérifie tous les points importants avant de signer.",
     cta: 'Décrire mon projet',
     href: '/acheter',
     external: false,
   },
   {
     icon: ClipboardCheck,
-    title: 'Audit immobilier express',
+    title: 'Bilan immobilier gratuit',
     description:
-      "Risques juridiques, techniques et environnementaux analysés en 2–3 minutes. Gratuit et sans engagement.",
-    cta: "Lancer l'audit",
+      "Avant de vendre ou d'acheter, je passe votre bien au crible pour éviter les mauvaises surprises.",
+    cta: 'Lancer le bilan',
     href: '/audit',
     external: false,
   },
@@ -181,13 +181,13 @@ const AVIS = [
     name: 'Pierre & Marion L.',
     transaction: 'ACHAT',
     note: 5,
-    text: "«L'assistant nous a permis de préparer la visite parfaitement. Alex connaît chaque commune de la Provence Verte — un vrai avantage pour trouver le bon bien.»",
+    text: "«Il connaît chaque commune de la Provence Verte. Grâce à lui, on a trouvé exactement ce qu'on cherchait, au bon prix et sans mauvaise surprise.»",
   },
   {
     name: 'Isabelle R.',
     transaction: 'VENTE',
     note: 5,
-    text: "«Présent, réactif, transparent. Exactement ce qu'on cherchait. Notre bien à Barjols a été vendu en moins d'un mois. Je recommande sans hésiter.»",
+    text: "«Présent, réactif, transparent. Notre bien à Barjols a été vendu en moins d'un mois. Je recommande sans hésiter.»",
   },
 ]
 
@@ -248,54 +248,97 @@ export default function HomePage() {
     <>
       <JsonLd data={jsonLd} />
 
-      {/* ===== HERO ===== */}
-      <section className="min-h-[92vh] flex flex-col items-center justify-center text-center px-6 pb-16 bg-white">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-6">
-          Mandataire IAD — Provence Verte &amp; Haut-Var
-        </p>
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-foreground leading-[1.1] tracking-tight max-w-3xl mb-6">
-          Vendez. Achetez.
-          <br />
-          <span className="text-brand">En toute confiance.</span>
-        </h1>
-        <p className="text-lg text-muted max-w-xl leading-relaxed mb-10">
-          Estimation gratuite ancrée dans les données réelles, analyse des risques,
-          accompagnement personnalisé en Provence Verte et Haut-Var.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-          <Button asChild size="lg" variant="primary">
-            <Link
-              href={assistantUrl}
-              target={assistantUrl.startsWith('http') ? '_blank' : undefined}
-              rel={assistantUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
-            >
-              Lancer l&apos;assistant <ArrowRight size={18} />
-            </Link>
-          </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link href={env.calcomUrl} target="_blank" rel="noopener noreferrer">
-              Prendre RDV
-            </Link>
-          </Button>
+      {/* ===== HERO — layout asymétrique (inspiré Secfi) ===== */}
+      <section className="min-h-[92vh] grid grid-cols-1 lg:grid-cols-[55%_45%]" aria-label="Hero">
+
+        {/* Colonne gauche — texte left-aligné */}
+        <div className="flex flex-col justify-center px-6 sm:px-10 lg:px-16 xl:px-20 py-20 lg:py-0 bg-white order-2 lg:order-1">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-5">
+            Mandataire IAD — Provence Verte &amp; Haut-Var
+          </p>
+          <h1 className="text-4xl sm:text-5xl xl:text-6xl font-extrabold text-foreground leading-[1.1] tracking-tight mb-6">
+            Vendez. Achetez.
+            <br />
+            <span className="text-brand">En toute confiance.</span>
+          </h1>
+          <p className="text-lg text-muted leading-relaxed mb-10 max-w-md">
+            Estimation gratuite, prix du marché local, accompagnement de A à Z
+            en Provence Verte et Haut-Var.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 mb-8">
+            <Button asChild size="lg" variant="primary">
+              <Link
+                href={assistantUrl}
+                target={assistantUrl.startsWith('http') ? '_blank' : undefined}
+                rel={assistantUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
+              >
+                Estimer mon bien <ArrowRight size={18} />
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link href={env.calcomUrl} target="_blank" rel="noopener noreferrer">
+                Prendre RDV
+              </Link>
+            </Button>
+          </div>
+          <a
+            href={'tel:' + PHONE_RAW}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-muted hover:text-brand transition-colors w-fit"
+          >
+            <Phone size={14} className="text-brand" />
+            {PHONE_DISPLAY}
+          </a>
         </div>
-        <a
-          href={'tel:' + PHONE_RAW}
-          className="inline-flex items-center gap-2 text-sm font-semibold text-muted hover:text-brand transition-colors"
-        >
-          <Phone size={14} className="text-brand" />
-          {PHONE_DISPLAY}
-        </a>
+
+        {/* Colonne droite — photo + carte flottante */}
+        <div className="relative bg-surface flex items-center justify-center overflow-hidden min-h-[50vh] lg:min-h-full order-1 lg:order-2">
+          {/* Photo placeholder */}
+          <div className="w-full h-full flex items-end justify-center px-8 pt-12 pb-0">
+            <div className="w-full max-w-sm aspect-[3/4] bg-border/30 rounded-t-[3rem] flex items-center justify-center">
+              <span className="text-muted text-sm">Photo Alex Lopez</span>
+            </div>
+          </div>
+
+          {/* Carte flottante — estimation */}
+          <div className="absolute bottom-8 left-6 lg:left-8 bg-white rounded-2xl shadow-xl p-5 w-64">
+            <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-1">
+              Estimation de votre bien
+            </p>
+            <p className="text-2xl font-extrabold text-foreground mb-0.5">
+              245 000 €
+            </p>
+            <p className="text-xs text-muted mb-3">
+              Basé sur 14 ventes récentes à Barjols
+            </p>
+            <div className="w-full bg-surface rounded-full h-1.5 mb-3">
+              <div className="bg-brand h-1.5 rounded-full w-3/4" />
+            </div>
+            <p className="text-xs text-brand font-semibold flex items-center gap-1">
+              <TrendingUp size={11} /> Marché stable · +2% sur 6 mois
+            </p>
+          </div>
+
+          {/* Badge confiance */}
+          <div className="absolute top-6 right-6 bg-white rounded-xl shadow-md px-3 py-2 flex items-center gap-2">
+            <div className="flex gap-0.5">
+              {[1,2,3,4,5].map(function (i) {
+                return <Star key={i} size={11} className="text-brand fill-brand" />
+              })}
+            </div>
+            <span className="text-xs font-semibold text-foreground">5/5</span>
+          </div>
+        </div>
       </section>
 
       {/* ===== USP CHIPS ===== */}
-      <section className="bg-surface py-8 px-6">
+      <section className="bg-white border-b border-border py-6 px-6">
         <div className="max-w-[75rem] mx-auto flex flex-wrap justify-center gap-3">
           {USP_CHIPS.map(function (chip) {
             const Icon = chip.icon
             return (
               <div
                 key={chip.label}
-                className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-border text-sm font-medium text-foreground shadow-sm"
+                className="flex items-center gap-2 px-4 py-2 bg-surface rounded-full border border-border text-sm font-medium text-foreground"
               >
                 <Icon size={15} className="text-brand" />
                 {chip.label}
@@ -315,7 +358,7 @@ export default function HomePage() {
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-4">
               Mon histoire
             </p>
-            <h2 className="text-3xl md:text-4xl font-black text-foreground mb-6 leading-tight">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-6 leading-tight">
               Un mandataire <span className="text-brand">ancré</span> en Provence Verte.
             </h2>
             <div className="space-y-4 text-muted leading-relaxed mb-8">
@@ -327,22 +370,21 @@ export default function HomePage() {
               </p>
               <p>
                 Ici, pas de discours commercial. Je connais chaque commune de ma zone, ses
-                spécificités de marché, ses atouts et ses contraintes. Mon rôle : vous
-                accompagner de l&apos;estimation à la signature, avec transparence et
-                réactivité.
+                prix réels, ses atouts et ses contraintes. Mon rôle : vous accompagner de
+                l&apos;estimation à la signature, avec transparence et réactivité.
               </p>
             </div>
             <div className="grid grid-cols-3 gap-6 mb-8 text-center">
               <div>
-                <p className="text-2xl font-black text-brand">100%</p>
+                <p className="text-2xl font-extrabold text-brand">100%</p>
                 <p className="text-xs text-muted mt-1">Accompagnement</p>
               </div>
               <div>
-                <p className="text-2xl font-black text-brand">0 €</p>
+                <p className="text-2xl font-extrabold text-brand">0 €</p>
                 <p className="text-xs text-muted mt-1">Frais cachés</p>
               </div>
               <div>
-                <p className="text-2xl font-black text-brand">7j/7</p>
+                <p className="text-2xl font-extrabold text-brand">7j/7</p>
                 <p className="text-xs text-muted mt-1">Disponible</p>
               </div>
             </div>
@@ -362,8 +404,8 @@ export default function HomePage() {
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">
               Mes services
             </p>
-            <h2 id="services-title" className="text-3xl md:text-4xl font-black text-foreground">
-              Vente, achat, audit :{' '}
+            <h2 id="services-title" className="text-3xl md:text-4xl font-extrabold text-foreground">
+              Vente, achat, bilan :{' '}
               <span className="text-brand">je vous accompagne.</span>
             </h2>
           </div>
@@ -382,7 +424,7 @@ export default function HomePage() {
                   <div className="w-12 h-12 rounded-xl bg-surface border border-border flex items-center justify-center mb-5">
                     <Icon size={22} className="text-brand" />
                   </div>
-                  <h3 className="text-xl font-black text-foreground mb-3">{service.title}</h3>
+                  <h3 className="text-xl font-bold text-foreground mb-3">{service.title}</h3>
                   <p className="text-sm text-muted leading-relaxed mb-5">{service.description}</p>
                   <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand group-hover:gap-2.5 transition-all">
                     {service.cta} <ArrowRight size={15} />
@@ -403,14 +445,14 @@ export default function HomePage() {
               Zone d&apos;intervention
             </p>
           </div>
-          <h2 id="zone-title" className="text-3xl md:text-4xl font-black text-foreground mb-4">
+          <h2 id="zone-title" className="text-3xl md:text-4xl font-extrabold text-foreground mb-4">
             Provence Verte &amp; Haut-Var,{' '}
             <span className="text-brand">ma Provence.</span>
           </h2>
           <p className="text-muted leading-relaxed mb-10 max-w-2xl mx-auto">
-            Implanté en Provence Verte et Haut-Var, j&apos;interviens sur l&apos;ensemble
-            des communes du territoire — de la plaine aux contreforts des Gorges du Verdon.
-            Un marché que je parcours quotidiennement, que je connais en profondeur.
+            J&apos;interviens sur l&apos;ensemble de la Provence Verte et du Haut-Var — de la
+            plaine aux contreforts des Gorges du Verdon. Un territoire que je parcours
+            quotidiennement et que je connais en profondeur.
           </p>
           <div className="flex flex-wrap justify-center gap-2 mb-8">
             {COMMUNES_TEASER.map(function (c) {
@@ -447,7 +489,7 @@ export default function HomePage() {
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">
               Biens disponibles
             </p>
-            <h2 id="biens-vente-title" className="text-3xl md:text-4xl font-black text-foreground">
+            <h2 id="biens-vente-title" className="text-3xl md:text-4xl font-extrabold text-foreground">
               Mes biens <span className="text-brand">actuellement en vente</span>
             </h2>
           </div>
@@ -465,7 +507,7 @@ export default function HomePage() {
                     </span>
                   </div>
                   <div className="p-5">
-                    <p className="font-black text-foreground text-lg mb-1">{bien.prix}</p>
+                    <p className="font-extrabold text-foreground text-lg mb-1">{bien.prix}</p>
                     <p className="font-semibold text-foreground text-sm mb-1">{bien.type}</p>
                     <p className="text-xs text-muted flex items-center gap-1 mb-3">
                       <MapPin size={11} /> {bien.commune}
@@ -499,7 +541,7 @@ export default function HomePage() {
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">
               Références
             </p>
-            <h2 id="vendus-title" className="text-3xl md:text-4xl font-black text-foreground">
+            <h2 id="vendus-title" className="text-3xl md:text-4xl font-extrabold text-foreground">
               Mes ventes <span className="text-brand">récentes</span>
             </h2>
             <p className="text-muted mt-3 max-w-xl mx-auto">
@@ -519,7 +561,7 @@ export default function HomePage() {
                   <div className="aspect-[4/3] bg-white rounded-xl flex items-center justify-center mb-4 border border-border">
                     <Home size={24} className="text-border" />
                   </div>
-                  <p className="font-black text-foreground text-sm">{bien.prix}</p>
+                  <p className="font-extrabold text-foreground text-sm">{bien.prix}</p>
                   <p className="text-xs text-foreground font-medium mt-0.5">{bien.type}</p>
                   <p className="text-xs text-muted flex items-center gap-1 mt-1">
                     <MapPin size={10} /> {bien.commune}
@@ -538,7 +580,7 @@ export default function HomePage() {
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">
               Témoignages
             </p>
-            <h2 id="avis-title" className="text-3xl md:text-4xl font-black text-foreground">
+            <h2 id="avis-title" className="text-3xl md:text-4xl font-extrabold text-foreground">
               Ils m&apos;ont <span className="text-brand">fait confiance</span>
             </h2>
           </div>
@@ -585,7 +627,7 @@ export default function HomePage() {
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">
               Questions fréquentes
             </p>
-            <h2 id="faq-title" className="text-3xl md:text-4xl font-black text-foreground">
+            <h2 id="faq-title" className="text-3xl md:text-4xl font-extrabold text-foreground">
               Ce qu&apos;on me <span className="text-brand">demande souvent</span>
             </h2>
           </div>
@@ -620,7 +662,7 @@ export default function HomePage() {
             </p>
             <h2
               id="contact-title"
-              className="text-3xl md:text-4xl font-black text-foreground mb-6 leading-tight"
+              className="text-3xl md:text-4xl font-extrabold text-foreground mb-6 leading-tight"
             >
               Un projet ?{' '}
               <span className="text-brand">Parlons-en.</span>
@@ -692,7 +734,7 @@ export default function HomePage() {
                 <option value="vendre">Vendre mon bien</option>
                 <option value="acheter">Acheter un bien</option>
                 <option value="estimation">Une estimation gratuite</option>
-                <option value="audit">Un audit immobilier</option>
+                <option value="bilan">Un bilan de mon bien</option>
                 <option value="autre">Autre</option>
               </select>
             </div>
@@ -719,18 +761,17 @@ export default function HomePage() {
       </section>
 
       {/* ===== CTA FINAL ===== */}
-      <section className="py-24 px-6 bg-brand-light" aria-label="Estimation assistant">
+      <section className="py-24 px-6 bg-brand-light" aria-label="Estimation">
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-4">
-            Estimation en 2–3 minutes
+            Gratuit · Sans engagement
           </p>
-          <h2 className="text-3xl md:text-4xl font-black text-foreground mb-4">
+          <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-4">
             Votre projet commence ici.
           </h2>
           <p className="text-muted mb-8 leading-relaxed">
-            L&apos;assistant analyse votre bien avec les données DVF officielles
-            en Provence Verte et Haut-Var et vous donne une estimation gratuite,
-            ancrée dans la réalité du marché local.
+            Obtenez une estimation précise de votre bien en quelques minutes,
+            basée sur les prix réels du marché en Provence Verte et Haut-Var.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" variant="primary">
@@ -739,7 +780,7 @@ export default function HomePage() {
                 target={assistantUrl.startsWith('http') ? '_blank' : undefined}
                 rel={assistantUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
               >
-                Lancer l&apos;assistant <ArrowRight size={18} />
+                Estimer mon bien <ArrowRight size={18} />
               </Link>
             </Button>
             <a
