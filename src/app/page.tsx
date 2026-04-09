@@ -15,6 +15,7 @@ import {
   Users,
   ChevronDown,
   Send,
+  Phone,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { appUrl, biensUrl, env } from '@/lib/env'
@@ -31,7 +32,7 @@ export const metadata: Metadata = {
   },
 }
 
-// ─── Helper ───────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function buildInnerHtml(data: object) {
   return { __html: JSON.stringify(data) }
@@ -47,6 +48,9 @@ function JsonLd({ data }: { data: object }) {
 }
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
+
+const PHONE_RAW = '+33613180168'
+const PHONE_DISPLAY = '06 13 18 01 68'
 
 const FAQ_ITEMS = [
   {
@@ -84,7 +88,6 @@ const USP_CHIPS = [
   { icon: Lock, label: 'Sans engagement' },
 ]
 
-// Services — grille 2×2, sans bullets
 const SERVICES = [
   {
     icon: Home,
@@ -201,6 +204,7 @@ function buildJsonLd(siteUrl: string) {
         description:
           'Mandataire immobilier IAD basé à Varages (83670), spécialisé en Haut-Var et Verdon.',
         url: siteUrl,
+        telephone: PHONE_RAW,
         areaServed: [
           'Varages', 'Barjols', 'Montmeyan', 'Quinson', 'Fox-Amphoux',
           'Tavernes', 'Rians', 'Aups', 'Salernes', 'Haut-Var', 'Verdon',
@@ -244,8 +248,8 @@ export default function HomePage() {
     <>
       <JsonLd data={jsonLd} />
 
-      {/* ===== HERO — travaillé en parallèle, placeholder conservé ===== */}
-      <section className="min-h-[92vh] flex flex-col items-center justify-center text-center px-4 pt-24 pb-16 bg-white">
+      {/* ===== HERO — placeholder ===== */}
+      <section className="min-h-[92vh] flex flex-col items-center justify-center text-center px-6 pb-16 bg-white">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-6">
           Mandataire IAD — Provence, Haut-Var, Verdon
         </p>
@@ -258,7 +262,7 @@ export default function HomePage() {
           Estimation gratuite ancrée dans les données réelles, analyse des risques,
           accompagnement personnalisé. Lancé en 2–3 minutes.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
           <Button asChild size="lg" variant="primary">
             <Link
               href={assistantUrl}
@@ -274,11 +278,18 @@ export default function HomePage() {
             </Link>
           </Button>
         </div>
+        <a
+          href={'tel:' + PHONE_RAW}
+          className="inline-flex items-center gap-2 text-sm font-semibold text-muted hover:text-brand transition-colors"
+        >
+          <Phone size={14} className="text-brand" />
+          {PHONE_DISPLAY}
+        </a>
       </section>
 
       {/* ===== USP CHIPS ===== */}
-      <section className="bg-surface py-8 px-4">
-        <div className="max-w-4xl mx-auto flex flex-wrap justify-center gap-3">
+      <section className="bg-surface py-8 px-6">
+        <div className="max-w-[75rem] mx-auto flex flex-wrap justify-center gap-3">
           {USP_CHIPS.map(function (chip) {
             const Icon = chip.icon
             return (
@@ -295,8 +306,8 @@ export default function HomePage() {
       </section>
 
       {/* ===== MON HISTOIRE ===== */}
-      <section className="py-20 px-4 bg-white" aria-label="Présentation Alex Lopez">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <section className="py-24 px-6 bg-white" aria-label="Présentation Alex Lopez">
+        <div className="max-w-[75rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
           <div className="relative rounded-2xl overflow-hidden bg-surface border border-border aspect-[4/5] flex items-center justify-center order-2 lg:order-1">
             <span className="text-muted text-sm">Photo Alex Lopez</span>
           </div>
@@ -317,8 +328,7 @@ export default function HomePage() {
               <p>
                 Ici, pas de discours commercial. Je connais chaque commune de ma zone, ses
                 spécificités de marché, ses atouts et ses contraintes. Mon rôle : vous
-                accompagner de l&apos;estimation à la signature, avec transparence et
-                réactivité.
+                accompagner de l&apos;estimation à la signature, avec transparence et réactivité.
               </p>
             </div>
             <div className="grid grid-cols-3 gap-6 mb-8 text-center">
@@ -345,8 +355,8 @@ export default function HomePage() {
       </section>
 
       {/* ===== MES SERVICES — grille 2x2 ===== */}
-      <section className="py-20 px-4 bg-surface" aria-labelledby="services-title">
-        <div className="max-w-6xl mx-auto">
+      <section className="py-24 px-6 bg-surface" aria-labelledby="services-title">
+        <div className="max-w-[75rem] mx-auto">
           <div className="text-center mb-14">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">
               Mes services
@@ -384,7 +394,7 @@ export default function HomePage() {
       </section>
 
       {/* ===== MA ZONE D'INTERVENTION ===== */}
-      <section className="py-20 px-4 bg-white" aria-labelledby="zone-title">
+      <section className="py-24 px-6 bg-white" aria-labelledby="zone-title">
         <div className="max-w-4xl mx-auto text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
             <MapPin size={18} className="text-brand" />
@@ -396,7 +406,7 @@ export default function HomePage() {
             Haut-Var &amp; Verdon,{' '}
             <span className="text-brand">ma Provence.</span>
           </h2>
-          <p className="text-muted leading-relaxed mb-8 max-w-2xl mx-auto">
+          <p className="text-muted leading-relaxed mb-10 max-w-2xl mx-auto">
             Basé à <strong>Varages (83670)</strong>, j&apos;interviens sur l&apos;ensemble du
             Haut-Var et des communes limitrophes des Alpes-de-Haute-Provence, jusqu&apos;aux
             Gorges du Verdon. Une zone que je parcours quotidiennement, que je connais en
@@ -431,8 +441,8 @@ export default function HomePage() {
       </section>
 
       {/* ===== MES BIENS EN VENTE ===== */}
-      <section className="py-20 px-4 bg-surface" aria-labelledby="biens-vente-title">
-        <div className="max-w-6xl mx-auto">
+      <section className="py-24 px-6 bg-surface" aria-labelledby="biens-vente-title">
+        <div className="max-w-[75rem] mx-auto">
           <div className="text-center mb-12">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">
               Biens disponibles
@@ -483,8 +493,8 @@ export default function HomePage() {
       </section>
 
       {/* ===== MES VENTES RÉCENTES ===== */}
-      <section className="py-20 px-4 bg-white" aria-labelledby="vendus-title">
-        <div className="max-w-6xl mx-auto">
+      <section className="py-24 px-6 bg-white" aria-labelledby="vendus-title">
+        <div className="max-w-[75rem] mx-auto">
           <div className="text-center mb-12">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">
               Références
@@ -492,9 +502,6 @@ export default function HomePage() {
             <h2 id="vendus-title" className="text-3xl md:text-4xl font-black text-foreground">
               Mes ventes <span className="text-brand">récentes</span>
             </h2>
-            <p className="text-muted mt-3 max-w-xl mx-auto">
-              Des propriétaires accompagnés dans le Haut-Var et le Verdon.
-            </p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {BIENS_VENDUS.map(function (bien) {
@@ -522,8 +529,8 @@ export default function HomePage() {
       </section>
 
       {/* ===== ILS M'ONT FAIT CONFIANCE ===== */}
-      <section className="py-20 px-4 bg-surface" aria-labelledby="avis-title">
-        <div className="max-w-6xl mx-auto">
+      <section className="py-24 px-6 bg-surface" aria-labelledby="avis-title">
+        <div className="max-w-[75rem] mx-auto">
           <div className="text-center mb-12">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">
               Témoignages
@@ -537,7 +544,7 @@ export default function HomePage() {
               return (
                 <div
                   key={avis.name}
-                  className="p-6 rounded-2xl border border-border bg-white flex flex-col"
+                  className="p-7 rounded-2xl border border-border bg-white flex flex-col"
                 >
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex gap-1">
@@ -545,7 +552,7 @@ export default function HomePage() {
                         return <Star key={i} size={14} className="text-brand fill-brand" />
                       })}
                     </div>
-                    <span className="text-xs font-bold text-brand bg-blue-50 px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-bold text-brand bg-brand-light px-2 py-0.5 rounded-full">
                       {avis.transaction}
                     </span>
                   </div>
@@ -569,7 +576,7 @@ export default function HomePage() {
       </section>
 
       {/* ===== FAQ ===== */}
-      <section className="py-20 px-4 bg-white" aria-labelledby="faq-title">
+      <section className="py-24 px-6 bg-white" aria-labelledby="faq-title">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">
@@ -579,7 +586,7 @@ export default function HomePage() {
               Ce qu&apos;on me <span className="text-brand">demande souvent</span>
             </h2>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {FAQ_ITEMS.map(function (item) {
               return (
                 <details
@@ -602,10 +609,9 @@ export default function HomePage() {
       </section>
 
       {/* ===== CONTACT INLINE ===== */}
-      <section className="py-20 px-4 bg-surface" aria-labelledby="contact-title">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-          {/* Left — texte */}
-          <div className="lg:pt-4">
+      <section className="py-24 px-6 bg-surface" aria-labelledby="contact-title">
+        <div className="max-w-[75rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-14 items-start">
+          <div className="lg:pt-2">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-4">
               Me contacter
             </p>
@@ -617,26 +623,28 @@ export default function HomePage() {
               <span className="text-brand">Parlons-en.</span>
             </h2>
             <p className="text-muted leading-relaxed mb-8">
-              Que vous souhaitiez vendre, acheter, ou simplement avoir une estimation de votre
-              bien, je vous réponds sous 24h. Sans engagement, sans pression.
+              Que vous souhaitiez vendre, acheter, ou simplement avoir une estimation
+              de votre bien, je vous réponds sous 24h. Sans engagement, sans pression.
             </p>
             <div className="space-y-4">
-              <div className="flex items-center gap-3 text-sm text-foreground">
-                <div className="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center shrink-0">
-                  <MapPin size={14} className="text-brand" />
+              <a
+                href={'tel:' + PHONE_RAW}
+                className="flex items-center gap-3 text-sm font-semibold text-foreground hover:text-brand transition-colors"
+              >
+                <div className="w-9 h-9 rounded-full bg-brand-light flex items-center justify-center shrink-0">
+                  <Phone size={15} className="text-brand" />
+                </div>
+                {PHONE_DISPLAY} — Disponible 7j/7
+              </a>
+              <div className="flex items-center gap-3 text-sm text-muted">
+                <div className="w-9 h-9 rounded-full bg-brand-light flex items-center justify-center shrink-0">
+                  <MapPin size={15} className="text-brand" />
                 </div>
                 Varages (83670) — Haut-Var &amp; Verdon
-              </div>
-              <div className="flex items-center gap-3 text-sm text-foreground">
-                <div className="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center shrink-0">
-                  <Clock size={14} className="text-brand" />
-                </div>
-                Disponible 7j/7 — Réponse sous 24h
               </div>
             </div>
           </div>
 
-          {/* Right — formulaire */}
           <form
             action="/contact"
             method="GET"
@@ -719,28 +727,37 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== CTA FINAL ===== */}
-      <section className="py-20 px-4 bg-foreground" aria-label="Assistant">
+      {/* ===== CTA FINAL — light ===== */}
+      <section className="py-24 px-6 bg-brand-light" aria-label="Estimation assistant">
         <div className="max-w-2xl mx-auto text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/50 mb-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-4">
             Estimation en 2–3 minutes
           </p>
-          <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
+          <h2 className="text-3xl md:text-4xl font-black text-foreground mb-4">
             Votre projet commence ici.
           </h2>
-          <p className="text-white/60 mb-8 leading-relaxed">
+          <p className="text-muted mb-8 leading-relaxed">
             L&apos;assistant analyse votre bien avec les données DVF officielles et vous donne
             une estimation gratuite, ancrée dans la réalité du marché Haut-Var.
           </p>
-          <Button asChild size="lg" variant="primary">
-            <Link
-              href={assistantUrl}
-              target={assistantUrl.startsWith('http') ? '_blank' : undefined}
-              rel={assistantUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild size="lg" variant="primary">
+              <Link
+                href={assistantUrl}
+                target={assistantUrl.startsWith('http') ? '_blank' : undefined}
+                rel={assistantUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
+              >
+                Lancer l&apos;assistant <ArrowRight size={18} />
+              </Link>
+            </Button>
+            <a
+              href={'tel:' + PHONE_RAW}
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-border bg-white text-sm font-semibold text-foreground hover:border-brand hover:text-brand transition-colors"
             >
-              Lancer l&apos;assistant <ArrowRight size={18} />
-            </Link>
-          </Button>
+              <Phone size={15} />
+              {PHONE_DISPLAY}
+            </a>
+          </div>
         </div>
       </section>
     </>
