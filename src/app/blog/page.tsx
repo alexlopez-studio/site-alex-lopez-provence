@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { getPublishedArticles } from '@/lib/sanity.queries'
 import BlogPageClient from '@/components/blog/BlogPageClient'
 
+// Sanity project: x2wprhnd — Alex Lopez Provence
 export const revalidate = 3600
 
 export const metadata: Metadata = {
