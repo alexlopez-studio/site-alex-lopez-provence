@@ -17,6 +17,7 @@ export type BlogCategory =
   | 'marche-local'
   | 'droits-demarches'
   | 'temoignages'
+  | 'vie-provence-verte'
 
 export interface BlogPost {
   slug: string

@@ -20,6 +20,7 @@ export const article = defineType({
           { title: 'Marché local', value: 'marche-local' },
           { title: 'Droits & démarches', value: 'droits-demarches' },
           { title: 'Témoignages', value: 'temoignages' },
+          { title: 'Vie en Provence Verte & Haut-Var', value: 'vie-provence-verte' },
         ],
       },
       validation: (Rule) => Rule.required(),

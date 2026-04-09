@@ -3,10 +3,31 @@
 import { useState, useMemo, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, Search } from 'lucide-react'
+import {
+  ArrowRight,
+  Home,
+  Search,
+  BarChart2,
+  FileText,
+  Star,
+  TreePine,
+  LayoutGrid,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { BlogPost, BlogCategory } from '@/types/blog'
 import { getCategoryLabel, formatDate } from '@/lib/blog-utils'
+
+// ─── Config catégories ───────────────────────────────────────────────────────
+
+const CATEGORY_CONFIG: Record<BlogCategory | 'all', { label: string; icon: React.ElementType }> = {
+  all: { label: 'Tous', icon: LayoutGrid },
+  'conseils-vendeurs': { label: 'Conseils vendeurs', icon: Home },
+  'conseils-acheteurs': { label: 'Conseils acheteurs', icon: Search },
+  'marche-local': { label: 'Marché local', icon: BarChart2 },
+  'droits-demarches': { label: 'Droits & démarches', icon: FileText },
+  temoignages: { label: 'Témoignages', icon: Star },
+  'vie-provence-verte': { label: 'Vie en Provence Verte', icon: TreePine },
+}
 
 const ALL_CATEGORIES: BlogCategory[] = [
   'conseils-vendeurs',
@@ -14,11 +35,15 @@ const ALL_CATEGORIES: BlogCategory[] = [
   'marche-local',
   'droits-demarches',
   'temoignages',
+  'vie-provence-verte',
 ]
 
 // ─── Article Card ─────────────────────────────────────────────────────────────
 
 function ArticleCard({ post }: { post: BlogPost }) {
+  const cfg = CATEGORY_CONFIG[post.category] || CATEGORY_CONFIG['all']
+  const CatIcon = cfg.icon
+
   return (
     <Link
       href={'/blog/' + post.slug}
@@ -36,14 +61,13 @@ function ArticleCard({ post }: { post: BlogPost }) {
         </div>
       ) : (
         <div className="h-[160px] bg-brand-light flex items-center justify-center">
-          <span className="text-xs font-semibold uppercase tracking-widest text-brand">
-            {getCategoryLabel(post.category)}
-          </span>
+          <CatIcon size={32} className="text-brand opacity-40" />
         </div>
       )}
       <div className="flex flex-1 flex-col p-6">
-        <span className="mb-3 inline-block w-fit rounded-full bg-brand-light px-3 py-1 text-[11px] font-bold uppercase tracking-[0.04em] text-brand">
-          {getCategoryLabel(post.category)}
+        <span className="mb-3 inline-flex items-center gap-1.5 w-fit rounded-full bg-brand-light px-3 py-1 text-[11px] font-bold uppercase tracking-[0.04em] text-brand">
+          <CatIcon size={11} />
+          {cfg.label}
         </span>
         <h3 className="mb-3 text-[16px] font-bold leading-[1.3] text-foreground group-hover:text-brand transition-colors">
           {post.title}
@@ -63,6 +87,9 @@ function ArticleCard({ post }: { post: BlogPost }) {
 // ─── Featured ─────────────────────────────────────────────────────────────────
 
 function FeaturedArticle({ post }: { post: BlogPost }) {
+  const cfg = CATEGORY_CONFIG[post.category] || CATEGORY_CONFIG['all']
+  const CatIcon = cfg.icon
+
   return (
     <section className="bg-white py-16">
       <div className="max-w-[75rem] mx-auto px-6">
@@ -79,12 +106,13 @@ function FeaturedArticle({ post }: { post: BlogPost }) {
             </div>
           ) : (
             <div className="flex min-h-[320px] items-center justify-center bg-brand-light">
-              <span className="text-sm font-semibold text-brand">{getCategoryLabel(post.category)}</span>
+              <CatIcon size={48} className="text-brand opacity-30" />
             </div>
           )}
           <div className="flex flex-col justify-center p-8 md:p-12">
-            <span className="mb-4 inline-block w-fit rounded-full bg-brand-light px-3 py-1 text-[11px] font-bold uppercase tracking-[0.04em] text-brand">
-              {getCategoryLabel(post.category)}
+            <span className="mb-4 inline-flex items-center gap-1.5 w-fit rounded-full bg-brand-light px-3 py-1 text-[11px] font-bold uppercase tracking-[0.04em] text-brand">
+              <CatIcon size={11} />
+              {cfg.label}
             </span>
             <h2 className="mb-4 text-[clamp(22px,3vw,32px)] font-bold leading-[1.3] text-foreground">
               {post.title}
@@ -139,6 +167,9 @@ export default function BlogPageClient({ posts }: { posts: BlogPost[] }) {
 
   const calUrl = process.env.NEXT_PUBLIC_CALCOM_URL || 'https://cal.com/alex-lopez/consultation-gratuite'
 
+  // Catégories avec au moins 1 article
+  const availableCategories = ALL_CATEGORIES.filter((cat) => posts.some((p) => p.category === cat))
+
   return (
     <>
       {/* Hero blog */}
@@ -159,8 +190,9 @@ export default function BlogPageClient({ posts }: { posts: BlogPost[] }) {
             </p>
 
             {/* Search */}
-            <div className="mx-auto mb-8 max-w-[520px]">
+            <div className="mx-auto mb-10 max-w-[520px]">
               <div className="flex items-center gap-3 rounded-full border border-border bg-white px-6 py-3">
+                <Search size={16} className="text-muted shrink-0" />
                 <input
                   type="text"
                   value={searchQuery}
@@ -168,30 +200,54 @@ export default function BlogPageClient({ posts }: { posts: BlogPost[] }) {
                   placeholder="Rechercher un article..."
                   className="flex-1 bg-transparent text-[14px] text-foreground outline-none placeholder:text-muted/50"
                 />
-                <Search size={18} className="text-muted shrink-0" />
               </div>
             </div>
 
-            {/* Filtres catégories */}
-            <div className="flex flex-wrap justify-center gap-2">
-              <button
-                onClick={() => handleCategoryClick('all')}
-                className={'px-4 py-2 rounded-full text-sm font-semibold transition-colors ' +
-                  (activeCategory === 'all' ? 'bg-brand text-white' : 'bg-white border border-border text-foreground hover:border-brand hover:text-brand')}
-              >
-                Tous ({posts.length})
-              </button>
-              {ALL_CATEGORIES.map((cat) => {
+            {/* Filtres — cards avec icônes */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+              {/* Tous */}
+              {(function () {
+                const cfg = CATEGORY_CONFIG['all']
+                const Icon = cfg.icon
+                const isActive = activeCategory === 'all'
+                return (
+                  <button
+                    key="all"
+                    onClick={() => handleCategoryClick('all')}
+                    className={'flex flex-col items-center gap-2 rounded-xl border p-4 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm ' +
+                      (isActive ? 'border-brand bg-brand-light shadow-sm' : 'border-border bg-white')}
+                  >
+                    <Icon size={22} className={isActive ? 'text-brand' : 'text-muted'} />
+                    <span className={'text-[13px] font-semibold ' + (isActive ? 'text-brand' : 'text-foreground')}>
+                      {cfg.label}
+                    </span>
+                    <span className="text-[11px] text-muted">
+                      {posts.length} {posts.length > 1 ? 'articles' : 'article'}
+                    </span>
+                  </button>
+                )
+              })()}
+
+              {/* Catégories */}
+              {availableCategories.map(function (cat) {
+                const cfg = CATEGORY_CONFIG[cat]
+                const Icon = cfg.icon
                 const count = posts.filter((p) => p.category === cat).length
-                if (count === 0) return null
+                const isActive = activeCategory === cat
                 return (
                   <button
                     key={cat}
                     onClick={() => handleCategoryClick(cat)}
-                    className={'px-4 py-2 rounded-full text-sm font-semibold transition-colors ' +
-                      (activeCategory === cat ? 'bg-brand text-white' : 'bg-white border border-border text-foreground hover:border-brand hover:text-brand')}
+                    className={'flex flex-col items-center gap-2 rounded-xl border p-4 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm ' +
+                      (isActive ? 'border-brand bg-brand-light shadow-sm' : 'border-border bg-white')}
                   >
-                    {getCategoryLabel(cat)} ({count})
+                    <Icon size={22} className={isActive ? 'text-brand' : 'text-muted'} />
+                    <span className={'text-[13px] font-semibold ' + (isActive ? 'text-brand' : 'text-foreground')}>
+                      {cfg.label}
+                    </span>
+                    <span className="text-[11px] text-muted">
+                      {count} {count > 1 ? 'articles' : 'article'}
+                    </span>
                   </button>
                 )
               })}
@@ -208,7 +264,9 @@ export default function BlogPageClient({ posts }: { posts: BlogPost[] }) {
         <div className="max-w-[75rem] mx-auto px-6">
           <div className="mb-12 text-center">
             <h2 className="text-[clamp(28px,4vw,44px)] font-extrabold text-foreground">
-              {activeCategory === 'all' ? 'Nos articles' : getCategoryLabel(activeCategory as BlogCategory)}
+              {activeCategory === 'all'
+                ? 'Tous les articles'
+                : CATEGORY_CONFIG[activeCategory as BlogCategory]?.label || activeCategory}
             </h2>
             <p className="mx-auto mt-4 max-w-[520px] text-[15px] text-muted">
               {filteredPosts.length} {filteredPosts.length > 1 ? 'articles disponibles' : 'article disponible'}

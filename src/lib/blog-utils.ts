@@ -21,6 +21,7 @@ const categoryLabels: Record<string, string> = {
   'marche-local': 'MARCHÉ LOCAL',
   'droits-demarches': 'DROITS & DÉMARCHES',
   temoignages: 'TÉMOIGNAGES',
+  'vie-provence-verte': 'VIE EN PROVENCE VERTE',
 }
 
 export function getCategoryLabel(category: BlogCategory | string): string {
