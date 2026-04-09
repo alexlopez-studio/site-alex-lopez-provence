@@ -21,13 +21,13 @@ import { Button } from '@/components/ui/button'
 import { appUrl, biensUrl, env } from '@/lib/env'
 
 export const metadata: Metadata = {
-  title: 'Mandataire Immobilier Haut-Var & Verdon — Alex Lopez IAD',
+  title: 'Mandataire Immobilier Provence Verte & Haut-Var — Alex Lopez IAD',
   description:
-    'Alex Lopez, mandataire IAD basé à Varages (83670). Estimation gratuite, vente et achat immobilier en Haut-Var et Verdon. Données DVF + analyse des risques.',
+    'Alex Lopez, mandataire IAD en Provence Verte et Haut-Var. Estimation gratuite, vente et achat immobilier — données DVF officielles + analyse des risques.',
   openGraph: {
-    title: 'Alex Lopez — Mandataire IAD Haut-Var & Verdon',
+    title: 'Alex Lopez — Mandataire IAD Provence Verte & Haut-Var',
     description:
-      'Estimation gratuite, données DVF, analyse des risques. Réseau IAD — Varages, Barjols, Montmeyan, Quinson, Aups, Salernes.',
+      'Estimation gratuite, données DVF, analyse des risques. Réseau IAD — Barjols, Montmeyan, Quinson, Aups, Salernes, Rians.',
     url: env.siteUrl,
   },
 }
@@ -59,24 +59,24 @@ const FAQ_ITEMS = [
       "Un mandataire immobilier est un professionnel indépendant rattaché à un réseau (ici IAD France). Il propose les mêmes services qu'une agence (estimation, vente, achat) mais avec des honoraires souvent inférieurs, car il n'a pas de local commercial à entretenir.",
   },
   {
-    question: 'Combien coûte une estimation immobilière dans le Haut-Var ?',
+    question: 'Combien coûte une estimation immobilière en Provence Verte et Haut-Var ?',
     answer:
-      "L'estimation est entièrement gratuite et sans engagement. Elle s'appuie sur les données DVF (Demandes de Valeurs Foncières) officielles et la connaissance terrain du Haut-Var et du Verdon.",
+      "L'estimation est entièrement gratuite et sans engagement. Elle s'appuie sur les données DVF (Demandes de Valeurs Foncières) officielles et la connaissance terrain de la Provence Verte et du Haut-Var.",
   },
   {
-    question: 'Quelles communes couvrez-vous en Provence ?',
+    question: 'Quelles communes couvrez-vous en Provence Verte et Haut-Var ?',
     answer:
-      "J'interviens principalement sur le Haut-Var et les communes limitrophes des Alpes-de-Haute-Provence : Varages, Barjols, Montmeyan, Quinson, Fox-Amphoux, Tavernes, Rians, Aups, Salernes, Ginasservis, et tout le périmètre des Gorges du Verdon.",
+      "J'interviens sur l'ensemble de la Provence Verte et du Haut-Var : Barjols, Montmeyan, Quinson, Fox-Amphoux, Tavernes, Rians, Aups, Salernes, Ginasservis, Varages, Esparron-de-Verdon, Artignosc-sur-Verdon et toutes les communes limitrophes.",
   },
   {
-    question: 'Combien de temps faut-il pour vendre un bien dans le Haut-Var ?',
+    question: 'Combien de temps faut-il pour vendre un bien en Provence Verte ?',
     answer:
-      'Le délai moyen de vente dépend du bien et de son positionnement prix. Avec une estimation juste et une stratégie de diffusion adaptée, la majorité des biens trouvent preneur en 4 à 12 semaines.',
+      'Le délai moyen de vente dépend du bien et de son positionnement prix. Avec une estimation juste et une stratégie de diffusion adaptée, la majorité des biens en Provence Verte et Haut-Var trouvent preneur en 4 à 12 semaines.',
   },
   {
     question: "Qu'est-ce que l'audit immobilier express ?",
     answer:
-      "C'est un outil gratuit qui analyse en 2–3 minutes les risques juridiques, techniques et environnementaux d'un bien. Il vous permet de négocier en toute connaissance de cause, que vous soyez vendeur ou acheteur.",
+      "C'est un outil gratuit qui analyse en 2–3 minutes les risques juridiques, techniques et environnementaux d'un bien. Il vous permet de négocier en toute connaissance de cause, que vous soyez vendeur ou acheteur en Provence Verte.",
   },
 ]
 
@@ -93,7 +93,7 @@ const SERVICES = [
     icon: Home,
     title: 'Vendre votre bien',
     description:
-      "Estimation DVF, mise en valeur et commercialisation ciblée pour obtenir le juste prix, sans stress.",
+      "Estimation DVF, mise en valeur et commercialisation ciblée pour obtenir le juste prix en Provence Verte et Haut-Var, sans stress.",
     cta: 'Estimer mon bien',
     href: '/vendre',
     external: false,
@@ -102,7 +102,7 @@ const SERVICES = [
     icon: Search,
     title: 'Acheter sereinement',
     description:
-      "Recherche personnalisée, négociation au juste prix et vérifications clés pour sécuriser votre acquisition.",
+      "Recherche personnalisée, négociation au juste prix et vérifications clés pour sécuriser votre acquisition en Provence Verte.",
     cta: 'Décrire mon projet',
     href: '/acheter',
     external: false,
@@ -128,9 +128,9 @@ const SERVICES = [
 ]
 
 const COMMUNES_TEASER = [
-  'Varages', 'Barjols', 'Montmeyan', 'Quinson', 'Fox-Amphoux',
-  'Tavernes', 'Rians', 'Aups', 'Salernes',
-  'Ginasservis', 'Esparron-de-Verdon', 'Artignosc-sur-Verdon',
+  'Barjols', 'Montmeyan', 'Quinson', 'Fox-Amphoux', 'Tavernes',
+  'Rians', 'Aups', 'Salernes', 'Ginasservis',
+  'Varages', 'Esparron-de-Verdon', 'Artignosc-sur-Verdon',
 ]
 
 const BIENS_VENTE = [
@@ -147,7 +147,7 @@ const BIENS_VENTE = [
     tag: 'NOUVEAU',
     tagColor: 'bg-success text-white',
     type: 'Bastide provençale',
-    commune: 'Varages (83670)',
+    commune: 'Rians (83560)',
     prix: '385 000 €',
     surface: '180 m²',
     pieces: '6 pièces',
@@ -164,10 +164,10 @@ const BIENS_VENTE = [
 ]
 
 const BIENS_VENDUS = [
-  { type: 'Maison de caractère', commune: 'Varages', prix: '265 000 €' },
-  { type: 'Mas provençal', commune: 'Barjols', prix: '420 000 €' },
+  { type: 'Maison de caractère', commune: 'Barjols', prix: '265 000 €' },
+  { type: 'Mas provençal', commune: 'Aups', prix: '420 000 €' },
   { type: 'Villa avec piscine', commune: 'Rians', prix: '345 000 €' },
-  { type: 'Maison de village', commune: 'Aups', prix: '185 000 €' },
+  { type: 'Maison de village', commune: 'Salernes', prix: '185 000 €' },
 ]
 
 const AVIS = [
@@ -181,7 +181,7 @@ const AVIS = [
     name: 'Pierre & Marion L.',
     transaction: 'ACHAT',
     note: 5,
-    text: "«L'assistant nous a permis de préparer la visite parfaitement. Alex connaît chaque commune du Haut-Var — un vrai avantage pour trouver le bon bien au bon prix.»",
+    text: "«L'assistant nous a permis de préparer la visite parfaitement. Alex connaît chaque commune de la Provence Verte — un vrai avantage pour trouver le bon bien.»",
   },
   {
     name: 'Isabelle R.',
@@ -202,18 +202,18 @@ function buildJsonLd(siteUrl: string) {
         '@id': siteUrl + '/#business',
         name: 'Alex Lopez — Mandataire Immobilier IAD',
         description:
-          'Mandataire immobilier IAD basé à Varages (83670), spécialisé en Haut-Var et Verdon.',
+          'Mandataire immobilier IAD en Provence Verte et Haut-Var. Estimation gratuite, vente et achat immobilier.',
         url: siteUrl,
         telephone: PHONE_RAW,
         areaServed: [
-          'Varages', 'Barjols', 'Montmeyan', 'Quinson', 'Fox-Amphoux',
-          'Tavernes', 'Rians', 'Aups', 'Salernes', 'Haut-Var', 'Verdon',
+          'Provence Verte', 'Haut-Var',
+          'Barjols', 'Montmeyan', 'Quinson', 'Fox-Amphoux',
+          'Tavernes', 'Rians', 'Aups', 'Salernes', 'Ginasservis',
+          'Varages', 'Esparron-de-Verdon',
         ],
         address: {
           '@type': 'PostalAddress',
-          addressLocality: 'Varages',
-          postalCode: '83670',
-          addressRegion: "Provence-Alpes-Côte d'Azur",
+          addressRegion: 'Var',
           addressCountry: 'FR',
         },
         aggregateRating: {
@@ -248,10 +248,10 @@ export default function HomePage() {
     <>
       <JsonLd data={jsonLd} />
 
-      {/* ===== HERO — placeholder ===== */}
+      {/* ===== HERO ===== */}
       <section className="min-h-[92vh] flex flex-col items-center justify-center text-center px-6 pb-16 bg-white">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-6">
-          Mandataire IAD — Provence, Haut-Var, Verdon
+          Mandataire IAD — Provence Verte &amp; Haut-Var
         </p>
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-foreground leading-[1.1] tracking-tight max-w-3xl mb-6">
           Vendez. Achetez.
@@ -260,7 +260,7 @@ export default function HomePage() {
         </h1>
         <p className="text-lg text-muted max-w-xl leading-relaxed mb-10">
           Estimation gratuite ancrée dans les données réelles, analyse des risques,
-          accompagnement personnalisé. Lancé en 2–3 minutes.
+          accompagnement personnalisé en Provence Verte et Haut-Var.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
           <Button asChild size="lg" variant="primary">
@@ -316,19 +316,20 @@ export default function HomePage() {
               Mon histoire
             </p>
             <h2 className="text-3xl md:text-4xl font-black text-foreground mb-6 leading-tight">
-              Un mandataire <span className="text-brand">ancré</span> dans sa Provence.
+              Un mandataire <span className="text-brand">ancré</span> en Provence Verte.
             </h2>
             <div className="space-y-4 text-muted leading-relaxed mb-8">
               <p>
-                Je suis Alex Lopez, mandataire immobilier IAD basé à Varages, au cœur du
-                Haut-Var. Après une carrière en stratégie et organisation, j&apos;ai choisi
-                l&apos;immobilier pour une raison simple : c&apos;est un métier de lien, de
-                confiance et d&apos;utilité concrète.
+                Je suis Alex Lopez, mandataire immobilier IAD implanté en Provence Verte
+                et Haut-Var. Après une carrière en stratégie et organisation, j&apos;ai
+                choisi l&apos;immobilier pour une raison simple : c&apos;est un métier de
+                lien, de confiance et d&apos;utilité concrète.
               </p>
               <p>
                 Ici, pas de discours commercial. Je connais chaque commune de ma zone, ses
                 spécificités de marché, ses atouts et ses contraintes. Mon rôle : vous
-                accompagner de l&apos;estimation à la signature, avec transparence et réactivité.
+                accompagner de l&apos;estimation à la signature, avec transparence et
+                réactivité.
               </p>
             </div>
             <div className="grid grid-cols-3 gap-6 mb-8 text-center">
@@ -403,14 +404,13 @@ export default function HomePage() {
             </p>
           </div>
           <h2 id="zone-title" className="text-3xl md:text-4xl font-black text-foreground mb-4">
-            Haut-Var &amp; Verdon,{' '}
+            Provence Verte &amp; Haut-Var,{' '}
             <span className="text-brand">ma Provence.</span>
           </h2>
           <p className="text-muted leading-relaxed mb-10 max-w-2xl mx-auto">
-            Basé à <strong>Varages (83670)</strong>, j&apos;interviens sur l&apos;ensemble du
-            Haut-Var et des communes limitrophes des Alpes-de-Haute-Provence, jusqu&apos;aux
-            Gorges du Verdon. Une zone que je parcours quotidiennement, que je connais en
-            profondeur.
+            Implanté en Provence Verte et Haut-Var, j&apos;interviens sur l&apos;ensemble
+            des communes du territoire — de la plaine aux contreforts des Gorges du Verdon.
+            Un marché que je parcours quotidiennement, que je connais en profondeur.
           </p>
           <div className="flex flex-wrap justify-center gap-2 mb-8">
             {COMMUNES_TEASER.map(function (c) {
@@ -502,6 +502,9 @@ export default function HomePage() {
             <h2 id="vendus-title" className="text-3xl md:text-4xl font-black text-foreground">
               Mes ventes <span className="text-brand">récentes</span>
             </h2>
+            <p className="text-muted mt-3 max-w-xl mx-auto">
+              Des propriétaires accompagnés en Provence Verte et Haut-Var.
+            </p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {BIENS_VENDUS.map(function (bien) {
@@ -623,8 +626,8 @@ export default function HomePage() {
               <span className="text-brand">Parlons-en.</span>
             </h2>
             <p className="text-muted leading-relaxed mb-8">
-              Que vous souhaitiez vendre, acheter, ou simplement avoir une estimation
-              de votre bien, je vous réponds sous 24h. Sans engagement, sans pression.
+              Que vous souhaitiez vendre ou acheter en Provence Verte et Haut-Var,
+              je vous réponds sous 24h. Sans engagement, sans pression.
             </p>
             <div className="space-y-4">
               <a
@@ -640,7 +643,7 @@ export default function HomePage() {
                 <div className="w-9 h-9 rounded-full bg-brand-light flex items-center justify-center shrink-0">
                   <MapPin size={15} className="text-brand" />
                 </div>
-                Varages (83670) — Haut-Var &amp; Verdon
+                Provence Verte &amp; Haut-Var (Var, 83)
               </div>
             </div>
           </div>
@@ -652,10 +655,7 @@ export default function HomePage() {
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label
-                  htmlFor="contact-prenom"
-                  className="block text-xs font-semibold text-foreground mb-2 uppercase tracking-wide"
-                >
+                <label htmlFor="contact-prenom" className="block text-xs font-semibold text-foreground mb-2 uppercase tracking-wide">
                   Prénom
                 </label>
                 <input
@@ -667,10 +667,7 @@ export default function HomePage() {
                 />
               </div>
               <div>
-                <label
-                  htmlFor="contact-email"
-                  className="block text-xs font-semibold text-foreground mb-2 uppercase tracking-wide"
-                >
+                <label htmlFor="contact-email" className="block text-xs font-semibold text-foreground mb-2 uppercase tracking-wide">
                   Email
                 </label>
                 <input
@@ -683,10 +680,7 @@ export default function HomePage() {
               </div>
             </div>
             <div>
-              <label
-                htmlFor="contact-sujet"
-                className="block text-xs font-semibold text-foreground mb-2 uppercase tracking-wide"
-              >
+              <label htmlFor="contact-sujet" className="block text-xs font-semibold text-foreground mb-2 uppercase tracking-wide">
                 Je souhaite
               </label>
               <select
@@ -703,10 +697,7 @@ export default function HomePage() {
               </select>
             </div>
             <div>
-              <label
-                htmlFor="contact-message"
-                className="block text-xs font-semibold text-foreground mb-2 uppercase tracking-wide"
-              >
+              <label htmlFor="contact-message" className="block text-xs font-semibold text-foreground mb-2 uppercase tracking-wide">
                 Message
               </label>
               <textarea
@@ -727,7 +718,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== CTA FINAL — light ===== */}
+      {/* ===== CTA FINAL ===== */}
       <section className="py-24 px-6 bg-brand-light" aria-label="Estimation assistant">
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-4">
@@ -737,8 +728,9 @@ export default function HomePage() {
             Votre projet commence ici.
           </h2>
           <p className="text-muted mb-8 leading-relaxed">
-            L&apos;assistant analyse votre bien avec les données DVF officielles et vous donne
-            une estimation gratuite, ancrée dans la réalité du marché Haut-Var.
+            L&apos;assistant analyse votre bien avec les données DVF officielles
+            en Provence Verte et Haut-Var et vous donne une estimation gratuite,
+            ancrée dans la réalité du marché local.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" variant="primary">
