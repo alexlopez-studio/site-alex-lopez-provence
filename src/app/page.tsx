@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import {
   ArrowRight,
-  CheckCircle2,
   Home,
   Search,
   ClipboardCheck,
@@ -15,6 +14,7 @@ import {
   Lock,
   Users,
   ChevronDown,
+  Send,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { appUrl, biensUrl, env } from '@/lib/env'
@@ -33,7 +33,6 @@ export const metadata: Metadata = {
 
 // ─── Helper ───────────────────────────────────────────────────────────────────
 
-/** Évite les double-accolades JSX pour dangerouslySetInnerHTML */
 function buildInnerHtml(data: object) {
   return { __html: JSON.stringify(data) }
 }
@@ -82,74 +81,46 @@ const USP_CHIPS = [
   { icon: BarChart2, label: 'Données DVF officielles' },
   { icon: ShieldCheck, label: 'Analyse des risques' },
   { icon: Clock, label: '2–3 min chrono' },
-  { icon: CheckCircle2, label: 'Gratuit' },
-  { icon: Lock, label: 'Sécurisé' },
+  { icon: Lock, label: 'Sans engagement' },
 ]
 
+// Services — grille 2×2, sans bullets
 const SERVICES = [
   {
     icon: Home,
     title: 'Vendre votre bien',
     description:
-      'Estimation ancrée dans les données DVF réelles, stratégie de mise en valeur et commercialisation ciblée pour vendre au juste prix, sans stress.',
-    bullets: [
-      'Estimation offerte et argumentée (comparables locaux)',
-      'Valorisation du bien : conseils home staging',
-      'Diffusion multi-portails + réseau IAD France',
-      "Suivi transparent à chaque étape jusqu'à l'acte",
-    ],
+      "Estimation DVF, mise en valeur et commercialisation ciblée pour obtenir le juste prix, sans stress.",
     cta: 'Estimer mon bien',
     href: '/vendre',
     external: false,
-    bg: 'bg-white',
   },
   {
     icon: Search,
     title: 'Acheter sereinement',
     description:
-      'Brief clair, visites pertinentes, négociation au juste prix. Une connaissance fine du Haut-Var et du Verdon pour sécuriser votre acquisition.',
-    bullets: [
-      'Recherche personnalisée sur toute la zone',
-      'Négociation et sécurisation du prix',
-      'Vérifications clés : diagnostics, travaux, syndic',
-      "Réseau d'artisans locaux recommandés",
-    ],
+      "Recherche personnalisée, négociation au juste prix et vérifications clés pour sécuriser votre acquisition.",
     cta: 'Décrire mon projet',
     href: '/acheter',
     external: false,
-    bg: 'bg-surface',
   },
   {
     icon: ClipboardCheck,
     title: 'Audit immobilier express',
     description:
-      "Avant de vendre ou d'acheter, identifiez les risques juridiques, techniques et environnementaux pour négocier en toute confiance.",
-    bullets: [
-      'Risques juridiques et servitudes',
-      'Points de vigilance techniques et travaux',
-      'Risques environnementaux (zones inondables, etc.)',
-      'Rapport clair en 2–3 minutes, gratuit',
-    ],
+      "Risques juridiques, techniques et environnementaux analysés en 2–3 minutes. Gratuit et sans engagement.",
     cta: "Lancer l'audit",
     href: '/audit',
     external: false,
-    bg: 'bg-white',
   },
   {
     icon: Users,
     title: 'Devenir mandataire IAD',
     description:
-      'Vous souhaitez vous reconvertir ou démarrer une activité indépendante en immobilier ? Je vous accompagne dans votre lancement en Provence.',
-    bullets: [
-      "Parcours d'intégration structuré et clair",
-      'Formation à la vente et accompagnement terrain',
-      'Outils digitaux et process éprouvés',
-      'Revenus à la hauteur de votre engagement',
-    ],
+      "Vous souhaitez vous reconvertir en Provence ? Je vous accompagne de A à Z dans votre lancement.",
     cta: 'En savoir plus',
     href: 'https://www.iadfrance.fr/rejoindre-iad',
     external: true,
-    bg: 'bg-surface',
   },
 ]
 
@@ -228,7 +199,7 @@ function buildJsonLd(siteUrl: string) {
         '@id': siteUrl + '/#business',
         name: 'Alex Lopez — Mandataire Immobilier IAD',
         description:
-          'Mandataire immobilier IAD basé à Varages (83670), spécialisé en Haut-Var et Verdon. Estimation gratuite, vente, achat et audit immobilier en Provence.',
+          'Mandataire immobilier IAD basé à Varages (83670), spécialisé en Haut-Var et Verdon.',
         url: siteUrl,
         areaServed: [
           'Varages', 'Barjols', 'Montmeyan', 'Quinson', 'Fox-Amphoux',
@@ -373,7 +344,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== MES SERVICES ===== */}
+      {/* ===== MES SERVICES — grille 2x2 ===== */}
       <section className="py-20 px-4 bg-surface" aria-labelledby="services-title">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
@@ -385,49 +356,27 @@ export default function HomePage() {
               <span className="text-brand">je vous accompagne.</span>
             </h2>
           </div>
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {SERVICES.map(function (service) {
               const Icon = service.icon
+              const href = service.external ? service.href : appUrl(service.href) || service.href
               return (
-                <div
+                <Link
                   key={service.title}
-                  className={service.bg + ' rounded-2xl border border-border p-8 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-8 items-start'}
+                  href={href}
+                  target={service.external ? '_blank' : undefined}
+                  rel={service.external ? 'noopener noreferrer' : undefined}
+                  className="group bg-white rounded-2xl border border-border p-8 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
                 >
-                  <div>
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center shrink-0">
-                        <Icon size={20} className="text-brand" />
-                      </div>
-                      <h3 className="text-xl font-black text-foreground">{service.title}</h3>
-                    </div>
-                    <p className="text-muted leading-relaxed mb-5 max-w-2xl">{service.description}</p>
-                    <ul className="space-y-2">
-                      {service.bullets.map(function (b) {
-                        return (
-                          <li key={b} className="flex items-start gap-2 text-sm text-foreground">
-                            <CheckCircle2 size={15} className="text-success mt-0.5 shrink-0" />
-                            {b}
-                          </li>
-                        )
-                      })}
-                    </ul>
+                  <div className="w-12 h-12 rounded-xl bg-surface border border-border flex items-center justify-center mb-5">
+                    <Icon size={22} className="text-brand" />
                   </div>
-                  <div className="shrink-0">
-                    <Button
-                      asChild
-                      variant={service.external ? 'outline' : 'primary'}
-                      size="default"
-                    >
-                      <Link
-                        href={service.external ? service.href : appUrl(service.href) || service.href}
-                        target={service.external ? '_blank' : undefined}
-                        rel={service.external ? 'noopener noreferrer' : undefined}
-                      >
-                        {service.cta} <ArrowRight size={15} />
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
+                  <h3 className="text-xl font-black text-foreground mb-3">{service.title}</h3>
+                  <p className="text-sm text-muted leading-relaxed mb-5">{service.description}</p>
+                  <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand group-hover:gap-2.5 transition-all">
+                    {service.cta} <ArrowRight size={15} />
+                  </span>
+                </Link>
               )
             })}
           </div>
@@ -652,37 +601,146 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ===== CONTACT INLINE ===== */}
+      <section className="py-20 px-4 bg-surface" aria-labelledby="contact-title">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+          {/* Left — texte */}
+          <div className="lg:pt-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-4">
+              Me contacter
+            </p>
+            <h2
+              id="contact-title"
+              className="text-3xl md:text-4xl font-black text-foreground mb-6 leading-tight"
+            >
+              Un projet ?{' '}
+              <span className="text-brand">Parlons-en.</span>
+            </h2>
+            <p className="text-muted leading-relaxed mb-8">
+              Que vous souhaitiez vendre, acheter, ou simplement avoir une estimation de votre
+              bien, je vous réponds sous 24h. Sans engagement, sans pression.
+            </p>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 text-sm text-foreground">
+                <div className="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center shrink-0">
+                  <MapPin size={14} className="text-brand" />
+                </div>
+                Varages (83670) — Haut-Var &amp; Verdon
+              </div>
+              <div className="flex items-center gap-3 text-sm text-foreground">
+                <div className="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center shrink-0">
+                  <Clock size={14} className="text-brand" />
+                </div>
+                Disponible 7j/7 — Réponse sous 24h
+              </div>
+            </div>
+          </div>
+
+          {/* Right — formulaire */}
+          <form
+            action="/contact"
+            method="GET"
+            className="bg-white rounded-2xl border border-border p-8 space-y-5"
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <label
+                  htmlFor="contact-prenom"
+                  className="block text-xs font-semibold text-foreground mb-2 uppercase tracking-wide"
+                >
+                  Prénom
+                </label>
+                <input
+                  id="contact-prenom"
+                  name="prenom"
+                  type="text"
+                  placeholder="Votre prénom"
+                  className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-brand transition-colors"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="contact-email"
+                  className="block text-xs font-semibold text-foreground mb-2 uppercase tracking-wide"
+                >
+                  Email
+                </label>
+                <input
+                  id="contact-email"
+                  name="email"
+                  type="email"
+                  placeholder="votre@email.fr"
+                  className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-brand transition-colors"
+                />
+              </div>
+            </div>
+            <div>
+              <label
+                htmlFor="contact-sujet"
+                className="block text-xs font-semibold text-foreground mb-2 uppercase tracking-wide"
+              >
+                Je souhaite
+              </label>
+              <select
+                id="contact-sujet"
+                name="sujet"
+                className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-sm text-foreground focus:outline-none focus:border-brand transition-colors"
+              >
+                <option value="">Choisir...</option>
+                <option value="vendre">Vendre mon bien</option>
+                <option value="acheter">Acheter un bien</option>
+                <option value="estimation">Une estimation gratuite</option>
+                <option value="audit">Un audit immobilier</option>
+                <option value="autre">Autre</option>
+              </select>
+            </div>
+            <div>
+              <label
+                htmlFor="contact-message"
+                className="block text-xs font-semibold text-foreground mb-2 uppercase tracking-wide"
+              >
+                Message
+              </label>
+              <textarea
+                id="contact-message"
+                name="message"
+                rows={4}
+                placeholder="Décrivez votre projet en quelques mots..."
+                className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-brand transition-colors resize-none"
+              />
+            </div>
+            <Button type="submit" variant="primary" size="lg" className="w-full">
+              Envoyer <Send size={16} />
+            </Button>
+            <p className="text-xs text-muted text-center">
+              Sans engagement · Réponse sous 24h
+            </p>
+          </form>
+        </div>
+      </section>
+
       {/* ===== CTA FINAL ===== */}
-      <section className="py-20 px-4 bg-foreground" aria-label="Contact">
+      <section className="py-20 px-4 bg-foreground" aria-label="Assistant">
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/50 mb-4">
-            Un projet immobilier ?
+            Estimation en 2–3 minutes
           </p>
           <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
-            Parlons-en simplement,
-            <br />
-            sans engagement.
+            Votre projet commence ici.
           </h2>
           <p className="text-white/60 mb-8 leading-relaxed">
-            Estimation gratuite, analyse des risques, ou juste une question sur le marché
-            Haut-Var. Je suis là.
+            L&apos;assistant analyse votre bien avec les données DVF officielles et vous donne
+            une estimation gratuite, ancrée dans la réalité du marché Haut-Var.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" variant="primary">
-              <Link
-                href={assistantUrl}
-                target={assistantUrl.startsWith('http') ? '_blank' : undefined}
-                rel={assistantUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
-              >
-                Lancer l&apos;assistant <ArrowRight size={18} />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href={env.calcomUrl} target="_blank" rel="noopener noreferrer">
-                Prendre RDV
-              </Link>
-            </Button>
-          </div>
+          <Button asChild size="lg" variant="primary">
+            <Link
+              href={assistantUrl}
+              target={assistantUrl.startsWith('http') ? '_blank' : undefined}
+              rel={assistantUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
+            >
+              Lancer l&apos;assistant <ArrowRight size={18} />
+            </Link>
+          </Button>
         </div>
       </section>
     </>
