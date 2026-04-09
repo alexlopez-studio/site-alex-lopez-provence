@@ -18,8 +18,8 @@
   --color-success-hover: #059669;
   --color-error:         #EF4444;
 
-  /* Font — Plus Jakarta Sans */
-  --font-family-sans: var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  /* Font — Plus Jakarta Sans (Tailwind v4 : --font-sans contrôle font-sans) */
+  --font-sans: var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
 /* ─── Base Reset ─────────────────────────────────────────────────── */
