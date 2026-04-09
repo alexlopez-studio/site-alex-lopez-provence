@@ -3,6 +3,7 @@ import { getPublishedArticles } from '@/lib/sanity.queries'
 import BlogPageClient from '@/components/blog/BlogPageClient'
 
 // Sanity project: x2wprhnd — Alex Lopez Provence
+// revalidate: 3600s (ISR) — rebuild pour voir les nouveaux articles
 export const revalidate = 3600
 
 export const metadata: Metadata = {
