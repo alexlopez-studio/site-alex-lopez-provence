@@ -15,8 +15,11 @@ export async function GET(req: NextRequest) {
 
   // Parcelle cadastrale IGN
   try {
-    const url = `https://geocodage.ign.fr/look4/parcel/search?lat=${lat}&lon=${lng}&outputfields=all&fuzzyMatch=false&returntruegeometry=false&maximumResponses=1`
-    const r = await fetch(url, { next: { revalidate: 86400 } })
+    const ignUrl =
+      'https://geocodage.ign.fr/look4/parcel/search' +
+      '?lat=' + lat + '&lon=' + lng +
+      '&outputfields=all&fuzzyMatch=false&returntruegeometry=false&maximumResponses=1'
+    const r = await fetch(ignUrl, { next: { revalidate: 86400 } })
     if (r.ok) {
       const d = await r.json()
       const first = d.results?.[0]
@@ -32,8 +35,11 @@ export async function GET(req: NextRequest) {
 
   // DPE ADEME
   try {
-    const url = `https://data.ademe.fr/data-fair/api/v1/datasets/dpe-v2-logements-existants/lines?qs=adresse_ban%3A${encodeURIComponent(q)}&size=1&select=etiquette_dpe`
-    const r = await fetch(url, { next: { revalidate: 86400 } })
+    const ademeUrl =
+      'https://data.ademe.fr/data-fair/api/v1/datasets/dpe-v2-logements-existants/lines' +
+      '?qs=adresse_ban%3A' + encodeURIComponent(q) +
+      '&size=1&select=etiquette_dpe'
+    const r = await fetch(ademeUrl, { next: { revalidate: 86400 } })
     if (r.ok) {
       const d = await r.json()
       const lettre = d.results?.[0]?.etiquette_dpe

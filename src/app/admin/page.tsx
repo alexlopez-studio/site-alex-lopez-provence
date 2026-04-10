@@ -4,7 +4,7 @@ import Link from 'next/link'
 import type { CSSProperties } from 'react'
 import type { Database } from '@/types/supabase'
 
-export const metadata: Metadata = { title: 'Administration \u2014 Alex Lopez Provence' }
+export const metadata: Metadata = { title: 'Administration — Alex Lopez Provence' }
 export const dynamic = 'force-dynamic'
 
 const brand = '#0077B6'
@@ -30,8 +30,8 @@ function getCommune(lead: Lead): string {
     const fd = lead.form_data as Record<string, unknown>
     const adresse = (fd?.adresse ?? '') as string
     const parts = adresse.split(',')
-    return parts[parts.length - 1]?.trim() ?? '\u2014'
-  } catch { return '\u2014' }
+    return parts[parts.length - 1]?.trim() ?? '—'
+  } catch { return '—' }
 }
 
 async function getLeads(): Promise<Lead[]> {
@@ -57,9 +57,14 @@ export default async function AdminPage() {
   const statNum: CSSProperties = { fontSize: '28px', fontWeight: 900, color: fg, letterSpacing: '-0.03em' }
   const statLbl: CSSProperties = { fontSize: '12px', color: muted, marginTop: '4px' }
   const tableSt: CSSProperties = { backgroundColor: white, border: '1px solid ' + border, borderRadius: '16px', overflow: 'hidden' }
+  const tableInnerSt: CSSProperties = { width: '100%', borderCollapse: 'collapse' }
   const thSt: CSSProperties = { padding: '12px 16px', fontSize: '11px', fontWeight: 600, color: muted, textTransform: 'uppercase' as const, letterSpacing: '0.1em', textAlign: 'left' as const, borderBottom: '1px solid ' + border, backgroundColor: surface }
   const tdSt: CSSProperties = { padding: '14px 16px', fontSize: '13px', color: fg, borderBottom: '1px solid ' + border, verticalAlign: 'middle' as const }
   const tdLastSt: CSSProperties = { ...tdSt, borderBottom: 'none' }
+  const tdBoldSt: CSSProperties = { ...tdSt, fontWeight: 700 }
+  const tdBoldLastSt: CSSProperties = { ...tdLastSt, fontWeight: 700 }
+  const tdMutedSt: CSSProperties = { ...tdSt, color: muted }
+  const tdMutedLastSt: CSSProperties = { ...tdLastSt, color: muted }
   const lnkSt: CSSProperties = { color: brand, fontWeight: 600, textDecoration: 'none' }
   const backLnkSt: CSSProperties = { fontSize: '13px', color: muted, textDecoration: 'none' }
   const emptyWrap: CSSProperties = { padding: '60px 24px', textAlign: 'center' as const, color: muted }
@@ -78,9 +83,9 @@ export default async function AdminPage() {
       <header style={headerSt}>
         <div>
           <div style={titleSt}>Administration</div>
-          <div style={subTitleSt}>Alex Lopez Provence \u00b7 {leads.length} dossier{leads.length !== 1 ? 's' : ''}</div>
+          <div style={subTitleSt}>Alex Lopez Provence · {leads.length} dossier{leads.length !== 1 ? 's' : ''}</div>
         </div>
-        <Link href="/" style={backLnkSt}>\u2190 Retour au site</Link>
+        <Link href="/" style={backLnkSt}>← Retour au site</Link>
       </header>
       <main style={mainSt}>
         <div style={statRow}>
@@ -92,7 +97,7 @@ export default async function AdminPage() {
           {leads.length === 0 ? (
             <div style={emptyWrap}>Aucun dossier pour le moment.</div>
           ) : (
-            <table style= width: '100%', borderCollapse: 'collapse' >
+            <table style={tableInnerSt}>
               <thead>
                 <tr>
                   {['Date', 'Nom', 'Type', 'Commune', 'Email', 'Dossier'].map((h) => (
@@ -104,14 +109,16 @@ export default async function AdminPage() {
                 {leads.map((lead, i) => {
                   const isLast = i === leads.length - 1
                   const td = isLast ? tdLastSt : tdSt
+                  const tdB = isLast ? tdBoldLastSt : tdBoldSt
+                  const tdM = isLast ? tdMutedLastSt : tdMutedSt
                   return (
                     <tr key={lead.id}>
                       <td style={td}>{fmtDate(lead.created_at)}</td>
-                      <td style= ...td, fontWeight: 700 >{lead.prenom ?? ''} {lead.nom ?? ''}</td>
+                      <td style={tdB}>{lead.prenom ?? ''} {lead.nom ?? ''}</td>
                       <td style={td}>{typeBadge(lead.type)}</td>
                       <td style={td}>{getCommune(lead)}</td>
-                      <td style= ...td, color: muted >{lead.email}</td>
-                      <td style={td}><Link href={'/admin/' + lead.token} style={lnkSt}>Ouvrir \u2192</Link></td>
+                      <td style={tdM}>{lead.email}</td>
+                      <td style={td}><Link href={'/admin/' + lead.token} style={lnkSt}>Ouvrir →</Link></td>
                     </tr>
                   )
                 })}

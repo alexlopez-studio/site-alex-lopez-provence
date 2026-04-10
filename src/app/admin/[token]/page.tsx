@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: { params: Promise<{ token: string }> }): Promise<Metadata> {
   const { token } = await params
-  return { title: `Dossier ${token.slice(0, 8)}\u2026 \u2014 Admin` }
+  return { title: 'Dossier ' + token.slice(0, 8) + '… — Admin' }
 }
 
 type Lead = Database['public']['Tables']['leads']['Row']
@@ -58,11 +58,14 @@ const rowLbl: CSSProperties = { fontSize: '12px', color: muted }
 const rowVal: CSSProperties = { fontSize: '13px', fontWeight: 600, color: fg }
 const estimBig: CSSProperties = { fontSize: '32px', fontWeight: 900, color: brand, letterSpacing: '-0.03em', marginBottom: '4px' }
 const estimSub: CSSProperties = { fontSize: '13px', color: muted }
-const scoreWrap: CSSProperties = { fontSize: '32px', fontWeight: 900, color: brand, letterSpacing: '-0.03em', marginBottom: '16px' }
-const actionsWrap: CSSProperties = { display: 'flex', flexDirection: 'column' as const, gap: '10px' }
+const scoreNumSt: CSSProperties = { fontSize: '32px', fontWeight: 900, color: brand, letterSpacing: '-0.03em' }
+const scoreUnitSt: CSSProperties = { fontSize: '16px', color: muted, fontWeight: 400 }
+const scoreWrapSt: CSSProperties = { marginBottom: '16px' }
+const actionsWrap: CSSProperties = { display: 'flex', flexDirection: 'column', gap: '10px' }
 const attioBtn: CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: brandLight, color: brand, fontSize: '13px', fontWeight: 600, padding: '10px 18px', borderRadius: '999px', textDecoration: 'none', border: '1px solid ' + brand }
 const prospectBtn: CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: surface, color: fg, fontSize: '13px', fontWeight: 600, padding: '10px 18px', borderRadius: '999px', textDecoration: 'none', border: '1px solid ' + border }
 const jsonPre: CSSProperties = { fontSize: '11px', color: muted, backgroundColor: surface, padding: '12px', borderRadius: '8px', overflow: 'auto', maxHeight: '300px', margin: 0 }
+const estimRowsWrap: CSSProperties = { marginTop: '16px' }
 
 export default async function AdminDossierPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
@@ -77,22 +80,22 @@ export default async function AdminDossierPage({ params }: { params: Promise<{ t
 
   const results = lead.results as Record<string, unknown> | null
   const formData = lead.form_data as Record<string, unknown> | null
-  const hasEstim = results && 'valeur_mediane' in results
-  const hasAudit = results && 'score_global' in results
+  const hasEstim = results != null && 'valeur_mediane' in results
+  const hasAudit = results != null && 'score_global' in results
 
   const contactRows = [
-    { lbl: 'Pr\u00e9nom', val: lead.prenom ?? '\u2014' },
-    { lbl: 'Nom', val: lead.nom ?? '\u2014' },
+    { lbl: 'Prénom', val: lead.prenom ?? '—' },
+    { lbl: 'Nom', val: lead.nom ?? '—' },
     { lbl: 'Email', val: lead.email },
-    { lbl: 'T\u00e9l\u00e9phone', val: lead.telephone ?? '\u2014' },
+    { lbl: 'Téléphone', val: lead.telephone ?? '—' },
     { lbl: 'Date de soumission', val: fmtDate(lead.created_at) },
-    { lbl: 'Opt-in RGPD', val: lead.opt_in ? '\u2705 Accept\u00e9' : '\u274c Non' },
+    { lbl: 'Opt-in RGPD', val: lead.opt_in ? '✅ Accepté' : '❌ Non' },
   ]
 
   return (
     <div style={pageSt}>
       <header style={headerSt}>
-        <Link href="/admin" style={backSt}>\u2190 Retour</Link>
+        <Link href="/admin" style={backSt}>← Retour</Link>
         <span style={sepSt}>|</span>
         <span style={nameSt}>{lead.prenom ?? ''} {lead.nom ?? ''}</span>
         <span style={dateSt}>{fmtDate(lead.created_at)}</span>
@@ -115,23 +118,28 @@ export default async function AdminDossierPage({ params }: { params: Promise<{ t
             <div style={actionsWrap}>
               {attioUrl && (
                 <a href={attioUrl} target="_blank" rel="noopener noreferrer" style={attioBtn}>
-                  \ud83d\udce1 Ouvrir la fiche Attio
+                  📡 Ouvrir la fiche Attio
                 </a>
               )}
               <a href={prospectUrl} target="_blank" rel="noopener noreferrer" style={prospectBtn}>
-                \ud83d\udd17 Lien prospect
+                🔗 Lien prospect
               </a>
               <ResendMagicLinkButton token={lead.token} />
             </div>
           </div>
 
-          {hasEstim && (
+          {hasEstim && results && (
             <div style={cardSt}>
               <div style={cardTitleSt}>Estimation DVF</div>
               <div style={estimBig}>{fmt(results.valeur_mediane as number)}</div>
-              <div style={estimSub}>{fmt(results.fourchette_basse as number)} \u2014 {fmt(results.fourchette_haute as number)}</div>
-              <div style= marginTop: '16px' >
-                {([['Prix au m\u00b2', results.prix_m2_median + ' \u20ac/m\u00b2'], ['Transactions DVF', String(results.nb_transactions)], ['Rayon', results.rayon_km + ' km'], ['Fiabilit\u00e9', results.confiance + '%']] as [string, string][]).map(([lbl, val], i, arr) => (
+              <div style={estimSub}>{fmt(results.fourchette_basse as number)} — {fmt(results.fourchette_haute as number)}</div>
+              <div style={estimRowsWrap}>
+                {([
+                  ['Prix au m²', (results.prix_m2_median as number).toLocaleString('fr-FR') + ' €/m²'],
+                  ['Transactions DVF', String(results.nb_transactions)],
+                  ['Rayon', results.rayon_km + ' km'],
+                  ['Fiabilité', results.confiance + '%'],
+                ] as [string, string][]).map(([lbl, val], i, arr) => (
                   <div key={lbl} style={i === arr.length - 1 ? rowLastSt : rowSt}>
                     <span style={rowLbl}>{lbl}</span><span style={rowVal}>{val}</span>
                   </div>
@@ -140,11 +148,18 @@ export default async function AdminDossierPage({ params }: { params: Promise<{ t
             </div>
           )}
 
-          {hasAudit && (
+          {hasAudit && results && (
             <div style={cardSt}>
               <div style={cardTitleSt}>Score audit</div>
-              <div style={scoreWrap}>{results.score_global as number}<span style= fontSize: '16px', color: muted >/100</span></div>
-              {([['Structure', (results.score_structure as number) + '/100'], ['\u00c9nergie', (results.score_energie as number) + '/100'], ['Confort', (results.score_confort as number) + '/100']] as [string, string][]).map(([lbl, val], i, arr) => (
+              <div style={scoreWrapSt}>
+                <span style={scoreNumSt}>{results.score_global as number}</span>
+                <span style={scoreUnitSt}>/100</span>
+              </div>
+              {([
+                ['Structure', (results.score_structure as number) + '/100'],
+                ['Énergie', (results.score_energie as number) + '/100'],
+                ['Confort', (results.score_confort as number) + '/100'],
+              ] as [string, string][]).map(([lbl, val], i, arr) => (
                 <div key={lbl} style={i === arr.length - 1 ? rowLastSt : rowSt}>
                   <span style={rowLbl}>{lbl}</span><span style={rowVal}>{val}</span>
                 </div>
@@ -154,7 +169,7 @@ export default async function AdminDossierPage({ params }: { params: Promise<{ t
 
           {formData && (
             <div style={cardFullSt}>
-              <div style={cardTitleSt}>Donn\u00e9es brutes du formulaire</div>
+              <div style={cardTitleSt}>Données brutes du formulaire</div>
               <pre style={jsonPre}>{JSON.stringify(formData, null, 2)}</pre>
             </div>
           )}
