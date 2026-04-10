@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     parcelle?: { id: string; commune: string; surface: number | null }
   } = {}
 
-  // Parcelle cadastrale (IGN)
+  // Parcelle cadastrale IGN
   try {
     const url = `https://geocodage.ign.fr/look4/parcel/search?lat=${lat}&lon=${lng}&outputfields=all&fuzzyMatch=false&returntruegeometry=false&maximumResponses=1`
     const r = await fetch(url, { next: { revalidate: 86400 } })
