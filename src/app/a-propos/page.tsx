@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Mon approche — Alex Lopez, Mandataire IAD Provence Verte',
   description:
     'Mandataire immobilier IAD en Provence Verte et Haut-Var. Découvrez mon parcours, mes valeurs et ma méthode pour vous accompagner dans votre projet immobilier.',
-  alternates: { canonical: (env.siteUrl || 'https://alexlopez-provence.fr') + '/a-propos' },
+  alternates: { canonical: (env.app.siteUrl || 'https://alexlopez-provence.fr') + '/a-propos' },
 }
 
 const PHONE_RAW = '+33613180168'
@@ -20,7 +20,7 @@ const personJsonLd = {
   name: 'Alex Lopez',
   jobTitle: 'Mandataire immobilier IAD',
   description:
-    'Mandataire immobilier IAD en Provence Verte et Haut-Var, spécialisé dans la vente et l’achat de biens immobiliers.',
+    'Mandataire immobilier IAD en Provence Verte et Haut-Var, spécialisé dans la vente et l\'achat de biens immobiliers.',
   telephone: PHONE_RAW,
   areaServed: [
     'Provence Verte', 'Haut-Var', 'Barjols', 'Rians', 'Aups', 'Salernes',
@@ -47,7 +47,7 @@ const VALEURS = [
   {
     titre: 'Réactivité',
     texte:
-      'Je réponds sous 24h, 7 jours sur 7. En immobilier, une opportunité peut se fermer en quelques heures. Être disponible quand vous en avez besoin, c’est une question de respect.',
+      'Je réponds sous 24h, 7 jours sur 7. En immobilier, une opportunité peut se fermer en quelques heures. Être disponible quand vous en avez besoin, c\'est une question de respect.',
   },
   {
     titre: 'Ancrage local',
@@ -57,7 +57,7 @@ const VALEURS = [
   {
     titre: 'Accompagnement complet',
     texte:
-      'De l’estimation à la signature chez le notaire, je suis présent à chaque étape. Vous ne gérez pas seul les vis ites, la négociation, les diagnostics ou le suivi administratif.',
+      'De l\'estimation à la signature chez le notaire, je suis présent à chaque étape. Vous ne gérez pas seul les visites, la négociation, les diagnostics ou le suivi administratif.',
   },
 ]
 
@@ -102,7 +102,7 @@ export default function AProposPage() {
               <p>
                 Ici, pas de discours commercial. Pas de promesses sur-estimées pour obtenir
                 un mandat. Je vous donne une estimation juste, ancrée dans les prix
-                réels du marché local, et je vous accompagne jusqu’à la signature.
+                réels du marché local, et je vous accompagne jusqu&apos;à la signature.
               </p>
             </div>
             <div className="grid grid-cols-3 gap-6 mb-8 text-center">
@@ -111,7 +111,7 @@ export default function AProposPage() {
                 <p className="text-xs text-muted mt-1">Accompagnement</p>
               </div>
               <div>
-                <p className="text-2xl font-extrabold text-brand">0 €</p>
+                <p className="text-2xl font-extrabold text-brand">0 €</p>
                 <p className="text-xs text-muted mt-1">Frais cachés</p>
               </div>
               <div>
@@ -142,25 +142,25 @@ export default function AProposPage() {
         <div className="max-w-3xl mx-auto">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-4">Mon parcours</p>
           <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-8 leading-tight">
-            D’une carrière en organisation
+            D&apos;une carrière en organisation
             <br />
-            <span className="text-brand">à l’immobilier de proximité.</span>
+            <span className="text-brand">à l&apos;immobilier de proximité.</span>
           </h2>
           <div className="space-y-6 text-muted leading-relaxed">
             <p>
-              Pendant plusieurs années, j’ai travaillé dans le conseil en stratégie et
-              l’organisation d&apos;entreprise. J’y ai développé une rigueur dans l’analyse,
+              Pendant plusieurs années, j&apos;ai travaillé dans le conseil en stratégie et
+              l&apos;organisation d&apos;entreprise. J&apos;y ai développé une rigueur dans l&apos;analyse,
               une capacité à structurer des projets complexes et une exigence sur la
-              qualité de l’accompagnement.
+              qualité de l&apos;accompagnement.
             </p>
             <p>
-              En m&apos;installant en Provence Verte, j’ai choisi un territoire que j&apos;aime
+              En m&apos;installant en Provence Verte, j&apos;ai choisi un territoire que j&apos;aime
               profondément — ses villages, ses paysages, son rythme de vie. Et
               j&apos;ai choisi l&apos;immobilier pour accompagner les gens dans ce qui compte
               le plus : leur cadre de vie.
             </p>
             <p>
-              Rejoindre IAD France m’a permis d’avoir accès à des outils
+              Rejoindre IAD France m&apos;a permis d&apos;avoir accès à des outils
               professionnels, une formation solide et un réseau national — tout en
               restant un mandataire indépendant, ancré localement, disponible pour
               vous et uniquement pour vous.
@@ -171,7 +171,7 @@ export default function AProposPage() {
           <div className="mt-12 space-y-6">
             {[
               { periode: 'Avant', titre: 'Stratégie & organisation', desc: 'Conseil en organisation, gestion de projets complexes, accompagnement de dirigeants.' },
-              { periode: 'Aujourd’hui', titre: 'Mandataire IAD — Provence Verte', desc: 'Estimation, vente, achat et audit immobilier en Provence Verte et Haut-Var.' },
+              { periode: "Aujourd'hui", titre: 'Mandataire IAD — Provence Verte', desc: 'Estimation, vente, achat et audit immobilier en Provence Verte et Haut-Var.' },
             ].map(function (item) {
               return (
                 <div key={item.titre} className="flex gap-5 items-start">
@@ -256,7 +256,7 @@ export default function AProposPage() {
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-4">Travaillons ensemble</p>
           <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-4">
-            Un projet immobilier ? Je suis là.
+            Un projet immobilier ? Je suis là.
           </h2>
           <p className="text-muted mb-8 leading-relaxed">
             Estimation gratuite, vente, achat ou simple question sur le marché
