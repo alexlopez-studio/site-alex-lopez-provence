@@ -8,13 +8,11 @@ import type { CSSProperties } from 'react'
 import { Phone, ChevronLeft, Send, Check, RotateCcw } from 'lucide-react'
 import Link from 'next/link'
 
-// Design tokens
 const B = '#0077B6', BL = '#E0F0FA', FG = '#0F172A', M = '#64748B', BD = '#E2E8F0', SF = '#F8FAFC', WH = '#ffffff', SU = '#10B981'
 const MW = '680px', FN = 'var(--font-plus-jakarta-sans, system-ui, sans-serif)'
 
-// Styles
 const page: CSSProperties = { minHeight: '100vh', background: SF, fontFamily: FN }
-const navSt: CSSProperties = { position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, background: WH, borderBottom: `1px solid ${BD}` }
+const navSt: CSSProperties = { position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, background: WH, borderBottom: '1px solid ' + BD }
 const navIn: CSSProperties = { maxWidth: MW, margin: '0 auto', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }
 const navL: CSSProperties = { display: 'flex', alignItems: 'center', gap: 10 }
 const navR: CSSProperties = { display: 'flex', alignItems: 'center', gap: 12 }
@@ -23,45 +21,55 @@ const nnSt: CSSProperties = { fontSize: 14, fontWeight: 700, color: FG }
 const nsSt: CSSProperties = { fontSize: 11, color: M }
 const bkSt: CSSProperties = { display: 'flex', alignItems: 'center', fontSize: 12, fontWeight: 600, color: M, textDecoration: 'none' }
 const phSt: CSSProperties = { display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: FG, textDecoration: 'none' }
-const rbSt: CSSProperties = { display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 500, color: M, background: 'transparent', border: `1px solid ${BD}`, borderRadius: 999, padding: '5px 10px', cursor: 'pointer' }
+const rbSt: CSSProperties = { display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 500, color: M, background: 'transparent', border: '1px solid ' + BD, borderRadius: 999, padding: '5px 10px', cursor: 'pointer' }
 const cwSt: CSSProperties = { maxWidth: MW, margin: '0 auto', padding: '148px 20px 40px', display: 'flex', flexDirection: 'column', gap: 16 }
 const rAl: CSSProperties = { display: 'flex', gap: 10, alignItems: 'flex-end' }
 const rUs: CSSProperties = { display: 'flex', justifyContent: 'flex-end' }
-const bAl: CSSProperties = { background: WH, border: `1px solid ${BD}`, borderRadius: '16px 16px 16px 4px', padding: '14px 16px', fontSize: 14, color: FG, lineHeight: 1.65, whiteSpace: 'pre-wrap', overflowWrap: 'break-word', maxWidth: '84%' }
+const bAl: CSSProperties = { background: WH, border: '1px solid ' + BD, borderRadius: '16px 16px 16px 4px', padding: '14px 16px', fontSize: 14, color: FG, lineHeight: 1.65, whiteSpace: 'pre-wrap', overflowWrap: 'break-word', maxWidth: '84%' }
 const bUs: CSSProperties = { background: B, borderRadius: '16px 16px 4px 16px', padding: '10px 16px', fontSize: 14, fontWeight: 500, color: WH, lineHeight: 1.5, maxWidth: '95%' }
 const tL: CSSProperties = { fontSize: 10, color: M, marginTop: 4 }
 const tR: CSSProperties = { fontSize: 10, color: M, marginTop: 4, textAlign: 'right' }
-const inF: CSSProperties = { width: '100%', fontSize: 14, color: FG, border: `1.5px solid ${BD}`, borderRadius: 12, padding: '12px 14px', outline: 'none', background: WH, boxSizing: 'border-box' }
+const inF: CSSProperties = { width: '100%', fontSize: 14, color: FG, border: '1.5px solid ' + BD, borderRadius: 12, padding: '12px 14px', outline: 'none', background: WH, boxSizing: 'border-box' }
 const vBtn: CSSProperties = { width: '100%', padding: 13, borderRadius: 12, background: B, border: 'none', color: WH, fontSize: 14, fontWeight: 600, cursor: 'pointer', marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }
-const vOff: CSSProperties = { ...vBtn, background: BD, color: M, cursor: 'not-allowed' }
-const sWr: CSSProperties = { background: WH, borderRadius: 16, border: `1px solid ${BD}`, padding: 20 }
-const cWr: CSSProperties = { background: WH, borderRadius: 16, border: `1px solid ${BD}`, padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }
+const vOff: CSSProperties = { width: '100%', padding: 13, borderRadius: 12, background: BD, border: 'none', color: M, fontSize: 14, fontWeight: 600, cursor: 'not-allowed', marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }
+const sWr: CSSProperties = { background: WH, borderRadius: 16, border: '1px solid ' + BD, padding: 20 }
+const cWr: CSSProperties = { background: WH, borderRadius: 16, border: '1px solid ' + BD, padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }
 const cG: CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }
 const cH: CSSProperties = { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2 }
 const cBdg: CSSProperties = { width: 32, height: 32, borderRadius: 999, background: BL, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }
 const cT: CSSProperties = { fontSize: 15, fontWeight: 700, color: FG }
-const cS: CSSProperties = { fontSize: 12, fontWeight: 300, color: M }
+const cSb: CSSProperties = { fontSize: 12, fontWeight: 300, color: M }
 const rgTx: CSSProperties = { fontSize: 12, fontWeight: 400, color: FG, lineHeight: 1.5 }
 const spW: CSSProperties = { maxWidth: MW, margin: '0 auto', padding: '10px 20px 12px', display: 'flex', alignItems: 'center' }
 const spC: CSSProperties = { display: 'flex', flexDirection: 'column', alignItems: 'center' }
 const spL: CSSProperties = { fontSize: 10, fontWeight: 600, marginTop: 5, textAlign: 'center' }
 const dB: CSSProperties = { width: 28, height: 28, borderRadius: 999, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }
-const dDn: CSSProperties = { ...dB, background: B, color: WH, border: `2px solid ${B}` }
-const dCu: CSSProperties = { ...dB, background: BL, color: B, border: `2px solid ${B}` }
-const dFu: CSSProperties = { ...dB, background: WH, color: M, border: `2px solid ${BD}` }
+const dDn: CSSProperties = { ...dB, background: B, color: WH, border: '2px solid ' + B }
+const dCu: CSSProperties = { ...dB, background: BL, color: B, border: '2px solid ' + B }
+const dFu: CSSProperties = { ...dB, background: WH, color: M, border: '2px solid ' + BD }
 const lDn: CSSProperties = { ...spL, color: FG }
 const lCu: CSSProperties = { ...spL, color: B, fontWeight: 700 }
 const lFu: CSSProperties = { ...spL, color: M }
 const cnO: CSSProperties = { flex: 1, height: 3, background: BD, borderRadius: 999, overflow: 'hidden', margin: '0 4px', marginBottom: 15 }
 const cnOn: CSSProperties = { height: '100%', width: '100%', background: B, borderRadius: 999 }
 const cnOf: CSSProperties = { height: '100%', width: '0%', background: B, borderRadius: 999 }
-function cardS(a: boolean): CSSProperties { return { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '14px 10px', borderRadius: 14, cursor: 'pointer', border: `2px solid ${a ? B : BD}`, background: a ? BL : WH, fontSize: 13, fontWeight: 600, color: a ? B : FG, textAlign: 'center', width: '100%' } }
-function civS(a: boolean): CSSProperties { return { flex: 1, padding: 11, borderRadius: 12, border: `2px solid ${a ? B : BD}`, background: a ? B : WH, color: a ? WH : FG, fontSize: 13, fontWeight: 600, cursor: 'pointer' } }
-function rgS(a: boolean): CSSProperties { return { display: 'flex', alignItems: 'flex-start', gap: 10, padding: 14, borderRadius: 12, cursor: 'pointer', border: `1.5px solid ${a ? B : BD}`, background: a ? BL : WH } }
-function rgBx(a: boolean): CSSProperties { return { width: 18, height: 18, borderRadius: 4, border: `2px solid ${a ? B : BD}`, background: a ? B : WH, flexShrink: 0, marginTop: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' } }
-function mRw(a: boolean): CSSProperties { return { display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px', borderRadius: 12, cursor: 'pointer', border: `1.5px solid ${a ? B : BD}`, background: a ? BL : WH, fontSize: 13, fontWeight: 500, color: a ? B : FG, marginBottom: 8 } }
+const _iz: CSSProperties = { marginTop: 8 }
+const _emo: CSSProperties = { fontSize: 20 }
+const _ir: CSSProperties = { display: 'flex', gap: 10 }
+const _inpR: CSSProperties = { width: '100%', fontSize: 14, color: FG, border: '1.5px solid ' + BD, borderRadius: 12, padding: '12px 14px', outline: 'none', background: WH, boxSizing: 'border-box', flex: 1 } as CSSProperties
+const _sendBtn: CSSProperties = { width: 42, height: 42, borderRadius: 12, background: B, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }
+const _slVal: CSSProperties = { textAlign: 'center', fontSize: 18, fontWeight: 700, color: FG, marginBottom: 16 }
+const _slInp: CSSProperties = { width: '100%', accentColor: B } as CSSProperties
+const _slRow: CSSProperties = { display: 'flex', justifyContent: 'space-between', marginTop: 8 }
+const _slLbl: CSSProperties = { fontSize: 11, color: M }
+const _g2: CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }
+const _g1: CSSProperties = { display: 'grid', gridTemplateColumns: '1fr', gap: 12 }
+function cardS(a: boolean): CSSProperties { return { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '14px 10px', borderRadius: 14, cursor: 'pointer', border: '2px solid ' + (a ? B : BD), background: a ? BL : WH, fontSize: 13, fontWeight: 600, color: a ? B : FG, textAlign: 'center', width: '100%' } }
+function civS(a: boolean): CSSProperties { return { flex: 1, padding: 11, borderRadius: 12, border: '2px solid ' + (a ? B : BD), background: a ? B : WH, color: a ? WH : FG, fontSize: 13, fontWeight: 600, cursor: 'pointer' } }
+function rgS(a: boolean): CSSProperties { return { display: 'flex', alignItems: 'flex-start', gap: 10, padding: 14, borderRadius: 12, cursor: 'pointer', border: '1.5px solid ' + (a ? B : BD), background: a ? BL : WH } }
+function rgBx(a: boolean): CSSProperties { return { width: 18, height: 18, borderRadius: 4, border: '2px solid ' + (a ? B : BD), background: a ? B : WH, flexShrink: 0, marginTop: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' } }
+function mRw(a: boolean): CSSProperties { return { display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px', borderRadius: 12, cursor: 'pointer', border: '1.5px solid ' + (a ? B : BD), background: a ? BL : WH, fontSize: 13, fontWeight: 500, color: a ? B : FG, marginBottom: 8 } }
 
-// Steps & Flow
 const STEPS = [
   { n: 1, label: 'Projet', qs: ['type_bien', 'communes', 'budget_max', 'surface_min', 'nb_pieces_min'] },
   { n: 2, label: 'Crit\u00e8res', qs: ['criteres'] },
@@ -83,7 +91,7 @@ function getNext(q: AcheterQuestionId): AcheterQuestionId {
   return f[q] ?? 'done'
 }
 
-function fmt(n: number) { return n >= 1000 ? new Intl.NumberFormat('fr-FR').format(n) : String(n) }
+function fmt(n: number) { return new Intl.NumberFormat('fr-FR').format(n) }
 
 function buildRecap(a: AcheterAnswers): string {
   const lines = ['Tr\u00e8s bien, r\u00e9capitulons votre projet\u00a0!', '']
@@ -195,7 +203,7 @@ export default function AcheterPage() {
               : <div style={rUs}><div><div style={bUs}>{m.text}</div><div style={tR}>{m.timestamp}</div></div></div>}
           </div>
         ))}
-        {currentQuestion !== 'done' && <div style= marginTop: 8 ><InputZone q={currentQuestion} a={answers} onAnswer={answer} onSubmit={submit} /></div>}
+        {currentQuestion !== 'done' && <div style={_iz}><InputZone q={currentQuestion} a={answers} onAnswer={answer} onSubmit={submit} /></div>}
         <div ref={ref} />
       </div>
     </div>
@@ -216,17 +224,18 @@ function InputZone({ q, a, onAnswer, onSubmit }: {
   if (q === 'apport') return <SliderInput unit="\u20ac" min={0} max={500000} def={30000} step={5000} format={fmt} onOk={v => onAnswer('apport', v, fmt(v) + ' \u20ac')} />
   if (q === 'accord_bancaire') return <YesNo onPick={(v, l) => onAnswer('accord_bancaire', v, l)} />
   if (q === 'primo_accedant') return <YesNo onPick={(v, l) => onAnswer('primo_accedant', v, l)} />
-  if (q === 'recapitulatif') return <RecapConfirm onOk={() => onAnswer('recapitulatif' as keyof AcheterAnswers, true as unknown as string, "C'est correct \u2705")} />
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (q === 'recapitulatif') return <RecapConfirm onOk={() => onAnswer('recapitulatif' as any, true as any, "C'est correct \u2705")} />
   if (q === 'coordonnees') return <Coordonnees onSubmit={onSubmit} />
   return null
 }
 
 function Cards({ opts, cols, onPick }: { opts: { value: string; label: string; emoji: string }[]; cols: number; onPick: (v: string, l: string) => void }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols},1fr)`, gap: 10 }}>
+    <div style= display: 'grid', gridTemplateColumns: 'repeat(' + cols + ',1fr)', gap: 10 >
       {opts.map(o => (
         <div key={o.value} style={cardS(false)} onClick={() => onPick(o.value, o.label)}>
-          {o.emoji && <span style= fontSize: 20 >{o.emoji}</span>}
+          {o.emoji && <span style={_emo}>{o.emoji}</span>}
           <span>{o.label}</span>
         </div>
       ))}
@@ -237,9 +246,9 @@ function Cards({ opts, cols, onPick }: { opts: { value: string; label: string; e
 function TextInput({ placeholder, onSend }: { placeholder: string; onSend: (v: string) => void }) {
   const [v, setV] = useState('')
   return (
-    <div style= display: 'flex', gap: 10 >
-      <input style= ...inF, flex: 1  placeholder={placeholder} value={v} onChange={e => setV(e.target.value)} onKeyDown={e => e.key === 'Enter' && v.trim() && onSend(v.trim())} autoFocus />
-      <button style= width: 42, height: 42, borderRadius: 12, background: B, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0  onClick={() => v.trim() && onSend(v.trim())}><Send size={16} color={WH} /></button>
+    <div style={_ir}>
+      <input style={_inpR} placeholder={placeholder} value={v} onChange={e => setV(e.target.value)} onKeyDown={e => e.key === 'Enter' && v.trim() && onSend(v.trim())} autoFocus />
+      <button style={_sendBtn} onClick={() => v.trim() && onSend(v.trim())}><Send size={16} color={WH} /></button>
     </div>
   )
 }
@@ -249,11 +258,11 @@ function SliderInput({ unit, min, max, def, step, format, onOk }: { unit: string
   const f = format ?? String
   return (
     <div style={sWr}>
-      <div style= textAlign: 'center', fontSize: 18, fontWeight: 700, color: FG, marginBottom: 16 >{f(v)} {unit}</div>
-      <input type="range" min={min} max={max} value={v} step={step ?? 1} onChange={e => setV(+e.target.value)} style= width: '100%', accentColor: B  />
-      <div style= display: 'flex', justifyContent: 'space-between', marginTop: 8 >
-        <span style= fontSize: 11, color: M >{f(min)} {unit}</span>
-        <span style= fontSize: 11, color: M >{f(max)} {unit}</span>
+      <div style={_slVal}>{f(v)} {unit}</div>
+      <input type="range" min={min} max={max} value={v} step={step ?? 1} onChange={e => setV(+e.target.value)} style={_slInp} />
+      <div style={_slRow}>
+        <span style={_slLbl}>{f(min)} {unit}</span>
+        <span style={_slLbl}>{f(max)} {unit}</span>
       </div>
       <button style={vBtn} onClick={() => onOk(v)}>Valider</button>
     </div>
@@ -267,29 +276,29 @@ function MultiSel({ opts, onOk }: { opts: string[]; onOk: (sel: string[]) => voi
     <div>
       {opts.map(o => (
         <div key={o} style={mRw(sel.includes(o))} onClick={() => t(o)}>
-          <div style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${sel.includes(o) ? B : BD}`, background: sel.includes(o) ? B : WH, flexShrink: 0 }} />
+          <div style={rgBx(sel.includes(o))} />
           {o}
         </div>
       ))}
-      <button style={vBtn} onClick={() => onOk(sel)}>{sel.length ? `Valider (${sel.length})` : 'Aucun, continuer'}</button>
+      <button style={vBtn} onClick={() => onOk(sel)}>{sel.length ? 'Valider (' + sel.length + ')' : 'Aucun, continuer'}</button>
     </div>
   )
 }
 
 function YesNo({ onPick }: { onPick: (v: string, l: string) => void }) {
   return (
-    <div style= display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 >
-      <div style={cardS(false)} onClick={() => onPick('Oui', 'Oui \u2705')}><span style= fontSize: 20 >\u2705</span><span>Oui</span></div>
-      <div style={cardS(false)} onClick={() => onPick('Non', 'Non')}><span style= fontSize: 20 >\u274c</span><span>Non</span></div>
+    <div style={_g2}>
+      <div style={cardS(false)} onClick={() => onPick('Oui', 'Oui \u2705')}><span style={_emo}>\u2705</span><span>Oui</span></div>
+      <div style={cardS(false)} onClick={() => onPick('Non', 'Non')}><span style={_emo}>\u274c</span><span>Non</span></div>
     </div>
   )
 }
 
 function RecapConfirm({ onOk }: { onOk: () => void }) {
   return (
-    <div style= display: 'grid', gridTemplateColumns: '1fr', gap: 12 >
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '18px 12px', borderRadius: 16, cursor: 'pointer', border: `2px solid ${SU}`, background: '#f0fdf4', fontSize: 13, fontWeight: 600, color: SU }} onClick={onOk}>
-        <Check size={20} />C'est correct
+    <div style={_g1}>
+      <div style= display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '18px 12px', borderRadius: 16, cursor: 'pointer', border: '2px solid ' + SU, background: '#f0fdf4', fontSize: 13, fontWeight: 600, color: SU  onClick={onOk}>
+        <Check size={20} />C&apos;est correct
       </div>
     </div>
   )
@@ -302,7 +311,7 @@ function Coordonnees({ onSubmit }: { onSubmit: (p: string, n: string, t: string,
   const ok = p.trim() && n.trim() && t.trim() && em.includes('@') && rg
   return (
     <div style={cWr}>
-      <div style={cH}><div style={cBdg}>\ud83d\udccb</div><div><div style={cT}>Vos coordonn\u00e9es</div><div style={cS}>Pour recevoir vos r\u00e9sultats</div></div></div>
+      <div style={cH}><div style={cBdg}>\ud83d\udccb</div><div><div style={cT}>Vos coordonn\u00e9es</div><div style={cSb}>Pour recevoir vos r\u00e9sultats</div></div></div>
       <div style={cG}>
         <button style={civS(civ === 'monsieur')} onClick={() => setCiv('monsieur')}>M.</button>
         <button style={civS(civ === 'madame')} onClick={() => setCiv('madame')}>Mme</button>
@@ -315,7 +324,7 @@ function Coordonnees({ onSubmit }: { onSubmit: (p: string, n: string, t: string,
       <input style={inF} type="email" placeholder="votre@email.com" value={em} onChange={e => setEm(e.target.value)} />
       <div style={rgS(rg)} onClick={() => setRg(!rg)}>
         <div style={rgBx(rg)}>{rg && <Check size={12} color={WH} />}</div>
-        <span style={rgTx}>J'accepte d'\u00eatre recontact\u00e9 par Alex Lopez, conseiller immobilier, concernant mon projet immobilier</span>
+        <span style={rgTx}>J&apos;accepte d&apos;\u00eatre recontact\u00e9 par Alex Lopez, conseiller immobilier, concernant mon projet immobilier</span>
       </div>
       <button style={ok ? vBtn : vOff} onClick={() => ok && onSubmit(p, n, t, em, civ)} disabled={!ok}><Send size={14} /> Recevoir mes r\u00e9sultats</button>
     </div>
