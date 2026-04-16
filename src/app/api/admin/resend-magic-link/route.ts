@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { sendMagicLinkEmail } from '@/lib/resend'
 
+interface LeadRow { email: string; prenom: string; token: string; type: string }
+
 export async function POST(req: NextRequest) {
   try {
     const { token } = await req.json()
@@ -11,7 +13,7 @@ export async function POST(req: NextRequest) {
       .from('leads')
       .select('email, prenom, token, type')
       .eq('token', token)
-      .single()
+      .single() as { data: LeadRow | null; error: unknown }
 
     if (error || !lead) return NextResponse.json({ error: 'Dossier introuvable' }, { status: 404 })
 
