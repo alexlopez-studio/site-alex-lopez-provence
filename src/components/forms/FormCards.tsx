@@ -1,10 +1,9 @@
 'use client'
 
-import { useState } from 'react'
 import type { CSSProperties } from 'react'
 import { Check, MapPin } from 'lucide-react'
 
-const B = '#0077B6', BL = '#E0F0FA', FG = '#0F172A', M = '#64748B', BD = '#E2E8F0', WH = '#ffffff', SU = '#10B981'
+const B = '#0077B6', BL = '#E0F0FA', FG = '#0F172A', BD = '#E2E8F0', WH = '#ffffff', SU = '#10B981'
 const _emo: CSSProperties = { fontSize: 20 }
 
 function cardS(a: boolean): CSSProperties {
