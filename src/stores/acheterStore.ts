@@ -1,45 +1,41 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+export interface ChatMessage { id: string; from: 'al' | 'user'; text: string; timestamp: string }
+
 export interface AcheterAnswers {
-  type_bien?: string
-  communes?: string[]
-  budget_max?: number
-  surface_min?: number
-  nb_pieces_min?: number
-  rdc_ok?: boolean
-  parking_indispensable?: boolean
-  exterieur_indispensable?: boolean
-  dpe_souhaite?: string[]
-  travaux_ok?: boolean
-  apport?: number
-  accord_bancaire?: boolean
-  primo_accedant?: boolean
-  prenom?: string
-  nom?: string
-  telephone?: string
-  email?: string
-  opt_in?: boolean
+  type_bien?: string; communes?: string; budget_max?: number; surface_min?: number; nb_pieces_min?: number
+  criteres?: string[]; apport?: number; accord_bancaire?: string; primo_accedant?: string
+  civilite?: 'monsieur' | 'madame'; prenom?: string; nom?: string; telephone?: string; email?: string; rgpd?: boolean
 }
 
+export type AcheterQuestionId =
+  | 'type_bien' | 'communes' | 'budget_max' | 'surface_min' | 'nb_pieces_min'
+  | 'criteres' | 'apport' | 'accord_bancaire' | 'primo_accedant'
+  | 'recapitulatif' | 'coordonnees' | 'done'
+
 interface AcheterState {
-  answers: AcheterAnswers
-  currentStep: number
+  messages: ChatMessage[]; currentQuestion: AcheterQuestionId; answers: AcheterAnswers
+  addMessage: (msg: Omit<ChatMessage, 'id'>) => void
   setAnswer: (key: keyof AcheterAnswers, value: AcheterAnswers[keyof AcheterAnswers]) => void
-  setStep: (step: number) => void
+  setQuestion: (q: AcheterQuestionId) => void
   reset: () => void
 }
 
-export const useAcheterStore = create<AcheterState>()(
-  persist(
-    (set) => ({
-      answers: {},
-      currentStep: 1,
-      setAnswer: (key, value) =>
-        set((s) => ({ answers: { ...s.answers, [key]: value } })),
-      setStep: (step) => set({ currentStep: step }),
-      reset: () => set({ answers: {}, currentStep: 1 }),
-    }),
-    { name: 'acheter-store' }
-  )
-)
+function now() { return new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }
+
+const INIT: ChatMessage[] = [{
+  id: '1', from: 'al',
+  text: "Bonjour\u00a0! Je suis Alex Lopez, votre conseiller immobilier en Provence Verte & Haut-Var.\n\nJe vais vous aider \u00e0 d\u00e9finir votre projet d'achat pour trouver le bien id\u00e9al.\n\nQuel type de bien recherchez-vous\u00a0?",
+  timestamp: now(),
+}]
+
+const initial = { messages: INIT, currentQuestion: 'type_bien' as AcheterQuestionId, answers: {} as AcheterAnswers }
+
+export const useAcheterStore = create<AcheterState>()(persist((set) => ({
+  ...initial,
+  addMessage: (msg) => set((s) => ({ messages: [...s.messages, { ...msg, id: Date.now().toString() }] })),
+  setAnswer: (key, value) => set((s) => ({ answers: { ...s.answers, [key]: value } })),
+  setQuestion: (q) => set({ currentQuestion: q }),
+  reset: () => set(initial),
+}), { name: 'acheter-store' }))
