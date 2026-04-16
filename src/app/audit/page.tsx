@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation'
 import { useAuditStore } from '@/stores/auditStore'
 import type { AuditAnswers, AuditQuestionId } from '@/stores/auditStore'
 import type { CSSProperties } from 'react'
-import { Phone, ChevronLeft, Send, Check, RotateCcw, MapPin } from 'lucide-react'
+import { Phone, ChevronLeft, Send, Check, RotateCcw } from 'lucide-react'
 import Link from 'next/link'
+import { Cards, RecapConfirm, SuggestionItem } from '@/components/forms/FormCards'
 
-const B = '#0077B6', BL = '#E0F0FA', FG = '#0F172A', M = '#64748B', BD = '#E2E8F0', SF = '#F8FAFC', WH = '#ffffff', SU = '#10B981'
+const B = '#0077B6', BL = '#E0F0FA', FG = '#0F172A', M = '#64748B', BD = '#E2E8F0', SF = '#F8FAFC', WH = '#ffffff'
 const MW = '680px', FN = 'var(--font-plus-jakarta-sans, system-ui, sans-serif)'
 
 const page: CSSProperties = { minHeight: '100vh', background: SF, fontFamily: FN }
@@ -63,9 +64,7 @@ const _slInp: CSSProperties = { width: '100%', accentColor: B } as CSSProperties
 const _slRow: CSSProperties = { display: 'flex', justifyContent: 'space-between', marginTop: 8 }
 const _slLbl: CSSProperties = { fontSize: 11, color: M }
 const _g2: CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }
-const _g1: CSSProperties = { display: 'grid', gridTemplateColumns: '1fr', gap: 12 }
 const _sugWr: CSSProperties = { background: WH, border: '1px solid ' + BD, borderRadius: 12, overflow: 'hidden', marginTop: 6 }
-const _sugIt: CSSProperties = { display: 'flex', alignItems: 'center', gap: 8, padding: '11px 14px', fontSize: 13, color: FG, cursor: 'pointer' }
 const _load: CSSProperties = { fontSize: 11, color: M, marginTop: 6 }
 function cardS(a: boolean): CSSProperties { return { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '14px 10px', borderRadius: 14, cursor: 'pointer', border: '2px solid ' + (a ? B : BD), background: a ? BL : WH, fontSize: 13, fontWeight: 600, color: a ? B : FG, textAlign: 'center', width: '100%' } }
 function civS(a: boolean): CSSProperties { return { flex: 1, padding: 11, borderRadius: 12, border: '2px solid ' + (a ? B : BD), background: a ? B : WH, color: a ? WH : FG, fontSize: 13, fontWeight: 600, cursor: 'pointer' } }
@@ -325,26 +324,11 @@ function AdresseInput({ onAnswer }: { onAnswer: (k: keyof AuditAnswers, v: Audit
       {sugs.length > 0 && (
         <div style={_sugWr}>
           {sugs.map((s, i) => (
-            <div key={i} onClick={() => pick(s)} style= ..._sugIt, borderBottom: i < sugs.length - 1 ? '1px solid ' + BD : 'none' >
-              <MapPin size={13} color={B} />{s.label}
-            </div>
+            <SuggestionItem key={i} label={s.label} isLast={i === sugs.length - 1} onPick={() => pick(s)} />
           ))}
         </div>
       )}
       {loading && <p style={_load}>Recherche en cours...</p>}
-    </div>
-  )
-}
-
-function Cards({ opts, cols, onPick }: { opts: { value: string; label: string; emoji: string }[]; cols: number; onPick: (v: string, l: string) => void }) {
-  return (
-    <div style= display: 'grid', gridTemplateColumns: 'repeat(' + cols + ',1fr)', gap: 10 >
-      {opts.map(o => (
-        <div key={o.value} style={cardS(false)} onClick={() => onPick(o.value, o.label)}>
-          {o.emoji && <span style={_emo}>{o.emoji}</span>}
-          <span>{o.label}</span>
-        </div>
-      ))}
     </div>
   )
 }
@@ -385,16 +369,6 @@ function YesNo({ onPick }: { onPick: (v: string, l: string) => void }) {
     <div style={_g2}>
       <div style={cardS(false)} onClick={() => onPick('Oui', 'Oui')}><span style={_emo}>\u2705</span><span>Oui</span></div>
       <div style={cardS(false)} onClick={() => onPick('Non', 'Non')}><span style={_emo}>\u274c</span><span>Non</span></div>
-    </div>
-  )
-}
-
-function RecapConfirm({ onOk }: { onOk: () => void }) {
-  return (
-    <div style={_g1}>
-      <div style= display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '18px 12px', borderRadius: 16, cursor: 'pointer', border: '2px solid ' + SU, background: '#f0fdf4', fontSize: 13, fontWeight: 600, color: SU  onClick={onOk}>
-        <Check size={20} />C&apos;est correct
-      </div>
     </div>
   )
 }
