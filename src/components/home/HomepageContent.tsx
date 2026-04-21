@@ -5,14 +5,14 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
   ArrowRight, Home, Search, ClipboardCheck, MapPin, Star,
-  ShieldCheck, Clock, CheckCircle2, Lock, Users, ChevronDown,
+  ShieldCheck, Clock, Lock, Users, ChevronDown,
   Send, Phone, TrendingUp, Gift, BarChart2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { appUrl, biensUrl, env } from '@/lib/env'
 import { VP as vpOnce, fadeInUp, scaleIn, stagger, staggerFast } from '@/lib/animations'
 
-// ─── Objets d'animation (pas de double-accolades) ───────────────────────
+// ─── Objets d'animation (pas de double-accolades) ──────────────────────
 
 const springFast = { type: 'spring' as const, stiffness: 400, damping: 25 }
 const hoverCard = { y: -6 }
@@ -32,7 +32,7 @@ const progressBarInitial = { width: 0 }
 const progressBarAnimate = { width: '75%' }
 const progressBarTransition = { delay: 1.1, duration: 0.9, ease: 'easeOut' as const }
 
-// ─── Counter animé ───────────────────────────────────────────────────────────
+// ─── Counter animé ─────────────────────────────────────────────────────
 
 function Counter({ target, suffix }: { target: number; suffix: string }) {
   const ref = useRef<HTMLSpanElement>(null)
@@ -58,7 +58,7 @@ function Counter({ target, suffix }: { target: number; suffix: string }) {
   return <span ref={ref}>{count}{suffix}</span>
 }
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
+// ─── Data ──────────────────────────────────────────────────────────────────────
 
 const PHONE_RAW = '+33613180168'
 const PHONE_DISPLAY = '06 13 18 01 68'
@@ -107,7 +107,7 @@ const AVIS = [
   { name: 'Isabelle R.', transaction: 'VENTE', note: 5, text: '«Présent, réactif, transparent. Notre bien à Barjols a été vendu en moins d\u2019un mois. Je recommande sans hésiter.»' },
 ]
 
-// ─── Component ─────────────────────────────────────────────────────────────────────
+// ─── Component ─────────────────────────────────────────────────────────────────
 
 export default function HomepageContent() {
   const assistantUrl = appUrl('') || '/assistant'
@@ -153,7 +153,7 @@ export default function HomepageContent() {
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <Link href={env.calcomUrl} target="_blank" rel="noopener noreferrer">Prendre RDV</Link>
+                <Link href={env.app.calcomUrl} target="_blank" rel="noopener noreferrer">Prendre RDV</Link>
               </Button>
             </motion.div>
             <motion.a variants={fadeInUp} href={'tel:' + PHONE_RAW}

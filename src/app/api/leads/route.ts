@@ -22,6 +22,8 @@ export async function POST(req: NextRequest) {
 
     // 1. Supabase
     if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      // NOTE: `as never` pattern until `Database` generics are wired into createClient().
+      // Cf. commit 419cf28 (resend-magic-link) for the same workaround.
       const { data: lead, error } = await supabaseAdmin
         .from('leads')
         .insert({
@@ -30,9 +32,9 @@ export async function POST(req: NextRequest) {
           form_data: form_data ?? body, token,
           opt_in: Boolean(opt_in),
           opt_in_date: opt_in ? new Date().toISOString() : null,
-        })
+        } as never)
         .select('token')
-        .single()
+        .single<{ token: string }>()
 
       if (error) console.error('[API /leads] Supabase:', error)
       else if (lead) token = lead.token
@@ -47,7 +49,7 @@ export async function POST(req: NextRequest) {
       if (attioRecordId) {
         await supabaseAdmin
           .from('leads')
-          .update({ attio_record_id: attioRecordId })
+          .update({ attio_record_id: attioRecordId } as never)
           .eq('token', token)
       }
     }
