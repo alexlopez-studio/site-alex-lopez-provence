@@ -65,20 +65,27 @@ function HeartDivider({ className = '' }: { className?: string }) {
 const PHONE_RAW = '+33613180168'
 const HERO_PHOTO = '/alexandre-lopez.jpg'
 const COMMUNES_TEASER = ['Barjols', 'Montmeyan', 'Quinson', 'Fox-Amphoux', 'Tavernes', 'Rians', 'Aups', 'Salernes', 'Ginasservis', 'Varages', 'Esparron-de-Verdon', 'Artignosc-sur-Verdon']
-const ZONE_BACKDROP = 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=2000&q=80&auto=format&fit=crop'
-const POSTCARD_IMAGE = 'https://images.unsplash.com/photo-1564419320461-6870880221ad?w=2400&q=85&auto=format&fit=crop'
 
-const DIPTYQUE_LAVANDE = 'https://images.unsplash.com/photo-1591801074660-0f67c8e14e8f?w=1400&q=85&auto=format&fit=crop'
-const DIPTYQUE_VILLAGE = 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=1400&q=85&auto=format&fit=crop'
-const VILLAGE_COTIGNAC = 'https://images.unsplash.com/photo-1534950595837-f4cd585e7ed0?w=900&q=80&auto=format&fit=crop'
-const VILLAGE_BARJOLS = 'https://images.unsplash.com/photo-1533757704860-4e25feb0cf52?w=900&q=80&auto=format&fit=crop'
-const VILLAGE_SILLANS = 'https://images.unsplash.com/photo-1596394723269-b2cbca4e6e33?w=900&q=80&auto=format&fit=crop'
+// Photos locales (public/) — paysages Provence Verte & Haut-Var
+const PHOTO_LAVANDE = '/geertd-lavende-2287924_1920.jpg'
+const PHOTO_OLIVIER = '/hans-olive-tree-1595493_1920.jpg'
+const PHOTO_SUD = '/lver-south-4790158_1920.jpg'
+const PHOTO_FRANCE = '/tonic-pics-france-3234611_1920.jpg'
+
+const ZONE_BACKDROP = PHOTO_SUD
+const POSTCARD_IMAGE = PHOTO_FRANCE
+
+const DIPTYQUE_LAVANDE = PHOTO_LAVANDE
+const DIPTYQUE_VILLAGE = PHOTO_FRANCE
+const VILLAGE_COTIGNAC = PHOTO_SUD
+const VILLAGE_BARJOLS = PHOTO_OLIVIER
+const VILLAGE_SILLANS = PHOTO_FRANCE
 
 const PAYSAGE_SRC = {
-  valensole: 'https://images.unsplash.com/photo-1499002238440-d264edd596ec?w=1600&q=80&auto=format&fit=crop',
-  villages:  'https://images.unsplash.com/photo-1533757704860-4e25feb0cf52?w=1200&q=80&auto=format&fit=crop',
-  olives:    'https://images.unsplash.com/photo-1568214379698-8aeb8c6c6ac8?w=1200&q=80&auto=format&fit=crop',
-  vineyards: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1600&q=80&auto=format&fit=crop',
+  valensole: PHOTO_LAVANDE,
+  villages:  PHOTO_FRANCE,
+  olives:    PHOTO_OLIVIER,
+  vineyards: PHOTO_SUD,
 }
 
 type ForSaleTag = 'new' | 'priceDown'
@@ -243,7 +250,7 @@ export default function HomepageContent() {
 
       {/* ===== CARTE POSTALE XL — BIENVENUE EN HAUT-VAR ===== */}
       <section className="relative h-[78vh] md:h-[88vh] overflow-hidden" aria-label="Haut-Var & Provence Verte">
-        <Image src={POSTCARD_IMAGE} alt="Gorges du Verdon, eaux turquoise et falaises du Haut-Var" fill priority
+        <Image src={POSTCARD_IMAGE} alt="Paysage Provence Verte & Haut-Var" fill priority
           sizes="100vw" className="object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/75" />
         <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
@@ -280,7 +287,7 @@ export default function HomepageContent() {
           <motion.div variants={staggerFast} initial="initial" whileInView="animate" viewport={vpOnce}
             className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-[20rem_20rem] gap-4">
             {PAYSAGES.map((p, i) => (
-              <motion.div key={p.src} variants={scaleIn}
+              <motion.div key={p.src + '-' + i} variants={scaleIn}
                 className={'group relative overflow-hidden rounded-2xl bg-surface border border-border ' + p.className}>
                 <Image src={p.src} alt={p.alt} fill
                   sizes={i === 0 ? '(min-width: 768px) 50vw, 100vw' : '(min-width: 768px) 25vw, 100vw'}
