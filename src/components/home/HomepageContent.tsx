@@ -71,7 +71,7 @@ const PAYSAGE_SRC = {
   valensole: 'https://images.unsplash.com/photo-1499002238440-d264edd596ec?w=1600&q=80&auto=format&fit=crop',
   villages:  'https://images.unsplash.com/photo-1533757704860-4e25feb0cf52?w=1200&q=80&auto=format&fit=crop',
   olives:    'https://images.unsplash.com/photo-1568214379698-8aeb8c6c6ac8?w=1200&q=80&auto=format&fit=crop',
-  verdon:    'https://images.unsplash.com/photo-1564419320461-6870880221ad?w=1600&q=80&auto=format&fit=crop',
+  vineyards: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1600&q=80&auto=format&fit=crop',
 }
 
 type ForSaleTag = 'new' | 'priceDown'
@@ -114,7 +114,7 @@ export default function HomepageContent() {
     { src: PAYSAGE_SRC.valensole, alt: tLand('valensoleAlt'), caption: tLand('valensoleCaption'), className: 'md:col-span-2 md:row-span-2 aspect-[4/3] md:aspect-auto' },
     { src: PAYSAGE_SRC.villages,  alt: tLand('villagesAlt'),  caption: tLand('villagesCaption'),  className: 'aspect-[4/3]' },
     { src: PAYSAGE_SRC.olives,    alt: tLand('olivesAlt'),    caption: tLand('olivesCaption'),    className: 'aspect-[4/3]' },
-    { src: PAYSAGE_SRC.verdon,    alt: tLand('verdonAlt'),    caption: tLand('verdonCaption'),    className: 'md:col-span-2 aspect-[16/9]' },
+    { src: PAYSAGE_SRC.vineyards, alt: tLand('vineyardsAlt'), caption: tLand('vineyardsCaption'), className: 'md:col-span-2 aspect-[16/9]' },
   ]
 
   const USP_CHIPS = [
@@ -234,7 +234,7 @@ export default function HomepageContent() {
       </motion.section>
 
       {/* ===== CARTE POSTALE XL — BIENVENUE EN HAUT-VAR ===== */}
-      <section className="relative h-[80vh] md:h-[92vh] overflow-hidden" aria-label="Haut-Var & Provence Verte">
+      <section className="relative h-[78vh] md:h-[88vh] overflow-hidden" aria-label="Haut-Var & Provence Verte">
         <Image src={POSTCARD_IMAGE} alt="Gorges du Verdon, eaux turquoise et falaises du Haut-Var" fill priority
           sizes="100vw" className="object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/75" />
@@ -244,29 +244,27 @@ export default function HomepageContent() {
             Bienvenue en
           </motion.p>
           <motion.h2 variants={fadeInUp}
-            className="font-serif italic text-white text-5xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.92] tracking-[-0.02em] drop-shadow-[0_2px_20px_rgba(0,0,0,0.3)]">
+            className="font-serif italic text-white text-4xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.95] tracking-[-0.02em] drop-shadow-[0_2px_20px_rgba(0,0,0,0.3)]">
             Haut-Var
             <br />
             <span className="text-brand-light">& Provence Verte.</span>
           </motion.h2>
           <motion.div variants={fadeInUp} className="w-12 h-px bg-white/60 my-10" />
-          <motion.p variants={fadeInUp} className="font-serif italic text-white/95 text-xl md:text-2xl leading-relaxed max-w-2xl">
+          <motion.p variants={fadeInUp} className="font-serif italic text-white/95 text-lg md:text-xl leading-relaxed max-w-2xl">
             Entre champs de lavande, villages perchés et eaux turquoise du Verdon &mdash; un art de vivre qui se redécouvre chaque matin.
           </motion.p>
-          <motion.p variants={fadeInUp} className="font-script text-white text-4xl md:text-5xl mt-10">
+          <motion.p variants={fadeInUp} className="font-script text-white text-3xl md:text-4xl mt-10">
             Alexandre
           </motion.p>
         </motion.div>
       </section>
 
-      {/* ===== GALERIE PAYSAGES — 01 ===== */}
+      {/* ===== GALERIE PAYSAGES ===== */}
       <section className="py-28 px-6 bg-white relative overflow-hidden">
         <div className="max-w-[75rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-16 max-w-2xl mx-auto">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">
-              <span className="section-number">01 —</span>{tLand('eyebrow')}
-            </p>
-            <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl font-medium text-foreground leading-[1.02] mb-6 tracking-[-0.02em]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">{tLand('eyebrow')}</p>
+            <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl font-medium text-foreground leading-[1.05] mb-6 tracking-[-0.02em]">
               {tLand('title1')} <span className="italic text-brand">{tLand('title2')}</span>
             </h2>
             <p className="text-muted leading-relaxed text-lg">{tLand('description')}</p>
@@ -287,7 +285,7 @@ export default function HomepageContent() {
         </div>
       </section>
 
-      {/* ===== MON HISTOIRE — 02 (surface papier) ===== */}
+      {/* ===== MON HISTOIRE (surface papier) ===== */}
       <section className="py-28 px-6 paper-surface">
         <div className="max-w-[75rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <motion.div variants={scaleIn} initial="initial" whileInView="animate" viewport={vpOnce}
@@ -296,10 +294,8 @@ export default function HomepageContent() {
               sizes="(min-width: 1024px) 40vw, 90vw" className="object-cover object-center" />
           </motion.div>
           <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce} className="order-1 lg:order-2">
-            <motion.p variants={fadeInUp} className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">
-              <span className="section-number">02 —</span>{tStory('eyebrow')}
-            </motion.p>
-            <motion.h2 variants={fadeInUp} className="font-serif text-5xl md:text-6xl lg:text-7xl font-medium text-foreground mb-8 leading-[1.02] tracking-[-0.02em]">
+            <motion.p variants={fadeInUp} className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">{tStory('eyebrow')}</motion.p>
+            <motion.h2 variants={fadeInUp} className="font-serif text-4xl md:text-5xl lg:text-6xl font-medium text-foreground mb-8 leading-[1.05] tracking-[-0.02em]">
               {tStory('titlePart1')} <span className="italic text-brand">{tStory('titleAccent')}</span> {tStory('titlePart2')}
             </motion.h2>
             <motion.div variants={stagger} className="space-y-5 text-muted leading-relaxed mb-8 text-lg">
@@ -330,14 +326,12 @@ export default function HomepageContent() {
         </div>
       </section>
 
-      {/* ===== SERVICES — 03 ===== */}
+      {/* ===== SERVICES ===== */}
       <section className="py-28 px-6 bg-white">
         <div className="max-w-[75rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-16">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">
-              <span className="section-number">03 —</span>{tServ('eyebrow')}
-            </p>
-            <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl font-medium text-foreground leading-[1.02] tracking-[-0.02em]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">{tServ('eyebrow')}</p>
+            <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl font-medium text-foreground leading-[1.05] tracking-[-0.02em]">
               {tServ('titlePart1')} <span className="italic text-brand">{tServ('titlePart2')}</span>
             </h2>
           </motion.div>
@@ -366,20 +360,18 @@ export default function HomepageContent() {
         </div>
       </section>
 
-      {/* ===== ZONE — 04 ===== */}
+      {/* ===== ZONE ===== */}
       <section className="relative overflow-hidden">
-        <div className="relative h-[32rem] md:h-[36rem]">
+        <div className="relative h-[30rem] md:h-[34rem]">
           <Image src={ZONE_BACKDROP} alt={tZone('backdropAlt')} fill sizes="100vw" className="object-cover" />
           <div className="absolute inset-0 bg-gradient-to-b from-foreground/50 via-foreground/30 to-surface" />
           <div className="absolute inset-0 flex items-center justify-center px-6">
             <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center max-w-3xl">
               <motion.div variants={fadeInUp} className="flex items-center justify-center gap-2 mb-4">
                 <MapPin size={18} className="text-white" />
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/90">
-                  <span className="section-number text-white">04 —</span>{tZone('eyebrow')}
-                </p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/90">{tZone('eyebrow')}</p>
               </motion.div>
-              <motion.h2 variants={fadeInUp} className="font-serif text-5xl md:text-7xl lg:text-8xl font-medium text-white mb-4 leading-[0.98] tracking-[-0.02em] drop-shadow-md">
+              <motion.h2 variants={fadeInUp} className="font-serif text-4xl md:text-6xl lg:text-7xl font-medium text-white mb-4 leading-[1.02] tracking-[-0.02em] drop-shadow-md">
                 {tZone('titlePart1')} <span className="italic">{tZone('titleAccent')}</span>
               </motion.h2>
               <motion.p variants={fadeInUp} className="text-white/90 leading-relaxed max-w-2xl mx-auto drop-shadow-sm text-lg">
@@ -413,14 +405,12 @@ export default function HomepageContent() {
         </div>
       </section>
 
-      {/* ===== BIENS EN VENTE — 05 ===== */}
+      {/* ===== BIENS EN VENTE ===== */}
       <section className="py-28 px-6 bg-white">
         <div className="max-w-[75rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-14">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">
-              <span className="section-number">05 —</span>{tForSale('eyebrow')}
-            </p>
-            <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl font-medium text-foreground leading-[1.02] tracking-[-0.02em]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">{tForSale('eyebrow')}</p>
+            <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl font-medium text-foreground leading-[1.05] tracking-[-0.02em]">
               {tForSale('titlePart1')} <span className="italic text-brand">{tForSale('titleAccent')}</span>
             </h2>
           </motion.div>
@@ -460,14 +450,12 @@ export default function HomepageContent() {
         </div>
       </section>
 
-      {/* ===== VENTES RÉCENTES — 06 ===== */}
+      {/* ===== VENTES RÉCENTES ===== */}
       <section className="py-28 px-6 paper-surface">
         <div className="max-w-[75rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-14">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">
-              <span className="section-number">06 —</span>{tSold('eyebrow')}
-            </p>
-            <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl font-medium text-foreground leading-[1.02] tracking-[-0.02em]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">{tSold('eyebrow')}</p>
+            <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl font-medium text-foreground leading-[1.05] tracking-[-0.02em]">
               {tSold('titlePart1')} <span className="italic text-brand">{tSold('titleAccent')}</span>
             </h2>
           </motion.div>
@@ -494,14 +482,12 @@ export default function HomepageContent() {
         </div>
       </section>
 
-      {/* ===== TÉMOIGNAGES — 07 ===== */}
+      {/* ===== TÉMOIGNAGES ===== */}
       <section className="py-28 px-6 bg-white">
         <div className="max-w-[75rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-14">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">
-              <span className="section-number">07 —</span>{tTest('eyebrow')}
-            </p>
-            <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl font-medium text-foreground leading-[1.02] tracking-[-0.02em]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">{tTest('eyebrow')}</p>
+            <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl font-medium text-foreground leading-[1.05] tracking-[-0.02em]">
               {tTest('titlePart1')} <span className="italic text-brand">{tTest('titleAccent')}</span>
             </h2>
             <div className="mt-8 flex justify-center"><HeartDivider /></div>
@@ -531,7 +517,7 @@ export default function HomepageContent() {
         <div className="max-w-3xl mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-14">
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">{tFaq('eyebrow')}</p>
-            <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl font-medium text-foreground leading-[1.02] tracking-[-0.02em]">
+            <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl font-medium text-foreground leading-[1.05] tracking-[-0.02em]">
               {tFaq('titlePart1')} <span className="italic text-brand">{tFaq('titleAccent')}</span>
             </h2>
           </motion.div>
@@ -555,7 +541,7 @@ export default function HomepageContent() {
         <div className="max-w-[75rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-14 items-start">
           <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce} className="lg:pt-2">
             <motion.p variants={fadeInUp} className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">{tContact('eyebrow')}</motion.p>
-            <motion.h2 variants={fadeInUp} className="font-serif text-5xl md:text-6xl lg:text-7xl font-medium text-foreground mb-8 leading-[1.02] tracking-[-0.02em]">
+            <motion.h2 variants={fadeInUp} className="font-serif text-4xl md:text-5xl lg:text-6xl font-medium text-foreground mb-8 leading-[1.05] tracking-[-0.02em]">
               {tContact('titlePart1')} <span className="italic text-brand">{tContact('titleAccent')}</span>
             </motion.h2>
             <motion.p variants={fadeInUp} className="text-muted leading-relaxed mb-8 text-lg">{tContact('description')}</motion.p>
@@ -615,7 +601,7 @@ export default function HomepageContent() {
         className="py-28 px-6 bg-brand-light">
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">{tCta('eyebrow')}</p>
-          <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl font-medium text-foreground mb-6 leading-[1.02] tracking-[-0.02em]">
+          <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl font-medium text-foreground mb-6 leading-[1.05] tracking-[-0.02em]">
             {tCta('titlePart1')} <span className="italic text-brand">{tCta('titleAccent')}</span>
           </h2>
           <p className="text-muted mb-8 leading-relaxed text-lg">{tCta('description')}</p>

@@ -70,17 +70,6 @@ body {
   font-weight: 600;
 }
 
-/* ─── Numéro de section éditorial (style magazine) ────────────── */
-.section-number {
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-weight: 300;
-  font-size: 1.1rem;
-  letter-spacing: 0.05em;
-  color: var(--color-brand);
-  margin-right: 0.75rem;
-}
-
 /* ─── Surface papier chaleureuse (ambiance carnet de route Provence) ─── */
 .paper-surface {
   background: var(--color-paper);
