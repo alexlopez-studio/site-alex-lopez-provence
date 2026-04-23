@@ -13,12 +13,13 @@
   --color-accent-hover:  #d94535;
   --color-accent-light:  #fde9e6;
 
-  /* Neutrals — Noir pur iad + gris sobres */
+  /* Neutrals — Noir pur iad + gris sobres + papier chaleureux (liberté créative) */
   --color-foreground:    #000000;
   --color-muted:         #595959;
   --color-border:        #E5E7EB;
   --color-surface:       #F7FAFC;
   --color-surface-alt:   #E9FCFF;  /* Blue.50 */
+  --color-paper:         #FAFAF7;  /* Blanc cassé chaleureux — ambiance magazine Provence */
 
   /* Feedback */
   --color-success:       #16a34a;
@@ -31,7 +32,7 @@
   --font-script: var(--font-buffalo), "Brush Script MT", cursive;
 }
 
-/* ─── Base Reset ─────────────────────────────────────── */
+/* ─── Base Reset ────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
 }
@@ -55,18 +56,43 @@ body {
   letter-spacing: 0;
 }
 
-/* ─── Serif italic refinement (titres éditoriaux premium) ───────────── */
+/* ─── Serif italic refinement (titres éditoriaux premium) ─────────── */
 .serif-accent {
   font-family: var(--font-serif);
   font-style: italic;
   font-weight: 500;
 }
 
-/* ─── Baseline iad — capitales espacées ────────────────────── */
+/* ─── Baseline iad — capitales espacées ──────────────────── */
 .tracking-baseline {
   letter-spacing: 0.2em;
   text-transform: uppercase;
   font-weight: 600;
+}
+
+/* ─── Numéro de section éditorial (style magazine) ────────────── */
+.section-number {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 300;
+  font-size: 1.1rem;
+  letter-spacing: 0.05em;
+  color: var(--color-brand);
+  margin-right: 0.75rem;
+}
+
+/* ─── Surface papier chaleureuse (ambiance carnet de route Provence) ─── */
+.paper-surface {
+  background: var(--color-paper);
+}
+
+/* ─── Filet fin noir à l'ancienne (séparateur éditorial) ────────── */
+.hairline-divider {
+  width: 3rem;
+  height: 1px;
+  background: var(--color-foreground);
+  opacity: 0.3;
+  margin: 1rem 0;
 }
 
 /* ─── Gélule corail iad — CTA principal (1× par page, inclinée -10° charte) ─── */
