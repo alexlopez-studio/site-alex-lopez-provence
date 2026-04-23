@@ -1,8 +1,8 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { Phone, Mail, Instagram, Linkedin, Facebook } from 'lucide-react'
 
 const PHONE_RAW = '+33613180168'
-const PHONE_DISPLAY = '06 13 18 01 68'
 const EMAIL = 'alex@alexlopez-provence.fr'
 
 const SOCIAL_LINKS = [
@@ -11,8 +11,11 @@ const SOCIAL_LINKS = [
   { icon: Facebook, label: 'Facebook', href: '#' },
 ]
 
-export function Footer() {
+export async function Footer() {
+  const t = await getTranslations('footer')
+  const tCommon = await getTranslations('common')
   const year = new Date().getFullYear()
+  const phoneDisplay = tCommon('phoneDisplay')
 
   return (
     <footer className="bg-surface border-t border-border">
@@ -26,19 +29,18 @@ export function Footer() {
             <div className="mb-4">
               <p className="text-[15px] font-black text-foreground">Alex Lopez</p>
               <p className="text-[10px] font-semibold text-brand uppercase tracking-[0.16em]">
-                Mandataire IAD
+                {t('brandLine2')}
               </p>
             </div>
             <p className="text-sm text-muted leading-relaxed max-w-xs">
-              Mandataire immobilier IAD en Provence Verte et Haut-Var.
-              Vente et achat immobilier dans le Var.
+              {t('tagline')}
             </p>
           </div>
 
           {/* Contact */}
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground mb-5">
-              Contact
+              {t('contactTitle')}
             </p>
             <div className="space-y-3">
               <a
@@ -46,7 +48,7 @@ export function Footer() {
                 className="flex items-center gap-2.5 text-sm text-muted hover:text-brand transition-colors"
               >
                 <Phone size={14} className="shrink-0" />
-                {PHONE_DISPLAY}
+                {phoneDisplay}
               </a>
               <a
                 href={'mailto:' + EMAIL}
@@ -61,7 +63,7 @@ export function Footer() {
           {/* Réseaux sociaux */}
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground mb-5">
-              Retrouvez-moi
+              {t('socialTitle')}
             </p>
             <div className="flex items-center gap-3">
               {SOCIAL_LINKS.map(function (s) {
@@ -87,15 +89,14 @@ export function Footer() {
         {/* Barre du bas */}
         <div className="border-t border-border pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted text-center sm:text-left">
-            © {year} Alex Lopez · Mandataire indépendant IAD France ·{' '}
-            IAD France SAS — 40 rue de Paradis, 75010 Paris
+            {t('copyright', { year: year })}
           </p>
           <div className="flex items-center gap-6 shrink-0">
             <Link href="/mentions-legales" className="text-xs text-muted hover:text-foreground transition-colors">
-              Mentions légales
+              {t('legalMentions')}
             </Link>
             <Link href="/politique-confidentialite" className="text-xs text-muted hover:text-foreground transition-colors">
-              Confidentialité
+              {t('privacy')}
             </Link>
           </div>
         </div>

@@ -4,6 +4,7 @@ import { motion, useInView } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import {
   ArrowRight, Home, Search, ClipboardCheck, MapPin, Star,
   ShieldCheck, Clock, Lock, Users, ChevronDown,
@@ -32,7 +33,6 @@ const progressBarInitial = { width: 0 }
 const progressBarAnimate = { width: '75%' }
 const progressBarTransition = { delay: 1.1, duration: 0.9, ease: 'easeOut' as const }
 
-// ─── Counter animé ────────────────────────────────────────────
 function Counter({ target, suffix }: { target: number; suffix: string }) {
   const ref = useRef<HTMLSpanElement>(null)
   const inView = useInView(ref, { once: true })
@@ -57,7 +57,6 @@ function Counter({ target, suffix }: { target: number; suffix: string }) {
   return <span ref={ref}>{count}{suffix}</span>
 }
 
-// ─── Ornement cœur fin (séparateur style IAD) ────────────────────────
 function HeartDivider({ className = '' }: { className?: string }) {
   return (
     <div className={'flex items-center gap-3 text-brand ' + className} aria-hidden="true">
@@ -70,95 +69,90 @@ function HeartDivider({ className = '' }: { className?: string }) {
   )
 }
 
-// ─── Data ───────────────────────────────────────────────────────
+// ─── Data non-traduisibles (toponymes, prix, URLs images) ───────────────────────
 const PHONE_RAW = '+33613180168'
-const PHONE_DISPLAY = '06 13 18 01 68'
-
-const PAYSAGES = [
-  {
-    src: 'https://images.unsplash.com/photo-1499002238440-d264edd596ec?w=1600&q=80&auto=format&fit=crop',
-    alt: 'Champs de lavande en fleur sur le plateau de Valensole',
-    caption: 'Plateau de Valensole',
-    className: 'md:col-span-2 md:row-span-2 aspect-[4/3] md:aspect-auto',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1533757704860-4e25feb0cf52?w=1200&q=80&auto=format&fit=crop',
-    alt: 'Village perché de Provence sous un ciel lumineux',
-    caption: 'Villages perchés',
-    className: 'aspect-[4/3]',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1568214379698-8aeb8c6c6ac8?w=1200&q=80&auto=format&fit=crop',
-    alt: 'Oliveraie ancienne en Provence',
-    caption: 'Oliveraies',
-    className: 'aspect-[4/3]',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1564419320461-6870880221ad?w=1600&q=80&auto=format&fit=crop',
-    alt: 'Gorges du Verdon, eau turquoise entre les falaises',
-    caption: 'Gorges du Verdon',
-    className: 'md:col-span-2 aspect-[16/9]',
-  },
-]
-
-const ZONE_BACKDROP =
-  'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=2000&q=80&auto=format&fit=crop'
-
-const FAQ_ITEMS = [
-  { question: 'Quelle est la différence entre un mandataire et une agence immobilière ?', answer: "Un mandataire immobilier est un professionnel indépendant rattaché à un réseau (ici IAD France). Il propose les mêmes services qu'une agence (estimation, vente, achat) mais avec des honoraires souvent inférieurs, car il n'a pas de local commercial à entretenir." },
-  { question: 'Combien coûte une estimation immobilière en Provence Verte et Haut-Var ?', answer: "L'estimation est entièrement gratuite et sans engagement. Elle s'appuie sur les prix réels des ventes récentes dans votre secteur et la connaissance terrain de la Provence Verte et du Haut-Var." },
-  { question: 'Quelles communes couvrez-vous en Provence Verte et Haut-Var ?', answer: "J'interviens sur l'ensemble de la Provence Verte et du Haut-Var : Barjols, Montmeyan, Quinson, Fox-Amphoux, Tavernes, Rians, Aups, Salernes, Ginasservis, Varages, Esparron-de-Verdon, Artignosc-sur-Verdon et toutes les communes limitrophes." },
-  { question: 'Combien de temps faut-il pour vendre un bien en Provence Verte ?', answer: 'Le délai moyen de vente dépend du bien et de son positionnement prix. Avec une estimation juste et une stratégie de diffusion adaptée, la majorité des biens en Provence Verte et Haut-Var trouvent preneur en 4 à 12 semaines.' },
-  { question: "Qu'est-ce que l'audit immobilier express ?", answer: "C'est un bilan gratuit de votre bien réalisé en quelques minutes. Il identifie les points de vigilance — légaux, techniques, environnementaux — pour que vous puissiez vendre ou acheter en toute connaissance de cause." },
-]
-
-const USP_CHIPS = [
-  { icon: Gift, label: 'Estimation gratuite' },
-  { icon: BarChart2, label: 'Prix du marché local' },
-  { icon: ShieldCheck, label: 'Bilan complet du bien' },
-  { icon: Clock, label: 'Réponse sous 24h' },
-  { icon: Lock, label: 'Sans engagement' },
-]
-
-const SERVICES = [
-  { icon: Home, title: 'Vendre votre bien', description: 'Je vous aide à fixer le bon prix, valoriser votre bien et trouver le bon acheteur — rapidement et sans stress.', cta: 'Estimer mon bien', href: '/vendre', external: false },
-  { icon: Search, title: 'Acheter sereinement', description: 'Je cherche pour vous, négocie à votre place et vérifie tous les points importants avant de signer.', cta: 'Décrire mon projet', href: '/acheter', external: false },
-  { icon: ClipboardCheck, title: 'Bilan immobilier gratuit', description: "Avant de vendre ou d'acheter, je passe votre bien au crible pour éviter les mauvaises surprises.", cta: 'Lancer le bilan', href: '/audit', external: false },
-  { icon: Users, title: 'Devenir mandataire IAD', description: 'Vous souhaitez vous reconvertir en Provence ? Je vous accompagne de A à Z dans votre lancement.', cta: 'En savoir plus', href: 'https://www.iadfrance.fr/rejoindre-iad', external: true },
-]
-
 const COMMUNES_TEASER = ['Barjols', 'Montmeyan', 'Quinson', 'Fox-Amphoux', 'Tavernes', 'Rians', 'Aups', 'Salernes', 'Ginasservis', 'Varages', 'Esparron-de-Verdon', 'Artignosc-sur-Verdon']
+const ZONE_BACKDROP = 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=2000&q=80&auto=format&fit=crop'
 
-const BIENS_VENTE = [
-  { image: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800&q=80&auto=format&fit=crop', tag: 'NOUVEAU', tagColor: 'bg-success text-white', type: 'Maison de village', commune: 'Barjols (83670)', prix: '245 000 €', surface: '110 m²', pieces: '4 pièces' },
-  { image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80&auto=format&fit=crop', tag: 'NOUVEAU', tagColor: 'bg-success text-white', type: 'Bastide provençale', commune: 'Rians (83560)', prix: '385 000 €', surface: '180 m²', pieces: '6 pièces' },
-  { image: 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&q=80&auto=format&fit=crop', tag: 'BAISSE DE PRIX', tagColor: 'bg-brand text-white', type: 'Maison avec terrain', commune: 'Montmeyan (83670)', prix: '198 000 €', surface: '95 m²', pieces: '3 pièces' },
+const PAYSAGE_SRC = {
+  valensole: 'https://images.unsplash.com/photo-1499002238440-d264edd596ec?w=1600&q=80&auto=format&fit=crop',
+  villages:  'https://images.unsplash.com/photo-1533757704860-4e25feb0cf52?w=1200&q=80&auto=format&fit=crop',
+  olives:    'https://images.unsplash.com/photo-1568214379698-8aeb8c6c6ac8?w=1200&q=80&auto=format&fit=crop',
+  verdon:    'https://images.unsplash.com/photo-1564419320461-6870880221ad?w=1600&q=80&auto=format&fit=crop',
+}
+
+const BIENS_VENTE_DATA = [
+  { key: 'a', image: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800&q=80&auto=format&fit=crop', tag: 'new',       typeKey: 'typeVillageHouse', commune: 'Barjols (83670)',    prix: '245 000 €', surface: '110 m²', rooms: 4 },
+  { key: 'b', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80&auto=format&fit=crop', tag: 'new',       typeKey: 'typeBastide',      commune: 'Rians (83560)',      prix: '385 000 €', surface: '180 m²', rooms: 6 },
+  { key: 'c', image: 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&q=80&auto=format&fit=crop', tag: 'priceDown', typeKey: 'typeHouseWithLand', commune: 'Montmeyan (83670)', prix: '198 000 €', surface: '95 m²',  rooms: 3 },
 ]
 
-const BIENS_VENDUS = [
-  { image: 'https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=600&q=80&auto=format&fit=crop', type: 'Maison de caractère', commune: 'Barjols', prix: '265 000 €' },
-  { image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&q=80&auto=format&fit=crop', type: 'Mas provençal', commune: 'Aups', prix: '420 000 €' },
-  { image: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=600&q=80&auto=format&fit=crop', type: 'Villa avec piscine', commune: 'Rians', prix: '345 000 €' },
-  { image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&q=80&auto=format&fit=crop', type: 'Maison de village', commune: 'Salernes', prix: '185 000 €' },
+const BIENS_VENDUS_DATA = [
+  { key: 'a', image: 'https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=600&q=80&auto=format&fit=crop', typeKey: 'typeCharacterHouse', commune: 'Barjols',  prix: '265 000 €' },
+  { key: 'b', image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&q=80&auto=format&fit=crop', typeKey: 'typeProvencalMas',  commune: 'Aups',     prix: '420 000 €' },
+  { key: 'c', image: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=600&q=80&auto=format&fit=crop', typeKey: 'typeVillaWithPool', commune: 'Rians',    prix: '345 000 €' },
+  { key: 'd', image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&q=80&auto=format&fit=crop', typeKey: 'typeVillageHouse',  commune: 'Salernes', prix: '185 000 €' },
 ]
-
-const AVIS = [
-  { name: 'Sophie M.', transaction: 'VENTE', note: 5, text: '«Alex a su estimer notre maison au juste prix. Vendu en 3 semaines, sans stress. Une présence et une transparence exemplaires tout au long du processus.»' },
-  { name: 'Pierre & Marion L.', transaction: 'ACHAT', note: 5, text: '«Il connaît chaque commune de la Provence Verte. Grâce à lui, on a trouvé exactement ce qu’on cherchait, au bon prix et sans mauvaise surprise.»' },
-  { name: 'Isabelle R.', transaction: 'VENTE', note: 5, text: '«Présent, réactif, transparent. Notre bien à Barjols a été vendu en moins d’un mois. Je recommande sans hésiter.»' },
-]
-
-// ─── Component ──────────────────────────────────────────────────────────
 
 export default function HomepageContent() {
+  const tHero = useTranslations('homepage.hero')
+  const tUsp = useTranslations('homepage.usp')
+  const tLand = useTranslations('homepage.landscape')
+  const tStory = useTranslations('homepage.story')
+  const tServ = useTranslations('homepage.services')
+  const tZone = useTranslations('homepage.zone')
+  const tForSale = useTranslations('homepage.forSale')
+  const tSold = useTranslations('homepage.sold')
+  const tTest = useTranslations('homepage.testimonials')
+  const tFaq = useTranslations('homepage.faq')
+  const tContact = useTranslations('homepage.contactInline')
+  const tCta = useTranslations('homepage.cta')
+  const tCommon = useTranslations('common')
+
+  const phoneDisplay = tCommon('phoneDisplay')
   const assistantUrl = appUrl('') || '/assistant'
   const biens = biensUrl()
 
+  const PAYSAGES = [
+    { src: PAYSAGE_SRC.valensole, alt: tLand('valensoleAlt'), caption: tLand('valensoleCaption'), className: 'md:col-span-2 md:row-span-2 aspect-[4/3] md:aspect-auto' },
+    { src: PAYSAGE_SRC.villages,  alt: tLand('villagesAlt'),  caption: tLand('villagesCaption'),  className: 'aspect-[4/3]' },
+    { src: PAYSAGE_SRC.olives,    alt: tLand('olivesAlt'),    caption: tLand('olivesCaption'),    className: 'aspect-[4/3]' },
+    { src: PAYSAGE_SRC.verdon,    alt: tLand('verdonAlt'),    caption: tLand('verdonCaption'),    className: 'md:col-span-2 aspect-[16/9]' },
+  ]
+
+  const USP_CHIPS = [
+    { icon: Gift, label: tUsp('freeEstimation') },
+    { icon: BarChart2, label: tUsp('localPrices') },
+    { icon: ShieldCheck, label: tUsp('fullAudit') },
+    { icon: Clock, label: tUsp('reply24h') },
+    { icon: Lock, label: tUsp('noCommitment') },
+  ]
+
+  const SERVICES = [
+    { icon: Home, title: tServ('sellTitle'),  description: tServ('sellDesc'),  cta: tServ('sellCta'),  href: '/vendre',  external: false },
+    { icon: Search, title: tServ('buyTitle'),  description: tServ('buyDesc'),  cta: tServ('buyCta'),  href: '/acheter', external: false },
+    { icon: ClipboardCheck, title: tServ('auditTitle'), description: tServ('auditDesc'), cta: tServ('auditCta'), href: '/audit',   external: false },
+    { icon: Users, title: tServ('joinTitle'),  description: tServ('joinDesc'), cta: tServ('joinCta'), href: 'https://www.iadfrance.fr/rejoindre-iad', external: true },
+  ]
+
+  const FAQ_ITEMS = [
+    { q: tFaq('q1q'), a: tFaq('q1a') },
+    { q: tFaq('q2q'), a: tFaq('q2a') },
+    { q: tFaq('q3q'), a: tFaq('q3a') },
+    { q: tFaq('q4q'), a: tFaq('q4a') },
+    { q: tFaq('q5q'), a: tFaq('q5a') },
+  ]
+
+  const AVIS = [
+    { name: tTest('avis1Name'), text: tTest('avis1Text'), transaction: tTest('txnSale') },
+    { name: tTest('avis2Name'), text: tTest('avis2Text'), transaction: tTest('txnPurchase') },
+    { name: tTest('avis3Name'), text: tTest('avis3Text'), transaction: tTest('txnSale') },
+  ]
+
   return (
     <>
-      {/* ===== HERO — style conseiller IAD chaleureux ===== */}
+      {/* ===== HERO ===== */}
       <section className="min-h-[92vh] relative overflow-hidden" aria-label="Hero">
-        {/* Fond split : blanc gauche / lin chaud droite */}
         <div className="absolute inset-0 hidden lg:grid lg:grid-cols-[55%_45%] pointer-events-none" aria-hidden="true">
           <div className="bg-white" />
           <div className="bg-surface" />
@@ -166,107 +160,70 @@ export default function HomepageContent() {
         <div className="absolute inset-0 bg-white lg:hidden" aria-hidden="true" />
 
         <div className="relative max-w-[75rem] mx-auto grid grid-cols-1 lg:grid-cols-[55%_45%] min-h-[92vh]">
-          {/* Left — texte staggered */}
-          <motion.div
-            variants={stagger}
-            initial="initial"
-            animate="animate"
-            className="flex flex-col justify-center px-6 py-20 lg:py-0 order-2 lg:order-1"
-          >
+          <motion.div variants={stagger} initial="initial" animate="animate"
+            className="flex flex-col justify-center px-6 py-20 lg:py-0 order-2 lg:order-1">
             <motion.p variants={fadeInUp} className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-5">
-              Mandataire IAD — Provence Verte &amp; Haut-Var
+              {tHero('tagline')}
             </motion.p>
-
-            {/* Signature prénom en script cursif */}
             <motion.p variants={fadeInUp} className="font-script text-5xl sm:text-6xl xl:text-7xl text-brand leading-[0.95] mb-4">
-              Alexandre Lopez
+              {tHero('signature')}
             </motion.p>
-
-            {/* Titre éditorial */}
             <motion.h1 variants={stagger} className="font-serif text-2xl sm:text-3xl xl:text-4xl font-medium text-foreground leading-[1.2] mb-6 max-w-md">
-              <motion.span variants={fadeInUp} className="block">Votre conseiller immobilier,</motion.span>
-              <motion.span variants={fadeInUp} className="block italic text-muted">à vos côtés pour écrire votre plus belle histoire.</motion.span>
+              <motion.span variants={fadeInUp} className="block">{tHero('titleLine1')}</motion.span>
+              <motion.span variants={fadeInUp} className="block italic text-muted">{tHero('titleLine2')}</motion.span>
             </motion.h1>
-
-            {/* Ornement cœur fin */}
-            <motion.div variants={fadeInUp} className="mb-5">
-              <HeartDivider />
-            </motion.div>
-
-            {/* Badge valeurs — capitales espacées style IAD */}
+            <motion.div variants={fadeInUp} className="mb-5"><HeartDivider /></motion.div>
             <motion.div variants={fadeInUp} className="inline-flex self-start items-center gap-3 px-5 py-2.5 rounded-full bg-brand text-white text-[10px] font-semibold uppercase tracking-[0.22em] mb-8 shadow-sm">
-              <span>Écoute</span>
+              <span>{tHero('valueListening')}</span>
               <span className="text-white/50">•</span>
-              <span>Clarté</span>
+              <span>{tHero('valueClarity')}</span>
               <span className="text-white/50">•</span>
-              <span>Transparence</span>
+              <span>{tHero('valueTransparency')}</span>
             </motion.div>
-
             <motion.p variants={fadeInUp} className="text-base text-muted leading-relaxed mb-8 max-w-md">
-              Estimation gratuite, connaissance fine du marché local, accompagnement de A à Z en Provence Verte et Haut-Var.
+              {tHero('description')}
             </motion.p>
-
             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-3 mb-8">
               <Button asChild size="lg" variant="primary">
                 <Link href={assistantUrl} target={assistantUrl.startsWith('http') ? '_blank' : undefined}
                   rel={assistantUrl.startsWith('http') ? 'noopener noreferrer' : undefined}>
-                  Estimer mon bien <ArrowRight size={18} />
+                  {tCommon('estimateMyProperty')} <ArrowRight size={18} />
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <Link href={env.app.calcomUrl} target="_blank" rel="noopener noreferrer">Prendre RDV</Link>
+                <Link href={env.app.calcomUrl} target="_blank" rel="noopener noreferrer">{tCommon('bookAppointment')}</Link>
               </Button>
             </motion.div>
-
             <motion.a variants={fadeInUp} href={'tel:' + PHONE_RAW}
               className="inline-flex items-center gap-2 text-sm font-semibold text-muted hover:text-brand transition-colors w-fit">
-              <Phone size={14} className="text-brand" />{PHONE_DISPLAY}
+              <Phone size={14} className="text-brand" />{phoneDisplay}
             </motion.a>
           </motion.div>
 
-          {/* Right — photo + carte flottante */}
-          <motion.div
-            initial={heroRightInitial}
-            animate={heroRightAnimate}
-            transition={heroRightTransition}
-            className="relative flex items-center justify-center overflow-hidden min-h-[50vh] lg:min-h-full order-1 lg:order-2"
-          >
+          <motion.div initial={heroRightInitial} animate={heroRightAnimate} transition={heroRightTransition}
+            className="relative flex items-center justify-center overflow-hidden min-h-[50vh] lg:min-h-full order-1 lg:order-2">
             <div className="w-full h-full flex items-end justify-center px-8 pt-12 pb-0">
               <div className="relative w-full max-w-sm aspect-[3/4] rounded-t-[3rem] overflow-hidden shadow-[0_20px_60px_rgba(31,91,107,0.18)]">
-                <Image
-                  src="/alex-lopez.png"
-                  alt="Alexandre Lopez, mandataire IAD en Provence Verte et Haut-Var"
-                  fill
-                  priority
-                  sizes="(min-width: 1024px) 40vw, 90vw"
-                  className="object-cover object-top"
-                />
+                <Image src="/alex-lopez.png" alt={tHero('photoAlt')} fill priority
+                  sizes="(min-width: 1024px) 40vw, 90vw" className="object-cover object-top" />
               </div>
             </div>
-
-            <motion.div
-              initial={floatingCardInitial}
-              animate={floatingCardAnimate}
-              transition={floatingCardTransition}
-              className="absolute bottom-8 left-4 bg-white rounded-2xl shadow-xl p-5 w-60 border border-border"
-            >
-              <p className="text-[10px] font-semibold text-muted uppercase tracking-[0.18em] mb-1">Estimation de votre bien</p>
+            <motion.div initial={floatingCardInitial} animate={floatingCardAnimate} transition={floatingCardTransition}
+              className="absolute bottom-8 left-4 bg-white rounded-2xl shadow-xl p-5 w-60 border border-border">
+              <p className="text-[10px] font-semibold text-muted uppercase tracking-[0.18em] mb-1">{tHero('estimationCardEyebrow')}</p>
               <p className="font-serif text-2xl font-semibold text-foreground mb-0.5">245 000 €</p>
-              <p className="text-xs text-muted mb-3">Basé sur 14 ventes récentes à Barjols</p>
+              <p className="text-xs text-muted mb-3">{tHero('estimationCardHint')}</p>
               <div className="w-full bg-surface rounded-full h-1.5 mb-3">
                 <motion.div className="bg-brand h-1.5 rounded-full"
                   initial={progressBarInitial} animate={progressBarAnimate} transition={progressBarTransition} />
               </div>
               <p className="text-xs text-brand font-semibold flex items-center gap-1">
-                <TrendingUp size={11} /> Marché stable · +2% sur 6 mois
+                <TrendingUp size={11} /> {tHero('estimationCardTrend')}
               </p>
             </motion.div>
-
             <motion.div initial={badgeInitial} animate={badgeAnimate} transition={badgeTransition}
               className="absolute top-6 right-4 bg-white rounded-xl shadow-md px-3 py-2 flex items-center gap-2 border border-border">
-              <div className="flex gap-0.5">
-                {[1,2,3,4,5].map(i => <Star key={i} size={11} className="text-accent fill-accent" />)}
-              </div>
+              <div className="flex gap-0.5">{[1,2,3,4,5].map(i => <Star key={i} size={11} className="text-accent fill-accent" />)}</div>
               <span className="text-xs font-semibold text-foreground">5/5</span>
             </motion.div>
           </motion.div>
@@ -289,36 +246,26 @@ export default function HomepageContent() {
         </div>
       </motion.section>
 
-      {/* ===== GALERIE PAYSAGES PROVENCE ===== */}
+      {/* ===== GALERIE PAYSAGES ===== */}
       <section className="py-24 px-6 bg-white relative overflow-hidden">
         <div className="max-w-[75rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-14 max-w-2xl mx-auto">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">Vivre ici</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">{tLand('eyebrow')}</p>
             <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground leading-[1.1] mb-5">
-              La Provence Verte, <span className="italic text-brand">à portée de main.</span>
+              {tLand('title1')} <span className="italic text-brand">{tLand('title2')}</span>
             </h2>
-            <p className="text-muted leading-relaxed">
-              Entre les champs de lavande du plateau de Valensole, les villages perchés du Haut-Var
-              et les eaux turquoise des Gorges du Verdon — un art de vivre à redécouvrir chaque matin.
-            </p>
+            <p className="text-muted leading-relaxed">{tLand('description')}</p>
           </motion.div>
-
           <motion.div variants={staggerFast} initial="initial" whileInView="animate" viewport={vpOnce}
             className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-[20rem_20rem] gap-4">
             {PAYSAGES.map((p, i) => (
               <motion.div key={p.src} variants={scaleIn}
                 className={'group relative overflow-hidden rounded-2xl bg-surface border border-border ' + p.className}>
-                <Image
-                  src={p.src}
-                  alt={p.alt}
-                  fill
+                <Image src={p.src} alt={p.alt} fill
                   sizes={i === 0 ? '(min-width: 768px) 50vw, 100vw' : '(min-width: 768px) 25vw, 100vw'}
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
-                />
+                  className="object-cover transition-transform duration-700 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-foreground/50 via-transparent to-transparent" />
-                <p className="absolute bottom-4 left-5 text-white font-serif text-lg italic drop-shadow-md">
-                  {p.caption}
-                </p>
+                <p className="absolute bottom-4 left-5 text-white font-serif text-lg italic drop-shadow-md">{p.caption}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -330,58 +277,48 @@ export default function HomepageContent() {
         <div className="max-w-[75rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
           <motion.div variants={scaleIn} initial="initial" whileInView="animate" viewport={vpOnce}
             className="relative rounded-2xl overflow-hidden bg-white border border-border aspect-[4/5] order-2 lg:order-1 shadow-sm">
-            <Image
-              src="/alex-lopez.png"
-              alt="Alexandre Lopez, mandataire IAD en Provence Verte et Haut-Var"
-              fill
-              sizes="(min-width: 1024px) 40vw, 90vw"
-              className="object-cover object-center"
-            />
+            <Image src="/alex-lopez.png" alt={tHero('photoAlt')} fill
+              sizes="(min-width: 1024px) 40vw, 90vw" className="object-cover object-center" />
           </motion.div>
-          <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
-            className="order-1 lg:order-2">
-            <motion.p variants={fadeInUp} className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">Mon histoire</motion.p>
+          <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce} className="order-1 lg:order-2">
+            <motion.p variants={fadeInUp} className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">{tStory('eyebrow')}</motion.p>
             <motion.h2 variants={fadeInUp} className="font-serif text-4xl md:text-5xl font-medium text-foreground mb-6 leading-[1.1]">
-              Un mandataire <span className="italic text-brand">ancré</span> en Provence Verte.
+              {tStory('titlePart1')} <span className="italic text-brand">{tStory('titleAccent')}</span> {tStory('titlePart2')}
             </motion.h2>
             <motion.div variants={stagger} className="space-y-4 text-muted leading-relaxed mb-8">
-              <motion.p variants={fadeInUp}>
-                Je suis Alexandre Lopez, mandataire immobilier IAD implanté en Provence Verte et Haut-Var. Après une carrière en stratégie et organisation, j&apos;ai choisi l&apos;immobilier pour une raison simple : c&apos;est un métier de lien, de confiance et d&apos;utilité concrète.
-              </motion.p>
-              <motion.p variants={fadeInUp}>
-                Ici, pas de discours commercial. Je connais chaque commune de ma zone, ses prix réels, ses atouts et ses contraintes. Mon rôle : vous accompagner de l&apos;estimation à la signature, avec écoute, clarté et transparence.
-              </motion.p>
+              <motion.p variants={fadeInUp}>{tStory('para1')}</motion.p>
+              <motion.p variants={fadeInUp}>{tStory('para2')}</motion.p>
             </motion.div>
             <motion.div variants={stagger} className="grid grid-cols-3 gap-6 mb-8 text-center">
               <motion.div variants={scaleIn}>
                 <p className="font-serif text-3xl font-semibold text-brand"><Counter target={100} suffix="%" /></p>
-                <p className="text-xs text-muted mt-1">Accompagnement</p>
+                <p className="text-xs text-muted mt-1">{tStory('statAccompaniment')}</p>
               </motion.div>
               <motion.div variants={scaleIn}>
                 <p className="font-serif text-3xl font-semibold text-brand">0 €</p>
-                <p className="text-xs text-muted mt-1">Frais cachés</p>
+                <p className="text-xs text-muted mt-1">{tStory('statHiddenFees')}</p>
               </motion.div>
               <motion.div variants={scaleIn}>
                 <p className="font-serif text-3xl font-semibold text-brand"><Counter target={7} suffix="j/7" /></p>
-                <p className="text-xs text-muted mt-1">Disponible</p>
+                <p className="text-xs text-muted mt-1">{tStory('statAvailable')}</p>
               </motion.div>
             </motion.div>
             <motion.div variants={fadeInUp}>
               <Button asChild variant="secondary" size="lg">
-                <Link href="/a-propos">Mon parcours <ArrowRight size={16} /></Link>
+                <Link href="/a-propos">{tStory('cta')} <ArrowRight size={16} /></Link>
               </Button>
             </motion.div>
           </motion.div>
         </div>
       </section>
 
-      {/* ===== SERVICES 2x2 ===== */}
+      {/* ===== SERVICES ===== */}
       <section className="py-24 px-6 bg-white">
         <div className="max-w-[75rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-14">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-3">Mes services</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-3">{tServ('eyebrow')}</p>
             <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground leading-[1.1]">
-              Vente, achat, audit : <span className="italic text-brand">je vous accompagne.</span>
+              {tServ('titlePart1')} <span className="italic text-brand">{tServ('titlePart2')}</span>
             </h2>
           </motion.div>
           <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
@@ -390,10 +327,8 @@ export default function HomepageContent() {
               const Icon = service.icon
               const href = service.external ? service.href : appUrl(service.href) || service.href
               return (
-                <motion.div key={service.title} variants={fadeInUp}
-                  whileHover={hoverCard} whileTap={tapCard} transition={springFast}>
-                  <Link href={href} target={service.external ? '_blank' : undefined}
-                    rel={service.external ? 'noopener noreferrer' : undefined}
+                <motion.div key={service.title} variants={fadeInUp} whileHover={hoverCard} whileTap={tapCard} transition={springFast}>
+                  <Link href={href} target={service.external ? '_blank' : undefined} rel={service.external ? 'noopener noreferrer' : undefined}
                     className="group flex flex-col bg-surface rounded-2xl border border-border p-8 h-full hover:shadow-md hover:border-brand/40 transition-all duration-200">
                     <div className="w-12 h-12 rounded-xl bg-white border border-border flex items-center justify-center mb-5">
                       <Icon size={22} className="text-brand" />
@@ -414,31 +349,23 @@ export default function HomepageContent() {
       {/* ===== ZONE ===== */}
       <section className="relative overflow-hidden">
         <div className="relative h-[28rem] md:h-[32rem]">
-          <Image
-            src={ZONE_BACKDROP}
-            alt="Paysage de Provence Verte, vignes et collines"
-            fill
-            sizes="100vw"
-            className="object-cover"
-          />
+          <Image src={ZONE_BACKDROP} alt={tZone('backdropAlt')} fill sizes="100vw" className="object-cover" />
           <div className="absolute inset-0 bg-gradient-to-b from-foreground/40 via-foreground/20 to-surface" />
           <div className="absolute inset-0 flex items-center justify-center px-6">
-            <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
-              className="text-center max-w-3xl">
+            <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center max-w-3xl">
               <motion.div variants={fadeInUp} className="flex items-center justify-center gap-2 mb-4">
                 <MapPin size={18} className="text-white" />
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/90">Zone d&apos;intervention</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/90">{tZone('eyebrow')}</p>
               </motion.div>
               <motion.h2 variants={fadeInUp} className="font-serif text-4xl md:text-6xl font-medium text-white mb-4 leading-[1.05] drop-shadow-md">
-                Provence Verte &amp; Haut-Var, <span className="italic">ma terre.</span>
+                {tZone('titlePart1')} <span className="italic">{tZone('titleAccent')}</span>
               </motion.h2>
               <motion.p variants={fadeInUp} className="text-white/90 leading-relaxed max-w-2xl mx-auto drop-shadow-sm">
-                De la plaine aux contreforts des Gorges du Verdon — je couvre l&apos;ensemble du territoire.
+                {tZone('description')}
               </motion.p>
             </motion.div>
           </div>
         </div>
-
         <div className="bg-surface py-16 px-6">
           <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
             className="max-w-4xl mx-auto text-center">
@@ -457,7 +384,7 @@ export default function HomepageContent() {
             </motion.div>
             <motion.div variants={fadeInUp}>
               <Link href="/marche" className="inline-flex items-center gap-2 text-brand font-semibold hover:underline">
-                Voir toutes les communes <ArrowRight size={16} />
+                {tZone('viewAllCommunes')} <ArrowRight size={16} />
               </Link>
             </motion.div>
           </motion.div>
@@ -468,209 +395,12 @@ export default function HomepageContent() {
       <section className="py-24 px-6 bg-white">
         <div className="max-w-[75rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-12">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-3">Biens disponibles</p>
-            <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground leading-[1.1]">Mes biens <span className="italic text-brand">actuellement en vente</span></h2>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-3">{tForSale('eyebrow')}</p>
+            <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground leading-[1.1]">
+              {tForSale('titlePart1')} <span className="italic text-brand">{tForSale('titleAccent')}</span>
+            </h2>
           </motion.div>
           <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
             className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            {BIENS_VENTE.map(bien => (
-              <motion.div key={bien.type + bien.commune} variants={fadeInUp}
-                whileHover={hoverCard} transition={springFast}
-                className="group bg-surface rounded-2xl border border-border overflow-hidden">
-                <div className="aspect-[4/3] bg-surface relative overflow-hidden">
-                  <Image
-                    src={bien.image}
-                    alt={bien.type + ' à ' + bien.commune}
-                    fill
-                    sizes="(min-width: 768px) 33vw, 100vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <span className={'absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full ' + bien.tagColor}>{bien.tag}</span>
-                </div>
-                <div className="p-5">
-                  <p className="font-serif text-2xl font-semibold text-foreground mb-1">{bien.prix}</p>
-                  <p className="font-semibold text-foreground text-sm mb-1">{bien.type}</p>
-                  <p className="text-xs text-muted flex items-center gap-1 mb-3"><MapPin size={11} />{bien.commune}</p>
-                  <div className="flex gap-3 text-xs text-muted"><span>{bien.surface}</span><span>·</span><span>{bien.pieces}</span></div>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-          {biens && (
-            <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center">
-              <Button asChild variant="outline"><Link href={biens} target="_blank" rel="noopener noreferrer">Consulter tous les biens <ArrowRight size={15} /></Link></Button>
-            </motion.div>
-          )}
-        </div>
-      </section>
-
-      {/* ===== VENTES RÉCENTES ===== */}
-      <section className="py-24 px-6 bg-surface">
-        <div className="max-w-[75rem] mx-auto">
-          <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-12">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-3">Références</p>
-            <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground leading-[1.1]">Mes ventes <span className="italic text-brand">récentes</span></h2>
-          </motion.div>
-          <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
-            className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {BIENS_VENDUS.map(bien => (
-              <motion.div key={bien.type + bien.commune} variants={scaleIn}
-                className="group rounded-2xl border border-border bg-white p-4 relative">
-                <span className="absolute top-5 right-5 z-10 text-xs font-bold text-white bg-success px-2 py-0.5 rounded-full shadow-sm">VENDU</span>
-                <div className="aspect-[4/3] bg-surface rounded-xl overflow-hidden mb-4 relative">
-                  <Image
-                    src={bien.image}
-                    alt={bien.type + ' à ' + bien.commune}
-                    fill
-                    sizes="(min-width: 768px) 25vw, 50vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                </div>
-                <p className="font-serif text-lg font-semibold text-foreground">{bien.prix}</p>
-                <p className="text-xs text-foreground font-medium mt-0.5">{bien.type}</p>
-                <p className="text-xs text-muted flex items-center gap-1 mt-1"><MapPin size={10} />{bien.commune}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ===== TÉMOIGNAGES ===== */}
-      <section className="py-24 px-6 bg-white">
-        <div className="max-w-[75rem] mx-auto">
-          <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-12">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-3">Témoignages</p>
-            <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground leading-[1.1]">Ils m&apos;ont <span className="italic text-brand">fait confiance</span></h2>
-            <div className="mt-6 flex justify-center"><HeartDivider /></div>
-          </motion.div>
-          <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            {AVIS.map(avis => (
-              <motion.div key={avis.name} variants={scaleIn}
-                className="p-7 rounded-2xl border border-border bg-surface flex flex-col">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex gap-1">{Array.from({ length: avis.note }).map((_, i) => <Star key={i} size={14} className="text-accent fill-accent" />)}</div>
-                  <span className="text-[10px] font-bold text-brand bg-brand-light px-2 py-0.5 rounded-full uppercase tracking-[0.15em]">{avis.transaction}</span>
-                </div>
-                <p className="font-serif text-base italic text-foreground leading-relaxed flex-1 mb-4">{avis.text}</p>
-                <p className="text-xs font-semibold text-muted">— {avis.name}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-          <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center">
-            <Link href="/avis" className="inline-flex items-center gap-2 text-brand font-semibold hover:underline">Voir tous les avis <ArrowRight size={16} /></Link>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ===== FAQ ===== */}
-      <section className="py-24 px-6 bg-surface">
-        <div className="max-w-3xl mx-auto">
-          <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-12">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-3">Questions fréquentes</p>
-            <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground leading-[1.1]">Ce qu&apos;on me <span className="italic text-brand">demande souvent</span></h2>
-          </motion.div>
-          <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce} className="space-y-3">
-            {FAQ_ITEMS.map(item => (
-              <motion.details key={item.question} variants={fadeInUp}
-                className="group rounded-2xl border border-border bg-white overflow-hidden">
-                <summary className="flex items-center justify-between p-6 cursor-pointer list-none font-semibold text-foreground hover:text-brand transition-colors">
-                  <span>{item.question}</span>
-                  <ChevronDown size={18} className="text-muted shrink-0 ml-4 transition-transform duration-200 group-open:rotate-180" />
-                </summary>
-                <div className="px-6 pb-6 text-sm text-muted leading-relaxed">{item.answer}</div>
-              </motion.details>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ===== CONTACT INLINE ===== */}
-      <section className="py-24 px-6 bg-white">
-        <div className="max-w-[75rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-14 items-start">
-          <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce} className="lg:pt-2">
-            <motion.p variants={fadeInUp} className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">Me contacter</motion.p>
-            <motion.h2 variants={fadeInUp} className="font-serif text-4xl md:text-5xl font-medium text-foreground mb-6 leading-[1.1]">
-              Un projet ? <span className="italic text-brand">Parlons-en.</span>
-            </motion.h2>
-            <motion.p variants={fadeInUp} className="text-muted leading-relaxed mb-8">
-              Que vous souhaitiez vendre ou acheter en Provence Verte et Haut-Var, je vous réponds sous 24h. Sans engagement, sans pression.
-            </motion.p>
-            <motion.div variants={stagger} className="space-y-4">
-              <motion.a variants={fadeInUp} href={'tel:' + PHONE_RAW}
-                className="flex items-center gap-3 text-sm font-semibold text-foreground hover:text-brand transition-colors">
-                <div className="w-9 h-9 rounded-full bg-brand-light flex items-center justify-center shrink-0"><Phone size={15} className="text-brand" /></div>
-                {PHONE_DISPLAY} — Disponible 7j/7
-              </motion.a>
-              <motion.div variants={fadeInUp} className="flex items-center gap-3 text-sm text-muted">
-                <div className="w-9 h-9 rounded-full bg-brand-light flex items-center justify-center shrink-0"><MapPin size={15} className="text-brand" /></div>
-                Provence Verte &amp; Haut-Var (Var, 83)
-              </motion.div>
-            </motion.div>
-          </motion.div>
-
-          <motion.form variants={scaleIn} initial="initial" whileInView="animate" viewport={vpOnce}
-            action="/contact" method="GET"
-            className="bg-surface rounded-2xl border border-border p-8 space-y-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div>
-                <label htmlFor="hp-prenom" className="block text-[11px] font-semibold text-foreground mb-2 uppercase tracking-[0.18em]">Prénom</label>
-                <input id="hp-prenom" name="prenom" type="text" placeholder="Votre prénom"
-                  className="w-full px-4 py-3 rounded-xl border border-border bg-white text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-brand transition-colors" />
-              </div>
-              <div>
-                <label htmlFor="hp-email" className="block text-[11px] font-semibold text-foreground mb-2 uppercase tracking-[0.18em]">Email</label>
-                <input id="hp-email" name="email" type="email" placeholder="votre@email.fr"
-                  className="w-full px-4 py-3 rounded-xl border border-border bg-white text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-brand transition-colors" />
-              </div>
-            </div>
-            <div>
-              <label htmlFor="hp-sujet" className="block text-[11px] font-semibold text-foreground mb-2 uppercase tracking-[0.18em]">Je souhaite</label>
-              <select id="hp-sujet" name="sujet"
-                className="w-full px-4 py-3 rounded-xl border border-border bg-white text-sm text-foreground focus:outline-none focus:border-brand transition-colors">
-                <option value="">Choisir...</option>
-                <option value="estimation">Une estimation gratuite</option>
-                <option value="vendre">Vendre mon bien</option>
-                <option value="acheter">Acheter un bien</option>
-                <option value="bilan">Un bilan de mon bien</option>
-                <option value="autre">Autre</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="hp-message" className="block text-[11px] font-semibold text-foreground mb-2 uppercase tracking-[0.18em]">Message</label>
-              <textarea id="hp-message" name="message" rows={4} placeholder="Décrivez votre projet en quelques mots..."
-                className="w-full px-4 py-3 rounded-xl border border-border bg-white text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-brand transition-colors resize-none" />
-            </div>
-            <Button type="submit" variant="primary" size="lg" className="w-full">Envoyer <Send size={16} /></Button>
-            <p className="text-xs text-muted text-center">Sans engagement · Réponse sous 24h</p>
-          </motion.form>
-        </div>
-      </section>
-
-      {/* ===== CTA FINAL ===== */}
-      <motion.section variants={scaleIn} initial="initial" whileInView="animate" viewport={vpOnce}
-        className="py-24 px-6 bg-brand-light">
-        <div className="max-w-2xl mx-auto text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">Gratuit · Sans engagement</p>
-          <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground mb-4 leading-[1.1]">Votre projet <span className="italic text-brand">commence ici.</span></h2>
-          <p className="text-muted mb-8 leading-relaxed">
-            Obtenez une estimation précise de votre bien en quelques minutes,
-            basée sur les prix réels du marché en Provence Verte et Haut-Var.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" variant="primary">
-              <Link href={assistantUrl} target={assistantUrl.startsWith('http') ? '_blank' : undefined}
-                rel={assistantUrl.startsWith('http') ? 'noopener noreferrer' : undefined}>
-                Estimer mon bien <ArrowRight size={18} />
-              </Link>
-            </Button>
-            <a href={'tel:' + PHONE_RAW}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-border bg-white text-sm font-semibold text-foreground hover:border-brand hover:text-brand transition-colors">
-              <Phone size={15} />{PHONE_DISPLAY}
-            </a>
-          </div>
-        </div>
-      </motion.section>
-    </>
-  )
-}
+            {BIENS_VENTE_DATA.map(bien => {
+              const tag = bien.tag === 'new' ? tForSale
