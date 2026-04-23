@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import { appUrl, biensUrl, env } from '@/lib/env'
 import { VP as vpOnce, fadeInUp, scaleIn, stagger, staggerFast } from '@/lib/animations'
 
-// ─── Animations ──────────────────────────────────────────────
+// ─── Animations ───────────────────────────────────────────────
 const springFast = { type: 'spring' as const, stiffness: 400, damping: 25 }
 const hoverCard = { y: -6 }
 const hoverChip = { scale: 1.04 as number }
@@ -74,7 +74,6 @@ function HeartDivider({ className = '' }: { className?: string }) {
 const PHONE_RAW = '+33613180168'
 const PHONE_DISPLAY = '06 13 18 01 68'
 
-// Paysages Provence — Unsplash (libres de droits, à remplacer par photos perso à terme)
 const PAYSAGES = [
   {
     src: 'https://images.unsplash.com/photo-1499002238440-d264edd596ec?w=1600&q=80&auto=format&fit=crop',
@@ -159,12 +158,12 @@ export default function HomepageContent() {
     <>
       {/* ===== HERO — style conseiller IAD chaleureux ===== */}
       <section className="min-h-[92vh] relative overflow-hidden" aria-label="Hero">
-        {/* Fond split : crème ivoire gauche / lin chaud droite */}
+        {/* Fond split : blanc gauche / lin chaud droite */}
         <div className="absolute inset-0 hidden lg:grid lg:grid-cols-[55%_45%] pointer-events-none" aria-hidden="true">
-          <div style= background: '#FAF6EE'  />
+          <div className="bg-white" />
           <div className="bg-surface" />
         </div>
-        <div className="absolute inset-0 lg:hidden" style= background: '#FAF6EE'  aria-hidden="true" />
+        <div className="absolute inset-0 bg-white lg:hidden" aria-hidden="true" />
 
         <div className="relative max-w-[75rem] mx-auto grid grid-cols-1 lg:grid-cols-[55%_45%] min-h-[92vh]">
           {/* Left — texte staggered */}
@@ -245,7 +244,6 @@ export default function HomepageContent() {
               </div>
             </div>
 
-            {/* Carte estimation flottante */}
             <motion.div
               initial={floatingCardInitial}
               animate={floatingCardAnimate}
@@ -264,7 +262,6 @@ export default function HomepageContent() {
               </p>
             </motion.div>
 
-            {/* Badge 5/5 */}
             <motion.div initial={badgeInitial} animate={badgeAnimate} transition={badgeTransition}
               className="absolute top-6 right-4 bg-white rounded-xl shadow-md px-3 py-2 flex items-center gap-2 border border-border">
               <div className="flex gap-0.5">
@@ -292,7 +289,7 @@ export default function HomepageContent() {
         </div>
       </motion.section>
 
-      {/* ===== GALERIE PAYSAGES PROVENCE — donne envie ===== */}
+      {/* ===== GALERIE PAYSAGES PROVENCE ===== */}
       <section className="py-24 px-6 bg-white relative overflow-hidden">
         <div className="max-w-[75rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-14 max-w-2xl mx-auto">
@@ -414,7 +411,7 @@ export default function HomepageContent() {
         </div>
       </section>
 
-      {/* ===== ZONE — avec paysage en bandeau immersif ===== */}
+      {/* ===== ZONE ===== */}
       <section className="relative overflow-hidden">
         <div className="relative h-[28rem] md:h-[32rem]">
           <Image
