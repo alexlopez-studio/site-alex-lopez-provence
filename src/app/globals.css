@@ -1,33 +1,34 @@
 @import "tailwindcss";
 
-/* ─── Design Tokens — Palette Provence ─────────────────────────────── */
+/* ─── Design Tokens — Charte Conseiller IAD × Provence ───────────── */
 @theme {
-  /* Brand — Terre cuite de Provence */
-  --color-brand:         #B8612C;  /* terracotta chaud */
-  --color-brand-hover:   #96481E;  /* terre cuite profonde */
-  --color-brand-light:   #FAEFE3;  /* crème chaude */
+  /* Brand — Bleu pétrole IAD (élégant, confiance) */
+  --color-brand:         #1F5B6B;  /* bleu pétrole */
+  --color-brand-hover:   #163F4B;  /* bleu pétrole profond */
+  --color-brand-light:   #E8F0F3;  /* bleu pétrole pâle */
 
-  /* Accent — Olivier */
-  --color-accent:        #6B7E52;  /* vert olive */
-  --color-accent-light:  #E8EAD9;  /* vert pâle */
+  /* Accent — Sable doré (chaleureux, discret) */
+  --color-accent:        #B8976A;  /* sable doré */
+  --color-accent-light:  #F2EBDD;  /* lin chaud */
 
-  /* Neutrals — Pierre & lin */
-  --color-foreground:    #1F1B17;  /* noir chaud, quasi sépia */
+  /* Neutrals — Pierre, lin, charbon */
+  --color-foreground:    #2A2520;  /* charbon chaud */
   --color-muted:         #7A6B5D;  /* sépia doux */
-  --color-border:        #E8DDD0;  /* sable clair */
-  --color-surface:       #FAF7F2;  /* lin chaud */
+  --color-border:        #E6DCC8;  /* sable clair */
+  --color-surface:       #F2EBDD;  /* lin chaud */
 
   /* Feedback */
-  --color-success:       #5F8A3F;  /* vert olive saturé */
-  --color-success-hover: #4A6F30;
+  --color-success:       #7A8B5A;  /* vert olivier doux */
+  --color-success-hover: #5F6F43;
   --color-error:         #C44536;  /* rouge terre */
 
   /* Fonts */
-  --font-sans:  var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-serif: var(--font-fraunces), ui-serif, "Cormorant Garamond", Georgia, serif;
+  --font-sans:   var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-serif:  var(--font-fraunces), ui-serif, "Cormorant Garamond", Georgia, serif;
+  --font-script: var(--font-caveat), "Brush Script MT", cursive;
 }
 
-/* ─── Base Reset ──────────────────────────────────────────────────── */
+/* ─── Base Reset ─────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
 }
@@ -40,38 +41,27 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: var(--color-foreground);
-  background: #ffffff;
+  background: #FAF6EE;
   line-height: 1.6;
 }
 
-/* ─── Paper grain overlay (subtil, donne une texture chaleureuse) ─── */
-.paper-grain {
-  position: relative;
-}
-.paper-grain::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.7 0 0 0 0 0.6 0 0 0 0 0.5 0 0 0 0.4 0'/></filter><rect width='120' height='120' filter='url(%23n)' opacity='0.25'/></svg>");
-  opacity: 0.35;
-  mix-blend-mode: multiply;
-  pointer-events: none;
-  z-index: 1;
+/* ─── Script signature (prénom hero, signatures) ───────────────── */
+.font-script {
+  font-family: var(--font-script);
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
-/* ─── Serif italic refinement (pour nuancer les mots clés éditoriaux) ── */
+/* ─── Serif italic refinement (mots-clés éditoriaux) ───────────── */
 .serif-accent {
   font-family: var(--font-serif);
   font-style: italic;
   font-weight: 500;
 }
 
-/* ─── Hero photo wrapper (conservé pour référence) ────────────────── */
-.hero-photo-wrapper {
-  position: relative;
-  width: 100%;
-  max-width: 480px;
-  margin: 0 auto;
-  aspect-ratio: 3 / 4;
-  overflow: visible;
+/* ─── Baseline IAD — capitales espacées ────────────────────── */
+.tracking-baseline {
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 500;
 }

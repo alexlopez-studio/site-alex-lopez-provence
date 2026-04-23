@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Plus_Jakarta_Sans, Fraunces } from 'next/font/google'
+import { Plus_Jakarta_Sans, Fraunces, Caveat } from 'next/font/google'
 import './globals.css'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
@@ -18,6 +18,13 @@ const fraunces = Fraunces({
   display: 'swap',
   weight: ['400', '500', '600', '700'],
   style: ['normal', 'italic'],
+})
+
+const caveat = Caveat({
+  subsets: ['latin'],
+  variable: '--font-caveat',
+  display: 'swap',
+  weight: ['400', '500', '600', '700'],
 })
 
 export const metadata: Metadata = {
@@ -44,7 +51,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="fr" className={`${plusJakartaSans.variable} ${fraunces.variable}`}>
+    <html lang="fr" className={`${plusJakartaSans.variable} ${fraunces.variable} ${caveat.variable}`}>
       <body className="font-sans antialiased">
         <Header />
         <PageTransition>

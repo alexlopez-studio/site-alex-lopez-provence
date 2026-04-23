@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import { appUrl, biensUrl, env } from '@/lib/env'
 import { VP as vpOnce, fadeInUp, scaleIn, stagger, staggerFast } from '@/lib/animations'
 
-// ─── Animations ───────────────────────────────────────────────────────
+// ─── Animations ──────────────────────────────────────────────
 const springFast = { type: 'spring' as const, stiffness: 400, damping: 25 }
 const hoverCard = { y: -6 }
 const hoverChip = { scale: 1.04 as number }
@@ -32,7 +32,7 @@ const progressBarInitial = { width: 0 }
 const progressBarAnimate = { width: '75%' }
 const progressBarTransition = { delay: 1.1, duration: 0.9, ease: 'easeOut' as const }
 
-// ─── Counter animé ─────────────────────────────────────────────────────
+// ─── Counter animé ────────────────────────────────────────────
 function Counter({ target, suffix }: { target: number; suffix: string }) {
   const ref = useRef<HTMLSpanElement>(null)
   const inView = useInView(ref, { once: true })
@@ -57,7 +57,20 @@ function Counter({ target, suffix }: { target: number; suffix: string }) {
   return <span ref={ref}>{count}{suffix}</span>
 }
 
-// ─── Data ──────────────────────────────────────────────────────────────
+// ─── Ornement cœur fin (séparateur style IAD) ────────────────────────
+function HeartDivider({ className = '' }: { className?: string }) {
+  return (
+    <div className={'flex items-center gap-3 text-brand ' + className} aria-hidden="true">
+      <span className="h-px w-10 bg-brand/40" />
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+      </svg>
+      <span className="h-px w-10 bg-brand/40" />
+    </div>
+  )
+}
+
+// ─── Data ───────────────────────────────────────────────────────
 const PHONE_RAW = '+33613180168'
 const PHONE_DISPLAY = '06 13 18 01 68'
 
@@ -136,7 +149,7 @@ const AVIS = [
   { name: 'Isabelle R.', transaction: 'VENTE', note: 5, text: '«Présent, réactif, transparent. Notre bien à Barjols a été vendu en moins d’un mois. Je recommande sans hésiter.»' },
 ]
 
-// ─── Component ────────────────────────────────────────────────────────────
+// ─── Component ──────────────────────────────────────────────────────────
 
 export default function HomepageContent() {
   const assistantUrl = appUrl('') || '/assistant'
@@ -144,34 +157,56 @@ export default function HomepageContent() {
 
   return (
     <>
-      {/* ===== HERO ===== */}
+      {/* ===== HERO — style conseiller IAD chaleureux ===== */}
       <section className="min-h-[92vh] relative overflow-hidden" aria-label="Hero">
-        {/* Fond split pleine largeur : blanc gauche / lin chaud droite */}
+        {/* Fond split : crème ivoire gauche / lin chaud droite */}
         <div className="absolute inset-0 hidden lg:grid lg:grid-cols-[55%_45%] pointer-events-none" aria-hidden="true">
-          <div className="bg-white" />
+          <div style= background: '#FAF6EE'  />
           <div className="bg-surface" />
         </div>
-        <div className="absolute inset-0 bg-white lg:hidden" aria-hidden="true" />
+        <div className="absolute inset-0 lg:hidden" style= background: '#FAF6EE'  aria-hidden="true" />
 
         <div className="relative max-w-[75rem] mx-auto grid grid-cols-1 lg:grid-cols-[55%_45%] min-h-[92vh]">
-          {/* Left — texte staggeré */}
+          {/* Left — texte staggered */}
           <motion.div
             variants={stagger}
             initial="initial"
             animate="animate"
             className="flex flex-col justify-center px-6 py-20 lg:py-0 order-2 lg:order-1"
           >
-            <motion.p variants={fadeInUp} className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-5">
+            <motion.p variants={fadeInUp} className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-5">
               Mandataire IAD — Provence Verte &amp; Haut-Var
             </motion.p>
-            <motion.h1 variants={stagger} className="font-serif text-5xl sm:text-6xl xl:text-7xl font-medium text-foreground leading-[1.02] tracking-tight mb-6">
-              <motion.span variants={fadeInUp} className="block">Vendez. Achetez.</motion.span>
-              <motion.span variants={fadeInUp} className="block italic text-brand">En toute confiance.</motion.span>
-            </motion.h1>
-            <motion.p variants={fadeInUp} className="text-lg text-muted leading-relaxed mb-10 max-w-md">
-              Estimation gratuite, prix du marché local, accompagnement de A à Z
-              en Provence Verte et Haut-Var.
+
+            {/* Signature prénom en script cursif */}
+            <motion.p variants={fadeInUp} className="font-script text-5xl sm:text-6xl xl:text-7xl text-brand leading-[0.95] mb-4">
+              Alexandre Lopez
             </motion.p>
+
+            {/* Titre éditorial */}
+            <motion.h1 variants={stagger} className="font-serif text-2xl sm:text-3xl xl:text-4xl font-medium text-foreground leading-[1.2] mb-6 max-w-md">
+              <motion.span variants={fadeInUp} className="block">Votre conseiller immobilier,</motion.span>
+              <motion.span variants={fadeInUp} className="block italic text-muted">à vos côtés pour écrire votre plus belle histoire.</motion.span>
+            </motion.h1>
+
+            {/* Ornement cœur fin */}
+            <motion.div variants={fadeInUp} className="mb-5">
+              <HeartDivider />
+            </motion.div>
+
+            {/* Badge valeurs — capitales espacées style IAD */}
+            <motion.div variants={fadeInUp} className="inline-flex self-start items-center gap-3 px-5 py-2.5 rounded-full bg-brand text-white text-[10px] font-semibold uppercase tracking-[0.22em] mb-8 shadow-sm">
+              <span>Écoute</span>
+              <span className="text-white/50">•</span>
+              <span>Clarté</span>
+              <span className="text-white/50">•</span>
+              <span>Transparence</span>
+            </motion.div>
+
+            <motion.p variants={fadeInUp} className="text-base text-muted leading-relaxed mb-8 max-w-md">
+              Estimation gratuite, connaissance fine du marché local, accompagnement de A à Z en Provence Verte et Haut-Var.
+            </motion.p>
+
             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-3 mb-8">
               <Button asChild size="lg" variant="primary">
                 <Link href={assistantUrl} target={assistantUrl.startsWith('http') ? '_blank' : undefined}
@@ -183,6 +218,7 @@ export default function HomepageContent() {
                 <Link href={env.app.calcomUrl} target="_blank" rel="noopener noreferrer">Prendre RDV</Link>
               </Button>
             </motion.div>
+
             <motion.a variants={fadeInUp} href={'tel:' + PHONE_RAW}
               className="inline-flex items-center gap-2 text-sm font-semibold text-muted hover:text-brand transition-colors w-fit">
               <Phone size={14} className="text-brand" />{PHONE_DISPLAY}
@@ -197,10 +233,10 @@ export default function HomepageContent() {
             className="relative flex items-center justify-center overflow-hidden min-h-[50vh] lg:min-h-full order-1 lg:order-2"
           >
             <div className="w-full h-full flex items-end justify-center px-8 pt-12 pb-0">
-              <div className="relative w-full max-w-sm aspect-[3/4] rounded-t-[3rem] overflow-hidden shadow-[0_20px_60px_rgba(184,97,44,0.15)]">
+              <div className="relative w-full max-w-sm aspect-[3/4] rounded-t-[3rem] overflow-hidden shadow-[0_20px_60px_rgba(31,91,107,0.18)]">
                 <Image
                   src="/alex-lopez.png"
-                  alt="Alex Lopez, mandataire IAD en Provence Verte et Haut-Var"
+                  alt="Alexandre Lopez, mandataire IAD en Provence Verte et Haut-Var"
                   fill
                   priority
                   sizes="(min-width: 1024px) 40vw, 90vw"
@@ -216,7 +252,7 @@ export default function HomepageContent() {
               transition={floatingCardTransition}
               className="absolute bottom-8 left-4 bg-white rounded-2xl shadow-xl p-5 w-60 border border-border"
             >
-              <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-1">Estimation de votre bien</p>
+              <p className="text-[10px] font-semibold text-muted uppercase tracking-[0.18em] mb-1">Estimation de votre bien</p>
               <p className="font-serif text-2xl font-semibold text-foreground mb-0.5">245 000 €</p>
               <p className="text-xs text-muted mb-3">Basé sur 14 ventes récentes à Barjols</p>
               <div className="w-full bg-surface rounded-full h-1.5 mb-3">
@@ -232,7 +268,7 @@ export default function HomepageContent() {
             <motion.div initial={badgeInitial} animate={badgeAnimate} transition={badgeTransition}
               className="absolute top-6 right-4 bg-white rounded-xl shadow-md px-3 py-2 flex items-center gap-2 border border-border">
               <div className="flex gap-0.5">
-                {[1,2,3,4,5].map(i => <Star key={i} size={11} className="text-brand fill-brand" />)}
+                {[1,2,3,4,5].map(i => <Star key={i} size={11} className="text-accent fill-accent" />)}
               </div>
               <span className="text-xs font-semibold text-foreground">5/5</span>
             </motion.div>
@@ -242,7 +278,7 @@ export default function HomepageContent() {
 
       {/* ===== USP CHIPS ===== */}
       <motion.section variants={staggerFast} initial="initial" whileInView="animate" viewport={vpOnce}
-        className="bg-white border-b border-border py-6 px-6">
+        className="bg-white border-y border-border py-6 px-6">
         <div className="max-w-[75rem] mx-auto flex flex-wrap justify-center gap-3">
           {USP_CHIPS.map(chip => {
             const Icon = chip.icon
@@ -260,7 +296,7 @@ export default function HomepageContent() {
       <section className="py-24 px-6 bg-white relative overflow-hidden">
         <div className="max-w-[75rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-14 max-w-2xl mx-auto">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-4">Vivre ici</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">Vivre ici</p>
             <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground leading-[1.1] mb-5">
               La Provence Verte, <span className="italic text-brand">à portée de main.</span>
             </h2>
@@ -299,7 +335,7 @@ export default function HomepageContent() {
             className="relative rounded-2xl overflow-hidden bg-white border border-border aspect-[4/5] order-2 lg:order-1 shadow-sm">
             <Image
               src="/alex-lopez.png"
-              alt="Alex Lopez, mandataire IAD en Provence Verte et Haut-Var"
+              alt="Alexandre Lopez, mandataire IAD en Provence Verte et Haut-Var"
               fill
               sizes="(min-width: 1024px) 40vw, 90vw"
               className="object-cover object-center"
@@ -307,16 +343,16 @@ export default function HomepageContent() {
           </motion.div>
           <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
             className="order-1 lg:order-2">
-            <motion.p variants={fadeInUp} className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-4">Mon histoire</motion.p>
+            <motion.p variants={fadeInUp} className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">Mon histoire</motion.p>
             <motion.h2 variants={fadeInUp} className="font-serif text-4xl md:text-5xl font-medium text-foreground mb-6 leading-[1.1]">
               Un mandataire <span className="italic text-brand">ancré</span> en Provence Verte.
             </motion.h2>
             <motion.div variants={stagger} className="space-y-4 text-muted leading-relaxed mb-8">
               <motion.p variants={fadeInUp}>
-                Je suis Alex Lopez, mandataire immobilier IAD implanté en Provence Verte et Haut-Var. Après une carrière en stratégie et organisation, j&apos;ai choisi l&apos;immobilier pour une raison simple : c&apos;est un métier de lien, de confiance et d&apos;utilité concrète.
+                Je suis Alexandre Lopez, mandataire immobilier IAD implanté en Provence Verte et Haut-Var. Après une carrière en stratégie et organisation, j&apos;ai choisi l&apos;immobilier pour une raison simple : c&apos;est un métier de lien, de confiance et d&apos;utilité concrète.
               </motion.p>
               <motion.p variants={fadeInUp}>
-                Ici, pas de discours commercial. Je connais chaque commune de ma zone, ses prix réels, ses atouts et ses contraintes. Mon rôle : vous accompagner de l&apos;estimation à la signature, avec transparence et réactivité.
+                Ici, pas de discours commercial. Je connais chaque commune de ma zone, ses prix réels, ses atouts et ses contraintes. Mon rôle : vous accompagner de l&apos;estimation à la signature, avec écoute, clarté et transparence.
               </motion.p>
             </motion.div>
             <motion.div variants={stagger} className="grid grid-cols-3 gap-6 mb-8 text-center">
@@ -346,7 +382,7 @@ export default function HomepageContent() {
       <section className="py-24 px-6 bg-white">
         <div className="max-w-[75rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-14">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">Mes services</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-3">Mes services</p>
             <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground leading-[1.1]">
               Vente, achat, audit : <span className="italic text-brand">je vous accompagne.</span>
             </h2>
@@ -380,7 +416,6 @@ export default function HomepageContent() {
 
       {/* ===== ZONE — avec paysage en bandeau immersif ===== */}
       <section className="relative overflow-hidden">
-        {/* Bandeau paysage en arrière-plan */}
         <div className="relative h-[28rem] md:h-[32rem]">
           <Image
             src={ZONE_BACKDROP}
@@ -395,7 +430,7 @@ export default function HomepageContent() {
               className="text-center max-w-3xl">
               <motion.div variants={fadeInUp} className="flex items-center justify-center gap-2 mb-4">
                 <MapPin size={18} className="text-white" />
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/90">Zone d&apos;intervention</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/90">Zone d&apos;intervention</p>
               </motion.div>
               <motion.h2 variants={fadeInUp} className="font-serif text-4xl md:text-6xl font-medium text-white mb-4 leading-[1.05] drop-shadow-md">
                 Provence Verte &amp; Haut-Var, <span className="italic">ma terre.</span>
@@ -407,7 +442,6 @@ export default function HomepageContent() {
           </div>
         </div>
 
-        {/* Liste communes */}
         <div className="bg-surface py-16 px-6">
           <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
             className="max-w-4xl mx-auto text-center">
@@ -437,7 +471,7 @@ export default function HomepageContent() {
       <section className="py-24 px-6 bg-white">
         <div className="max-w-[75rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-12">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">Biens disponibles</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-3">Biens disponibles</p>
             <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground leading-[1.1]">Mes biens <span className="italic text-brand">actuellement en vente</span></h2>
           </motion.div>
           <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
@@ -477,7 +511,7 @@ export default function HomepageContent() {
       <section className="py-24 px-6 bg-surface">
         <div className="max-w-[75rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-12">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">Références</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-3">Références</p>
             <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground leading-[1.1]">Mes ventes <span className="italic text-brand">récentes</span></h2>
           </motion.div>
           <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
@@ -508,8 +542,9 @@ export default function HomepageContent() {
       <section className="py-24 px-6 bg-white">
         <div className="max-w-[75rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-12">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">Témoignages</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-3">Témoignages</p>
             <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground leading-[1.1]">Ils m&apos;ont <span className="italic text-brand">fait confiance</span></h2>
+            <div className="mt-6 flex justify-center"><HeartDivider /></div>
           </motion.div>
           <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
             className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
@@ -517,8 +552,8 @@ export default function HomepageContent() {
               <motion.div key={avis.name} variants={scaleIn}
                 className="p-7 rounded-2xl border border-border bg-surface flex flex-col">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="flex gap-1">{Array.from({ length: avis.note }).map((_, i) => <Star key={i} size={14} className="text-brand fill-brand" />)}</div>
-                  <span className="text-xs font-bold text-brand bg-brand-light px-2 py-0.5 rounded-full">{avis.transaction}</span>
+                  <div className="flex gap-1">{Array.from({ length: avis.note }).map((_, i) => <Star key={i} size={14} className="text-accent fill-accent" />)}</div>
+                  <span className="text-[10px] font-bold text-brand bg-brand-light px-2 py-0.5 rounded-full uppercase tracking-[0.15em]">{avis.transaction}</span>
                 </div>
                 <p className="font-serif text-base italic text-foreground leading-relaxed flex-1 mb-4">{avis.text}</p>
                 <p className="text-xs font-semibold text-muted">— {avis.name}</p>
@@ -535,7 +570,7 @@ export default function HomepageContent() {
       <section className="py-24 px-6 bg-surface">
         <div className="max-w-3xl mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-12">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">Questions fréquentes</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-3">Questions fréquentes</p>
             <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground leading-[1.1]">Ce qu&apos;on me <span className="italic text-brand">demande souvent</span></h2>
           </motion.div>
           <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce} className="space-y-3">
@@ -557,7 +592,7 @@ export default function HomepageContent() {
       <section className="py-24 px-6 bg-white">
         <div className="max-w-[75rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-14 items-start">
           <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce} className="lg:pt-2">
-            <motion.p variants={fadeInUp} className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-4">Me contacter</motion.p>
+            <motion.p variants={fadeInUp} className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">Me contacter</motion.p>
             <motion.h2 variants={fadeInUp} className="font-serif text-4xl md:text-5xl font-medium text-foreground mb-6 leading-[1.1]">
               Un projet ? <span className="italic text-brand">Parlons-en.</span>
             </motion.h2>
@@ -582,18 +617,18 @@ export default function HomepageContent() {
             className="bg-surface rounded-2xl border border-border p-8 space-y-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label htmlFor="hp-prenom" className="block text-xs font-semibold text-foreground mb-2 uppercase tracking-wide">Prénom</label>
+                <label htmlFor="hp-prenom" className="block text-[11px] font-semibold text-foreground mb-2 uppercase tracking-[0.18em]">Prénom</label>
                 <input id="hp-prenom" name="prenom" type="text" placeholder="Votre prénom"
                   className="w-full px-4 py-3 rounded-xl border border-border bg-white text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-brand transition-colors" />
               </div>
               <div>
-                <label htmlFor="hp-email" className="block text-xs font-semibold text-foreground mb-2 uppercase tracking-wide">Email</label>
+                <label htmlFor="hp-email" className="block text-[11px] font-semibold text-foreground mb-2 uppercase tracking-[0.18em]">Email</label>
                 <input id="hp-email" name="email" type="email" placeholder="votre@email.fr"
                   className="w-full px-4 py-3 rounded-xl border border-border bg-white text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-brand transition-colors" />
               </div>
             </div>
             <div>
-              <label htmlFor="hp-sujet" className="block text-xs font-semibold text-foreground mb-2 uppercase tracking-wide">Je souhaite</label>
+              <label htmlFor="hp-sujet" className="block text-[11px] font-semibold text-foreground mb-2 uppercase tracking-[0.18em]">Je souhaite</label>
               <select id="hp-sujet" name="sujet"
                 className="w-full px-4 py-3 rounded-xl border border-border bg-white text-sm text-foreground focus:outline-none focus:border-brand transition-colors">
                 <option value="">Choisir...</option>
@@ -605,7 +640,7 @@ export default function HomepageContent() {
               </select>
             </div>
             <div>
-              <label htmlFor="hp-message" className="block text-xs font-semibold text-foreground mb-2 uppercase tracking-wide">Message</label>
+              <label htmlFor="hp-message" className="block text-[11px] font-semibold text-foreground mb-2 uppercase tracking-[0.18em]">Message</label>
               <textarea id="hp-message" name="message" rows={4} placeholder="Décrivez votre projet en quelques mots..."
                 className="w-full px-4 py-3 rounded-xl border border-border bg-white text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-brand transition-colors resize-none" />
             </div>
@@ -619,7 +654,7 @@ export default function HomepageContent() {
       <motion.section variants={scaleIn} initial="initial" whileInView="animate" viewport={vpOnce}
         className="py-24 px-6 bg-brand-light">
         <div className="max-w-2xl mx-auto text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-4">Gratuit · Sans engagement</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">Gratuit · Sans engagement</p>
           <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground mb-4 leading-[1.1]">Votre projet <span className="italic text-brand">commence ici.</span></h2>
           <p className="text-muted mb-8 leading-relaxed">
             Obtenez une estimation précise de votre bien en quelques minutes,
