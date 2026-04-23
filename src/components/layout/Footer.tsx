@@ -1,8 +1,8 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { Phone, Mail, Instagram, Linkedin, Facebook } from 'lucide-react'
 
 const PHONE_RAW = '+33613180168'
-const PHONE_DISPLAY = '06 13 18 01 68'
 const EMAIL = 'alex@alexlopez-provence.fr'
 
 const SOCIAL_LINKS = [
@@ -11,91 +11,89 @@ const SOCIAL_LINKS = [
   { icon: Facebook, label: 'Facebook', href: '#' },
 ]
 
-export function Footer() {
+export async function Footer() {
+  const t = await getTranslations('footer')
+  const tCommon = await getTranslations('common')
   const year = new Date().getFullYear()
+  const phoneDisplay = tCommon('phoneDisplay')
 
   return (
-    <footer className="bg-surface border-t border-border">
+    <footer className="bg-brand-dark text-white">
       <div className="max-w-[75rem] mx-auto px-6 py-14">
 
-        {/* Grille principale */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 mb-10">
 
-          {/* Brand */}
           <div>
-            <div className="mb-4">
-              <p className="text-[15px] font-black text-foreground">Alex Lopez</p>
-              <p className="text-[10px] font-semibold text-brand uppercase tracking-[0.16em]">
-                Mandataire IAD
-              </p>
+            <div className="mb-4 leading-tight">
+              <span className="font-script text-[36px] text-white block leading-none">Alexandre Lopez</span>
+              <span className="block text-[10px] font-bold text-white/80 uppercase tracking-[0.18em] mt-2">
+                {t('brandLine2')}
+              </span>
             </div>
-            <p className="text-sm text-muted leading-relaxed max-w-xs">
-              Mandataire immobilier IAD en Provence Verte et Haut-Var.
-              Vente et achat immobilier dans le Var.
+            <p className="text-sm text-white/75 leading-relaxed max-w-xs">
+              {t('tagline')}
             </p>
           </div>
 
-          {/* Contact */}
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground mb-5">
-              Contact
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-white mb-5">
+              {t('contactTitle')}
             </p>
             <div className="space-y-3">
-              <a
-                href={'tel:' + PHONE_RAW}
-                className="flex items-center gap-2.5 text-sm text-muted hover:text-brand transition-colors"
-              >
+              <a href={'tel:' + PHONE_RAW} className="flex items-center gap-2.5 text-sm text-white/85 hover:text-white transition-colors">
                 <Phone size={14} className="shrink-0" />
-                {PHONE_DISPLAY}
+                {phoneDisplay}
               </a>
-              <a
-                href={'mailto:' + EMAIL}
-                className="flex items-center gap-2.5 text-sm text-muted hover:text-brand transition-colors"
-              >
+              <a href={'mailto:' + EMAIL} className="flex items-center gap-2.5 text-sm text-white/85 hover:text-white transition-colors">
                 <Mail size={14} className="shrink-0" />
                 {EMAIL}
               </a>
             </div>
           </div>
 
-          {/* Réseaux sociaux */}
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground mb-5">
-              Retrouvez-moi
-            </p>
-            <div className="flex items-center gap-3">
-              {SOCIAL_LINKS.map(function (s) {
-                const Icon = s.icon
-                return (
-                  <a
-                    key={s.label}
-                    href={s.href}
-                    aria-label={s.label}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted hover:text-brand hover:border-brand transition-colors"
-                  >
-                    <Icon size={16} />
-                  </a>
-                )
-              })}
+          <div className="flex flex-col justify-between gap-8">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-white mb-5">
+                {t('socialTitle')}
+              </p>
+              <div className="flex items-center gap-3">
+                {SOCIAL_LINKS.map(function (s) {
+                  const Icon = s.icon
+                  return (
+                    <a key={s.label} href={s.href} aria-label={s.label} target="_blank" rel="noopener noreferrer"
+                      className="w-9 h-9 rounded-full border border-white/30 flex items-center justify-center text-white/85 hover:text-white hover:border-white transition-colors">
+                      <Icon size={16} />
+                    </a>
+                  )
+                })}
+              </div>
+            </div>
+            <div className="flex items-end justify-start sm:justify-end">
+              <div className="flex flex-col leading-none">
+                <span className="font-serif italic font-black text-white text-[32px] tracking-[-0.04em]">iad</span>
+                <span className="text-[10px] font-bold text-white uppercase tracking-[0.18em] -mt-0.5">IMMOBILIER</span>
+              </div>
             </div>
           </div>
 
         </div>
 
-        {/* Barre du bas */}
-        <div className="border-t border-border pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-muted text-center sm:text-left">
-            © {year} Alex Lopez · Mandataire indépendant IAD France ·{' '}
-            IAD France SAS — 40 rue de Paradis, 75010 Paris
+        <div className="border-t border-white/20 pt-6 mb-6">
+          <p className="text-[11px] text-white/60 leading-relaxed">
+            {t('legalText')}
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-white/70 text-center sm:text-left">
+            {t('copyright', { year: year })}
           </p>
           <div className="flex items-center gap-6 shrink-0">
-            <Link href="/mentions-legales" className="text-xs text-muted hover:text-foreground transition-colors">
-              Mentions légales
+            <Link href="/mentions-legales" className="text-xs text-white/70 hover:text-white transition-colors">
+              {t('legalMentions')}
             </Link>
-            <Link href="/politique-confidentialite" className="text-xs text-muted hover:text-foreground transition-colors">
-              Confidentialité
+            <Link href="/politique-confidentialite" className="text-xs text-white/70 hover:text-white transition-colors">
+              {t('privacy')}
             </Link>
           </div>
         </div>

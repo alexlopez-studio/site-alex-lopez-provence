@@ -2,26 +2,30 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { Phone, Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { appUrl } from '@/lib/env'
+import { LocaleSwitcher } from './LocaleSwitcher'
 
 const PHONE_RAW = '+33613180168'
-const PHONE_DISPLAY = '06 13 18 01 68'
-
-const NAV_LINKS = [
-  { label: 'Vendre', href: '/vendre' },
-  { label: 'Acheter', href: '/acheter' },
-  { label: 'Audit gratuit', href: '/audit', highlight: true },
-  { label: 'Mon approche', href: '/a-propos' },
-  { label: 'Blog', href: '/blog' },
-  { label: 'Contact', href: '/contact' },
-]
 
 export function Header() {
+  const t = useTranslations('header')
+  const tCommon = useTranslations('common')
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const assistantUrl = appUrl('') || '/assistant'
+  const phoneDisplay = tCommon('phoneDisplay')
+
+  const NAV_LINKS = [
+    { label: t('navSell'), href: '/vendre' },
+    { label: t('navBuy'), href: '/acheter' },
+    { label: t('navAudit'), href: '/audit', highlight: true },
+    { label: t('navApproach'), href: '/a-propos' },
+    { label: t('navBlog'), href: '/blog' },
+    { label: t('navContact'), href: '/contact' },
+  ]
 
   useEffect(function () {
     function onScroll() { setScrolled(window.scrollY > 48) }
@@ -47,14 +51,18 @@ export function Header() {
     >
       <div className="max-w-[75rem] mx-auto px-6 flex items-center justify-between gap-4">
 
-        {/* Logo */}
-        <Link href="/" className="flex flex-col leading-none shrink-0">
-          <span className="text-[15px] font-black text-foreground tracking-tight">Alex Lopez</span>
-          <span className="text-[10px] font-semibold text-brand uppercase tracking-[0.16em]">Mandataire IAD</span>
+        <Link href="/" className="flex items-center gap-3 shrink-0">
+          <div className="flex flex-col leading-none">
+            <span className="font-serif italic font-black text-brand text-[26px] tracking-[-0.04em]">iad</span>
+            <span className="text-[9px] font-bold text-brand uppercase tracking-[0.18em] -mt-0.5">IMMOBILIER</span>
+          </div>
+          <div className="hidden sm:block border-l border-border pl-3 leading-tight">
+            <span className="block font-script text-[22px] text-foreground leading-none -mb-0.5">Alexandre Lopez</span>
+            <span className="block text-[9px] font-semibold text-muted uppercase tracking-[0.16em] mt-1">{t('brandLine2')}</span>
+          </div>
         </Link>
 
-        {/* Nav desktop */}
-        <nav className="hidden lg:flex items-center gap-6" aria-label="Navigation principale">
+        <nav className="hidden lg:flex items-center gap-6" aria-label="Navigation">
           {NAV_LINKS.map(function (link) {
             if (link.highlight) {
               return (
@@ -73,36 +81,37 @@ export function Header() {
           })}
         </nav>
 
-        {/* Tél + CTA desktop */}
-        <div className="hidden lg:flex items-center gap-4 shrink-0">
+        <div className="hidden lg:flex items-center gap-3 shrink-0">
           <a href={'tel:' + PHONE_RAW}
             className="flex items-center gap-2 text-sm font-semibold text-foreground hover:text-brand transition-colors"
-            aria-label={'Appeler le ' + PHONE_DISPLAY}>
+            aria-label={t('callAria', { phone: phoneDisplay })}>
             <Phone size={14} className="text-brand" />
-            {PHONE_DISPLAY}
+            {phoneDisplay}
           </a>
+          <LocaleSwitcher />
           <Button asChild size="sm" variant="primary">
             <Link
               href={assistantUrl}
               target={assistantUrl.startsWith('http') ? '_blank' : undefined}
               rel={assistantUrl.startsWith('http') ? 'noopener noreferrer' : undefined}>
-              Estimer mon bien
+              {t('ctaEstimate')}
             </Link>
           </Button>
         </div>
 
-        {/* Burger mobile */}
-        <button
-          className="lg:hidden p-2 -mr-2 rounded-lg text-foreground hover:bg-surface transition-colors"
-          onClick={function () { setMenuOpen(function (v) { return !v }) }}
-          aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
-          aria-expanded={menuOpen}>
-          {menuOpen ? <X size={22} /> : <Menu size={22} />}
-        </button>
+        <div className="lg:hidden flex items-center gap-2">
+          <LocaleSwitcher />
+          <button
+            className="p-2 -mr-2 rounded-lg text-foreground hover:bg-surface transition-colors"
+            onClick={function () { setMenuOpen(function (v) { return !v }) }}
+            aria-label={menuOpen ? t('menuClose') : t('menuOpen')}
+            aria-expanded={menuOpen}>
+            {menuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
 
       </div>
 
-      {/* Menu mobile */}
       {menuOpen && (
         <div className="lg:hidden bg-white border-t border-border">
           <div className="max-w-[75rem] mx-auto px-6 py-6 space-y-1">
@@ -117,7 +126,7 @@ export function Header() {
                   {link.label}
                   {link.highlight && (
                     <span className="ml-2 text-[10px] font-bold uppercase tracking-wide bg-brand-light text-brand px-2 py-0.5 rounded-full">
-                      Gratuit
+                      {t('navAuditBadge')}
                     </span>
                   )}
                 </Link>
@@ -127,7 +136,7 @@ export function Header() {
               <a href={'tel:' + PHONE_RAW}
                 className="flex items-center gap-2 text-sm font-semibold text-brand">
                 <Phone size={14} />
-                {PHONE_DISPLAY}
+                {phoneDisplay}
               </a>
               <Button asChild size="default" variant="primary" className="w-full">
                 <Link
@@ -135,7 +144,7 @@ export function Header() {
                   target={assistantUrl.startsWith('http') ? '_blank' : undefined}
                   rel={assistantUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
                   onClick={function () { setMenuOpen(false) }}>
-                  Estimer mon bien
+                  {t('ctaEstimate')}
                 </Link>
               </Button>
             </div>
