@@ -67,6 +67,12 @@ const COMMUNES_TEASER = ['Barjols', 'Montmeyan', 'Quinson', 'Fox-Amphoux', 'Tave
 const ZONE_BACKDROP = 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=2000&q=80&auto=format&fit=crop'
 const POSTCARD_IMAGE = 'https://images.unsplash.com/photo-1564419320461-6870880221ad?w=2400&q=85&auto=format&fit=crop'
 
+const DIPTYQUE_LAVANDE = 'https://images.unsplash.com/photo-1591801074660-0f67c8e14e8f?w=1400&q=85&auto=format&fit=crop'
+const DIPTYQUE_VILLAGE = 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=1400&q=85&auto=format&fit=crop'
+const VILLAGE_COTIGNAC = 'https://images.unsplash.com/photo-1534950595837-f4cd585e7ed0?w=900&q=80&auto=format&fit=crop'
+const VILLAGE_BARJOLS = 'https://images.unsplash.com/photo-1533757704860-4e25feb0cf52?w=900&q=80&auto=format&fit=crop'
+const VILLAGE_SILLANS = 'https://images.unsplash.com/photo-1596394723269-b2cbca4e6e33?w=900&q=80&auto=format&fit=crop'
+
 const PAYSAGE_SRC = {
   valensole: 'https://images.unsplash.com/photo-1499002238440-d264edd596ec?w=1600&q=80&auto=format&fit=crop',
   villages:  'https://images.unsplash.com/photo-1533757704860-4e25feb0cf52?w=1200&q=80&auto=format&fit=crop',
@@ -95,6 +101,7 @@ export default function HomepageContent() {
   const tHero = useTranslations('homepage.hero')
   const tUsp = useTranslations('homepage.usp')
   const tLand = useTranslations('homepage.landscape')
+  const tVillages = useTranslations('homepage.villages')
   const tStory = useTranslations('homepage.story')
   const tServ = useTranslations('homepage.services')
   const tZone = useTranslations('homepage.zone')
@@ -281,6 +288,68 @@ export default function HomepageContent() {
                 <p className="absolute bottom-4 left-5 text-white font-serif text-lg italic drop-shadow-md">{p.caption}</p>
               </motion.div>
             ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ===== VILLAGES DE CARACTÈRE — DIPTYQUE + 3 CARTES ===== */}
+      <section className="py-28 px-6 bg-surface">
+        <div className="max-w-[85rem] mx-auto">
+          <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-14 max-w-2xl mx-auto">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">{tVillages('eyebrow')}</p>
+            <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl font-medium text-foreground leading-[1.05] mb-6 tracking-[-0.02em]">
+              {tVillages('titlePart1')} <span className="italic text-brand">{tVillages('titleAccent')}</span>
+            </h2>
+            <p className="text-muted leading-relaxed text-lg">{tVillages('description')}</p>
+          </motion.div>
+
+          <motion.div variants={staggerFast} initial="initial" whileInView="animate" viewport={vpOnce}
+            className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8">
+            <motion.div variants={scaleIn} className="group relative overflow-hidden rounded-2xl aspect-[4/5] md:aspect-[3/4]">
+              <Image src={DIPTYQUE_LAVANDE} alt={tVillages('diptyqueLavenderAlt')} fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover transition-transform duration-700 group-hover:scale-105" />
+              <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-foreground/10 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-8">
+                <p className="font-serif italic text-white text-2xl md:text-3xl leading-tight drop-shadow-md">{tVillages('diptyqueLavenderCaption')}</p>
+              </div>
+            </motion.div>
+            <motion.div variants={scaleIn} className="group relative overflow-hidden rounded-2xl aspect-[4/5] md:aspect-[3/4]">
+              <Image src={DIPTYQUE_VILLAGE} alt={tVillages('diptyqueVillageAlt')} fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover transition-transform duration-700 group-hover:scale-105" />
+              <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-foreground/10 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-8">
+                <p className="font-serif italic text-white text-2xl md:text-3xl leading-tight drop-shadow-md">{tVillages('diptyqueVillageCaption')}</p>
+              </div>
+            </motion.div>
+          </motion.div>
+
+          <motion.div variants={staggerFast} initial="initial" whileInView="animate" viewport={vpOnce}
+            className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <motion.div variants={scaleIn} whileHover={hoverCard} transition={springFast} className="group rounded-2xl overflow-hidden border border-border bg-white">
+              <div className="relative aspect-[4/5] overflow-hidden">
+                <Image src={VILLAGE_COTIGNAC} alt={tVillages('cotignacAlt')} fill sizes="(min-width: 768px) 33vw, 100vw" className="object-cover transition-transform duration-700 group-hover:scale-105" />
+              </div>
+              <div className="p-6">
+                <p className="font-serif text-2xl font-medium text-foreground mb-2">{tVillages('cotignacName')}</p>
+                <p className="text-sm text-muted leading-relaxed">{tVillages('cotignacTagline')}</p>
+              </div>
+            </motion.div>
+            <motion.div variants={scaleIn} whileHover={hoverCard} transition={springFast} className="group rounded-2xl overflow-hidden border border-border bg-white">
+              <div className="relative aspect-[4/5] overflow-hidden">
+                <Image src={VILLAGE_BARJOLS} alt={tVillages('barjolsAlt')} fill sizes="(min-width: 768px) 33vw, 100vw" className="object-cover transition-transform duration-700 group-hover:scale-105" />
+              </div>
+              <div className="p-6">
+                <p className="font-serif text-2xl font-medium text-foreground mb-2">{tVillages('barjolsName')}</p>
+                <p className="text-sm text-muted leading-relaxed">{tVillages('barjolsTagline')}</p>
+              </div>
+            </motion.div>
+            <motion.div variants={scaleIn} whileHover={hoverCard} transition={springFast} className="group rounded-2xl overflow-hidden border border-border bg-white">
+              <div className="relative aspect-[4/5] overflow-hidden">
+                <Image src={VILLAGE_SILLANS} alt={tVillages('sillansAlt')} fill sizes="(min-width: 768px) 33vw, 100vw" className="object-cover transition-transform duration-700 group-hover:scale-105" />
+              </div>
+              <div className="p-6">
+                <p className="font-serif text-2xl font-medium text-foreground mb-2">{tVillages('sillansName')}</p>
+                <p className="text-sm text-muted leading-relaxed">{tVillages('sillansTagline')}</p>
+              </div>
+            </motion.div>
           </motion.div>
         </div>
       </section>

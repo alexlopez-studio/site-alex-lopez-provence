@@ -66,6 +66,25 @@
       "olivesAlt": "Oliveraie ancienne en Provence",
       "vineyardsAlt": "Vignobles des coteaux du Haut-Var au crépuscule"
     },
+    "villages": {
+      "eyebrow": "Villages de caractère",
+      "titlePart1": "Les villages",
+      "titleAccent": "qui me font battre le cœur",
+      "description": "Entre Cotignac, Barjols, Sillans-la-Cascade… le Haut-Var cache une constellation de villages perchés, ruelles pavées et marchés hebdomadaires. Une identité que je connais par cœur.",
+      "diptyqueLavenderCaption": "Les lavandes au lever du jour",
+      "diptyqueLavenderAlt": "Champs de lavande en Provence au petit matin",
+      "diptyqueVillageCaption": "Ruelles de village, pierre et lumière",
+      "diptyqueVillageAlt": "Ruelle pavée d'un village perché en Haut-Var",
+      "cotignacName": "Cotignac",
+      "cotignacTagline": "Village perché sous sa falaise de tuf, platanes centenaires et fontaines chantantes.",
+      "cotignacAlt": "Village de Cotignac adossé à sa falaise de tuf",
+      "barjolsName": "Barjols",
+      "barjolsTagline": "La cité aux 33 fontaines et 12 lavoirs, cœur historique de la Provence Verte.",
+      "barjolsAlt": "Fontaine ancienne de Barjols sous les platanes",
+      "sillansName": "Sillans-la-Cascade",
+      "sillansTagline": "Sa cascade de 44 mètres et son village médiéval au bord de la Bresque.",
+      "sillansAlt": "Cascade de Sillans et village médiéval"
+    },
     "story": {
       "eyebrow": "Mon histoire",
       "titlePart1": "Un conseiller",
