@@ -7,8 +7,8 @@ import { ContactFormClient } from '@/components/forms/ContactFormClient'
 export const metadata: Metadata = {
   title: 'Contact — Alex Lopez, Mandataire IAD Provence Verte',
   description:
-    'Contactez Alex Lopez, mandataire IAD en Provence Verte et Haut-Var. Estimation gratuite, réponse sous 24h. Appelez le 06 13 18 01 68.',
-  alternates: { canonical: (env.siteUrl || 'https://alexlopez-provence.fr') + '/contact' },
+    'Contactez Alex Lopez, mandataire IAD en Provence Verte et Haut-Var. Estimation gratuite, réponse sous 24h. Appelez le 06 13 18 01 68.',
+  alternates: { canonical: (env.app.siteUrl || 'https://alexlopez-provence.fr') + '/contact' },
 }
 
 const PHONE_RAW = '+33613180168'
@@ -19,7 +19,7 @@ const contactJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'ContactPage',
   name: 'Contact — Alex Lopez Mandataire IAD',
-  url: (env.siteUrl || 'https://alexlopez-provence.fr') + '/contact',
+  url: (env.app.siteUrl || 'https://alexlopez-provence.fr') + '/contact',
   mainEntity: {
     '@type': 'Person',
     name: 'Alex Lopez',
@@ -125,7 +125,7 @@ export default function ContactPage() {
 
             {/* Lien a-propos */}
             <div className="rounded-2xl border border-border bg-surface p-6 text-center">
-              <p className="text-sm text-muted mb-3">Vous ne me connaissez pas encore ?</p>
+              <p className="text-sm text-muted mb-3">Vous ne me connaissez pas encore ?</p>
               <Link href="/a-propos" className="text-sm font-semibold text-brand hover:underline">
                 Découvrir mon approche →
               </Link>

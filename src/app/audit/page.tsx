@@ -1,385 +1,401 @@
-import type { Metadata } from 'next'
+'use client'
+
+import { Fragment, useRef, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuditStore } from '@/stores/auditStore'
+import type { AuditAnswers, AuditQuestionId } from '@/stores/auditStore'
+import type { CSSProperties } from 'react'
+import { Phone, ChevronLeft, Send, Check, RotateCcw } from 'lucide-react'
 import Link from 'next/link'
-import {
-  ArrowRight,
-  Clock,
-  ShieldCheck,
-  FileText,
-  Leaf,
-  CheckCircle2,
-  Home,
-  Search,
-  Phone,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { appUrl, env } from '@/lib/env'
+import { Cards, RecapConfirm, SuggestionItem } from '@/components/forms/FormCards'
 
-export const metadata: Metadata = {
-  title: 'Audit Immobilier Express Gratuit — Provence Verte & Haut-Var',
-  description:
-    'Identifiez tous les risques de votre bien en 2–3 minutes, avant de vendre ou d’acheter. Bilan juridique, technique et environnemental gratuit. Mandataire IAD Provence Verte.',
-  alternates: { canonical: (env.siteUrl || 'https://alexlopez-provence.fr') + '/audit' },
+const B = '#0077B6', BL = '#E0F0FA', FG = '#0F172A', M = '#64748B', BD = '#E2E8F0', SF = '#F8FAFC', WH = '#ffffff'
+const MW = '680px', FN = 'var(--font-plus-jakarta-sans, system-ui, sans-serif)'
+
+const page: CSSProperties = { minHeight: '100vh', background: SF, fontFamily: FN }
+const navSt: CSSProperties = { position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, background: WH, borderBottom: '1px solid ' + BD }
+const navIn: CSSProperties = { maxWidth: MW, margin: '0 auto', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }
+const navL: CSSProperties = { display: 'flex', alignItems: 'center', gap: 10 }
+const navR: CSSProperties = { display: 'flex', alignItems: 'center', gap: 12 }
+const avSt: CSSProperties = { width: 36, height: 36, borderRadius: 999, background: B, color: WH, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, flexShrink: 0 }
+const nnSt: CSSProperties = { fontSize: 14, fontWeight: 700, color: FG }
+const nsSt: CSSProperties = { fontSize: 11, color: M }
+const bkSt: CSSProperties = { display: 'flex', alignItems: 'center', fontSize: 12, fontWeight: 600, color: M, textDecoration: 'none' }
+const phSt: CSSProperties = { display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: FG, textDecoration: 'none' }
+const rbSt: CSSProperties = { display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 500, color: M, background: 'transparent', border: '1px solid ' + BD, borderRadius: 999, padding: '5px 10px', cursor: 'pointer' }
+const cwSt: CSSProperties = { maxWidth: MW, margin: '0 auto', padding: '148px 20px 40px', display: 'flex', flexDirection: 'column', gap: 16 }
+const rAl: CSSProperties = { display: 'flex', gap: 10, alignItems: 'flex-end' }
+const rUs: CSSProperties = { display: 'flex', justifyContent: 'flex-end' }
+const bAl: CSSProperties = { background: WH, border: '1px solid ' + BD, borderRadius: '16px 16px 16px 4px', padding: '14px 16px', fontSize: 14, color: FG, lineHeight: 1.65, whiteSpace: 'pre-wrap', overflowWrap: 'break-word', maxWidth: '84%' }
+const bUs: CSSProperties = { background: B, borderRadius: '16px 16px 4px 16px', padding: '10px 16px', fontSize: 14, fontWeight: 500, color: WH, lineHeight: 1.5, maxWidth: '95%' }
+const tL: CSSProperties = { fontSize: 10, color: M, marginTop: 4 }
+const tR: CSSProperties = { fontSize: 10, color: M, marginTop: 4, textAlign: 'right' }
+const inF: CSSProperties = { width: '100%', fontSize: 14, color: FG, border: '1.5px solid ' + BD, borderRadius: 12, padding: '12px 14px', outline: 'none', background: WH, boxSizing: 'border-box' }
+const vBtn: CSSProperties = { width: '100%', padding: 13, borderRadius: 12, background: B, border: 'none', color: WH, fontSize: 14, fontWeight: 600, cursor: 'pointer', marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }
+const vOff: CSSProperties = { width: '100%', padding: 13, borderRadius: 12, background: BD, border: 'none', color: M, fontSize: 14, fontWeight: 600, cursor: 'not-allowed', marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }
+const sWr: CSSProperties = { background: WH, borderRadius: 16, border: '1px solid ' + BD, padding: 20 }
+const cWr: CSSProperties = { background: WH, borderRadius: 16, border: '1px solid ' + BD, padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }
+const cG: CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }
+const cH: CSSProperties = { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2 }
+const cBdg: CSSProperties = { width: 32, height: 32, borderRadius: 999, background: BL, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }
+const cT: CSSProperties = { fontSize: 15, fontWeight: 700, color: FG }
+const cSb: CSSProperties = { fontSize: 12, fontWeight: 300, color: M }
+const rgTx: CSSProperties = { fontSize: 12, fontWeight: 400, color: FG, lineHeight: 1.5 }
+const spW: CSSProperties = { maxWidth: MW, margin: '0 auto', padding: '10px 20px 12px', display: 'flex', alignItems: 'center' }
+const spC: CSSProperties = { display: 'flex', flexDirection: 'column', alignItems: 'center' }
+const spL: CSSProperties = { fontSize: 10, fontWeight: 600, marginTop: 5, textAlign: 'center' }
+const dB: CSSProperties = { width: 28, height: 28, borderRadius: 999, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }
+const dDn: CSSProperties = { ...dB, background: B, color: WH, border: '2px solid ' + B }
+const dCu: CSSProperties = { ...dB, background: BL, color: B, border: '2px solid ' + B }
+const dFu: CSSProperties = { ...dB, background: WH, color: M, border: '2px solid ' + BD }
+const lDn: CSSProperties = { ...spL, color: FG }
+const lCu: CSSProperties = { ...spL, color: B, fontWeight: 700 }
+const lFu: CSSProperties = { ...spL, color: M }
+const cnO: CSSProperties = { flex: 1, height: 3, background: BD, borderRadius: 999, overflow: 'hidden', margin: '0 4px', marginBottom: 15 }
+const cnOn: CSSProperties = { height: '100%', width: '100%', background: B, borderRadius: 999 }
+const cnOf: CSSProperties = { height: '100%', width: '0%', background: B, borderRadius: 999 }
+const _iz: CSSProperties = { marginTop: 8 }
+const _emo: CSSProperties = { fontSize: 20 }
+const _ir: CSSProperties = { display: 'flex', gap: 10 }
+const _inpR: CSSProperties = { width: '100%', fontSize: 14, color: FG, border: '1.5px solid ' + BD, borderRadius: 12, padding: '12px 14px', outline: 'none', background: WH, boxSizing: 'border-box', flex: 1 } as CSSProperties
+const _sendBtn: CSSProperties = { width: 42, height: 42, borderRadius: 12, background: B, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }
+const _slVal: CSSProperties = { textAlign: 'center', fontSize: 18, fontWeight: 700, color: FG, marginBottom: 16 }
+const _slInp: CSSProperties = { width: '100%', accentColor: B } as CSSProperties
+const _slRow: CSSProperties = { display: 'flex', justifyContent: 'space-between', marginTop: 8 }
+const _slLbl: CSSProperties = { fontSize: 11, color: M }
+const _g2: CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }
+const _sugWr: CSSProperties = { background: WH, border: '1px solid ' + BD, borderRadius: 12, overflow: 'hidden', marginTop: 6 }
+const _load: CSSProperties = { fontSize: 11, color: M, marginTop: 6 }
+function cardS(a: boolean): CSSProperties { return { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '14px 10px', borderRadius: 14, cursor: 'pointer', border: '2px solid ' + (a ? B : BD), background: a ? BL : WH, fontSize: 13, fontWeight: 600, color: a ? B : FG, textAlign: 'center', width: '100%' } }
+function civS(a: boolean): CSSProperties { return { flex: 1, padding: 11, borderRadius: 12, border: '2px solid ' + (a ? B : BD), background: a ? B : WH, color: a ? WH : FG, fontSize: 13, fontWeight: 600, cursor: 'pointer' } }
+function rgS(a: boolean): CSSProperties { return { display: 'flex', alignItems: 'flex-start', gap: 10, padding: 14, borderRadius: 12, cursor: 'pointer', border: '1.5px solid ' + (a ? B : BD), background: a ? BL : WH } }
+function rgBx(a: boolean): CSSProperties { return { width: 18, height: 18, borderRadius: 4, border: '2px solid ' + (a ? B : BD), background: a ? B : WH, flexShrink: 0, marginTop: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' } }
+function mRw(a: boolean): CSSProperties { return { display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px', borderRadius: 12, cursor: 'pointer', border: '1.5px solid ' + (a ? B : BD), background: a ? BL : WH, fontSize: 13, fontWeight: 500, color: a ? B : FG, marginBottom: 8 } }
+
+const STEPS = [
+  { n: 1, label: 'Bien', qs: ['adresse', 'type_bien', 'surface'] },
+  { n: 2, label: '\u00c9tat', qs: ['etat_toiture', 'etat_facade', 'etat_menuiseries', 'etat_plomberie', 'etat_electricite', 'humidite', 'isolation', 'chauffage', 'dpe'] },
+  { n: 3, label: 'Profil', qs: ['qualite', 'objectif', 'recapitulatif'] },
+  { n: 4, label: 'Contact', qs: ['coordonnees', 'done'] },
+]
+const TYPE_BIEN = [
+  { value: 'appartement', label: 'Appartement', emoji: '\ud83c\udfe2' },
+  { value: 'maison', label: 'Maison', emoji: '\ud83c\udfe0' },
+  { value: 'terrain', label: 'Terrain', emoji: '\ud83c\udf3f' },
+  { value: 'autre', label: 'Autre', emoji: '\u00b7\u00b7\u00b7' },
+]
+const ETAT_OPTS = [
+  { value: 'bon', label: 'Bon \u00e9tat', emoji: '\u2705' },
+  { value: 'moyen', label: 'Moyen', emoji: '\u26a0\ufe0f' },
+  { value: 'mauvais', label: 'Mauvais', emoji: '\u274c' },
+  { value: 'nc', label: 'Ne sais pas', emoji: '\u2753' },
+]
+const ISOLATION_OPTS = ['Murs isol\u00e9s', 'Combles isol\u00e9s', 'Double vitrage']
+const CHAUFFAGE_OPTS = [
+  { value: 'electrique', label: '\u00c9lectrique', emoji: '\u26a1' },
+  { value: 'gaz', label: 'Gaz', emoji: '\ud83d\udd25' },
+  { value: 'fioul', label: 'Fioul', emoji: '\ud83d\udee2\ufe0f' },
+  { value: 'bois', label: 'Bois', emoji: '\ud83e\udeb5' },
+  { value: 'pac', label: 'Pompe \u00e0 chaleur', emoji: '\u2744\ufe0f' },
+  { value: 'autre', label: 'Autre', emoji: '\u00b7\u00b7\u00b7' },
+]
+const DPE_OPTS = ['A', 'B', 'C', 'D', 'E', 'F', 'G'].map(l => ({ value: l, label: l, emoji: '' }))
+const QUALITE_OPTS = [
+  { value: 'proprietaire', label: 'Propri\u00e9taire', emoji: '\ud83c\udfe0' },
+  { value: 'acheteur', label: 'Acheteur potentiel', emoji: '\ud83d\udd0d' },
+]
+const OBJECTIF_OPTS = [
+  { value: 'vente', label: 'Vente', emoji: '\ud83d\udcb0' },
+  { value: 'achat', label: 'Achat', emoji: '\ud83c\udfe1' },
+  { value: 'renovation', label: 'R\u00e9novation', emoji: '\ud83d\udd28' },
+  { value: 'energie', label: '\u00c9nergie', emoji: '\u26a1' },
+]
+const BIEN_LBL: Record<string, string> = { appartement: 'Appartement', maison: 'Maison', terrain: 'Terrain', autre: 'Autre' }
+const ETAT_LBL: Record<string, string> = { bon: 'Bon', moyen: 'Moyen', mauvais: 'Mauvais', nc: 'N/C' }
+const CHAUFF_LBL: Record<string, string> = { electrique: '\u00c9lectrique', gaz: 'Gaz', fioul: 'Fioul', bois: 'Bois', pac: 'PAC', autre: 'Autre' }
+const OBJ_LBL: Record<string, string> = { vente: 'Vente', achat: 'Achat', renovation: 'R\u00e9novation', energie: '\u00c9nergie' }
+
+function getNext(q: AuditQuestionId): AuditQuestionId {
+  const f: Record<string, AuditQuestionId> = {
+    adresse: 'type_bien', type_bien: 'surface', surface: 'etat_toiture',
+    etat_toiture: 'etat_facade', etat_facade: 'etat_menuiseries', etat_menuiseries: 'etat_plomberie',
+    etat_plomberie: 'etat_electricite', etat_electricite: 'humidite',
+    humidite: 'isolation', isolation: 'chauffage', chauffage: 'dpe',
+    dpe: 'qualite', qualite: 'objectif', objectif: 'recapitulatif',
+    recapitulatif: 'coordonnees', coordonnees: 'done', done: 'done'
+  }
+  return f[q] ?? 'done'
 }
 
-const PHONE_RAW = '+33613180168'
-const PHONE_DISPLAY = '06 13 18 01 68'
-
-const PILIERS = [
-  {
-    icon: FileText,
-    titre: 'Risques juridiques',
-    points: [
-      'Servitudes et droits de passage',
-      'Conformité du permis de construire',
-      'Hypothèques et droit de préemption',
-      'Situation cadastrale et bornage',
-      'Copropriété : charges, travaux votés',
-    ],
-  },
-  {
-    icon: ShieldCheck,
-    titre: 'Risques techniques',
-    points: [
-      'État de la toiture et de la charpente',
-      'Électricité, plomberie, chauffage',
-      'Assainissement (fosse septique, réseau)',
-      'Isolation et performance énergétique',
-      'Traces d’humidité, fissures structurelles',
-    ],
-  },
-  {
-    icon: Leaf,
-    titre: 'Risques environnementaux',
-    points: [
-      'Zones inondables (PPR, PPRI)',
-      'Risques sismiques et mouvements de terrain',
-      'Présence d’amiante ou de plomb',
-      'Proximité installations classées (ICPE)',
-      'Plan de prévention des risques naturels',
-    ],
-  },
-]
-
-const POUR_QUI = [
-  {
-    icon: Home,
-    titre: 'Vous vendez',
-    sous: 'Anticipez les objections',
-    texte:
-      'Connaissez les points de vigilance de votre bien avant la première visite. Vous gagnerez en crédibilité face aux acheteurs et éviterez les négociations surprises sur des défauts que vous n’aviez pas anticipés.',
-    cta: 'Obtenir mon audit vendeur',
-  },
-  {
-    icon: Search,
-    titre: 'Vous achetez',
-    sous: 'Négociez en toute connaissance',
-    texte:
-      'Avant de signer le compromis, identifiez tous les risques du bien qui vous intéresse. Vous pourrez négocier le prix à la bonne hauteur, ou simplement éviter une mauvaise surprise coûteuse.',
-    cta: 'Obtenir mon audit acheteur',
-  },
-]
-
-const ETAPES = [
-  { num: '01', titre: 'Lancez l’assistant', desc: 'Décrivez le bien en quelques clics — adresse, surface, type.' },
-  { num: '02', titre: 'Analyse automatique', desc: 'L’outil croise les données publiques, cadastre, zonages et diagnostics.' },
-  { num: '03', titre: 'Rapport personnalisé', desc: 'Vous recevez un bilan clair avec les points d’attention prioritaires.' },
-  { num: '04', titre: 'On en parle', desc: 'Si vous le souhaitez, on commente ensemble les résultats — gratuit, sans engagement.' },
-]
-
-const FAQS = [
-  {
-    q: "L'audit immobilier express est-il vraiment gratuit ?",
-    r: "Oui, entièrement gratuit et sans engagement. Il s'inscrit dans mon approche de transparence : vous devez avoir toutes les informations pour décider en connaissance de cause.",
-  },
-  {
-    q: 'Combien de temps dure le bilan ?',
-    r: "L'outil lui-même prend 2–3 minutes. Si vous souhaitez en discuter avec moi, je vous propose un échange téléphonique de 15 minutes sans frais.",
-  },
-  {
-    q: 'L’audit remplace-t-il les diagnostics obligatoires ?',
-    r: "Non. Les diagnostics réglementaires (DPE, amiante, plomb, électrique…) sont obligatoires et doivent être réalisés par des professionnels certifiés. L’audit express identifie les risques à anticiper avant ou en complément de ces diagnostics.",
-  },
-  {
-    q: 'Je suis acheteur, pas encore propriétaire — puis-je quand même l’utiliser ?',
-    r: "Oui, c’est même particulièrement utile avant de signer un compromis. En identifiant les risques en amont, vous pouvez négocier le prix ou demander des corrections avant la signature.",
-  },
-  {
-    q: 'Ce service est-il disponible sur toute la Provence Verte ?',
-    r: "Oui, j'interviens sur l'ensemble de la Provence Verte et du Haut-Var : Barjols, Aups, Rians, Salernes, Montmeyan, Quinson, Fox-Amphoux et toutes les communes limitrophes.",
-  },
-]
-
-const auditJsonLd = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    {
-      '@type': 'Service',
-      name: 'Audit immobilier express',
-      description:
-        'Bilan gratuit des risques juridiques, techniques et environnementaux d’un bien immobilier en Provence Verte et Haut-Var.',
-      provider: {
-        '@type': 'Person',
-        name: 'Alex Lopez',
-        jobTitle: 'Mandataire immobilier IAD',
-        telephone: PHONE_RAW,
-      },
-      areaServed: 'Provence Verte et Haut-Var',
-      offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR', description: 'Gratuit et sans engagement' },
-    },
-    {
-      '@type': 'FAQPage',
-      mainEntity: FAQS.map(function (f) {
-        return {
-          '@type': 'Question',
-          name: f.q,
-          acceptedAnswer: { '@type': 'Answer', text: f.r },
-        }
-      }),
-    },
-  ],
+function getMsg(q: AuditQuestionId, a: AuditAnswers): string {
+  switch (q) {
+    case 'type_bien': return 'Quel type de bien\u00a0?'
+    case 'surface': return 'Quelle est la surface habitable\u00a0?'
+    case 'etat_toiture': return 'Passons \u00e0 l\u2019\u00e9tat du bien. Comment est la toiture\u00a0?'
+    case 'etat_facade': return 'Et la fa\u00e7ade\u00a0?'
+    case 'etat_menuiseries': return 'Les menuiseries (portes, fen\u00eatres)\u00a0?'
+    case 'etat_plomberie': return 'La plomberie\u00a0?'
+    case 'etat_electricite': return 'L\u2019installation \u00e9lectrique\u00a0?'
+    case 'humidite': return 'Constatez-vous des probl\u00e8mes d\u2019humidit\u00e9 ou de moisissures\u00a0?'
+    case 'isolation': return 'Quels \u00e9l\u00e9ments d\u2019isolation sont pr\u00e9sents\u00a0?'
+    case 'chauffage': return 'Quel type de chauffage\u00a0?'
+    case 'dpe': return 'Quel est le DPE actuel du bien\u00a0?\n(Si vous ne le connaissez pas, choisissez le plus proche)'
+    case 'qualite': return 'Vous \u00eates\u00a0:'
+    case 'objectif': return 'Quel est l\u2019objectif de cet audit\u00a0?'
+    case 'recapitulatif': return buildRecap(a)
+    case 'coordonnees': return "Parfait\u00a0! Pour recevoir votre score d'audit et les recommandations, j'ai besoin de vos coordonn\u00e9es."
+    default: return ''
+  }
 }
 
-function buildInnerHtml(data: object) {
-  return { __html: JSON.stringify(data) }
+function buildRecap(a: AuditAnswers): string {
+  const lines = ['Voici le r\u00e9capitulatif de votre audit\u00a0!', '']
+  lines.push('\ud83c\udfe0 ' + (BIEN_LBL[a.type_bien ?? ''] ?? 'Bien'))
+  if (a.adresse) lines.push('\ud83d\udccd ' + a.adresse)
+  if (a.surface) lines.push('\ud83d\udcd0 ' + a.surface + ' m\u00b2')
+  const etats = ['toiture', 'facade', 'menuiseries', 'plomberie', 'electricite']
+  const eLabels = ['Toiture', 'Fa\u00e7ade', 'Menuiseries', 'Plomberie', '\u00c9lectricit\u00e9']
+  etats.forEach((e, i) => {
+    const val = a[('etat_' + e) as keyof AuditAnswers] as string | undefined
+    if (val) lines.push('\ud83d\udd27 ' + eLabels[i] + '\u00a0: ' + (ETAT_LBL[val] ?? val))
+  })
+  if (a.humidite) lines.push('\ud83d\udca7 Humidit\u00e9\u00a0: ' + a.humidite)
+  if (a.isolation?.length) lines.push('\ud83e\uddf1 Isolation\u00a0: ' + a.isolation.join(', '))
+  if (a.type_chauffage) lines.push('\ud83d\udd25 Chauffage\u00a0: ' + (CHAUFF_LBL[a.type_chauffage] ?? a.type_chauffage))
+  if (a.dpe) lines.push('\u26a1 DPE\u00a0: ' + a.dpe)
+  if (a.qualite) lines.push('\ud83d\udc64 ' + (a.qualite === 'proprietaire' ? 'Propri\u00e9taire' : 'Acheteur potentiel'))
+  if (a.objectif) lines.push('\ud83c\udfaf Objectif\u00a0: ' + (OBJ_LBL[a.objectif] ?? a.objectif))
+  lines.push('', 'Ces informations sont-elles correctes\u00a0?')
+  return lines.join('\n')
+}
+
+function ts() { return new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }
+function Avatar() { return <div style={avSt}>AL</div> }
+function getCurStep(q: AuditQuestionId) { for (const s of STEPS) if (s.qs.includes(q)) return s.n; return 1 }
+
+function Stepper({ q }: { q: AuditQuestionId }) {
+  const cs = getCurStep(q)
+  return (
+    <div style={spW}>
+      {STEPS.map((s, i) => {
+        const st = s.n < cs ? 'done' : s.n === cs ? 'curr' : 'futu'
+        return (
+          <Fragment key={s.n}>
+            <div style={spC}>
+              <div style={st === 'done' ? dDn : st === 'curr' ? dCu : dFu}>{st === 'done' ? <Check size={12} color={WH} strokeWidth={3} /> : s.n}</div>
+              <span style={st === 'done' ? lDn : st === 'curr' ? lCu : lFu}>{s.label}</span>
+            </div>
+            {i < STEPS.length - 1 && <div style={cnO}><div style={s.n < cs ? cnOn : cnOf} /></div>}
+          </Fragment>
+        )
+      })}
+    </div>
+  )
 }
 
 export default function AuditPage() {
-  const auditUrl = appUrl('/audit') || '/assistant'
+  const router = useRouter()
+  const { messages, currentQuestion, answers, addMessage, setAnswer, setQuestion, reset } = useAuditStore()
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => { ref.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, currentQuestion])
+
+  function answer(key: keyof AuditAnswers, value: AuditAnswers[keyof AuditAnswers], display: string) {
+    const newA = { ...answers, [key]: value }
+    setAnswer(key, value)
+    if (!display) return
+    addMessage({ from: 'user', text: display, timestamp: ts() })
+    const next = getNext(currentQuestion)
+    setTimeout(() => {
+      const msg = getMsg(next, newA)
+      if (msg) addMessage({ from: 'al', text: msg, timestamp: ts() })
+      setQuestion(next)
+    }, 350)
+  }
+
+  function submit(p: string, n: string, t: string, em: string, c: 'monsieur' | 'madame') {
+    setAnswer('prenom', p); setAnswer('nom', n); setAnswer('telephone', t); setAnswer('email', em); setAnswer('civilite', c)
+    addMessage({ from: 'user', text: p + ' ' + n, timestamp: ts() })
+    const tk = crypto.randomUUID()
+    fetch('/api/leads', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...answers, prenom: p, nom: n, telephone: t, email: em, civilite: c, token: tk, type: 'audit', opt_in: answers.rgpd ?? false }),
+    }).catch(() => null)
+    router.push('/resultats/' + tk)
+  }
 
   return (
-    <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={buildInnerHtml(auditJsonLd)} />
-
-      {/* ===== HERO ===== */}
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-[75rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 bg-brand-light text-brand text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded-full mb-6">
-              <Clock size={12} />
-              Gratuit · 2–3 minutes · Sans engagement
-            </div>
-            <h1 className="text-4xl md:text-5xl font-extrabold text-foreground leading-[1.1] tracking-tight mb-6">
-              Audit immobilier
-              <br />
-              <span className="text-brand">express.</span>
-            </h1>
-            <p className="text-lg text-muted leading-relaxed mb-8">
-              Avant de vendre ou d&apos;acheter en Provence Verte, identifiez tous les
-              risques de votre bien — juridiques, techniques et environnementaux. Gratuit,
-              en quelques minutes.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 mb-8">
-              <Button asChild variant="primary" size="lg">
-                <Link
-                  href={auditUrl}
-                  target={auditUrl.startsWith('http') ? '_blank' : undefined}
-                  rel={auditUrl.startsWith('http') ? 'noopener noreferrer' : undefined}>
-                  Lancer mon audit <ArrowRight size={18} />
-                </Link>
-              </Button>
-              <a href={'tel:' + PHONE_RAW}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-border text-sm font-semibold text-foreground hover:border-brand hover:text-brand transition-colors">
-                <Phone size={15} />
-                {PHONE_DISPLAY}
-              </a>
-            </div>
-            <div className="flex flex-wrap gap-4">
-              {['100% gratuit', 'Sans création de compte', 'Résultat immédiat'].map(function (item) {
-                return (
-                  <div key={item} className="flex items-center gap-1.5 text-sm text-muted">
-                    <CheckCircle2 size={15} className="text-success shrink-0" />
-                    {item}
-                  </div>
-                )
-              })}
-            </div>
+    <div style={page}>
+      <header style={navSt}>
+        <div style={navIn}>
+          <div style={navL}>
+            <Link href="/" style={bkSt}><ChevronLeft size={14} /></Link>
+            <Avatar />
+            <div><div style={nnSt}>Alex Lopez</div><div style={nsSt}>Mandataire IAD \u2014 Provence Verte</div></div>
           </div>
-          {/* Visuel — carte résumé audit */}
-          <div className="bg-surface rounded-2xl border border-border p-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand mb-5">Ce que couvre l&apos;audit</p>
-            <div className="space-y-4">
-              {PILIERS.map(function (p) {
-                const Icon = p.icon
-                return (
-                  <div key={p.titre} className="flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-white border border-border flex items-center justify-center shrink-0 mt-0.5">
-                      <Icon size={16} className="text-brand" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">{p.titre}</p>
-                      <p className="text-xs text-muted mt-0.5">{p.points.length} points analysés</p>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-            <div className="mt-6 pt-6 border-t border-border">
-              <p className="text-xs text-muted">Données croisées : cadastre, zonages PPR, diagnostics, bases publiques.</p>
-            </div>
+          <div style={navR}>
+            <button style={rbSt} onClick={() => reset()}><RotateCcw size={12} /> Recommencer</button>
+            <a href="tel:+33613180168" style={phSt}><Phone size={13} color={B} /></a>
           </div>
         </div>
-      </section>
+        <Stepper q={currentQuestion} />
+      </header>
+      <div style={cwSt}>
+        {messages.map(m => (
+          <div key={m.id}>
+            {m.from === 'al'
+              ? <div style={rAl}><Avatar /><div><div style={bAl}>{m.text}</div><div style={tL}>{m.timestamp}</div></div></div>
+              : <div style={rUs}><div><div style={bUs}>{m.text}</div><div style={tR}>{m.timestamp}</div></div></div>}
+          </div>
+        ))}
+        {currentQuestion !== 'done' && <div style={_iz}><InputZone q={currentQuestion} a={answers} onAnswer={answer} onSubmit={submit} /></div>}
+        <div ref={ref} />
+      </div>
+    </div>
+  )
+}
 
-      {/* ===== POUR QUI ===== */}
-      <section className="py-20 px-6 bg-surface">
-        <div className="max-w-[75rem] mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">Pour qui ?</p>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-foreground">
-              Utile que vous <span className="text-brand">vendiez ou achetiez.</span>
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {POUR_QUI.map(function (item) {
-              const Icon = item.icon
-              return (
-                <div key={item.titre} className="bg-white rounded-2xl border border-border p-8">
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="w-12 h-12 rounded-xl bg-brand-light flex items-center justify-center shrink-0">
-                      <Icon size={22} className="text-brand" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-muted">{item.sous}</p>
-                      <p className="text-lg font-bold text-foreground">{item.titre}</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted leading-relaxed mb-6">{item.texte}</p>
-                  <Button asChild variant="primary" size="default" className="w-full">
-                    <Link
-                      href={auditUrl}
-                      target={auditUrl.startsWith('http') ? '_blank' : undefined}
-                      rel={auditUrl.startsWith('http') ? 'noopener noreferrer' : undefined}>
-                      {item.cta} <ArrowRight size={15} />
-                    </Link>
-                  </Button>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
+function InputZone({ q, a, onAnswer, onSubmit }: {
+  q: AuditQuestionId; a: AuditAnswers
+  onAnswer: (k: keyof AuditAnswers, v: AuditAnswers[keyof AuditAnswers], d: string) => void
+  onSubmit: (p: string, n: string, t: string, e: string, c: 'monsieur' | 'madame') => void
+}) {
+  if (q === 'adresse') return <AdresseInput onAnswer={onAnswer} />
+  if (q === 'type_bien') return <Cards opts={TYPE_BIEN} cols={2} onPick={(v, l) => onAnswer('type_bien', v, l)} />
+  if (q === 'surface') return <SliderInput unit="m\u00b2" min={10} max={1000} def={100} step={5} onOk={v => onAnswer('surface', v, v + ' m\u00b2')} />
+  if (q === 'etat_toiture') return <Cards opts={ETAT_OPTS} cols={2} onPick={(v, l) => onAnswer('etat_toiture', v, l)} />
+  if (q === 'etat_facade') return <Cards opts={ETAT_OPTS} cols={2} onPick={(v, l) => onAnswer('etat_facade', v, l)} />
+  if (q === 'etat_menuiseries') return <Cards opts={ETAT_OPTS} cols={2} onPick={(v, l) => onAnswer('etat_menuiseries', v, l)} />
+  if (q === 'etat_plomberie') return <Cards opts={ETAT_OPTS} cols={2} onPick={(v, l) => onAnswer('etat_plomberie', v, l)} />
+  if (q === 'etat_electricite') return <Cards opts={ETAT_OPTS} cols={2} onPick={(v, l) => onAnswer('etat_electricite', v, l)} />
+  if (q === 'humidite') return <YesNo onPick={(v, l) => onAnswer('humidite', v, l)} />
+  if (q === 'isolation') return <MultiSel opts={ISOLATION_OPTS} onOk={sel => onAnswer('isolation', sel, sel.length ? sel.join(', ') : 'Aucune isolation')} />
+  if (q === 'chauffage') return <Cards opts={CHAUFFAGE_OPTS} cols={2} onPick={(v, l) => onAnswer('type_chauffage', v, l)} />
+  if (q === 'dpe') return <Cards opts={DPE_OPTS} cols={4} onPick={(v, l) => onAnswer('dpe', v, 'DPE ' + l)} />
+  if (q === 'qualite') return <Cards opts={QUALITE_OPTS} cols={2} onPick={(v, l) => onAnswer('qualite', v, l)} />
+  if (q === 'objectif') return <Cards opts={OBJECTIF_OPTS} cols={2} onPick={(v, l) => onAnswer('objectif', v, l)} />
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (q === 'recapitulatif') return <RecapConfirm onOk={() => onAnswer('recapitulatif' as any, true as any, "C'est correct \u2705")} />
+  if (q === 'coordonnees') return <Coordonnees onSubmit={onSubmit} />
+  return null
+}
 
-      {/* ===== CE QU'ON ANALYSE ===== */}
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-[75rem] mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">15+ points analysés</p>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-foreground">
-              Ce que couvre <span className="text-brand">l&apos;audit.</span>
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {PILIERS.map(function (p) {
-              const Icon = p.icon
-              return (
-                <div key={p.titre} className="rounded-2xl border border-border bg-surface p-7">
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="w-10 h-10 rounded-xl bg-brand-light flex items-center justify-center shrink-0">
-                      <Icon size={20} className="text-brand" />
-                    </div>
-                    <h3 className="text-lg font-bold text-foreground">{p.titre}</h3>
-                  </div>
-                  <ul className="space-y-2">
-                    {p.points.map(function (point) {
-                      return (
-                        <li key={point} className="flex items-start gap-2 text-sm text-muted">
-                          <CheckCircle2 size={14} className="text-success shrink-0 mt-0.5" />
-                          {point}
-                        </li>
-                      )
-                    })}
-                  </ul>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
+const API_ADRESSE = 'https://api-adresse.data.gouv.fr/search/'
+interface Sug { label: string; lat: number; lng: number }
 
-      {/* ===== COMMENT ÇA MARCHE ===== */}
-      <section className="py-20 px-6 bg-surface">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">En 4 étapes</p>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-foreground">
-              Comment <span className="text-brand">ça marche ?</span>
-            </h2>
-          </div>
-          <div className="space-y-6">
-            {ETAPES.map(function (e) {
-              return (
-                <div key={e.num} className="flex gap-5 items-start">
-                  <div className="w-12 h-12 shrink-0 rounded-xl bg-brand flex items-center justify-center">
-                    <span className="text-sm font-extrabold text-white">{e.num}</span>
-                  </div>
-                  <div className="pt-2">
-                    <p className="text-base font-bold text-foreground">{e.titre}</p>
-                    <p className="text-sm text-muted mt-1">{e.desc}</p>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
+function AdresseInput({ onAnswer }: { onAnswer: (k: keyof AuditAnswers, v: AuditAnswers[keyof AuditAnswers], d: string) => void }) {
+  const [val, setVal] = useState('')
+  const [sugs, setSugs] = useState<Sug[]>([])
+  const [loading, setLoading] = useState(false)
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-      {/* ===== FAQ ===== */}
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">Questions fréquentes</p>
-            <h2 className="text-3xl font-extrabold text-foreground">
-              Vos <span className="text-brand">questions</span>
-            </h2>
-          </div>
-          <div className="space-y-3">
-            {FAQS.map(function (f) {
-              return (
-                <details key={f.q} className="group rounded-2xl border border-border bg-surface overflow-hidden">
-                  <summary className="flex items-center justify-between p-6 cursor-pointer list-none font-semibold text-foreground hover:text-brand transition-colors">
-                    <span>{f.q}</span>
-                    <span className="text-muted shrink-0 ml-4 text-xl leading-none group-open:rotate-45 transition-transform duration-200">+</span>
-                  </summary>
-                  <div className="px-6 pb-6 text-sm text-muted leading-relaxed">{f.r}</div>
-                </details>
-              )
-            })}
-          </div>
-        </div>
-      </section>
+  async function search(q: string) {
+    if (q.length < 3) { setSugs([]); return }
+    setLoading(true)
+    try {
+      const res = await fetch(API_ADRESSE + '?q=' + encodeURIComponent(q) + '&limit=5')
+      const data = await res.json()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setSugs(data.features.map((f: any) => ({ label: f.properties.label, lat: f.geometry.coordinates[1], lng: f.geometry.coordinates[0] })))
+    } catch { setSugs([]) } finally { setLoading(false) }
+  }
 
-      {/* ===== CTA FINAL ===== */}
-      <section className="py-20 px-6 bg-brand-light">
-        <div className="max-w-2xl mx-auto text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-4">Gratuit · 2–3 minutes</p>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-4">
-            Prêt à identifier vos risques ?
-          </h2>
-          <p className="text-muted mb-8 leading-relaxed">
-            Lancez votre audit immobilier express maintenant — sans création de compte,
-            sans engagement, et complètement gratuit.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" variant="primary">
-              <Link
-                href={auditUrl}
-                target={auditUrl.startsWith('http') ? '_blank' : undefined}
-                rel={auditUrl.startsWith('http') ? 'noopener noreferrer' : undefined}>
-                Lancer mon audit <ArrowRight size={18} />
-              </Link>
-            </Button>
-            <a href={'tel:' + PHONE_RAW}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-border bg-white text-sm font-semibold text-foreground hover:border-brand hover:text-brand transition-colors">
-              <Phone size={15} />
-              {PHONE_DISPLAY}
-            </a>
-          </div>
-          <p className="mt-6 text-xs text-muted">
-            Ou <Link href="/contact" className="text-brand underline">contactez-moi directement</Link> pour
-            en discuter.
-          </p>
+  function pick(s: Sug) {
+    setSugs([]); setVal(s.label)
+    onAnswer('lat', s.lat, '')
+    onAnswer('lng', s.lng, '')
+    onAnswer('adresse', s.label, s.label)
+  }
+
+  function send() { if (val.trim()) { setSugs([]); onAnswer('adresse', val.trim(), val.trim()) } }
+
+  function onChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setVal(e.target.value)
+    if (timer.current) clearTimeout(timer.current)
+    timer.current = setTimeout(() => search(e.target.value), 300)
+  }
+
+  return (
+    <div>
+      <div style={_ir}>
+        <input style={_inpR} placeholder="Ex\u00a0: 12 rue de la Paix, Cotignac" value={val} onChange={onChange} onKeyDown={e => e.key === 'Enter' && send()} autoFocus autoComplete="off" />
+        <button style={_sendBtn} onClick={send}><Send size={16} color={WH} /></button>
+      </div>
+      {sugs.length > 0 && (
+        <div style={_sugWr}>
+          {sugs.map((s, i) => (
+            <SuggestionItem key={i} label={s.label} isLast={i === sugs.length - 1} onPick={() => pick(s)} />
+          ))}
         </div>
-      </section>
-    </>
+      )}
+      {loading && <p style={_load}>Recherche en cours...</p>}
+    </div>
+  )
+}
+
+function SliderInput({ unit, min, max, def, step, onOk }: { unit: string; min: number; max: number; def: number; step?: number; onOk: (v: number) => void }) {
+  const [v, setV] = useState(def)
+  return (
+    <div style={sWr}>
+      <div style={_slVal}>{v} {unit}</div>
+      <input type="range" min={min} max={max} value={v} step={step ?? 1} onChange={e => setV(+e.target.value)} style={_slInp} />
+      <div style={_slRow}>
+        <span style={_slLbl}>{min} {unit}</span>
+        <span style={_slLbl}>{max} {unit}</span>
+      </div>
+      <button style={vBtn} onClick={() => onOk(v)}>Valider</button>
+    </div>
+  )
+}
+
+function MultiSel({ opts, onOk }: { opts: string[]; onOk: (sel: string[]) => void }) {
+  const [sel, setSel] = useState<string[]>([])
+  const t = (o: string) => setSel(s => s.includes(o) ? s.filter(x => x !== o) : [...s, o])
+  return (
+    <div>
+      {opts.map(o => (
+        <div key={o} style={mRw(sel.includes(o))} onClick={() => t(o)}>
+          <div style={rgBx(sel.includes(o))} />
+          {o}
+        </div>
+      ))}
+      <button style={vBtn} onClick={() => onOk(sel)}>{sel.length ? 'Valider (' + sel.length + ')' : 'Aucun, continuer'}</button>
+    </div>
+  )
+}
+
+function YesNo({ onPick }: { onPick: (v: string, l: string) => void }) {
+  return (
+    <div style={_g2}>
+      <div style={cardS(false)} onClick={() => onPick('Oui', 'Oui')}><span style={_emo}>\u2705</span><span>Oui</span></div>
+      <div style={cardS(false)} onClick={() => onPick('Non', 'Non')}><span style={_emo}>\u274c</span><span>Non</span></div>
+    </div>
+  )
+}
+
+function Coordonnees({ onSubmit }: { onSubmit: (p: string, n: string, t: string, e: string, c: 'monsieur' | 'madame') => void }) {
+  const [civ, setCiv] = useState<'monsieur' | 'madame'>('monsieur')
+  const [p, setP] = useState(''); const [n, setN] = useState(''); const [t, setT] = useState(''); const [em, setEm] = useState('')
+  const [rg, setRg] = useState(false)
+  const ok = p.trim() && n.trim() && t.trim() && em.includes('@') && rg
+  return (
+    <div style={cWr}>
+      <div style={cH}><div style={cBdg}>\ud83d\udccb</div><div><div style={cT}>Vos coordonn\u00e9es</div><div style={cSb}>Pour recevoir votre audit</div></div></div>
+      <div style={cG}>
+        <button style={civS(civ === 'monsieur')} onClick={() => setCiv('monsieur')}>M.</button>
+        <button style={civS(civ === 'madame')} onClick={() => setCiv('madame')}>Mme</button>
+      </div>
+      <div style={cG}>
+        <input style={inF} placeholder="Pr\u00e9nom" value={p} onChange={e => setP(e.target.value)} />
+        <input style={inF} placeholder="Nom" value={n} onChange={e => setN(e.target.value)} />
+      </div>
+      <input style={inF} type="tel" placeholder="06 XX XX XX XX" value={t} onChange={e => setT(e.target.value)} />
+      <input style={inF} type="email" placeholder="votre@email.com" value={em} onChange={e => setEm(e.target.value)} />
+      <div style={rgS(rg)} onClick={() => setRg(!rg)}>
+        <div style={rgBx(rg)}>{rg && <Check size={12} color={WH} />}</div>
+        <span style={rgTx}>J&apos;accepte d&apos;\u00eatre recontact\u00e9 par Alex Lopez, conseiller immobilier, concernant mon projet immobilier</span>
+      </div>
+      <button style={ok ? vBtn : vOff} onClick={() => ok && onSubmit(p, n, t, em, civ)} disabled={!ok}><Send size={14} /> Recevoir mon audit</button>
+    </div>
   )
 }

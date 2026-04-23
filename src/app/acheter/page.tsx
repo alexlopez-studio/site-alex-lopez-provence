@@ -1,276 +1,309 @@
-import type { Metadata } from 'next'
+'use client'
+
+import { Fragment, useRef, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAcheterStore } from '@/stores/acheterStore'
+import type { AcheterAnswers, AcheterQuestionId } from '@/stores/acheterStore'
+import type { CSSProperties } from 'react'
+import { Phone, ChevronLeft, Send, Check, RotateCcw } from 'lucide-react'
 import Link from 'next/link'
-import {
-  ArrowRight, CheckCircle2, Phone,
-  Search, MapPin, ShieldCheck, HandshakeIcon,
-  FileSignature, TreePine,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { appUrl, env } from '@/lib/env'
+import { Cards, RecapConfirm } from '@/components/forms/FormCards'
 
-export const metadata: Metadata = {
-  title: 'Acheter en Provence Verte & Haut-Var — Alex Lopez IAD',
-  description:
-    'Trouvez le bien idéal en Provence Verte et Haut-Var. Recherche personnalisée, négociation au juste prix, vérifications clés avant signature. Mandataire IAD — accompagnement gratuit pour l’acheteur.',
-  alternates: { canonical: (env.siteUrl || 'https://alexlopez-provence.fr') + '/acheter' },
+const B = '#0077B6', BL = '#E0F0FA', FG = '#0F172A', M = '#64748B', BD = '#E2E8F0', SF = '#F8FAFC', WH = '#ffffff'
+const MW = '680px', FN = 'var(--font-plus-jakarta-sans, system-ui, sans-serif)'
+
+const page: CSSProperties = { minHeight: '100vh', background: SF, fontFamily: FN }
+const navSt: CSSProperties = { position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, background: WH, borderBottom: '1px solid ' + BD }
+const navIn: CSSProperties = { maxWidth: MW, margin: '0 auto', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }
+const navL: CSSProperties = { display: 'flex', alignItems: 'center', gap: 10 }
+const navR: CSSProperties = { display: 'flex', alignItems: 'center', gap: 12 }
+const avSt: CSSProperties = { width: 36, height: 36, borderRadius: 999, background: B, color: WH, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, flexShrink: 0 }
+const nnSt: CSSProperties = { fontSize: 14, fontWeight: 700, color: FG }
+const nsSt: CSSProperties = { fontSize: 11, color: M }
+const bkSt: CSSProperties = { display: 'flex', alignItems: 'center', fontSize: 12, fontWeight: 600, color: M, textDecoration: 'none' }
+const phSt: CSSProperties = { display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: FG, textDecoration: 'none' }
+const rbSt: CSSProperties = { display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 500, color: M, background: 'transparent', border: '1px solid ' + BD, borderRadius: 999, padding: '5px 10px', cursor: 'pointer' }
+const cwSt: CSSProperties = { maxWidth: MW, margin: '0 auto', padding: '148px 20px 40px', display: 'flex', flexDirection: 'column', gap: 16 }
+const rAl: CSSProperties = { display: 'flex', gap: 10, alignItems: 'flex-end' }
+const rUs: CSSProperties = { display: 'flex', justifyContent: 'flex-end' }
+const bAl: CSSProperties = { background: WH, border: '1px solid ' + BD, borderRadius: '16px 16px 16px 4px', padding: '14px 16px', fontSize: 14, color: FG, lineHeight: 1.65, whiteSpace: 'pre-wrap', overflowWrap: 'break-word', maxWidth: '84%' }
+const bUs: CSSProperties = { background: B, borderRadius: '16px 16px 4px 16px', padding: '10px 16px', fontSize: 14, fontWeight: 500, color: WH, lineHeight: 1.5, maxWidth: '95%' }
+const tL: CSSProperties = { fontSize: 10, color: M, marginTop: 4 }
+const tR: CSSProperties = { fontSize: 10, color: M, marginTop: 4, textAlign: 'right' }
+const inF: CSSProperties = { width: '100%', fontSize: 14, color: FG, border: '1.5px solid ' + BD, borderRadius: 12, padding: '12px 14px', outline: 'none', background: WH, boxSizing: 'border-box' }
+const vBtn: CSSProperties = { width: '100%', padding: 13, borderRadius: 12, background: B, border: 'none', color: WH, fontSize: 14, fontWeight: 600, cursor: 'pointer', marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }
+const vOff: CSSProperties = { width: '100%', padding: 13, borderRadius: 12, background: BD, border: 'none', color: M, fontSize: 14, fontWeight: 600, cursor: 'not-allowed', marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }
+const sWr: CSSProperties = { background: WH, borderRadius: 16, border: '1px solid ' + BD, padding: 20 }
+const cWr: CSSProperties = { background: WH, borderRadius: 16, border: '1px solid ' + BD, padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }
+const cG: CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }
+const cH: CSSProperties = { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2 }
+const cBdg: CSSProperties = { width: 32, height: 32, borderRadius: 999, background: BL, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }
+const cT: CSSProperties = { fontSize: 15, fontWeight: 700, color: FG }
+const cSb: CSSProperties = { fontSize: 12, fontWeight: 300, color: M }
+const rgTx: CSSProperties = { fontSize: 12, fontWeight: 400, color: FG, lineHeight: 1.5 }
+const spW: CSSProperties = { maxWidth: MW, margin: '0 auto', padding: '10px 20px 12px', display: 'flex', alignItems: 'center' }
+const spC: CSSProperties = { display: 'flex', flexDirection: 'column', alignItems: 'center' }
+const spL: CSSProperties = { fontSize: 10, fontWeight: 600, marginTop: 5, textAlign: 'center' }
+const dB: CSSProperties = { width: 28, height: 28, borderRadius: 999, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }
+const dDn: CSSProperties = { ...dB, background: B, color: WH, border: '2px solid ' + B }
+const dCu: CSSProperties = { ...dB, background: BL, color: B, border: '2px solid ' + B }
+const dFu: CSSProperties = { ...dB, background: WH, color: M, border: '2px solid ' + BD }
+const lDn: CSSProperties = { ...spL, color: FG }
+const lCu: CSSProperties = { ...spL, color: B, fontWeight: 700 }
+const lFu: CSSProperties = { ...spL, color: M }
+const cnO: CSSProperties = { flex: 1, height: 3, background: BD, borderRadius: 999, overflow: 'hidden', margin: '0 4px', marginBottom: 15 }
+const cnOn: CSSProperties = { height: '100%', width: '100%', background: B, borderRadius: 999 }
+const cnOf: CSSProperties = { height: '100%', width: '0%', background: B, borderRadius: 999 }
+const _iz: CSSProperties = { marginTop: 8 }
+const _emo: CSSProperties = { fontSize: 20 }
+const _ir: CSSProperties = { display: 'flex', gap: 10 }
+const _inpR: CSSProperties = { width: '100%', fontSize: 14, color: FG, border: '1.5px solid ' + BD, borderRadius: 12, padding: '12px 14px', outline: 'none', background: WH, boxSizing: 'border-box', flex: 1 } as CSSProperties
+const _sendBtn: CSSProperties = { width: 42, height: 42, borderRadius: 12, background: B, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }
+const _slVal: CSSProperties = { textAlign: 'center', fontSize: 18, fontWeight: 700, color: FG, marginBottom: 16 }
+const _slInp: CSSProperties = { width: '100%', accentColor: B } as CSSProperties
+const _slRow: CSSProperties = { display: 'flex', justifyContent: 'space-between', marginTop: 8 }
+const _slLbl: CSSProperties = { fontSize: 11, color: M }
+const _g2: CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }
+function cardS(a: boolean): CSSProperties { return { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '14px 10px', borderRadius: 14, cursor: 'pointer', border: '2px solid ' + (a ? B : BD), background: a ? BL : WH, fontSize: 13, fontWeight: 600, color: a ? B : FG, textAlign: 'center', width: '100%' } }
+function civS(a: boolean): CSSProperties { return { flex: 1, padding: 11, borderRadius: 12, border: '2px solid ' + (a ? B : BD), background: a ? B : WH, color: a ? WH : FG, fontSize: 13, fontWeight: 600, cursor: 'pointer' } }
+function rgS(a: boolean): CSSProperties { return { display: 'flex', alignItems: 'flex-start', gap: 10, padding: 14, borderRadius: 12, cursor: 'pointer', border: '1.5px solid ' + (a ? B : BD), background: a ? BL : WH } }
+function rgBx(a: boolean): CSSProperties { return { width: 18, height: 18, borderRadius: 4, border: '2px solid ' + (a ? B : BD), background: a ? B : WH, flexShrink: 0, marginTop: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' } }
+function mRw(a: boolean): CSSProperties { return { display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px', borderRadius: 12, cursor: 'pointer', border: '1.5px solid ' + (a ? B : BD), background: a ? BL : WH, fontSize: 13, fontWeight: 500, color: a ? B : FG, marginBottom: 8 } }
+
+const STEPS = [
+  { n: 1, label: 'Projet', qs: ['type_bien', 'communes', 'budget_max', 'surface_min', 'nb_pieces_min'] },
+  { n: 2, label: 'Crit\u00e8res', qs: ['criteres'] },
+  { n: 3, label: 'Budget', qs: ['apport', 'accord_bancaire', 'primo_accedant', 'recapitulatif'] },
+  { n: 4, label: 'Contact', qs: ['coordonnees', 'done'] },
+]
+const TYPE_BIEN = [
+  { value: 'appartement', label: 'Appartement', emoji: '\ud83c\udfe2' },
+  { value: 'maison', label: 'Maison', emoji: '\ud83c\udfe0' },
+  { value: 'terrain', label: 'Terrain', emoji: '\ud83c\udf3f' },
+  { value: 'commerce', label: 'Commerce', emoji: '\ud83c\udfea' },
+  { value: 'autre', label: 'Autre', emoji: '\u00b7\u00b7\u00b7' },
+]
+const CRITERES = ['Rez-de-chauss\u00e9e accept\u00e9', 'Parking indispensable', 'Ext\u00e9rieur indispensable', 'Travaux accept\u00e9s']
+const BIEN_LBL: Record<string, string> = { appartement: 'Appartement', maison: 'Maison', terrain: 'Terrain', commerce: 'Commerce', autre: 'Autre' }
+
+function getNext(q: AcheterQuestionId): AcheterQuestionId {
+  const f: Record<string, AcheterQuestionId> = { type_bien: 'communes', communes: 'budget_max', budget_max: 'surface_min', surface_min: 'nb_pieces_min', nb_pieces_min: 'criteres', criteres: 'apport', apport: 'accord_bancaire', accord_bancaire: 'primo_accedant', primo_accedant: 'recapitulatif', recapitulatif: 'coordonnees', coordonnees: 'done', done: 'done' }
+  return f[q] ?? 'done'
 }
 
-const PHONE_RAW = '+33613180168'
-const PHONE_DISPLAY = '06 13 18 01 68'
+function fmt(n: number) { return new Intl.NumberFormat('fr-FR').format(n) }
 
-const ETAPES = [
-  {
-    icon: Search,
-    num: '01',
-    titre: 'Définir votre projet',
-    desc: 'On commence par un échange de 30 minutes pour cadrer votre projet : budget, type de bien, secteur, critiques et non-négociables. Plus votre brief est clair, plus la recherche est efficace.',
-  },
-  {
-    icon: MapPin,
-    num: '02',
-    titre: 'Recherche ciblée',
-    desc: 'Je cherche pour vous dans tout le territoire Provence Verte et Haut-Var — biens sur le marché et hors-marché. Vous ne perdez pas de temps à filtrer des dizaines d’annonces hors critères.',
-  },
-  {
-    icon: ShieldCheck,
-    num: '03',
-    titre: 'Vérifications avant visite',
-    desc: 'Avant de vous déplacer, je vérifie les points clés : situation légale, diagnostics disponibles, charges de copropriété, zonages. Seuls les biens sans risque majeur font l’objet d’une visite.',
-  },
-  {
-    icon: HandshakeIcon,
-    num: '04',
-    titre: 'Négociation',
-    desc: 'Je négocie à votre place avec le vendeur ou son mandataire. Mon objectif : obtenir le juste prix, en tenant compte de l’état du bien, du marché local et du rapport de force.',
-  },
-  {
-    icon: FileSignature,
-    num: '05',
-    titre: 'Compromis & signature',
-    desc: 'Je vous accompagne jusqu’à l’acte notarié : relecture du compromis, suivi des conditions suspensives, coordination avec le notaire.',
-  },
-]
-
-const ATOUTS = [
-  'Connaissance précise des communes et micro-marchés',
-  'Accès aux biens hors-marché via le réseau IAD',
-  'Audit immobilier express inclus avant signature',
-  'Analyse des ventes récentes pour négocier juste',
-  'Réseau d’artisans locaux pour estimer les travaux',
-  'Accompagnement de A à Z, 7j/7',
-]
-
-const COMMUNES = [
-  'Barjols', 'Montmeyan', 'Quinson', 'Fox-Amphoux', 'Tavernes',
-  'Rians', 'Aups', 'Salernes', 'Ginasservis', 'Varages',
-]
-
-const FAQS = [
-  {
-    q: 'L’accompagnement acheteur est-il payant ?',
-    r: 'Non. En tant que mandataire, mes honoraires sont à la charge du vendeur (ou inclus dans le prix de vente selon le mandat). En tant qu’acheteur, vous bénéficiez de mon accompagnement sans frais supplémentaires.',
-  },
-  {
-    q: 'Puis-je acheter même si je n’ai pas encore de financement validé ?',
-    r: 'Oui, on peut tout à fait démarrer la recherche en parallèle de votre démarche de financement. Je peux vous orienter vers des courtiers partenaires si besoin.',
-  },
-  {
-    q: 'Intervenez-vous sur toute la Provence Verte ?',
-    r: 'Oui, sur l’ensemble de la Provence Verte et du Haut-Var : Barjols, Aups, Rians, Salernes, Montmeyan, Quinson, Fox-Amphoux, Varages, Ginasservis et toutes les communes limitrophes.',
-  },
-  {
-    q: 'Que se passe-t-il si je ne trouve pas de bien qui me convient ?',
-    r: 'La recherche prend parfois du temps, surtout en zone rurale où le stock est limité. Je reste à l’écoute des nouvelles opportunités et vous alerte dès qu’un bien correspondant à vos critères arrive sur le marché.',
-  },
-]
-
-const serviceJsonLd = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    {
-      '@type': 'Service',
-      name: 'Recherche et achat immobilier — Provence Verte & Haut-Var',
-      description: 'Accompagnement acheteur en Provence Verte et Haut-Var : recherche personnalisée, négociation, vérifications et suivi jusqu’à la signature.',
-      provider: { '@type': 'Person', name: 'Alex Lopez', jobTitle: 'Mandataire immobilier IAD', telephone: PHONE_RAW },
-      areaServed: 'Provence Verte et Haut-Var',
-      offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR', description: 'Gratuit pour l’acheteur' },
-    },
-    {
-      '@type': 'FAQPage',
-      mainEntity: FAQS.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.r } })),
-    },
-  ],
+function buildRecap(a: AcheterAnswers): string {
+  const lines = ['Tr\u00e8s bien, r\u00e9capitulons votre projet\u00a0!', '']
+  lines.push('\ud83c\udfe0 ' + (BIEN_LBL[a.type_bien ?? ''] ?? 'Bien'))
+  if (a.communes) lines.push('\ud83d\udccd ' + a.communes)
+  if (a.budget_max) lines.push('\ud83d\udcb0 Budget max\u00a0: ' + fmt(a.budget_max) + ' \u20ac')
+  if (a.surface_min) lines.push('\ud83d\udcd0 Surface min\u00a0: ' + a.surface_min + ' m\u00b2')
+  if (a.nb_pieces_min) lines.push('\ud83d\udeaa ' + a.nb_pieces_min + ' pi\u00e8ce' + (Number(a.nb_pieces_min) > 1 ? 's' : '') + ' min')
+  if (a.criteres?.length) lines.push('\u2705 ' + a.criteres.join(', '))
+  if (a.apport != null) lines.push('\ud83c\udfe6 Apport\u00a0: ' + fmt(a.apport) + ' \u20ac')
+  if (a.accord_bancaire) lines.push('\ud83d\udccb Accord bancaire\u00a0: ' + a.accord_bancaire)
+  if (a.primo_accedant) lines.push('\ud83c\udfe1 Primo-acc\u00e9dant\u00a0: ' + a.primo_accedant)
+  lines.push('', 'Ces informations sont-elles correctes\u00a0?')
+  return lines.join('\n')
 }
 
-function buildInnerHtml(data: object) { return { __html: JSON.stringify(data) } }
+function getMsg(q: AcheterQuestionId, a: AcheterAnswers): string {
+  switch (q) {
+    case 'communes': return 'Dans quelle(s) commune(s) de Provence Verte & Haut-Var souhaitez-vous acheter\u00a0?'
+    case 'budget_max': return 'Quel est votre budget maximum\u00a0?'
+    case 'surface_min': return 'Quelle surface minimum recherchez-vous\u00a0?'
+    case 'nb_pieces_min': return 'Combien de pi\u00e8ces minimum\u00a0?'
+    case 'criteres': return 'Quels sont vos crit\u00e8res importants\u00a0?\n(S\u00e9lectionnez ceux qui comptent pour vous)'
+    case 'apport': return 'Passons au financement. Quel est votre apport disponible\u00a0?'
+    case 'accord_bancaire': return 'Avez-vous un accord de principe bancaire\u00a0?'
+    case 'primo_accedant': return '\u00cates-vous primo-acc\u00e9dant\u00a0?'
+    case 'recapitulatif': return buildRecap(a)
+    case 'coordonnees': return "Parfait\u00a0! Pour finaliser, j'ai besoin de vos coordonn\u00e9es."
+    default: return ''
+  }
+}
+
+function ts() { return new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }
+function Avatar() { return <div style={avSt}>AL</div> }
+function getCurStep(q: AcheterQuestionId) { for (const s of STEPS) if (s.qs.includes(q)) return s.n; return 1 }
+
+function Stepper({ q }: { q: AcheterQuestionId }) {
+  const cs = getCurStep(q)
+  return (
+    <div style={spW}>
+      {STEPS.map((s, i) => {
+        const st = s.n < cs ? 'done' : s.n === cs ? 'curr' : 'futu'
+        return (
+          <Fragment key={s.n}>
+            <div style={spC}>
+              <div style={st === 'done' ? dDn : st === 'curr' ? dCu : dFu}>{st === 'done' ? <Check size={12} color={WH} strokeWidth={3} /> : s.n}</div>
+              <span style={st === 'done' ? lDn : st === 'curr' ? lCu : lFu}>{s.label}</span>
+            </div>
+            {i < STEPS.length - 1 && <div style={cnO}><div style={s.n < cs ? cnOn : cnOf} /></div>}
+          </Fragment>
+        )
+      })}
+    </div>
+  )
+}
 
 export default function AcheterPage() {
-  const rechercheUrl = appUrl('/acheter') || '/assistant'
+  const router = useRouter()
+  const { messages, currentQuestion, answers, addMessage, setAnswer, setQuestion, reset } = useAcheterStore()
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => { ref.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, currentQuestion])
+
+  function answer(key: keyof AcheterAnswers, value: AcheterAnswers[keyof AcheterAnswers], display: string) {
+    const newA = { ...answers, [key]: value }
+    setAnswer(key, value)
+    if (!display) return
+    addMessage({ from: 'user', text: display, timestamp: ts() })
+    const next = getNext(currentQuestion)
+    setTimeout(() => {
+      const msg = getMsg(next, newA)
+      if (msg) addMessage({ from: 'al', text: msg, timestamp: ts() })
+      setQuestion(next)
+    }, 350)
+  }
+
+  function submit(p: string, n: string, t: string, em: string, c: 'monsieur' | 'madame') {
+    setAnswer('prenom', p); setAnswer('nom', n); setAnswer('telephone', t); setAnswer('email', em); setAnswer('civilite', c)
+    addMessage({ from: 'user', text: p + ' ' + n, timestamp: ts() })
+    const tk = crypto.randomUUID()
+    fetch('/api/leads', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...answers, prenom: p, nom: n, telephone: t, email: em, civilite: c, token: tk, type: 'acheter', opt_in: answers.rgpd ?? false }),
+    }).catch(() => null)
+    router.push('/resultats/' + tk)
+  }
 
   return (
-    <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={buildInnerHtml(serviceJsonLd)} />
-
-      {/* HERO */}
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-[75rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-5">Acheter en Provence Verte</p>
-            <h1 className="text-4xl md:text-5xl font-extrabold text-foreground leading-[1.1] tracking-tight mb-6">
-              Trouvez le bien <span className="text-brand">qui vous ressemble.</span>
-            </h1>
-            <p className="text-lg text-muted leading-relaxed mb-8">
-              Recherche personnalisée, négociation au juste prix, vérifications
-              avant signature — accompagnement complet et gratuit pour l’acheteur
-              en Provence Verte et Haut-Var.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 mb-8">
-              <Button asChild variant="primary" size="lg">
-                <Link href={rechercheUrl} target={rechercheUrl.startsWith('http') ? '_blank' : undefined}
-                  rel={rechercheUrl.startsWith('http') ? 'noopener noreferrer' : undefined}>
-                  Décrire mon projet <ArrowRight size={18} />
-                </Link>
-              </Button>
-              <a href={'tel:' + PHONE_RAW}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-border text-sm font-semibold text-foreground hover:border-brand hover:text-brand transition-colors">
-                <Phone size={15} />{PHONE_DISPLAY}
-              </a>
-            </div>
-            <div className="flex flex-wrap gap-4">
-              {['Gratuit pour l’acheteur', 'Accès biens hors-marché', 'Audit express inclus'].map((item) => (
-                <div key={item} className="flex items-center gap-1.5 text-sm text-muted">
-                  <CheckCircle2 size={15} className="text-success shrink-0" />{item}
-                </div>
-              ))}
-            </div>
+    <div style={page}>
+      <header style={navSt}>
+        <div style={navIn}>
+          <div style={navL}>
+            <Link href="/" style={bkSt}><ChevronLeft size={14} /></Link>
+            <Avatar />
+            <div><div style={nnSt}>Alex Lopez</div><div style={nsSt}>Mandataire IAD \u2014 Provence Verte</div></div>
           </div>
-          {/* Atouts */}
-          <div className="bg-surface rounded-2xl border border-border p-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand mb-5">Mes atouts pour vous</p>
-            <ul className="space-y-3">
-              {ATOUTS.map((item) => (
-                <li key={item} className="flex items-start gap-3 text-sm text-foreground">
-                  <CheckCircle2 size={15} className="text-brand shrink-0 mt-0.5" />{item}
-                </li>
-              ))}
-            </ul>
-            <div className="mt-6 pt-6 border-t border-border">
-              <Button asChild variant="primary" size="default" className="w-full">
-                <Link href={rechercheUrl} target={rechercheUrl.startsWith('http') ? '_blank' : undefined}
-                  rel={rechercheUrl.startsWith('http') ? 'noopener noreferrer' : undefined}>
-                  Démarrer ma recherche <ArrowRight size={15} />
-                </Link>
-              </Button>
-            </div>
+          <div style={navR}>
+            <button style={rbSt} onClick={() => reset()}><RotateCcw size={12} /> Recommencer</button>
+            <a href="tel:+33613180168" style={phSt}><Phone size={13} color={B} /></a>
           </div>
         </div>
-      </section>
+        <Stepper q={currentQuestion} />
+      </header>
+      <div style={cwSt}>
+        {messages.map(m => (
+          <div key={m.id}>
+            {m.from === 'al'
+              ? <div style={rAl}><Avatar /><div><div style={bAl}>{m.text}</div><div style={tL}>{m.timestamp}</div></div></div>
+              : <div style={rUs}><div><div style={bUs}>{m.text}</div><div style={tR}>{m.timestamp}</div></div></div>}
+          </div>
+        ))}
+        {currentQuestion !== 'done' && <div style={_iz}><InputZone q={currentQuestion} a={answers} onAnswer={answer} onSubmit={submit} /></div>}
+        <div ref={ref} />
+      </div>
+    </div>
+  )
+}
 
-      {/* PROCESSUS */}
-      <section className="py-20 px-6 bg-surface">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">De A à Z</p>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-foreground">
-              Comment je vous <span className="text-brand">accompagne ?</span>
-            </h2>
-          </div>
-          <div className="space-y-6">
-            {ETAPES.map((e) => {
-              const Icon = e.icon
-              return (
-                <div key={e.num} className="flex gap-5 items-start bg-white rounded-2xl border border-border p-6">
-                  <div className="w-12 h-12 shrink-0 rounded-xl bg-brand flex items-center justify-center">
-                    <Icon size={18} className="text-white" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[11px] font-bold text-brand/60 uppercase tracking-wider">Étape {e.num}</span>
-                    </div>
-                    <p className="text-base font-bold text-foreground">{e.titre}</p>
-                    <p className="text-sm text-muted mt-1 leading-relaxed">{e.desc}</p>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
+function InputZone({ q, a, onAnswer, onSubmit }: {
+  q: AcheterQuestionId; a: AcheterAnswers
+  onAnswer: (k: keyof AcheterAnswers, v: AcheterAnswers[keyof AcheterAnswers], d: string) => void
+  onSubmit: (p: string, n: string, t: string, e: string, c: 'monsieur' | 'madame') => void
+}) {
+  if (q === 'type_bien') return <Cards opts={TYPE_BIEN} cols={2} onPick={(v, l) => onAnswer('type_bien', v, l)} />
+  if (q === 'communes') return <TextInput placeholder="Ex\u00a0: Brignoles, Cotignac, Barjols..." onSend={v => onAnswer('communes', v, v)} />
+  if (q === 'budget_max') return <SliderInput unit="\u20ac" min={50000} max={2000000} def={300000} step={10000} format={fmt} onOk={v => onAnswer('budget_max', v, fmt(v) + ' \u20ac')} />
+  if (q === 'surface_min') return <SliderInput unit="m\u00b2" min={20} max={500} def={80} step={5} onOk={v => onAnswer('surface_min', v, v + ' m\u00b2')} />
+  if (q === 'nb_pieces_min') return <Cards opts={['1','2','3','4','5','6+'].map(n => ({ value: n, label: n, emoji: '' }))} cols={3} onPick={(v, l) => onAnswer('nb_pieces_min', parseInt(v) || 6, l + ' pi\u00e8ce' + (parseInt(v) !== 1 ? 's' : ''))} />
+  if (q === 'criteres') return <MultiSel opts={CRITERES} onOk={sel => onAnswer('criteres', sel, sel.length ? sel.join(', ') : 'Aucun crit\u00e8re particulier')} />
+  if (q === 'apport') return <SliderInput unit="\u20ac" min={0} max={500000} def={30000} step={5000} format={fmt} onOk={v => onAnswer('apport', v, fmt(v) + ' \u20ac')} />
+  if (q === 'accord_bancaire') return <YesNo onPick={(v, l) => onAnswer('accord_bancaire', v, l)} />
+  if (q === 'primo_accedant') return <YesNo onPick={(v, l) => onAnswer('primo_accedant', v, l)} />
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (q === 'recapitulatif') return <RecapConfirm onOk={() => onAnswer('recapitulatif' as any, true as any, "C'est correct \u2705")} />
+  if (q === 'coordonnees') return <Coordonnees onSubmit={onSubmit} />
+  return null
+}
 
-      {/* ZONE */}
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <TreePine size={18} className="text-brand" />
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand">Secteur couvert</p>
-          </div>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-4">
-            Provence Verte &amp; Haut-Var —{' '}
-            <span className="text-brand">je connais chaque commune.</span>
-          </h2>
-          <p className="text-muted leading-relaxed mb-8 max-w-2xl mx-auto">
-            Ce territoire, je le parcours quotidiennement. Je connais les prix réels,
-            les micro-marchés, les biens qui restent trop longtemps et ceux qui partent
-            en 48h. Cette connaissance terrain fait la différence dans votre recherche.
-          </p>
-          <div className="flex flex-wrap justify-center gap-2">
-            {COMMUNES.map((c) => (
-              <Link key={c}
-                href={'/marche/' + c.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-')}
-                className="px-3 py-1.5 bg-surface rounded-full border border-border text-sm text-foreground hover:border-brand hover:text-brand transition-colors">
-                {c}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+function TextInput({ placeholder, onSend }: { placeholder: string; onSend: (v: string) => void }) {
+  const [v, setV] = useState('')
+  return (
+    <div style={_ir}>
+      <input style={_inpR} placeholder={placeholder} value={v} onChange={e => setV(e.target.value)} onKeyDown={e => e.key === 'Enter' && v.trim() && onSend(v.trim())} autoFocus />
+      <button style={_sendBtn} onClick={() => v.trim() && onSend(v.trim())}><Send size={16} color={WH} /></button>
+    </div>
+  )
+}
 
-      {/* FAQ */}
-      <section className="py-20 px-6 bg-surface">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">Questions fréquentes</p>
-            <h2 className="text-3xl font-extrabold text-foreground">Vos <span className="text-brand">questions</span></h2>
-          </div>
-          <div className="space-y-3">
-            {FAQS.map((f) => (
-              <details key={f.q} className="group rounded-2xl border border-border bg-white overflow-hidden">
-                <summary className="flex items-center justify-between p-6 cursor-pointer list-none font-semibold text-foreground hover:text-brand transition-colors">
-                  <span>{f.q}</span>
-                  <span className="text-muted shrink-0 ml-4 text-xl leading-none group-open:rotate-45 transition-transform duration-200">+</span>
-                </summary>
-                <div className="px-6 pb-6 text-sm text-muted leading-relaxed">{f.r}</div>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
+function SliderInput({ unit, min, max, def, step, format, onOk }: { unit: string; min: number; max: number; def: number; step?: number; format?: (n: number) => string; onOk: (v: number) => void }) {
+  const [v, setV] = useState(def)
+  const f = format ?? String
+  return (
+    <div style={sWr}>
+      <div style={_slVal}>{f(v)} {unit}</div>
+      <input type="range" min={min} max={max} value={v} step={step ?? 1} onChange={e => setV(+e.target.value)} style={_slInp} />
+      <div style={_slRow}>
+        <span style={_slLbl}>{f(min)} {unit}</span>
+        <span style={_slLbl}>{f(max)} {unit}</span>
+      </div>
+      <button style={vBtn} onClick={() => onOk(v)}>Valider</button>
+    </div>
+  )
+}
 
-      {/* CTA */}
-      <section className="py-20 px-6 bg-brand-light">
-        <div className="max-w-2xl mx-auto text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-4">Gratuit pour l’acheteur</p>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-4">
-            Prêt à trouver <span className="text-brand">votre bien ?</span>
-          </h2>
-          <p className="text-muted mb-8 leading-relaxed">
-            Décrivez votre projet en quelques minutes. Je prends contact avec vous
-            sous 24h pour démarrer la recherche.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" variant="primary">
-              <Link href={rechercheUrl} target={rechercheUrl.startsWith('http') ? '_blank' : undefined}
-                rel={rechercheUrl.startsWith('http') ? 'noopener noreferrer' : undefined}>
-                Décrire mon projet <ArrowRight size={18} />
-              </Link>
-            </Button>
-            <a href={'tel:' + PHONE_RAW}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-border bg-white text-sm font-semibold text-foreground hover:border-brand hover:text-brand transition-colors">
-              <Phone size={15} />{PHONE_DISPLAY}
-            </a>
-          </div>
+function MultiSel({ opts, onOk }: { opts: string[]; onOk: (sel: string[]) => void }) {
+  const [sel, setSel] = useState<string[]>([])
+  const t = (o: string) => setSel(s => s.includes(o) ? s.filter(x => x !== o) : [...s, o])
+  return (
+    <div>
+      {opts.map(o => (
+        <div key={o} style={mRw(sel.includes(o))} onClick={() => t(o)}>
+          <div style={rgBx(sel.includes(o))} />
+          {o}
         </div>
-      </section>
-    </>
+      ))}
+      <button style={vBtn} onClick={() => onOk(sel)}>{sel.length ? 'Valider (' + sel.length + ')' : 'Aucun, continuer'}</button>
+    </div>
+  )
+}
+
+function YesNo({ onPick }: { onPick: (v: string, l: string) => void }) {
+  return (
+    <div style={_g2}>
+      <div style={cardS(false)} onClick={() => onPick('Oui', 'Oui \u2705')}><span style={_emo}>\u2705</span><span>Oui</span></div>
+      <div style={cardS(false)} onClick={() => onPick('Non', 'Non')}><span style={_emo}>\u274c</span><span>Non</span></div>
+    </div>
+  )
+}
+
+function Coordonnees({ onSubmit }: { onSubmit: (p: string, n: string, t: string, e: string, c: 'monsieur' | 'madame') => void }) {
+  const [civ, setCiv] = useState<'monsieur' | 'madame'>('monsieur')
+  const [p, setP] = useState(''); const [n, setN] = useState(''); const [t, setT] = useState(''); const [em, setEm] = useState('')
+  const [rg, setRg] = useState(false)
+  const ok = p.trim() && n.trim() && t.trim() && em.includes('@') && rg
+  return (
+    <div style={cWr}>
+      <div style={cH}><div style={cBdg}>\ud83d\udccb</div><div><div style={cT}>Vos coordonn\u00e9es</div><div style={cSb}>Pour recevoir vos r\u00e9sultats</div></div></div>
+      <div style={cG}>
+        <button style={civS(civ === 'monsieur')} onClick={() => setCiv('monsieur')}>M.</button>
+        <button style={civS(civ === 'madame')} onClick={() => setCiv('madame')}>Mme</button>
+      </div>
+      <div style={cG}>
+        <input style={inF} placeholder="Pr\u00e9nom" value={p} onChange={e => setP(e.target.value)} />
+        <input style={inF} placeholder="Nom" value={n} onChange={e => setN(e.target.value)} />
+      </div>
+      <input style={inF} type="tel" placeholder="06 XX XX XX XX" value={t} onChange={e => setT(e.target.value)} />
+      <input style={inF} type="email" placeholder="votre@email.com" value={em} onChange={e => setEm(e.target.value)} />
+      <div style={rgS(rg)} onClick={() => setRg(!rg)}>
+        <div style={rgBx(rg)}>{rg && <Check size={12} color={WH} />}</div>
+        <span style={rgTx}>J&apos;accepte d&apos;\u00eatre recontact\u00e9 par Alex Lopez, conseiller immobilier, concernant mon projet immobilier</span>
+      </div>
+      <button style={ok ? vBtn : vOff} onClick={() => ok && onSubmit(p, n, t, em, civ)} disabled={!ok}><Send size={14} /> Recevoir mes r\u00e9sultats</button>
+    </div>
   )
 }
