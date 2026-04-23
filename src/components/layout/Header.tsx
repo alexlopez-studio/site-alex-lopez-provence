@@ -51,10 +51,18 @@ export function Header() {
     >
       <div className="max-w-[75rem] mx-auto px-6 flex items-center justify-between gap-4">
 
-        {/* Logo */}
-        <Link href="/" className="flex flex-col leading-none shrink-0">
-          <span className="text-[15px] font-black text-foreground tracking-tight">Alex Lopez</span>
-          <span className="text-[10px] font-semibold text-brand uppercase tracking-[0.16em]">{t('brandLine2')}</span>
+        {/* Logo iad + signature Alex */}
+        <Link href="/" className="flex items-center gap-3 shrink-0">
+          {/* Logo iad (placeholder Fraunces italic en attendant SVG officiel) */}
+          <div className="flex flex-col leading-none">
+            <span className="font-serif italic font-black text-brand text-[26px]" style= letterSpacing: '-0.04em' >iad</span>
+            <span className="text-[9px] font-bold text-brand uppercase tracking-[0.18em] -mt-0.5">IMMOBILIER</span>
+          </div>
+          {/* Séparateur + nom conseiller */}
+          <div className="hidden sm:block border-l border-border pl-3 leading-tight">
+            <span className="block font-script text-[22px] text-foreground leading-none -mb-0.5">Alexandre Lopez</span>
+            <span className="block text-[9px] font-semibold text-muted uppercase tracking-[0.16em] mt-1">{t('brandLine2')}</span>
+          </div>
         </Link>
 
         {/* Nav desktop */}

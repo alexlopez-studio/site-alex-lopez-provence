@@ -1,31 +1,34 @@
 @import "tailwindcss";
 
-/* ─── Design Tokens — Charte Conseiller IAD × Provence ───────────── */
+/* ─── Design Tokens — Charte iad avec liberté créative Alex Lopez ─── */
 @theme {
-  /* Brand — Bleu pétrole IAD (élégant, confiance) */
-  --color-brand:         #1F5B6B;  /* bleu pétrole */
-  --color-brand-hover:   #163F4B;  /* bleu pétrole profond */
-  --color-brand-light:   #E8F0F3;  /* bleu pétrole pâle */
+  /* Brand — Bleu officiel iad PANTONE 2995 C */
+  --color-brand:         #00b4ec;
+  --color-brand-hover:   #008EC3;  /* Blue.700 */
+  --color-brand-light:   #CDF7FF;  /* Blue.100 */
+  --color-brand-dark:    #006390;  /* Blue.950 — signature premium */
 
-  /* Accent — Sable doré (chaleureux, discret) */
-  --color-accent:        #B8976A;  /* sable doré */
-  --color-accent-light:  #F2EBDD;  /* lin chaud */
+  /* Accent — Corail iad PANTONE 2348 C */
+  --color-accent:        #ea584a;
+  --color-accent-hover:  #d94535;
+  --color-accent-light:  #fde9e6;
 
-  /* Neutrals — Pierre, lin, charbon */
-  --color-foreground:    #2A2520;  /* charbon chaud */
-  --color-muted:         #7A6B5D;  /* sépia doux */
-  --color-border:        #E6DCC8;  /* sable clair */
-  --color-surface:       #F2EBDD;  /* lin chaud */
+  /* Neutrals — Noir pur iad + gris sobres */
+  --color-foreground:    #000000;
+  --color-muted:         #595959;
+  --color-border:        #E5E7EB;
+  --color-surface:       #F7FAFC;
+  --color-surface-alt:   #E9FCFF;  /* Blue.50 */
 
   /* Feedback */
-  --color-success:       #7A8B5A;  /* vert olivier doux */
-  --color-success-hover: #5F6F43;
-  --color-error:         #C44536;  /* rouge terre */
+  --color-success:       #16a34a;
+  --color-success-hover: #15803d;
+  --color-error:         #dc2626;
 
-  /* Fonts */
+  /* Fonts — Plus Jakarta Sans + Fraunces conservés, Buffalo (Allura placeholder) pour signature */
   --font-sans:   var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-serif:  var(--font-fraunces), ui-serif, "Cormorant Garamond", Georgia, serif;
-  --font-script: var(--font-caveat), "Brush Script MT", cursive;
+  --font-script: var(--font-buffalo), "Brush Script MT", cursive;
 }
 
 /* ─── Base Reset ─────────────────────────────────────── */
@@ -41,27 +44,53 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: var(--color-foreground);
-  background: #FAF6EE;
+  background: #FFFFFF;
   line-height: 1.6;
 }
 
-/* ─── Script signature (prénom hero, signatures) ───────────────── */
+/* ─── Script signature (nom Alexandre Lopez en Buffalo) ───────────── */
 .font-script {
   font-family: var(--font-script);
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  font-weight: 400;
+  letter-spacing: 0;
 }
 
-/* ─── Serif italic refinement (mots-clés éditoriaux) ───────────── */
+/* ─── Serif italic refinement (titres éditoriaux premium) ───────────── */
 .serif-accent {
   font-family: var(--font-serif);
   font-style: italic;
   font-weight: 500;
 }
 
-/* ─── Baseline IAD — capitales espacées ────────────────────── */
+/* ─── Baseline iad — capitales espacées ────────────────────── */
 .tracking-baseline {
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  font-weight: 500;
+  font-weight: 600;
+}
+
+/* ─── Gélule corail iad — CTA principal (1× par page, inclinée -10° charte) ─── */
+.iad-pill-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.875rem;
+  background: var(--color-accent);
+  color: #FFFFFF;
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-style: italic;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+  border-radius: 9999px;
+  transform: rotate(-10deg);
+  transition: transform 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+  white-space: nowrap;
+  box-shadow: 0 6px 16px -8px rgba(234, 88, 74, 0.4);
+}
+.iad-pill-cta:hover {
+  background: var(--color-accent-hover);
+  transform: rotate(-10deg) translateY(-2px);
+  box-shadow: 0 12px 24px -12px rgba(234, 88, 74, 0.55);
 }
