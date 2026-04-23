@@ -63,6 +63,7 @@ function HeartDivider({ className = '' }: { className?: string }) {
 }
 
 const PHONE_RAW = '+33613180168'
+const HERO_PHOTO = '/alexandre-lopez.jpg'
 const COMMUNES_TEASER = ['Barjols', 'Montmeyan', 'Quinson', 'Fox-Amphoux', 'Tavernes', 'Rians', 'Aups', 'Salernes', 'Ginasservis', 'Varages', 'Esparron-de-Verdon', 'Artignosc-sur-Verdon']
 const ZONE_BACKDROP = 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=2000&q=80&auto=format&fit=crop'
 const POSTCARD_IMAGE = 'https://images.unsplash.com/photo-1564419320461-6870880221ad?w=2400&q=85&auto=format&fit=crop'
@@ -198,7 +199,7 @@ export default function HomepageContent() {
             className="relative flex items-center justify-center overflow-hidden min-h-[50vh] lg:min-h-full order-1 lg:order-2">
             <div className="w-full h-full flex items-end justify-center px-8 pt-12 pb-0">
               <div className="relative w-full max-w-sm aspect-[3/4] rounded-t-[3rem] overflow-hidden shadow-[0_20px_60px_rgba(31,91,107,0.18)]">
-                <Image src="/alex-lopez.png" alt={tHero('photoAlt')} fill priority
+                <Image src={HERO_PHOTO} alt={tHero('photoAlt')} fill priority
                   sizes="(min-width: 1024px) 40vw, 90vw" className="object-cover object-top" />
               </div>
             </div>
@@ -359,7 +360,7 @@ export default function HomepageContent() {
         <div className="max-w-[75rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <motion.div variants={scaleIn} initial="initial" whileInView="animate" viewport={vpOnce}
             className="relative rounded-2xl overflow-hidden bg-white border border-border aspect-[4/5] order-2 lg:order-1 shadow-sm">
-            <Image src="/alex-lopez.png" alt={tHero('photoAlt')} fill
+            <Image src={HERO_PHOTO} alt={tHero('photoAlt')} fill
               sizes="(min-width: 1024px) 40vw, 90vw" className="object-cover object-center" />
           </motion.div>
           <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce} className="order-1 lg:order-2">
