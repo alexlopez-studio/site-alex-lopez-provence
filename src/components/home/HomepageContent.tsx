@@ -14,7 +14,6 @@ import { Button } from '@/components/ui/button'
 import { appUrl, biensUrl, env } from '@/lib/env'
 import { VP as vpOnce, fadeInUp, scaleIn, stagger, staggerFast } from '@/lib/animations'
 
-// ─── Animations ───────────────────────────────────────────────
 const springFast = { type: 'spring' as const, stiffness: 400, damping: 25 }
 const hoverCard = { y: -6 }
 const hoverChip = { scale: 1.04 as number }
@@ -37,23 +36,17 @@ function Counter({ target, suffix }: { target: number; suffix: string }) {
   const ref = useRef<HTMLSpanElement>(null)
   const inView = useInView(ref, { once: true })
   const [count, setCount] = useState(0)
-
   useEffect(() => {
     if (!inView) return
     let frame = 0
     const total = 60
     const timer = setInterval(() => {
       frame++
-      if (frame >= total) {
-        setCount(target)
-        clearInterval(timer)
-      } else {
-        setCount(Math.round((frame / total) * target))
-      }
+      if (frame >= total) { setCount(target); clearInterval(timer) }
+      else { setCount(Math.round((frame / total) * target)) }
     }, 20)
     return () => clearInterval(timer)
   }, [inView, target])
-
   return <span ref={ref}>{count}{suffix}</span>
 }
 
@@ -69,7 +62,6 @@ function HeartDivider({ className = '' }: { className?: string }) {
   )
 }
 
-// ─── Data non-traduisibles (toponymes, prix, URLs images) ───────────────────────
 const PHONE_RAW = '+33613180168'
 const COMMUNES_TEASER = ['Barjols', 'Montmeyan', 'Quinson', 'Fox-Amphoux', 'Tavernes', 'Rians', 'Aups', 'Salernes', 'Ginasservis', 'Varages', 'Esparron-de-Verdon', 'Artignosc-sur-Verdon']
 const ZONE_BACKDROP = 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=2000&q=80&auto=format&fit=crop'
@@ -81,13 +73,17 @@ const PAYSAGE_SRC = {
   verdon:    'https://images.unsplash.com/photo-1564419320461-6870880221ad?w=1600&q=80&auto=format&fit=crop',
 }
 
-const BIENS_VENTE_DATA = [
-  { key: 'a', image: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800&q=80&auto=format&fit=crop', tag: 'new',       typeKey: 'typeVillageHouse', commune: 'Barjols (83670)',    prix: '245 000 €', surface: '110 m²', rooms: 4 },
-  { key: 'b', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80&auto=format&fit=crop', tag: 'new',       typeKey: 'typeBastide',      commune: 'Rians (83560)',      prix: '385 000 €', surface: '180 m²', rooms: 6 },
+type ForSaleTag = 'new' | 'priceDown'
+type ForSaleTypeKey = 'typeVillageHouse' | 'typeBastide' | 'typeHouseWithLand'
+type SoldTypeKey = 'typeCharacterHouse' | 'typeProvencalMas' | 'typeVillaWithPool' | 'typeVillageHouse'
+
+const BIENS_VENTE_DATA: Array<{ key: string; image: string; tag: ForSaleTag; typeKey: ForSaleTypeKey; commune: string; prix: string; surface: string; rooms: number }> = [
+  { key: 'a', image: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800&q=80&auto=format&fit=crop', tag: 'new',       typeKey: 'typeVillageHouse',  commune: 'Barjols (83670)',    prix: '245 000 €', surface: '110 m²', rooms: 4 },
+  { key: 'b', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80&auto=format&fit=crop', tag: 'new',       typeKey: 'typeBastide',       commune: 'Rians (83560)',      prix: '385 000 €', surface: '180 m²', rooms: 6 },
   { key: 'c', image: 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&q=80&auto=format&fit=crop', tag: 'priceDown', typeKey: 'typeHouseWithLand', commune: 'Montmeyan (83670)', prix: '198 000 €', surface: '95 m²',  rooms: 3 },
 ]
 
-const BIENS_VENDUS_DATA = [
+const BIENS_VENDUS_DATA: Array<{ key: string; image: string; typeKey: SoldTypeKey; commune: string; prix: string }> = [
   { key: 'a', image: 'https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=600&q=80&auto=format&fit=crop', typeKey: 'typeCharacterHouse', commune: 'Barjols',  prix: '265 000 €' },
   { key: 'b', image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&q=80&auto=format&fit=crop', typeKey: 'typeProvencalMas',  commune: 'Aups',     prix: '420 000 €' },
   { key: 'c', image: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=600&q=80&auto=format&fit=crop', typeKey: 'typeVillaWithPool', commune: 'Rians',    prix: '345 000 €' },
@@ -129,10 +125,10 @@ export default function HomepageContent() {
   ]
 
   const SERVICES = [
-    { icon: Home, title: tServ('sellTitle'),  description: tServ('sellDesc'),  cta: tServ('sellCta'),  href: '/vendre',  external: false },
-    { icon: Search, title: tServ('buyTitle'),  description: tServ('buyDesc'),  cta: tServ('buyCta'),  href: '/acheter', external: false },
+    { icon: Home,           title: tServ('sellTitle'),  description: tServ('sellDesc'),  cta: tServ('sellCta'),  href: '/vendre',  external: false },
+    { icon: Search,         title: tServ('buyTitle'),   description: tServ('buyDesc'),   cta: tServ('buyCta'),   href: '/acheter', external: false },
     { icon: ClipboardCheck, title: tServ('auditTitle'), description: tServ('auditDesc'), cta: tServ('auditCta'), href: '/audit',   external: false },
-    { icon: Users, title: tServ('joinTitle'),  description: tServ('joinDesc'), cta: tServ('joinCta'), href: 'https://www.iadfrance.fr/rejoindre-iad', external: true },
+    { icon: Users,          title: tServ('joinTitle'),  description: tServ('joinDesc'),  cta: tServ('joinCta'),  href: 'https://www.iadfrance.fr/rejoindre-iad', external: true },
   ]
 
   const FAQ_ITEMS = [
@@ -158,31 +154,22 @@ export default function HomepageContent() {
           <div className="bg-surface" />
         </div>
         <div className="absolute inset-0 bg-white lg:hidden" aria-hidden="true" />
-
         <div className="relative max-w-[75rem] mx-auto grid grid-cols-1 lg:grid-cols-[55%_45%] min-h-[92vh]">
           <motion.div variants={stagger} initial="initial" animate="animate"
             className="flex flex-col justify-center px-6 py-20 lg:py-0 order-2 lg:order-1">
-            <motion.p variants={fadeInUp} className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-5">
-              {tHero('tagline')}
-            </motion.p>
-            <motion.p variants={fadeInUp} className="font-script text-5xl sm:text-6xl xl:text-7xl text-brand leading-[0.95] mb-4">
-              {tHero('signature')}
-            </motion.p>
+            <motion.p variants={fadeInUp} className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-5">{tHero('tagline')}</motion.p>
+            <motion.p variants={fadeInUp} className="font-script text-5xl sm:text-6xl xl:text-7xl text-brand leading-[0.95] mb-4">{tHero('signature')}</motion.p>
             <motion.h1 variants={stagger} className="font-serif text-2xl sm:text-3xl xl:text-4xl font-medium text-foreground leading-[1.2] mb-6 max-w-md">
               <motion.span variants={fadeInUp} className="block">{tHero('titleLine1')}</motion.span>
               <motion.span variants={fadeInUp} className="block italic text-muted">{tHero('titleLine2')}</motion.span>
             </motion.h1>
             <motion.div variants={fadeInUp} className="mb-5"><HeartDivider /></motion.div>
             <motion.div variants={fadeInUp} className="inline-flex self-start items-center gap-3 px-5 py-2.5 rounded-full bg-brand text-white text-[10px] font-semibold uppercase tracking-[0.22em] mb-8 shadow-sm">
-              <span>{tHero('valueListening')}</span>
-              <span className="text-white/50">•</span>
-              <span>{tHero('valueClarity')}</span>
-              <span className="text-white/50">•</span>
+              <span>{tHero('valueListening')}</span><span className="text-white/50">•</span>
+              <span>{tHero('valueClarity')}</span><span className="text-white/50">•</span>
               <span>{tHero('valueTransparency')}</span>
             </motion.div>
-            <motion.p variants={fadeInUp} className="text-base text-muted leading-relaxed mb-8 max-w-md">
-              {tHero('description')}
-            </motion.p>
+            <motion.p variants={fadeInUp} className="text-base text-muted leading-relaxed mb-8 max-w-md">{tHero('description')}</motion.p>
             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-3 mb-8">
               <Button asChild size="lg" variant="primary">
                 <Link href={assistantUrl} target={assistantUrl.startsWith('http') ? '_blank' : undefined}
@@ -199,7 +186,6 @@ export default function HomepageContent() {
               <Phone size={14} className="text-brand" />{phoneDisplay}
             </motion.a>
           </motion.div>
-
           <motion.div initial={heroRightInitial} animate={heroRightAnimate} transition={heroRightTransition}
             className="relative flex items-center justify-center overflow-hidden min-h-[50vh] lg:min-h-full order-1 lg:order-2">
             <div className="w-full h-full flex items-end justify-center px-8 pt-12 pb-0">
@@ -403,4 +389,207 @@ export default function HomepageContent() {
           <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
             className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             {BIENS_VENTE_DATA.map(bien => {
-              const tag = bien.tag === 'new' ? tForSale
+              const tagLabel = bien.tag === 'new' ? tForSale('tagNew') : tForSale('tagPriceDown')
+              const tagColor = bien.tag === 'new' ? 'bg-success text-white' : 'bg-brand text-white'
+              const typeLabel = tForSale(bien.typeKey)
+              return (
+                <motion.div key={bien.key} variants={fadeInUp} whileHover={hoverCard} transition={springFast}
+                  className="group bg-surface rounded-2xl border border-border overflow-hidden">
+                  <div className="aspect-[4/3] bg-surface relative overflow-hidden">
+                    <Image src={bien.image} alt={typeLabel + ' — ' + bien.commune} fill
+                      sizes="(min-width: 768px) 33vw, 100vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105" />
+                    <span className={'absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full ' + tagColor}>{tagLabel}</span>
+                  </div>
+                  <div className="p-5">
+                    <p className="font-serif text-2xl font-semibold text-foreground mb-1">{bien.prix}</p>
+                    <p className="font-semibold text-foreground text-sm mb-1">{typeLabel}</p>
+                    <p className="text-xs text-muted flex items-center gap-1 mb-3"><MapPin size={11} />{bien.commune}</p>
+                    <div className="flex gap-3 text-xs text-muted">
+                      <span>{bien.surface}</span><span>·</span>
+                      <span>{bien.rooms} {tForSale('roomsShort')}</span>
+                    </div>
+                  </div>
+                </motion.div>
+              )
+            })}
+          </motion.div>
+          {biens && (
+            <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center">
+              <Button asChild variant="outline"><Link href={biens} target="_blank" rel="noopener noreferrer">{tForSale('viewAll')} <ArrowRight size={15} /></Link></Button>
+            </motion.div>
+          )}
+        </div>
+      </section>
+
+      {/* ===== VENTES RÉCENTES ===== */}
+      <section className="py-24 px-6 bg-surface">
+        <div className="max-w-[75rem] mx-auto">
+          <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-12">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-3">{tSold('eyebrow')}</p>
+            <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground leading-[1.1]">
+              {tSold('titlePart1')} <span className="italic text-brand">{tSold('titleAccent')}</span>
+            </h2>
+          </motion.div>
+          <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
+            className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {BIENS_VENDUS_DATA.map(bien => {
+              const typeLabel = tSold(bien.typeKey)
+              return (
+                <motion.div key={bien.key} variants={scaleIn}
+                  className="group rounded-2xl border border-border bg-white p-4 relative">
+                  <span className="absolute top-5 right-5 z-10 text-xs font-bold text-white bg-success px-2 py-0.5 rounded-full shadow-sm">{tSold('badge')}</span>
+                  <div className="aspect-[4/3] bg-surface rounded-xl overflow-hidden mb-4 relative">
+                    <Image src={bien.image} alt={typeLabel + ' — ' + bien.commune} fill
+                      sizes="(min-width: 768px) 25vw, 50vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105" />
+                  </div>
+                  <p className="font-serif text-lg font-semibold text-foreground">{bien.prix}</p>
+                  <p className="text-xs text-foreground font-medium mt-0.5">{typeLabel}</p>
+                  <p className="text-xs text-muted flex items-center gap-1 mt-1"><MapPin size={10} />{bien.commune}</p>
+                </motion.div>
+              )
+            })}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ===== TÉMOIGNAGES ===== */}
+      <section className="py-24 px-6 bg-white">
+        <div className="max-w-[75rem] mx-auto">
+          <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-12">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-3">{tTest('eyebrow')}</p>
+            <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground leading-[1.1]">
+              {tTest('titlePart1')} <span className="italic text-brand">{tTest('titleAccent')}</span>
+            </h2>
+            <div className="mt-6 flex justify-center"><HeartDivider /></div>
+          </motion.div>
+          <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            {AVIS.map(avis => (
+              <motion.div key={avis.name} variants={scaleIn}
+                className="p-7 rounded-2xl border border-border bg-surface flex flex-col">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex gap-1">{Array.from({ length: 5 }).map((_, i) => <Star key={i} size={14} className="text-accent fill-accent" />)}</div>
+                  <span className="text-[10px] font-bold text-brand bg-brand-light px-2 py-0.5 rounded-full uppercase tracking-[0.15em]">{avis.transaction}</span>
+                </div>
+                <p className="font-serif text-base italic text-foreground leading-relaxed flex-1 mb-4">{avis.text}</p>
+                <p className="text-xs font-semibold text-muted">— {avis.name}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+          <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center">
+            <Link href="/avis" className="inline-flex items-center gap-2 text-brand font-semibold hover:underline">{tTest('viewAll')} <ArrowRight size={16} /></Link>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ===== FAQ ===== */}
+      <section className="py-24 px-6 bg-surface">
+        <div className="max-w-3xl mx-auto">
+          <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-12">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-3">{tFaq('eyebrow')}</p>
+            <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground leading-[1.1]">
+              {tFaq('titlePart1')} <span className="italic text-brand">{tFaq('titleAccent')}</span>
+            </h2>
+          </motion.div>
+          <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce} className="space-y-3">
+            {FAQ_ITEMS.map(item => (
+              <motion.details key={item.q} variants={fadeInUp}
+                className="group rounded-2xl border border-border bg-white overflow-hidden">
+                <summary className="flex items-center justify-between p-6 cursor-pointer list-none font-semibold text-foreground hover:text-brand transition-colors">
+                  <span>{item.q}</span>
+                  <ChevronDown size={18} className="text-muted shrink-0 ml-4 transition-transform duration-200 group-open:rotate-180" />
+                </summary>
+                <div className="px-6 pb-6 text-sm text-muted leading-relaxed">{item.a}</div>
+              </motion.details>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ===== CONTACT INLINE ===== */}
+      <section className="py-24 px-6 bg-white">
+        <div className="max-w-[75rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-14 items-start">
+          <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce} className="lg:pt-2">
+            <motion.p variants={fadeInUp} className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">{tContact('eyebrow')}</motion.p>
+            <motion.h2 variants={fadeInUp} className="font-serif text-4xl md:text-5xl font-medium text-foreground mb-6 leading-[1.1]">
+              {tContact('titlePart1')} <span className="italic text-brand">{tContact('titleAccent')}</span>
+            </motion.h2>
+            <motion.p variants={fadeInUp} className="text-muted leading-relaxed mb-8">{tContact('description')}</motion.p>
+            <motion.div variants={stagger} className="space-y-4">
+              <motion.a variants={fadeInUp} href={'tel:' + PHONE_RAW}
+                className="flex items-center gap-3 text-sm font-semibold text-foreground hover:text-brand transition-colors">
+                <div className="w-9 h-9 rounded-full bg-brand-light flex items-center justify-center shrink-0"><Phone size={15} className="text-brand" /></div>
+                {tContact('phoneLine', { phone: phoneDisplay })}
+              </motion.a>
+              <motion.div variants={fadeInUp} className="flex items-center gap-3 text-sm text-muted">
+                <div className="w-9 h-9 rounded-full bg-brand-light flex items-center justify-center shrink-0"><MapPin size={15} className="text-brand" /></div>
+                {tContact('region')}
+              </motion.div>
+            </motion.div>
+          </motion.div>
+          <motion.form variants={scaleIn} initial="initial" whileInView="animate" viewport={vpOnce}
+            action="/contact" method="GET"
+            className="bg-surface rounded-2xl border border-border p-8 space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <label htmlFor="hp-prenom" className="block text-[11px] font-semibold text-foreground mb-2 uppercase tracking-[0.18em]">{tContact('formFirstName')}</label>
+                <input id="hp-prenom" name="prenom" type="text" placeholder={tContact('formFirstNamePlaceholder')}
+                  className="w-full px-4 py-3 rounded-xl border border-border bg-white text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-brand transition-colors" />
+              </div>
+              <div>
+                <label htmlFor="hp-email" className="block text-[11px] font-semibold text-foreground mb-2 uppercase tracking-[0.18em]">{tContact('formEmail')}</label>
+                <input id="hp-email" name="email" type="email" placeholder={tContact('formEmailPlaceholder')}
+                  className="w-full px-4 py-3 rounded-xl border border-border bg-white text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-brand transition-colors" />
+              </div>
+            </div>
+            <div>
+              <label htmlFor="hp-sujet" className="block text-[11px] font-semibold text-foreground mb-2 uppercase tracking-[0.18em]">{tContact('formSubject')}</label>
+              <select id="hp-sujet" name="sujet"
+                className="w-full px-4 py-3 rounded-xl border border-border bg-white text-sm text-foreground focus:outline-none focus:border-brand transition-colors">
+                <option value="">{tContact('formSubjectPlaceholder')}</option>
+                <option value="estimation">{tContact('formSubjectEstimation')}</option>
+                <option value="vendre">{tContact('formSubjectSell')}</option>
+                <option value="acheter">{tContact('formSubjectBuy')}</option>
+                <option value="bilan">{tContact('formSubjectAudit')}</option>
+                <option value="autre">{tContact('formSubjectOther')}</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="hp-message" className="block text-[11px] font-semibold text-foreground mb-2 uppercase tracking-[0.18em]">{tContact('formMessage')}</label>
+              <textarea id="hp-message" name="message" rows={4} placeholder={tContact('formMessagePlaceholder')}
+                className="w-full px-4 py-3 rounded-xl border border-border bg-white text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-brand transition-colors resize-none" />
+            </div>
+            <Button type="submit" variant="primary" size="lg" className="w-full">{tContact('formSubmit')} <Send size={16} /></Button>
+            <p className="text-xs text-muted text-center">{tContact('formNote')}</p>
+          </motion.form>
+        </div>
+      </section>
+
+      {/* ===== CTA FINAL ===== */}
+      <motion.section variants={scaleIn} initial="initial" whileInView="animate" viewport={vpOnce}
+        className="py-24 px-6 bg-brand-light">
+        <div className="max-w-2xl mx-auto text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">{tCta('eyebrow')}</p>
+          <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground mb-4 leading-[1.1]">
+            {tCta('titlePart1')} <span className="italic text-brand">{tCta('titleAccent')}</span>
+          </h2>
+          <p className="text-muted mb-8 leading-relaxed">{tCta('description')}</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild size="lg" variant="primary">
+              <Link href={assistantUrl} target={assistantUrl.startsWith('http') ? '_blank' : undefined}
+                rel={assistantUrl.startsWith('http') ? 'noopener noreferrer' : undefined}>
+                {tCommon('estimateMyProperty')} <ArrowRight size={18} />
+              </Link>
+            </Button>
+            <a href={'tel:' + PHONE_RAW}
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-border bg-white text-sm font-semibold text-foreground hover:border-brand hover:text-brand transition-colors">
+              <Phone size={15} />{phoneDisplay}
+            </a>
+          </div>
+        </div>
+      </motion.section>
+    </>
+  )
+}
