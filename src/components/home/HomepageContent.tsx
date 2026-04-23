@@ -3,6 +3,7 @@
 import { motion, useInView } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   ArrowRight, Home, Search, ClipboardCheck, MapPin, Star,
   ShieldCheck, Clock, Lock, Users, ChevronDown,
@@ -12,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import { appUrl, biensUrl, env } from '@/lib/env'
 import { VP as vpOnce, fadeInUp, scaleIn, stagger, staggerFast } from '@/lib/animations'
 
-// ─── Objets d'animation (pas de double-accolades) ──────────────────────
+// ─── Objets d'animation (pas de double-accolades) ────────────────────
 
 const springFast = { type: 'spring' as const, stiffness: 400, damping: 25 }
 const hoverCard = { y: -6 }
@@ -32,7 +33,7 @@ const progressBarInitial = { width: 0 }
 const progressBarAnimate = { width: '75%' }
 const progressBarTransition = { delay: 1.1, duration: 0.9, ease: 'easeOut' as const }
 
-// ─── Counter animé ─────────────────────────────────────────────────────
+// ─── Counter animé ──────────────────────────────────
 
 function Counter({ target, suffix }: { target: number; suffix: string }) {
   const ref = useRef<HTMLSpanElement>(null)
@@ -58,7 +59,7 @@ function Counter({ target, suffix }: { target: number; suffix: string }) {
   return <span ref={ref}>{count}{suffix}</span>
 }
 
-// ─── Data ──────────────────────────────────────────────────────────────────────
+// ─── Data ──────────────────────────────────────────────────────────────
 
 const PHONE_RAW = '+33613180168'
 const PHONE_DISPLAY = '06 13 18 01 68'
@@ -103,11 +104,11 @@ const BIENS_VENDUS = [
 
 const AVIS = [
   { name: 'Sophie M.', transaction: 'VENTE', note: 5, text: '«Alex a su estimer notre maison au juste prix. Vendu en 3 semaines, sans stress. Une présence et une transparence exemplaires tout au long du processus.»' },
-  { name: 'Pierre & Marion L.', transaction: 'ACHAT', note: 5, text: '«Il connaît chaque commune de la Provence Verte. Grâce à lui, on a trouvé exactement ce qu\u2019on cherchait, au bon prix et sans mauvaise surprise.»' },
-  { name: 'Isabelle R.', transaction: 'VENTE', note: 5, text: '«Présent, réactif, transparent. Notre bien à Barjols a été vendu en moins d\u2019un mois. Je recommande sans hésiter.»' },
+  { name: 'Pierre & Marion L.', transaction: 'ACHAT', note: 5, text: '«Il connaît chaque commune de la Provence Verte. Grâce à lui, on a trouvé exactement ce qu’on cherchait, au bon prix et sans mauvaise surprise.»' },
+  { name: 'Isabelle R.', transaction: 'VENTE', note: 5, text: '«Présent, réactif, transparent. Notre bien à Barjols a été vendu en moins d’un mois. Je recommande sans hésiter.»' },
 ]
 
-// ─── Component ─────────────────────────────────────────────────────────────────
+// ─── Component ────────────────────────────────────────────────────────────
 
 export default function HomepageContent() {
   const assistantUrl = appUrl('') || '/assistant'
@@ -170,8 +171,15 @@ export default function HomepageContent() {
             className="relative flex items-center justify-center overflow-hidden min-h-[50vh] lg:min-h-full order-1 lg:order-2"
           >
             <div className="w-full h-full flex items-end justify-center px-8 pt-12 pb-0">
-              <div className="w-full max-w-sm aspect-[3/4] bg-border/30 rounded-t-[3rem] flex items-center justify-center">
-                <span className="text-muted text-sm">Photo Alex Lopez</span>
+              <div className="relative w-full max-w-sm aspect-[3/4] rounded-t-[3rem] overflow-hidden">
+                <Image
+                  src="/alex-lopez.png"
+                  alt="Alex Lopez, mandataire IAD en Provence Verte et Haut-Var"
+                  fill
+                  priority
+                  sizes="(min-width: 1024px) 40vw, 90vw"
+                  className="object-cover object-top"
+                />
               </div>
             </div>
 
@@ -226,8 +234,14 @@ export default function HomepageContent() {
       <section className="py-24 px-6 bg-white">
         <div className="max-w-[75rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
           <motion.div variants={scaleIn} initial="initial" whileInView="animate" viewport={vpOnce}
-            className="relative rounded-2xl overflow-hidden bg-surface border border-border aspect-[4/5] flex items-center justify-center order-2 lg:order-1">
-            <span className="text-muted text-sm">Photo Alex Lopez</span>
+            className="relative rounded-2xl overflow-hidden bg-surface border border-border aspect-[4/5] order-2 lg:order-1">
+            <Image
+              src="/alex-lopez.png"
+              alt="Alex Lopez, mandataire IAD en Provence Verte et Haut-Var"
+              fill
+              sizes="(min-width: 1024px) 40vw, 90vw"
+              className="object-cover object-center"
+            />
           </motion.div>
           <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
             className="order-1 lg:order-2">
