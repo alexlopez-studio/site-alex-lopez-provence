@@ -13,8 +13,7 @@ import { Button } from '@/components/ui/button'
 import { appUrl, biensUrl, env } from '@/lib/env'
 import { VP as vpOnce, fadeInUp, scaleIn, stagger, staggerFast } from '@/lib/animations'
 
-// ─── Objets d'animation (pas de double-accolades) ────────────────────
-
+// ─── Animations ───────────────────────────────────────────────────────
 const springFast = { type: 'spring' as const, stiffness: 400, damping: 25 }
 const hoverCard = { y: -6 }
 const hoverChip = { scale: 1.04 as number }
@@ -33,8 +32,7 @@ const progressBarInitial = { width: 0 }
 const progressBarAnimate = { width: '75%' }
 const progressBarTransition = { delay: 1.1, duration: 0.9, ease: 'easeOut' as const }
 
-// ─── Counter animé ──────────────────────────────────
-
+// ─── Counter animé ─────────────────────────────────────────────────────
 function Counter({ target, suffix }: { target: number; suffix: string }) {
   const ref = useRef<HTMLSpanElement>(null)
   const inView = useInView(ref, { once: true })
@@ -60,9 +58,39 @@ function Counter({ target, suffix }: { target: number; suffix: string }) {
 }
 
 // ─── Data ──────────────────────────────────────────────────────────────
-
 const PHONE_RAW = '+33613180168'
 const PHONE_DISPLAY = '06 13 18 01 68'
+
+// Paysages Provence — Unsplash (libres de droits, à remplacer par photos perso à terme)
+const PAYSAGES = [
+  {
+    src: 'https://images.unsplash.com/photo-1499002238440-d264edd596ec?w=1600&q=80&auto=format&fit=crop',
+    alt: 'Champs de lavande en fleur sur le plateau de Valensole',
+    caption: 'Plateau de Valensole',
+    className: 'md:col-span-2 md:row-span-2 aspect-[4/3] md:aspect-auto',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1533757704860-4e25feb0cf52?w=1200&q=80&auto=format&fit=crop',
+    alt: 'Village perché de Provence sous un ciel lumineux',
+    caption: 'Villages perchés',
+    className: 'aspect-[4/3]',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1568214379698-8aeb8c6c6ac8?w=1200&q=80&auto=format&fit=crop',
+    alt: 'Oliveraie ancienne en Provence',
+    caption: 'Oliveraies',
+    className: 'aspect-[4/3]',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1564419320461-6870880221ad?w=1600&q=80&auto=format&fit=crop',
+    alt: 'Gorges du Verdon, eau turquoise entre les falaises',
+    caption: 'Gorges du Verdon',
+    className: 'md:col-span-2 aspect-[16/9]',
+  },
+]
+
+const ZONE_BACKDROP =
+  'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=2000&q=80&auto=format&fit=crop'
 
 const FAQ_ITEMS = [
   { question: 'Quelle est la différence entre un mandataire et une agence immobilière ?', answer: "Un mandataire immobilier est un professionnel indépendant rattaché à un réseau (ici IAD France). Il propose les mêmes services qu'une agence (estimation, vente, achat) mais avec des honoraires souvent inférieurs, car il n'a pas de local commercial à entretenir." },
@@ -90,16 +118,16 @@ const SERVICES = [
 const COMMUNES_TEASER = ['Barjols', 'Montmeyan', 'Quinson', 'Fox-Amphoux', 'Tavernes', 'Rians', 'Aups', 'Salernes', 'Ginasservis', 'Varages', 'Esparron-de-Verdon', 'Artignosc-sur-Verdon']
 
 const BIENS_VENTE = [
-  { tag: 'NOUVEAU', tagColor: 'bg-success text-white', type: 'Maison de village', commune: 'Barjols (83670)', prix: '245 000 €', surface: '110 m²', pieces: '4 pièces' },
-  { tag: 'NOUVEAU', tagColor: 'bg-success text-white', type: 'Bastide provençale', commune: 'Rians (83560)', prix: '385 000 €', surface: '180 m²', pieces: '6 pièces' },
-  { tag: 'BAISSE DE PRIX', tagColor: 'bg-brand text-white', type: 'Maison avec terrain', commune: 'Montmeyan (83670)', prix: '198 000 €', surface: '95 m²', pieces: '3 pièces' },
+  { image: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800&q=80&auto=format&fit=crop', tag: 'NOUVEAU', tagColor: 'bg-success text-white', type: 'Maison de village', commune: 'Barjols (83670)', prix: '245 000 €', surface: '110 m²', pieces: '4 pièces' },
+  { image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80&auto=format&fit=crop', tag: 'NOUVEAU', tagColor: 'bg-success text-white', type: 'Bastide provençale', commune: 'Rians (83560)', prix: '385 000 €', surface: '180 m²', pieces: '6 pièces' },
+  { image: 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&q=80&auto=format&fit=crop', tag: 'BAISSE DE PRIX', tagColor: 'bg-brand text-white', type: 'Maison avec terrain', commune: 'Montmeyan (83670)', prix: '198 000 €', surface: '95 m²', pieces: '3 pièces' },
 ]
 
 const BIENS_VENDUS = [
-  { type: 'Maison de caractère', commune: 'Barjols', prix: '265 000 €' },
-  { type: 'Mas provençal', commune: 'Aups', prix: '420 000 €' },
-  { type: 'Villa avec piscine', commune: 'Rians', prix: '345 000 €' },
-  { type: 'Maison de village', commune: 'Salernes', prix: '185 000 €' },
+  { image: 'https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=600&q=80&auto=format&fit=crop', type: 'Maison de caractère', commune: 'Barjols', prix: '265 000 €' },
+  { image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&q=80&auto=format&fit=crop', type: 'Mas provençal', commune: 'Aups', prix: '420 000 €' },
+  { image: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=600&q=80&auto=format&fit=crop', type: 'Villa avec piscine', commune: 'Rians', prix: '345 000 €' },
+  { image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&q=80&auto=format&fit=crop', type: 'Maison de village', commune: 'Salernes', prix: '185 000 €' },
 ]
 
 const AVIS = [
@@ -116,18 +144,16 @@ export default function HomepageContent() {
 
   return (
     <>
-      {/* ===== HERO — split background, max-w-75rem aligné ===== */}
+      {/* ===== HERO ===== */}
       <section className="min-h-[92vh] relative overflow-hidden" aria-label="Hero">
-        {/* Fond split pleine largeur : blanc gauche / surface droite */}
+        {/* Fond split pleine largeur : blanc gauche / lin chaud droite */}
         <div className="absolute inset-0 hidden lg:grid lg:grid-cols-[55%_45%] pointer-events-none" aria-hidden="true">
           <div className="bg-white" />
           <div className="bg-surface" />
         </div>
         <div className="absolute inset-0 bg-white lg:hidden" aria-hidden="true" />
 
-        {/* Grille de contenu centrée — même max-w que toutes les autres sections */}
         <div className="relative max-w-[75rem] mx-auto grid grid-cols-1 lg:grid-cols-[55%_45%] min-h-[92vh]">
-
           {/* Left — texte staggeré */}
           <motion.div
             variants={stagger}
@@ -138,9 +164,9 @@ export default function HomepageContent() {
             <motion.p variants={fadeInUp} className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-5">
               Mandataire IAD — Provence Verte &amp; Haut-Var
             </motion.p>
-            <motion.h1 variants={stagger} className="text-4xl sm:text-5xl xl:text-6xl font-extrabold text-foreground leading-[1.1] tracking-tight mb-6">
+            <motion.h1 variants={stagger} className="font-serif text-5xl sm:text-6xl xl:text-7xl font-medium text-foreground leading-[1.02] tracking-tight mb-6">
               <motion.span variants={fadeInUp} className="block">Vendez. Achetez.</motion.span>
-              <motion.span variants={fadeInUp} className="block text-brand">En toute confiance.</motion.span>
+              <motion.span variants={fadeInUp} className="block italic text-brand">En toute confiance.</motion.span>
             </motion.h1>
             <motion.p variants={fadeInUp} className="text-lg text-muted leading-relaxed mb-10 max-w-md">
               Estimation gratuite, prix du marché local, accompagnement de A à Z
@@ -171,7 +197,7 @@ export default function HomepageContent() {
             className="relative flex items-center justify-center overflow-hidden min-h-[50vh] lg:min-h-full order-1 lg:order-2"
           >
             <div className="w-full h-full flex items-end justify-center px-8 pt-12 pb-0">
-              <div className="relative w-full max-w-sm aspect-[3/4] rounded-t-[3rem] overflow-hidden">
+              <div className="relative w-full max-w-sm aspect-[3/4] rounded-t-[3rem] overflow-hidden shadow-[0_20px_60px_rgba(184,97,44,0.15)]">
                 <Image
                   src="/alex-lopez.png"
                   alt="Alex Lopez, mandataire IAD en Provence Verte et Haut-Var"
@@ -188,10 +214,10 @@ export default function HomepageContent() {
               initial={floatingCardInitial}
               animate={floatingCardAnimate}
               transition={floatingCardTransition}
-              className="absolute bottom-8 left-4 bg-white rounded-2xl shadow-xl p-5 w-60"
+              className="absolute bottom-8 left-4 bg-white rounded-2xl shadow-xl p-5 w-60 border border-border"
             >
               <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-1">Estimation de votre bien</p>
-              <p className="text-2xl font-extrabold text-foreground mb-0.5">245 000 €</p>
+              <p className="font-serif text-2xl font-semibold text-foreground mb-0.5">245 000 €</p>
               <p className="text-xs text-muted mb-3">Basé sur 14 ventes récentes à Barjols</p>
               <div className="w-full bg-surface rounded-full h-1.5 mb-3">
                 <motion.div className="bg-brand h-1.5 rounded-full"
@@ -204,7 +230,7 @@ export default function HomepageContent() {
 
             {/* Badge 5/5 */}
             <motion.div initial={badgeInitial} animate={badgeAnimate} transition={badgeTransition}
-              className="absolute top-6 right-4 bg-white rounded-xl shadow-md px-3 py-2 flex items-center gap-2">
+              className="absolute top-6 right-4 bg-white rounded-xl shadow-md px-3 py-2 flex items-center gap-2 border border-border">
               <div className="flex gap-0.5">
                 {[1,2,3,4,5].map(i => <Star key={i} size={11} className="text-brand fill-brand" />)}
               </div>
@@ -230,11 +256,47 @@ export default function HomepageContent() {
         </div>
       </motion.section>
 
+      {/* ===== GALERIE PAYSAGES PROVENCE — donne envie ===== */}
+      <section className="py-24 px-6 bg-white relative overflow-hidden">
+        <div className="max-w-[75rem] mx-auto">
+          <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-14 max-w-2xl mx-auto">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-4">Vivre ici</p>
+            <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground leading-[1.1] mb-5">
+              La Provence Verte, <span className="italic text-brand">à portée de main.</span>
+            </h2>
+            <p className="text-muted leading-relaxed">
+              Entre les champs de lavande du plateau de Valensole, les villages perchés du Haut-Var
+              et les eaux turquoise des Gorges du Verdon — un art de vivre à redécouvrir chaque matin.
+            </p>
+          </motion.div>
+
+          <motion.div variants={staggerFast} initial="initial" whileInView="animate" viewport={vpOnce}
+            className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-[20rem_20rem] gap-4">
+            {PAYSAGES.map((p, i) => (
+              <motion.div key={p.src} variants={scaleIn}
+                className={'group relative overflow-hidden rounded-2xl bg-surface border border-border ' + p.className}>
+                <Image
+                  src={p.src}
+                  alt={p.alt}
+                  fill
+                  sizes={i === 0 ? '(min-width: 768px) 50vw, 100vw' : '(min-width: 768px) 25vw, 100vw'}
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-foreground/50 via-transparent to-transparent" />
+                <p className="absolute bottom-4 left-5 text-white font-serif text-lg italic drop-shadow-md">
+                  {p.caption}
+                </p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
       {/* ===== MON HISTOIRE ===== */}
-      <section className="py-24 px-6 bg-white">
+      <section className="py-24 px-6 bg-surface">
         <div className="max-w-[75rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
           <motion.div variants={scaleIn} initial="initial" whileInView="animate" viewport={vpOnce}
-            className="relative rounded-2xl overflow-hidden bg-surface border border-border aspect-[4/5] order-2 lg:order-1">
+            className="relative rounded-2xl overflow-hidden bg-white border border-border aspect-[4/5] order-2 lg:order-1 shadow-sm">
             <Image
               src="/alex-lopez.png"
               alt="Alex Lopez, mandataire IAD en Provence Verte et Haut-Var"
@@ -246,8 +308,8 @@ export default function HomepageContent() {
           <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
             className="order-1 lg:order-2">
             <motion.p variants={fadeInUp} className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-4">Mon histoire</motion.p>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-extrabold text-foreground mb-6 leading-tight">
-              Un mandataire <span className="text-brand">ancré</span> en Provence Verte.
+            <motion.h2 variants={fadeInUp} className="font-serif text-4xl md:text-5xl font-medium text-foreground mb-6 leading-[1.1]">
+              Un mandataire <span className="italic text-brand">ancré</span> en Provence Verte.
             </motion.h2>
             <motion.div variants={stagger} className="space-y-4 text-muted leading-relaxed mb-8">
               <motion.p variants={fadeInUp}>
@@ -259,15 +321,15 @@ export default function HomepageContent() {
             </motion.div>
             <motion.div variants={stagger} className="grid grid-cols-3 gap-6 mb-8 text-center">
               <motion.div variants={scaleIn}>
-                <p className="text-2xl font-extrabold text-brand"><Counter target={100} suffix="%" /></p>
+                <p className="font-serif text-3xl font-semibold text-brand"><Counter target={100} suffix="%" /></p>
                 <p className="text-xs text-muted mt-1">Accompagnement</p>
               </motion.div>
               <motion.div variants={scaleIn}>
-                <p className="text-2xl font-extrabold text-brand">0 €</p>
+                <p className="font-serif text-3xl font-semibold text-brand">0 €</p>
                 <p className="text-xs text-muted mt-1">Frais cachés</p>
               </motion.div>
               <motion.div variants={scaleIn}>
-                <p className="text-2xl font-extrabold text-brand"><Counter target={7} suffix="j/7" /></p>
+                <p className="font-serif text-3xl font-semibold text-brand"><Counter target={7} suffix="j/7" /></p>
                 <p className="text-xs text-muted mt-1">Disponible</p>
               </motion.div>
             </motion.div>
@@ -281,12 +343,12 @@ export default function HomepageContent() {
       </section>
 
       {/* ===== SERVICES 2x2 ===== */}
-      <section className="py-24 px-6 bg-surface">
+      <section className="py-24 px-6 bg-white">
         <div className="max-w-[75rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-14">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">Mes services</p>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-foreground">
-              Vente, achat, audit : <span className="text-brand">je vous accompagne.</span>
+            <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground leading-[1.1]">
+              Vente, achat, audit : <span className="italic text-brand">je vous accompagne.</span>
             </h2>
           </motion.div>
           <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
@@ -299,11 +361,11 @@ export default function HomepageContent() {
                   whileHover={hoverCard} whileTap={tapCard} transition={springFast}>
                   <Link href={href} target={service.external ? '_blank' : undefined}
                     rel={service.external ? 'noopener noreferrer' : undefined}
-                    className="group flex flex-col bg-white rounded-2xl border border-border p-8 h-full hover:shadow-md transition-shadow duration-200">
-                    <div className="w-12 h-12 rounded-xl bg-surface border border-border flex items-center justify-center mb-5">
+                    className="group flex flex-col bg-surface rounded-2xl border border-border p-8 h-full hover:shadow-md hover:border-brand/40 transition-all duration-200">
+                    <div className="w-12 h-12 rounded-xl bg-white border border-border flex items-center justify-center mb-5">
                       <Icon size={22} className="text-brand" />
                     </div>
-                    <h3 className="text-xl font-bold text-foreground mb-3">{service.title}</h3>
+                    <h3 className="font-serif text-2xl font-medium text-foreground mb-3 leading-tight">{service.title}</h3>
                     <p className="text-sm text-muted leading-relaxed mb-5 flex-1">{service.description}</p>
                     <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand group-hover:gap-2.5 transition-all">
                       {service.cta} <ArrowRight size={15} />
@@ -316,60 +378,86 @@ export default function HomepageContent() {
         </div>
       </section>
 
-      {/* ===== ZONE ===== */}
-      <section className="py-24 px-6 bg-white">
-        <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
-          className="max-w-4xl mx-auto text-center">
-          <motion.div variants={fadeInUp} className="flex items-center justify-center gap-2 mb-4">
-            <MapPin size={18} className="text-brand" />
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand">Zone d&apos;intervention</p>
+      {/* ===== ZONE — avec paysage en bandeau immersif ===== */}
+      <section className="relative overflow-hidden">
+        {/* Bandeau paysage en arrière-plan */}
+        <div className="relative h-[28rem] md:h-[32rem]">
+          <Image
+            src={ZONE_BACKDROP}
+            alt="Paysage de Provence Verte, vignes et collines"
+            fill
+            sizes="100vw"
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-foreground/40 via-foreground/20 to-surface" />
+          <div className="absolute inset-0 flex items-center justify-center px-6">
+            <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
+              className="text-center max-w-3xl">
+              <motion.div variants={fadeInUp} className="flex items-center justify-center gap-2 mb-4">
+                <MapPin size={18} className="text-white" />
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/90">Zone d&apos;intervention</p>
+              </motion.div>
+              <motion.h2 variants={fadeInUp} className="font-serif text-4xl md:text-6xl font-medium text-white mb-4 leading-[1.05] drop-shadow-md">
+                Provence Verte &amp; Haut-Var, <span className="italic">ma terre.</span>
+              </motion.h2>
+              <motion.p variants={fadeInUp} className="text-white/90 leading-relaxed max-w-2xl mx-auto drop-shadow-sm">
+                De la plaine aux contreforts des Gorges du Verdon — je couvre l&apos;ensemble du territoire.
+              </motion.p>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Liste communes */}
+        <div className="bg-surface py-16 px-6">
+          <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
+            className="max-w-4xl mx-auto text-center">
+            <motion.div variants={staggerFast} className="flex flex-wrap justify-center gap-2 mb-8">
+              {COMMUNES_TEASER.map(c => {
+                const slug = c.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-')
+                return (
+                  <motion.div key={c} variants={fadeInUp} whileHover={hoverComm}>
+                    <Link href={'/marche/' + slug}
+                      className="px-4 py-2 bg-white rounded-full border border-border text-sm text-foreground hover:border-brand hover:text-brand transition-colors block">
+                      {c}
+                    </Link>
+                  </motion.div>
+                )
+              })}
+            </motion.div>
+            <motion.div variants={fadeInUp}>
+              <Link href="/marche" className="inline-flex items-center gap-2 text-brand font-semibold hover:underline">
+                Voir toutes les communes <ArrowRight size={16} />
+              </Link>
+            </motion.div>
           </motion.div>
-          <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-extrabold text-foreground mb-4">
-            Provence Verte &amp; Haut-Var, <span className="text-brand">ma Provence.</span>
-          </motion.h2>
-          <motion.p variants={fadeInUp} className="text-muted leading-relaxed mb-10 max-w-2xl mx-auto">
-            J&apos;interviens sur l&apos;ensemble de la Provence Verte et du Haut-Var — de la plaine aux contreforts des Gorges du Verdon.
-          </motion.p>
-          <motion.div variants={staggerFast} className="flex flex-wrap justify-center gap-2 mb-8">
-            {COMMUNES_TEASER.map(c => {
-              const slug = c.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-')
-              return (
-                <motion.div key={c} variants={fadeInUp} whileHover={hoverComm}>
-                  <Link href={'/marche/' + slug}
-                    className="px-3 py-1.5 bg-surface rounded-full border border-border text-sm text-foreground hover:border-brand hover:text-brand transition-colors block">
-                    {c}
-                  </Link>
-                </motion.div>
-              )
-            })}
-          </motion.div>
-          <motion.div variants={fadeInUp}>
-            <Link href="/marche" className="inline-flex items-center gap-2 text-brand font-semibold hover:underline">
-              Voir toutes les communes <ArrowRight size={16} />
-            </Link>
-          </motion.div>
-        </motion.div>
+        </div>
       </section>
 
       {/* ===== BIENS EN VENTE ===== */}
-      <section className="py-24 px-6 bg-surface">
+      <section className="py-24 px-6 bg-white">
         <div className="max-w-[75rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-12">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">Biens disponibles</p>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-foreground">Mes biens <span className="text-brand">actuellement en vente</span></h2>
+            <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground leading-[1.1]">Mes biens <span className="italic text-brand">actuellement en vente</span></h2>
           </motion.div>
           <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
             className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             {BIENS_VENTE.map(bien => (
               <motion.div key={bien.type + bien.commune} variants={fadeInUp}
                 whileHover={hoverCard} transition={springFast}
-                className="bg-white rounded-2xl border border-border overflow-hidden">
-                <div className="aspect-[4/3] bg-surface flex items-center justify-center relative">
-                  <Home size={32} className="text-border" />
-                  <span className={'absolute top-3 left-3 text-xs font-semibold px-2 py-1 rounded-full ' + bien.tagColor}>{bien.tag}</span>
+                className="group bg-surface rounded-2xl border border-border overflow-hidden">
+                <div className="aspect-[4/3] bg-surface relative overflow-hidden">
+                  <Image
+                    src={bien.image}
+                    alt={bien.type + ' à ' + bien.commune}
+                    fill
+                    sizes="(min-width: 768px) 33vw, 100vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <span className={'absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full ' + bien.tagColor}>{bien.tag}</span>
                 </div>
                 <div className="p-5">
-                  <p className="font-extrabold text-foreground text-lg mb-1">{bien.prix}</p>
+                  <p className="font-serif text-2xl font-semibold text-foreground mb-1">{bien.prix}</p>
                   <p className="font-semibold text-foreground text-sm mb-1">{bien.type}</p>
                   <p className="text-xs text-muted flex items-center gap-1 mb-3"><MapPin size={11} />{bien.commune}</p>
                   <div className="flex gap-3 text-xs text-muted"><span>{bien.surface}</span><span>·</span><span>{bien.pieces}</span></div>
@@ -386,22 +474,28 @@ export default function HomepageContent() {
       </section>
 
       {/* ===== VENTES RÉCENTES ===== */}
-      <section className="py-24 px-6 bg-white">
+      <section className="py-24 px-6 bg-surface">
         <div className="max-w-[75rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-12">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">Références</p>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-foreground">Mes ventes <span className="text-brand">récentes</span></h2>
+            <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground leading-[1.1]">Mes ventes <span className="italic text-brand">récentes</span></h2>
           </motion.div>
           <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
             className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {BIENS_VENDUS.map(bien => (
               <motion.div key={bien.type + bien.commune} variants={scaleIn}
-                className="rounded-2xl border border-border bg-surface p-5 relative">
-                <span className="absolute top-3 right-3 text-xs font-bold text-success bg-green-50 px-2 py-0.5 rounded-full">VENDU</span>
-                <div className="aspect-[4/3] bg-white rounded-xl flex items-center justify-center mb-4 border border-border">
-                  <Home size={24} className="text-border" />
+                className="group rounded-2xl border border-border bg-white p-4 relative">
+                <span className="absolute top-5 right-5 z-10 text-xs font-bold text-white bg-success px-2 py-0.5 rounded-full shadow-sm">VENDU</span>
+                <div className="aspect-[4/3] bg-surface rounded-xl overflow-hidden mb-4 relative">
+                  <Image
+                    src={bien.image}
+                    alt={bien.type + ' à ' + bien.commune}
+                    fill
+                    sizes="(min-width: 768px) 25vw, 50vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
                 </div>
-                <p className="font-extrabold text-foreground text-sm">{bien.prix}</p>
+                <p className="font-serif text-lg font-semibold text-foreground">{bien.prix}</p>
                 <p className="text-xs text-foreground font-medium mt-0.5">{bien.type}</p>
                 <p className="text-xs text-muted flex items-center gap-1 mt-1"><MapPin size={10} />{bien.commune}</p>
               </motion.div>
@@ -411,23 +505,23 @@ export default function HomepageContent() {
       </section>
 
       {/* ===== TÉMOIGNAGES ===== */}
-      <section className="py-24 px-6 bg-surface">
+      <section className="py-24 px-6 bg-white">
         <div className="max-w-[75rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-12">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">Témoignages</p>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-foreground">Ils m&apos;ont <span className="text-brand">fait confiance</span></h2>
+            <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground leading-[1.1]">Ils m&apos;ont <span className="italic text-brand">fait confiance</span></h2>
           </motion.div>
           <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
             className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             {AVIS.map(avis => (
               <motion.div key={avis.name} variants={scaleIn}
-                className="p-7 rounded-2xl border border-border bg-white flex flex-col">
+                className="p-7 rounded-2xl border border-border bg-surface flex flex-col">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex gap-1">{Array.from({ length: avis.note }).map((_, i) => <Star key={i} size={14} className="text-brand fill-brand" />)}</div>
                   <span className="text-xs font-bold text-brand bg-brand-light px-2 py-0.5 rounded-full">{avis.transaction}</span>
                 </div>
-                <p className="text-sm text-foreground leading-relaxed flex-1 mb-4">{avis.text}</p>
-                <p className="text-xs font-semibold text-muted">{avis.name}</p>
+                <p className="font-serif text-base italic text-foreground leading-relaxed flex-1 mb-4">{avis.text}</p>
+                <p className="text-xs font-semibold text-muted">— {avis.name}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -438,16 +532,16 @@ export default function HomepageContent() {
       </section>
 
       {/* ===== FAQ ===== */}
-      <section className="py-24 px-6 bg-white">
+      <section className="py-24 px-6 bg-surface">
         <div className="max-w-3xl mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-12">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-3">Questions fréquentes</p>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-foreground">Ce qu&apos;on me <span className="text-brand">demande souvent</span></h2>
+            <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground leading-[1.1]">Ce qu&apos;on me <span className="italic text-brand">demande souvent</span></h2>
           </motion.div>
           <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce} className="space-y-3">
             {FAQ_ITEMS.map(item => (
               <motion.details key={item.question} variants={fadeInUp}
-                className="group rounded-2xl border border-border bg-surface overflow-hidden">
+                className="group rounded-2xl border border-border bg-white overflow-hidden">
                 <summary className="flex items-center justify-between p-6 cursor-pointer list-none font-semibold text-foreground hover:text-brand transition-colors">
                   <span>{item.question}</span>
                   <ChevronDown size={18} className="text-muted shrink-0 ml-4 transition-transform duration-200 group-open:rotate-180" />
@@ -460,12 +554,12 @@ export default function HomepageContent() {
       </section>
 
       {/* ===== CONTACT INLINE ===== */}
-      <section className="py-24 px-6 bg-surface">
+      <section className="py-24 px-6 bg-white">
         <div className="max-w-[75rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-14 items-start">
           <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce} className="lg:pt-2">
             <motion.p variants={fadeInUp} className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-4">Me contacter</motion.p>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-extrabold text-foreground mb-6 leading-tight">
-              Un projet ? <span className="text-brand">Parlons-en.</span>
+            <motion.h2 variants={fadeInUp} className="font-serif text-4xl md:text-5xl font-medium text-foreground mb-6 leading-[1.1]">
+              Un projet ? <span className="italic text-brand">Parlons-en.</span>
             </motion.h2>
             <motion.p variants={fadeInUp} className="text-muted leading-relaxed mb-8">
               Que vous souhaitiez vendre ou acheter en Provence Verte et Haut-Var, je vous réponds sous 24h. Sans engagement, sans pression.
@@ -485,23 +579,23 @@ export default function HomepageContent() {
 
           <motion.form variants={scaleIn} initial="initial" whileInView="animate" viewport={vpOnce}
             action="/contact" method="GET"
-            className="bg-white rounded-2xl border border-border p-8 space-y-5">
+            className="bg-surface rounded-2xl border border-border p-8 space-y-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
                 <label htmlFor="hp-prenom" className="block text-xs font-semibold text-foreground mb-2 uppercase tracking-wide">Prénom</label>
                 <input id="hp-prenom" name="prenom" type="text" placeholder="Votre prénom"
-                  className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-brand transition-colors" />
+                  className="w-full px-4 py-3 rounded-xl border border-border bg-white text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-brand transition-colors" />
               </div>
               <div>
                 <label htmlFor="hp-email" className="block text-xs font-semibold text-foreground mb-2 uppercase tracking-wide">Email</label>
                 <input id="hp-email" name="email" type="email" placeholder="votre@email.fr"
-                  className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-brand transition-colors" />
+                  className="w-full px-4 py-3 rounded-xl border border-border bg-white text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-brand transition-colors" />
               </div>
             </div>
             <div>
               <label htmlFor="hp-sujet" className="block text-xs font-semibold text-foreground mb-2 uppercase tracking-wide">Je souhaite</label>
               <select id="hp-sujet" name="sujet"
-                className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-sm text-foreground focus:outline-none focus:border-brand transition-colors">
+                className="w-full px-4 py-3 rounded-xl border border-border bg-white text-sm text-foreground focus:outline-none focus:border-brand transition-colors">
                 <option value="">Choisir...</option>
                 <option value="estimation">Une estimation gratuite</option>
                 <option value="vendre">Vendre mon bien</option>
@@ -513,7 +607,7 @@ export default function HomepageContent() {
             <div>
               <label htmlFor="hp-message" className="block text-xs font-semibold text-foreground mb-2 uppercase tracking-wide">Message</label>
               <textarea id="hp-message" name="message" rows={4} placeholder="Décrivez votre projet en quelques mots..."
-                className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-brand transition-colors resize-none" />
+                className="w-full px-4 py-3 rounded-xl border border-border bg-white text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-brand transition-colors resize-none" />
             </div>
             <Button type="submit" variant="primary" size="lg" className="w-full">Envoyer <Send size={16} /></Button>
             <p className="text-xs text-muted text-center">Sans engagement · Réponse sous 24h</p>
@@ -526,7 +620,7 @@ export default function HomepageContent() {
         className="py-24 px-6 bg-brand-light">
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-4">Gratuit · Sans engagement</p>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-4">Votre projet commence ici.</h2>
+          <h2 className="font-serif text-4xl md:text-5xl font-medium text-foreground mb-4 leading-[1.1]">Votre projet <span className="italic text-brand">commence ici.</span></h2>
           <p className="text-muted mb-8 leading-relaxed">
             Obtenez une estimation précise de votre bien en quelques minutes,
             basée sur les prix réels du marché en Provence Verte et Haut-Var.
