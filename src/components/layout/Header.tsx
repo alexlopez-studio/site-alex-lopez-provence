@@ -51,21 +51,17 @@ export function Header() {
     >
       <div className="max-w-[75rem] mx-auto px-6 flex items-center justify-between gap-4">
 
-        {/* Logo iad + signature Alex */}
         <Link href="/" className="flex items-center gap-3 shrink-0">
-          {/* Logo iad (placeholder Fraunces italic en attendant SVG officiel) */}
           <div className="flex flex-col leading-none">
-            <span className="font-serif italic font-black text-brand text-[26px]" style= letterSpacing: '-0.04em' >iad</span>
+            <span className="font-serif italic font-black text-brand text-[26px] tracking-[-0.04em]">iad</span>
             <span className="text-[9px] font-bold text-brand uppercase tracking-[0.18em] -mt-0.5">IMMOBILIER</span>
           </div>
-          {/* Séparateur + nom conseiller */}
           <div className="hidden sm:block border-l border-border pl-3 leading-tight">
             <span className="block font-script text-[22px] text-foreground leading-none -mb-0.5">Alexandre Lopez</span>
             <span className="block text-[9px] font-semibold text-muted uppercase tracking-[0.16em] mt-1">{t('brandLine2')}</span>
           </div>
         </Link>
 
-        {/* Nav desktop */}
         <nav className="hidden lg:flex items-center gap-6" aria-label="Navigation">
           {NAV_LINKS.map(function (link) {
             if (link.highlight) {
@@ -85,7 +81,6 @@ export function Header() {
           })}
         </nav>
 
-        {/* Tél + switcher + CTA desktop */}
         <div className="hidden lg:flex items-center gap-3 shrink-0">
           <a href={'tel:' + PHONE_RAW}
             className="flex items-center gap-2 text-sm font-semibold text-foreground hover:text-brand transition-colors"
@@ -104,7 +99,6 @@ export function Header() {
           </Button>
         </div>
 
-        {/* Mobile : switcher + burger */}
         <div className="lg:hidden flex items-center gap-2">
           <LocaleSwitcher />
           <button
@@ -118,7 +112,6 @@ export function Header() {
 
       </div>
 
-      {/* Menu mobile */}
       {menuOpen && (
         <div className="lg:hidden bg-white border-t border-border">
           <div className="max-w-[75rem] mx-auto px-6 py-6 space-y-1">

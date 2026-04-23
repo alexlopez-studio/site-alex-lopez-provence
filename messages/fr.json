@@ -2,14 +2,14 @@
   "common": {
     "phoneDisplay": "06 13 18 01 68",
     "readMore": "En savoir plus",
-    "estimateMyProperty": "Estimer mon bien",
-    "bookAppointment": "Prendre RDV"
+    "estimateMyProperty": "Avis de valeur offert",
+    "bookAppointment": "Contactez-moi"
   },
   "header": {
-    "brandLine2": "Mandataire IAD",
+    "brandLine2": "Conseiller en immobilier",
     "navSell": "Vendre",
     "navBuy": "Acheter",
-    "navAudit": "Audit gratuit",
+    "navAudit": "Bilan gratuit",
     "navAuditBadge": "Gratuit",
     "navApproach": "Mon approche",
     "navBlog": "Blog",
@@ -17,35 +17,36 @@
     "callAria": "Appeler le {phone}",
     "menuOpen": "Ouvrir le menu",
     "menuClose": "Fermer le menu",
-    "ctaEstimate": "Estimer mon bien",
+    "ctaEstimate": "Contactez-moi",
     "langSwitchLabel": "Langue"
   },
   "footer": {
-    "brandLine2": "Mandataire IAD",
-    "tagline": "Mandataire immobilier IAD en Provence Verte et Haut-Var. Vente et achat immobilier dans le Var.",
+    "brandLine2": "Conseiller en immobilier iad",
+    "tagline": "Conseiller en immobilier iad en Provence Verte et Haut-Var. Vente et achat immobilier dans le Var.",
     "contactTitle": "Contact",
     "socialTitle": "Retrouvez-moi",
-    "copyright": "© {year} Alex Lopez · Mandataire indépendant IAD France · IAD France SAS — 40 rue de Paradis, 75010 Paris",
+    "copyright": "© {year} Alexandre Lopez · Mandataire indépendant en immobilier iad",
     "legalMentions": "Mentions légales",
-    "privacy": "Confidentialité"
+    "privacy": "Confidentialité",
+    "legalText": "EI Alexandre Lopez, mandataire indépendant en immobilier (sans détention de fonds), agent commercial de la SAS I@D France immatriculé au RSAC de [VILLE_RSAC] sous le numéro [NUMERO_RSAC], titulaire de la carte de démarchage immobilier pour le compte de la société I@D France SAS. Tous les conseillers iad sont des agents commerciaux indépendants (sans détention de fonds) de la SAS I@D France immatriculés au RSAC, titulaires de la carte de démarchage immobilier pour le compte de la société I@D France."
   },
   "homepage": {
     "hero": {
-      "tagline": "Mandataire IAD — Provence Verte & Haut-Var",
+      "tagline": "Conseiller en immobilier iad — Provence Verte & Haut-Var",
       "signature": "Alexandre Lopez",
-      "titleLine1": "Votre conseiller immobilier,",
-      "titleLine2": "à vos côtés pour écrire votre plus belle histoire.",
+      "titleLine1": "Concrétisons ensemble",
+      "titleLine2": "votre projet immobilier.",
       "valueListening": "Écoute",
       "valueClarity": "Clarté",
       "valueTransparency": "Transparence",
-      "description": "Estimation gratuite, connaissance fine du marché local, accompagnement de A à Z en Provence Verte et Haut-Var.",
-      "estimationCardEyebrow": "Estimation de votre bien",
+      "description": "Avis de valeur de votre bien offert, connaissance fine du marché local, accompagnement de A à Z en Provence Verte et Haut-Var.",
+      "estimationCardEyebrow": "Avis de valeur de votre bien",
       "estimationCardHint": "Basé sur 14 ventes récentes à Barjols",
       "estimationCardTrend": "Marché stable · +2% sur 6 mois",
-      "photoAlt": "Alexandre Lopez, mandataire IAD en Provence Verte et Haut-Var"
+      "photoAlt": "Alexandre Lopez, conseiller en immobilier iad en Provence Verte et Haut-Var"
     },
     "usp": {
-      "freeEstimation": "Estimation gratuite",
+      "freeEstimation": "Avis de valeur offert",
       "localPrices": "Prix du marché local",
       "fullAudit": "Bilan complet du bien",
       "reply24h": "Réponse sous 24h",
@@ -67,11 +68,11 @@
     },
     "story": {
       "eyebrow": "Mon histoire",
-      "titlePart1": "Un mandataire",
+      "titlePart1": "Un conseiller",
       "titleAccent": "ancré",
       "titlePart2": "en Provence Verte.",
-      "para1": "Je suis Alexandre Lopez, mandataire immobilier IAD implanté en Provence Verte et Haut-Var. Après une carrière en stratégie et organisation, j’ai choisi l’immobilier pour une raison simple : c’est un métier de lien, de confiance et d’utilité concrète.",
-      "para2": "Ici, pas de discours commercial. Je connais chaque commune de ma zone, ses prix réels, ses atouts et ses contraintes. Mon rôle : vous accompagner de l’estimation à la signature, avec écoute, clarté et transparence.",
+      "para1": "Je suis Alexandre Lopez, conseiller en immobilier iad implanté en Provence Verte et Haut-Var. Après une carrière en stratégie et organisation, j’ai choisi l’immobilier pour une raison simple : c’est un métier de lien, de confiance et d’utilité concrète.",
+      "para2": "Ici, pas de discours commercial. Je connais chaque commune de ma zone, ses prix réels, ses atouts et ses contraintes. Mon rôle : vous accompagner de l’avis de valeur à la signature, avec écoute, clarté et transparence.",
       "statAccompaniment": "Accompagnement",
       "statHiddenFees": "Frais cachés",
       "statAvailable": "Disponible",
@@ -79,19 +80,19 @@
     },
     "services": {
       "eyebrow": "Mes services",
-      "titlePart1": "Vente, achat, audit :",
+      "titlePart1": "Vente, achat, bilan :",
       "titlePart2": "je vous accompagne.",
       "sellTitle": "Vendre votre bien",
-      "sellDesc": "Je vous aide à fixer le bon prix, valoriser votre bien et trouver le bon acheteur — rapidement et sans stress.",
-      "sellCta": "Estimer mon bien",
+      "sellDesc": "Je vous aide à fixer le bon prix, valoriser votre bien et trouver le bon acquéreur — rapidement et sans stress.",
+      "sellCta": "Avis de valeur offert",
       "buyTitle": "Acheter sereinement",
       "buyDesc": "Je cherche pour vous, négocie à votre place et vérifie tous les points importants avant de signer.",
       "buyCta": "Décrire mon projet",
       "auditTitle": "Bilan immobilier gratuit",
       "auditDesc": "Avant de vendre ou d’acheter, je passe votre bien au crible pour éviter les mauvaises surprises.",
       "auditCta": "Lancer le bilan",
-      "joinTitle": "Devenir mandataire IAD",
-      "joinDesc": "Vous souhaitez vous reconvertir en Provence ? Je vous accompagne de A à Z dans votre lancement.",
+      "joinTitle": "Devenez mandataire indépendant",
+      "joinDesc": "Vous souhaitez vous reconvertir en Provence ? Rejoignez le réseau iad, je vous accompagne de A à Z dans votre lancement.",
       "joinCta": "En savoir plus"
     },
     "zone": {
@@ -142,15 +143,15 @@
       "eyebrow": "Questions fréquentes",
       "titlePart1": "Ce qu’on me",
       "titleAccent": "demande souvent",
-      "q1q": "Quelle est la différence entre un mandataire et une agence immobilière ?",
-      "q1a": "Un mandataire immobilier est un professionnel indépendant rattaché à un réseau (ici IAD France). Il propose les mêmes services qu’une agence (estimation, vente, achat) mais avec des honoraires souvent inférieurs, car il n’a pas de local commercial à entretenir.",
-      "q2q": "Combien coûte une estimation immobilière en Provence Verte et Haut-Var ?",
-      "q2a": "L’estimation est entièrement gratuite et sans engagement. Elle s’appuie sur les prix réels des ventes récentes dans votre secteur et la connaissance terrain de la Provence Verte et du Haut-Var.",
+      "q1q": "Quelle est la différence entre un mandataire iad et une agence immobilière ?",
+      "q1a": "Un mandataire indépendant iad est un professionnel rattaché à la SAS I@D France. Il propose les mêmes services qu’une agence (avis de valeur, vente, achat) avec des honoraires souvent inférieurs grâce à des frais de structure réduits.",
+      "q2q": "Combien coûte un avis de valeur immobilier en Provence Verte et Haut-Var ?",
+      "q2a": "L’avis de valeur est entièrement offert et sans engagement. Il s’appuie sur les prix réels des ventes récentes dans votre secteur et la connaissance terrain de la Provence Verte et du Haut-Var.",
       "q3q": "Quelles communes couvrez-vous en Provence Verte et Haut-Var ?",
       "q3a": "J’interviens sur l’ensemble de la Provence Verte et du Haut-Var : Barjols, Montmeyan, Quinson, Fox-Amphoux, Tavernes, Rians, Aups, Salernes, Ginasservis, Varages, Esparron-de-Verdon, Artignosc-sur-Verdon et toutes les communes limitrophes.",
       "q4q": "Combien de temps faut-il pour vendre un bien en Provence Verte ?",
-      "q4a": "Le délai moyen de vente dépend du bien et de son positionnement prix. Avec une estimation juste et une stratégie de diffusion adaptée, la majorité des biens en Provence Verte et Haut-Var trouvent preneur en 4 à 12 semaines.",
-      "q5q": "Qu’est-ce que l’audit immobilier express ?",
+      "q4a": "Le délai moyen de vente dépend du bien et de son positionnement prix. Avec un avis de valeur juste et une stratégie de diffusion adaptée, la majorité des biens en Provence Verte et Haut-Var trouvent preneur en 4 à 12 semaines.",
+      "q5q": "Qu’est-ce que le bilan immobilier express ?",
       "q5a": "C’est un bilan gratuit de votre bien réalisé en quelques minutes. Il identifie les points de vigilance — légaux, techniques, environnementaux — pour que vous puissiez vendre ou acheter en toute connaissance de cause."
     },
     "contactInline": {
@@ -166,7 +167,7 @@
       "formEmailPlaceholder": "votre@email.fr",
       "formSubject": "Je souhaite",
       "formSubjectPlaceholder": "Choisir...",
-      "formSubjectEstimation": "Une estimation gratuite",
+      "formSubjectEstimation": "Un avis de valeur offert",
       "formSubjectSell": "Vendre mon bien",
       "formSubjectBuy": "Acheter un bien",
       "formSubjectAudit": "Un bilan de mon bien",
@@ -180,7 +181,7 @@
       "eyebrow": "Gratuit · Sans engagement",
       "titlePart1": "Votre projet",
       "titleAccent": "commence ici.",
-      "description": "Obtenez une estimation précise de votre bien en quelques minutes, basée sur les prix réels du marché en Provence Verte et Haut-Var."
+      "description": "Obtenez un avis de valeur précis de votre bien en quelques minutes, basé sur les prix réels du marché en Provence Verte et Haut-Var."
     }
   }
 }
