@@ -15,6 +15,42 @@ type HeroPhotoNoBgProps = {
   className?: string
 }
 
+// Transitions définies en constantes pour éviter les doubles-accolades inline en JSX.
+const shapeTransition = {
+  duration: 0.9,
+  ease: [0.22, 1, 0.36, 1] as const,
+  delay: 0.15,
+}
+
+const haloTransition = {
+  duration: 1.1,
+  ease: 'easeOut' as const,
+  delay: 0.35,
+}
+
+const portraitTransition = {
+  duration: 1.15,
+  ease: [0.22, 1, 0.36, 1] as const,
+  delay: 0.1,
+}
+
+const shapeInitial = { opacity: 0, scale: 0.92 }
+const shapeAnimate = { opacity: 0.9, scale: 1.04 }
+const haloInitial = { opacity: 0 }
+const haloAnimate = { opacity: 0.45 }
+const portraitInitial = {
+  opacity: 0,
+  scale: 0.94,
+  y: 60,
+  filter: 'blur(14px)',
+}
+const portraitAnimate = {
+  opacity: 1,
+  scale: 1,
+  y: 0,
+  filter: 'blur(0px)',
+}
+
 /**
  * Portrait détouré pour le hero.
  *
@@ -59,9 +95,9 @@ export function HeroPhotoNoBg({
       <motion.div
         aria-hidden="true"
         style={reduce ? undefined : { y: shapeY, scale: shapeScale }}
-        initial={reduce ? false : { opacity: 0, scale: 0.92 }}
-        animate={reduce ? undefined : { opacity: 0.9, scale: 1.04 }}
-        transition= duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.15 
+        initial={reduce ? false : shapeInitial}
+        animate={reduce ? undefined : shapeAnimate}
+        transition={shapeTransition}
         className="absolute inset-x-0 bottom-0 mx-auto w-[82%] aspect-square rounded-t-[3rem] rounded-b-[2rem] bg-gradient-to-br from-brand-light via-brand-light/70 to-white blur-2xl pointer-events-none"
       />
 
@@ -69,9 +105,9 @@ export function HeroPhotoNoBg({
       <motion.div
         aria-hidden="true"
         style={reduce ? undefined : { y: shapeY }}
-        initial={reduce ? false : { opacity: 0 }}
-        animate={reduce ? undefined : { opacity: 0.45 }}
-        transition= duration: 1.1, ease: 'easeOut', delay: 0.35 
+        initial={reduce ? false : haloInitial}
+        animate={reduce ? undefined : haloAnimate}
+        transition={haloTransition}
         className="absolute top-[18%] right-[10%] w-44 h-44 rounded-full bg-brand/25 blur-3xl pointer-events-none"
       />
 
@@ -82,21 +118,9 @@ export function HeroPhotoNoBg({
       >
         {/* Opening animation: fade + scale + slide-up + blur-to-sharp */}
         <motion.div
-          initial={
-            reduce
-              ? false
-              : { opacity: 0, scale: 0.94, y: 60, filter: 'blur(14px)' }
-          }
-          animate={
-            reduce
-              ? undefined
-              : { opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }
-          }
-          transition=
-            duration: 1.15,
-            ease: [0.22, 1, 0.36, 1],
-            delay: 0.1,
-          
+          initial={reduce ? false : portraitInitial}
+          animate={reduce ? undefined : portraitAnimate}
+          transition={portraitTransition}
           className="relative w-full h-full flex items-end justify-center"
         >
           <Image
