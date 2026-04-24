@@ -167,12 +167,7 @@ export default function HomepageContent() {
   return (
     <>
       {/* ===== HERO ===== */}
-      <section className="min-h-[92vh] relative overflow-hidden" aria-label="Hero">
-        <div className="absolute inset-0 hidden lg:grid lg:grid-cols-[55%_45%] pointer-events-none" aria-hidden="true">
-          <div className="bg-white" />
-          <div className="bg-surface" />
-        </div>
-        <div className="absolute inset-0 bg-white lg:hidden" aria-hidden="true" />
+      <section className="min-h-[92vh] relative overflow-hidden bg-surface" aria-label="Hero">
         <div className="relative max-w-[75rem] mx-auto grid grid-cols-1 lg:grid-cols-[55%_45%] min-h-[92vh]">
           <motion.div variants={stagger} initial="initial" animate="animate"
             className="flex flex-col justify-center px-6 py-20 lg:py-0 order-2 lg:order-1">
@@ -206,12 +201,12 @@ export default function HomepageContent() {
             </motion.a>
           </motion.div>
           <motion.div initial={heroRightInitial} animate={heroRightAnimate} transition={heroRightTransition}
-            className="relative flex items-center justify-center overflow-hidden min-h-[50vh] lg:min-h-full order-1 lg:order-2">
-            <div className="w-full h-full flex items-end justify-center px-8 pt-12 pb-0">
-              <HeroPhotoNoBg alt={tHero('photoAlt')} />
+            className="relative flex items-end justify-center min-h-[60vh] lg:min-h-full order-1 lg:order-2">
+            <div className="absolute inset-0 flex items-end justify-center px-2 lg:px-4">
+              <HeroPhotoNoBg alt={tHero('photoAlt')} className="max-w-md" />
             </div>
             <motion.div initial={floatingCardInitial} animate={floatingCardAnimate} transition={floatingCardTransition}
-              className="absolute bottom-8 left-4 bg-white rounded-2xl shadow-xl p-5 w-60 border border-border">
+              className="absolute bottom-8 left-4 bg-white rounded-2xl shadow-xl p-5 w-60 border border-border z-20">
               <p className="text-[10px] font-semibold text-muted uppercase tracking-[0.18em] mb-1">{tHero('estimationCardEyebrow')}</p>
               <p className="font-serif text-2xl font-semibold text-foreground mb-0.5">245 000 €</p>
               <p className="text-xs text-muted mb-3">{tHero('estimationCardHint')}</p>
@@ -224,7 +219,7 @@ export default function HomepageContent() {
               </p>
             </motion.div>
             <motion.div initial={badgeInitial} animate={badgeAnimate} transition={badgeTransition}
-              className="absolute top-6 right-4 bg-white rounded-xl shadow-md px-3 py-2 flex items-center gap-2 border border-border">
+              className="absolute top-6 right-4 bg-white rounded-xl shadow-md px-3 py-2 flex items-center gap-2 border border-border z-20">
               <div className="flex gap-0.5">{[1,2,3,4,5].map(i => <Star key={i} size={11} className="text-accent fill-accent" />)}</div>
               <span className="text-xs font-semibold text-foreground">5/5</span>
             </motion.div>

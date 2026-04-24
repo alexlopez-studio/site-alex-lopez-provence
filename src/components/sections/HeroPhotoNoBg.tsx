@@ -15,7 +15,7 @@ type HeroPhotoNoBgProps = {
   className?: string
 }
 
-// Transitions définies en constantes pour éviter les doubles-accolades inline en JSX.
+// Transitions définies en constantes (évite toute double-accolade inline en JSX).
 const shapeTransition = {
   duration: 0.9,
   ease: [0.22, 1, 0.36, 1] as const,
@@ -35,9 +35,9 @@ const portraitTransition = {
 }
 
 const shapeInitial = { opacity: 0, scale: 0.92 }
-const shapeAnimate = { opacity: 0.9, scale: 1.04 }
+const shapeAnimate = { opacity: 0.85, scale: 1.04 }
 const haloInitial = { opacity: 0 }
-const haloAnimate = { opacity: 0.45 }
+const haloAnimate = { opacity: 0.4 }
 const portraitInitial = {
   opacity: 0,
   scale: 0.94,
@@ -60,11 +60,14 @@ const portraitAnimate = {
  *   • blur-to-sharp
  *
  * Parallaxe au scroll :
- *   • halo décoratif derrière (rapide)
- *   • portrait (lent)
- *   → effet de profondeur
+ *   • halo principal (rapide)
+ *   • halo secondaire (rapide)
+ *   • portrait (amplitude visible)
  *
  * Respecte prefers-reduced-motion.
+ *
+ * Le composant remplit sa boîte parente (w-full h-full) — c'est au parent de
+ * fixer la largeur max et la hauteur (ex. `max-w-md h-full`).
  */
 export function HeroPhotoNoBg({
   src = '/alexandre-lopez-no-background.png',
@@ -79,10 +82,10 @@ export function HeroPhotoNoBg({
     offset: ['start end', 'end start'],
   })
 
-  // Parallaxe : portrait lent, halos rapides
-  const portraitY = useTransform(scrollYProgress, [0, 1], ['-4%', '6%'])
-  const shapeY = useTransform(scrollYProgress, [0, 1], ['-14%', '16%'])
-  const shapeScale = useTransform(scrollYProgress, [0, 1], [1.04, 0.9])
+  // Parallaxe : amplitudes augmentées pour être clairement visibles au scroll.
+  const portraitY = useTransform(scrollYProgress, [0, 1], ['-10%', '12%'])
+  const shapeY = useTransform(scrollYProgress, [0, 1], ['-20%', '22%'])
+  const shapeScale = useTransform(scrollYProgress, [0, 1], [1.08, 0.88])
 
   const reduce = !!prefersReducedMotion
 
@@ -91,30 +94,30 @@ export function HeroPhotoNoBg({
       ref={wrapperRef}
       className={'relative w-full h-full flex items-end justify-center ' + className}
     >
-      {/* Halo principal — gradient brand/light */}
+      {/* Halo principal — gradient brand-light derrière le portrait */}
       <motion.div
         aria-hidden="true"
         style={reduce ? undefined : { y: shapeY, scale: shapeScale }}
         initial={reduce ? false : shapeInitial}
         animate={reduce ? undefined : shapeAnimate}
         transition={shapeTransition}
-        className="absolute inset-x-0 bottom-0 mx-auto w-[82%] aspect-square rounded-t-[3rem] rounded-b-[2rem] bg-gradient-to-br from-brand-light via-brand-light/70 to-white blur-2xl pointer-events-none"
+        className="absolute inset-x-0 bottom-0 mx-auto w-[88%] h-[75%] rounded-t-[4rem] rounded-b-[2rem] bg-gradient-to-br from-brand-light via-brand-light/70 to-white blur-2xl pointer-events-none"
       />
 
-      {/* Halo secondaire brand — profondeur */}
+      {/* Halo secondaire — touche de brand color pour la profondeur */}
       <motion.div
         aria-hidden="true"
         style={reduce ? undefined : { y: shapeY }}
         initial={reduce ? false : haloInitial}
         animate={reduce ? undefined : haloAnimate}
         transition={haloTransition}
-        className="absolute top-[18%] right-[10%] w-44 h-44 rounded-full bg-brand/25 blur-3xl pointer-events-none"
+        className="absolute top-[12%] right-[6%] w-52 h-52 rounded-full bg-brand/25 blur-3xl pointer-events-none"
       />
 
-      {/* Wrapper parallaxe lente (translate Y uniquement) */}
+      {/* Parallaxe lente (translate Y) */}
       <motion.div
         style={reduce ? undefined : { y: portraitY }}
-        className="relative z-10 w-full max-w-sm aspect-[3/4] flex items-end justify-center"
+        className="relative z-10 w-full h-full flex items-end justify-center"
       >
         {/* Opening animation: fade + scale + slide-up + blur-to-sharp */}
         <motion.div
@@ -128,7 +131,7 @@ export function HeroPhotoNoBg({
             alt={alt}
             fill
             priority
-            sizes="(min-width: 1024px) 40vw, 90vw"
+            sizes="(min-width: 1024px) 45vw, 90vw"
             className="object-contain object-bottom drop-shadow-[0_24px_60px_rgba(0,99,144,0.28)]"
           />
         </motion.div>
