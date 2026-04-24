@@ -11,6 +11,7 @@ import {
   Send, Phone, TrendingUp, Gift, BarChart2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import HeroPhotoNoBg from '@/components/sections/HeroPhotoNoBg'
 import { appUrl, biensUrl, env } from '@/lib/env'
 import { VP as vpOnce, fadeInUp, scaleIn, stagger, staggerFast } from '@/lib/animations'
 
@@ -66,26 +67,28 @@ const PHONE_RAW = '+33613180168'
 const HERO_PHOTO = '/alexandre-lopez.jpg'
 const COMMUNES_TEASER = ['Barjols', 'Montmeyan', 'Quinson', 'Fox-Amphoux', 'Tavernes', 'Rians', 'Aups', 'Salernes', 'Ginasservis', 'Varages', 'Esparron-de-Verdon', 'Artignosc-sur-Verdon']
 
-// Photos locales (public/) — paysages Provence Verte & Haut-Var
-const PHOTO_LAVANDE = '/geertd-lavende-2287924_1920.jpg'
+// Photos locales (public/) — nouvelles photos authentiques Provence Verte & Haut-Var
+const PHOTO_LAVANDE = '/lavandes-proche.jpg'
 const PHOTO_OLIVIER = '/hans-olive-tree-1595493_1920.jpg'
-const PHOTO_SUD = '/lver-south-4790158_1920.jpg'
-const PHOTO_FRANCE = '/tonic-pics-france-3234611_1920.jpg'
+const PHOTO_VERDON = '/gorges-du-verdon.jpg'
+const PHOTO_VILLAGE = '/village-cotignac.jpg'
+const PHOTO_VIGNES = '/vignobles-var.jpg'
+const PHOTO_MAISON_COTIGNAC = '/maison-bleue-cotignac.jpg'
 
-const ZONE_BACKDROP = PHOTO_SUD
-const POSTCARD_IMAGE = PHOTO_FRANCE
+const ZONE_BACKDROP = PHOTO_VIGNES
+const POSTCARD_IMAGE = PHOTO_VERDON
 
 const DIPTYQUE_LAVANDE = PHOTO_LAVANDE
-const DIPTYQUE_VILLAGE = PHOTO_FRANCE
-const VILLAGE_COTIGNAC = PHOTO_SUD
+const DIPTYQUE_VILLAGE = PHOTO_VILLAGE
+const VILLAGE_COTIGNAC = PHOTO_MAISON_COTIGNAC
 const VILLAGE_BARJOLS = PHOTO_OLIVIER
-const VILLAGE_SILLANS = PHOTO_FRANCE
+const VILLAGE_SILLANS = PHOTO_VILLAGE
 
 const PAYSAGE_SRC = {
   valensole: PHOTO_LAVANDE,
-  villages:  PHOTO_FRANCE,
+  villages:  PHOTO_VILLAGE,
   olives:    PHOTO_OLIVIER,
-  vineyards: PHOTO_SUD,
+  vineyards: PHOTO_VIGNES,
 }
 
 type ForSaleTag = 'new' | 'priceDown'
@@ -205,10 +208,7 @@ export default function HomepageContent() {
           <motion.div initial={heroRightInitial} animate={heroRightAnimate} transition={heroRightTransition}
             className="relative flex items-center justify-center overflow-hidden min-h-[50vh] lg:min-h-full order-1 lg:order-2">
             <div className="w-full h-full flex items-end justify-center px-8 pt-12 pb-0">
-              <div className="relative w-full max-w-sm aspect-[3/4] rounded-t-[3rem] overflow-hidden shadow-[0_20px_60px_rgba(31,91,107,0.18)]">
-                <Image src={HERO_PHOTO} alt={tHero('photoAlt')} fill priority
-                  sizes="(min-width: 1024px) 40vw, 90vw" className="object-cover object-top" />
-              </div>
+              <HeroPhotoNoBg alt={tHero('photoAlt')} />
             </div>
             <motion.div initial={floatingCardInitial} animate={floatingCardAnimate} transition={floatingCardTransition}
               className="absolute bottom-8 left-4 bg-white rounded-2xl shadow-xl p-5 w-60 border border-border">
