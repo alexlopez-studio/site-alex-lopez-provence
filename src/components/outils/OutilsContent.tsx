@@ -29,7 +29,7 @@ export default function OutilsContent() {
 
   const tools = [
     {
-      href: '/vendre',
+      href: '/outils/vendre',
       icon: Home,
       eyebrow: t('sellEyebrow'),
       title: t('sellTitle'),
@@ -38,7 +38,7 @@ export default function OutilsContent() {
       badge: t('sellBadge'),
     },
     {
-      href: '/acheter',
+      href: '/outils/acheter',
       icon: Search,
       eyebrow: t('buyEyebrow'),
       title: t('buyTitle'),
@@ -47,7 +47,7 @@ export default function OutilsContent() {
       badge: t('buyBadge'),
     },
     {
-      href: '/audit',
+      href: '/outils/audit',
       icon: ClipboardCheck,
       eyebrow: t('auditEyebrow'),
       title: t('auditTitle'),
