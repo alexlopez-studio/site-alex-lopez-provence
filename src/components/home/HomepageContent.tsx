@@ -12,7 +12,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import HeroPhotoNoBg from '@/components/sections/HeroPhotoNoBg'
-import { appUrl, biensUrl, env } from '@/lib/env'
+import { biensUrl, env } from '@/lib/env'
 import { VP as vpOnce, fadeInUp, scaleIn, stagger, staggerFast } from '@/lib/animations'
 
 const springFast = { type: 'spring' as const, stiffness: 400, damping: 25 }
@@ -125,7 +125,7 @@ export default function HomepageContent() {
   const tCommon = useTranslations('common')
 
   const phoneDisplay = tCommon('phoneDisplay')
-  const assistantUrl = appUrl('') || '/assistant'
+  const assistantUrl = '/outils'
   const biens = biensUrl()
 
   const PAYSAGES = [
@@ -186,8 +186,7 @@ export default function HomepageContent() {
             <motion.p variants={fadeInUp} className="text-base text-muted leading-relaxed mb-8 max-w-md">{tHero('description')}</motion.p>
             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-3 mb-8">
               <Button asChild size="lg" variant="primary">
-                <Link href={assistantUrl} target={assistantUrl.startsWith('http') ? '_blank' : undefined}
-                  rel={assistantUrl.startsWith('http') ? 'noopener noreferrer' : undefined}>
+                <Link href={assistantUrl}>
                   {tCommon('estimateMyProperty')} <ArrowRight size={18} />
                 </Link>
               </Button>
@@ -411,7 +410,7 @@ export default function HomepageContent() {
             className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {SERVICES.map(service => {
               const Icon = service.icon
-              const href = service.external ? service.href : appUrl(service.href) || service.href
+              const href = service.href
               return (
                 <motion.div key={service.title} variants={fadeInUp} whileHover={hoverCard} whileTap={tapCard} transition={springFast}>
                   <Link href={href} target={service.external ? '_blank' : undefined} rel={service.external ? 'noopener noreferrer' : undefined}
@@ -663,34 +662,4 @@ export default function HomepageContent() {
                 className="w-full px-4 py-3 rounded-xl border border-border bg-white text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-brand transition-colors resize-none" />
             </div>
             <Button type="submit" variant="primary" size="lg" className="w-full">{tContact('formSubmit')} <Send size={16} /></Button>
-            <p className="text-xs text-muted text-center">{tContact('formNote')}</p>
-          </motion.form>
-        </div>
-      </section>
-
-      {/* ===== CTA FINAL ===== */}
-      <motion.section variants={scaleIn} initial="initial" whileInView="animate" viewport={vpOnce}
-        className="py-28 px-6 bg-brand-light">
-        <div className="max-w-2xl mx-auto text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">{tCta('eyebrow')}</p>
-          <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl font-medium text-foreground mb-6 leading-[1.05] tracking-[-0.02em]">
-            {tCta('titlePart1')} <span className="italic text-brand">{tCta('titleAccent')}</span>
-          </h2>
-          <p className="text-muted mb-8 leading-relaxed text-lg">{tCta('description')}</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" variant="primary">
-              <Link href={assistantUrl} target={assistantUrl.startsWith('http') ? '_blank' : undefined}
-                rel={assistantUrl.startsWith('http') ? 'noopener noreferrer' : undefined}>
-                {tCommon('estimateMyProperty')} <ArrowRight size={18} />
-              </Link>
-            </Button>
-            <a href={'tel:' + PHONE_RAW}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-border bg-white text-sm font-semibold text-foreground hover:border-brand hover:text-brand transition-colors">
-              <Phone size={15} />{phoneDisplay}
-            </a>
-          </div>
-        </div>
-      </motion.section>
-    </>
-  )
-}
+            <p className="text-xs text

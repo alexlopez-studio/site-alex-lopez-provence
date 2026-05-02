@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Phone, Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { appUrl } from '@/lib/env'
 import { LocaleSwitcher } from './LocaleSwitcher'
 
 const PHONE_RAW = '+33613180168'
@@ -15,13 +14,14 @@ export function Header() {
   const tCommon = useTranslations('common')
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
-  const assistantUrl = appUrl('') || '/assistant'
+  const assistantUrl = '/outils'
   const phoneDisplay = tCommon('phoneDisplay')
 
   const NAV_LINKS = [
+    { label: t('navTools'), href: '/outils', highlight: true },
     { label: t('navSell'), href: '/vendre' },
     { label: t('navBuy'), href: '/acheter' },
-    { label: t('navAudit'), href: '/audit', highlight: true },
+    { label: t('navAudit'), href: '/audit' },
     { label: t('navApproach'), href: '/a-propos' },
     { label: t('navBlog'), href: '/blog' },
     { label: t('navContact'), href: '/contact' },
@@ -90,10 +90,7 @@ export function Header() {
           </a>
           <LocaleSwitcher />
           <Button asChild size="sm" variant="primary">
-            <Link
-              href={assistantUrl}
-              target={assistantUrl.startsWith('http') ? '_blank' : undefined}
-              rel={assistantUrl.startsWith('http') ? 'noopener noreferrer' : undefined}>
+            <Link href={assistantUrl}>
               {t('ctaEstimate')}
             </Link>
           </Button>
@@ -126,7 +123,7 @@ export function Header() {
                   {link.label}
                   {link.highlight && (
                     <span className="ml-2 text-[10px] font-bold uppercase tracking-wide bg-brand-light text-brand px-2 py-0.5 rounded-full">
-                      {t('navAuditBadge')}
+                      {t('navToolsBadge')}
                     </span>
                   )}
                 </Link>
@@ -139,11 +136,7 @@ export function Header() {
                 {phoneDisplay}
               </a>
               <Button asChild size="default" variant="primary" className="w-full">
-                <Link
-                  href={assistantUrl}
-                  target={assistantUrl.startsWith('http') ? '_blank' : undefined}
-                  rel={assistantUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
-                  onClick={function () { setMenuOpen(false) }}>
+                <Link href={assistantUrl} onClick={function () { setMenuOpen(false) }}>
                   {t('ctaEstimate')}
                 </Link>
               </Button>
