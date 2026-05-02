@@ -201,9 +201,9 @@ export default function HomepageContent() {
             </motion.a>
           </motion.div>
           <motion.div initial={heroRightInitial} animate={heroRightAnimate} transition={heroRightTransition}
-            className="relative flex items-end justify-center min-h-[60vh] lg:min-h-full order-1 lg:order-2">
-            <div className="absolute inset-0 flex items-end justify-center px-2 lg:px-4">
-              <HeroPhotoNoBg alt={tHero('photoAlt')} className="max-w-md" />
+            className="relative flex items-center justify-center min-h-[60vh] lg:min-h-full order-1 lg:order-2">
+            <div className="absolute inset-0 flex items-center justify-center px-2 lg:px-4">
+              <HeroPhotoNoBg alt={tHero('photoAlt')} className="max-w-md lg:max-w-lg xl:max-w-xl 2xl:max-w-2xl" />
             </div>
             <motion.div initial={floatingCardInitial} animate={floatingCardAnimate} transition={floatingCardTransition}
               className="absolute bottom-8 left-4 bg-white rounded-2xl shadow-xl p-5 w-60 border border-border z-20">

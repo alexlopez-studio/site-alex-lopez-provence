@@ -10,7 +10,7 @@ import Link from 'next/link'
 import { Cards, RecapConfirm, SuggestionItem } from '@/components/forms/FormCards'
 
 const B = '#0077B6', BL = '#E0F0FA', FG = '#0F172A', M = '#64748B', BD = '#E2E8F0', SF = '#F8FAFC', WH = '#ffffff'
-const MW = '680px', FN = 'var(--font-plus-jakarta-sans, system-ui, sans-serif)'
+const MW = '680px', FN = 'var(--font-inter, system-ui, sans-serif)'
 
 const page: CSSProperties = { minHeight: '100vh', background: SF, fontFamily: FN }
 const navSt: CSSProperties = { position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, background: WH, borderBottom: '1px solid ' + BD }
@@ -20,6 +20,7 @@ const navR: CSSProperties = { display: 'flex', alignItems: 'center', gap: 12 }
 const avSt: CSSProperties = { width: 36, height: 36, borderRadius: 999, background: B, color: WH, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, flexShrink: 0 }
 const nnSt: CSSProperties = { fontSize: 14, fontWeight: 700, color: FG }
 const nsSt: CSSProperties = { fontSize: 11, color: M }
+const toolPillSt: CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, color: B, background: BL, padding: '2px 8px', borderRadius: 999, letterSpacing: '0.06em', textTransform: 'uppercase', marginTop: 2 }
 const bkSt: CSSProperties = { display: 'flex', alignItems: 'center', fontSize: 12, fontWeight: 600, color: M, textDecoration: 'none' }
 const phSt: CSSProperties = { display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: FG, textDecoration: 'none' }
 const rbSt: CSSProperties = { display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 500, color: M, background: 'transparent', border: '1px solid ' + BD, borderRadius: 999, padding: '5px 10px', cursor: 'pointer' }
@@ -231,7 +232,10 @@ export default function AuditPage() {
           <div style={navL}>
             <Link href="/" style={bkSt}><ChevronLeft size={14} /></Link>
             <Avatar />
-            <div><div style={nnSt}>Alex Lopez</div><div style={nsSt}>Mandataire IAD \u2014 Provence Verte</div></div>
+            <div>
+              <div style={nnSt}>Alex Lopez</div>
+              <span style={toolPillSt}><span>\ud83d\udccb</span> Audit immobilier</span>
+            </div>
           </div>
           <div style={navR}>
             <button style={rbSt} onClick={() => reset()}><RotateCcw size={12} /> Recommencer</button>
