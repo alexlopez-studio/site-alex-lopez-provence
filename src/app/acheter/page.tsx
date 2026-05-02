@@ -26,10 +26,13 @@ export default async function AcheterPage() {
       }
     }),
   }
+  const jsonLdHtml = JSON.stringify(jsonLd)
   return (
     <>
-      <script type="application/ld+json"
-        dangerouslySetInnerHTML= __html: JSON.stringify(jsonLd)  />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML= __html: jsonLdHtml 
+      />
       <EditorialPage namespace="acheter" simulatorHref="/outils/acheter" />
     </>
   )
