@@ -15,16 +15,18 @@ export const env = {
 } as const
 
 /**
- * Construit une URL vers l'app SaaS (app.alexlopez-provence.fr).
- * - Retourne '' si NEXT_PUBLIC_APP_URL n'est pas configuré : l'appelant decide du fallback.
- * - path '' retourne la racine de l'app (sans slash final).
+ * Résolution d'URL pour les outils interactifs (estimation / projet d'achat / audit).
+ *
+ * Historiquement, ces outils vivaient sur l'app SaaS (app.alexlopez-provence.fr) et
+ * cette fonction construisait une URL absolue vers cette app via NEXT_PUBLIC_APP_URL.
+ *
+ * Désormais, tous les outils sont intégrés directement au site (route /outils + /vendre /acheter /audit).
+ * On retourne donc le path relatif tel quel, et '/outils' (le hub) pour un appel sans path.
+ * Les appelants existants comme `appUrl(href) || href` ou `appUrl('') || '/assistant'`
+ * continuent de fonctionner et pointent maintenant vers le site lui-même.
  */
 export function appUrl(path: string = ''): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? ''
-  if (!base) return ''
-  const trimmed = base.replace(/\/$/, '')
-  if (!path) return trimmed
-  return trimmed + (path.startsWith('/') ? path : '/' + path)
+  return path || '/outils'
 }
 
 /**
