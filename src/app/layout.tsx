@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Plus_Jakarta_Sans, Fraunces, Allura } from 'next/font/google'
+import { Inter, Allura } from 'next/font/google'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages } from 'next-intl/server'
 import './globals.css'
@@ -8,19 +8,11 @@ import { Footer } from '@/components/layout/Footer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { LOCALE_META, type Locale } from '@/i18n/config'
 
-const plusJakartaSans = Plus_Jakarta_Sans({
+const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-plus-jakarta-sans',
+  variable: '--font-inter',
   display: 'swap',
   weight: ['300', '400', '500', '600', '700', '800'],
-})
-
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  variable: '--font-fraunces',
-  display: 'swap',
-  weight: ['400', '500', '600', '700'],
-  style: ['normal', 'italic'],
 })
 
 /**
@@ -63,7 +55,7 @@ export default async function RootLayout({
   const htmlLang = LOCALE_META[locale]?.htmlLang || 'fr-FR'
 
   return (
-    <html lang={htmlLang} className={plusJakartaSans.variable + ' ' + fraunces.variable + ' ' + buffalo.variable}>
+    <html lang={htmlLang} className={inter.variable + ' ' + buffalo.variable}>
       <body className="font-sans antialiased">
         <NextIntlClientProvider locale={locale} messages={messages}>
           <Header />

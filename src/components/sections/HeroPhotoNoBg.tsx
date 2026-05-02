@@ -15,7 +15,6 @@ type HeroPhotoNoBgProps = {
   className?: string
 }
 
-// Transitions définies en constantes (évite toute double-accolade inline en JSX).
 const shapeTransition = {
   duration: 0.9,
   ease: [0.22, 1, 0.36, 1] as const,
@@ -53,21 +52,8 @@ const portraitAnimate = {
 
 /**
  * Portrait détouré pour le hero.
- *
- * Effets à l'ouverture :
- *   • fade-in + scale doux
- *   • slide-up
- *   • blur-to-sharp
- *
- * Parallaxe au scroll :
- *   • halo principal (rapide)
- *   • halo secondaire (rapide)
- *   • portrait (amplitude visible)
- *
- * Respecte prefers-reduced-motion.
- *
- * Le composant remplit sa boîte parente (w-full h-full) — c'est au parent de
- * fixer la largeur max et la hauteur (ex. `max-w-md h-full`).
+ * Photo centrée verticalement dans son wrapper (object-center + items-center)
+ * pour mieux remplir le hero sur grandes résolutions.
  */
 export function HeroPhotoNoBg({
   src = '/alexandre-lopez-no-background.png',
@@ -82,7 +68,6 @@ export function HeroPhotoNoBg({
     offset: ['start end', 'end start'],
   })
 
-  // Parallaxe : amplitudes augmentées pour être clairement visibles au scroll.
   const portraitY = useTransform(scrollYProgress, [0, 1], ['-10%', '12%'])
   const shapeY = useTransform(scrollYProgress, [0, 1], ['-20%', '22%'])
   const shapeScale = useTransform(scrollYProgress, [0, 1], [1.08, 0.88])
@@ -92,7 +77,7 @@ export function HeroPhotoNoBg({
   return (
     <div
       ref={wrapperRef}
-      className={'relative w-full h-full flex items-end justify-center ' + className}
+      className={'relative w-full h-full flex items-center justify-center ' + className}
     >
       {/* Halo principal — gradient brand-light derrière le portrait */}
       <motion.div
@@ -117,14 +102,14 @@ export function HeroPhotoNoBg({
       {/* Parallaxe lente (translate Y) */}
       <motion.div
         style={reduce ? undefined : { y: portraitY }}
-        className="relative z-10 w-full h-full flex items-end justify-center"
+        className="relative z-10 w-full h-full flex items-center justify-center"
       >
         {/* Opening animation: fade + scale + slide-up + blur-to-sharp */}
         <motion.div
           initial={reduce ? false : portraitInitial}
           animate={reduce ? undefined : portraitAnimate}
           transition={portraitTransition}
-          className="relative w-full h-full flex items-end justify-center"
+          className="relative w-full h-full flex items-center justify-center"
         >
           <Image
             src={src}
@@ -132,7 +117,7 @@ export function HeroPhotoNoBg({
             fill
             priority
             sizes="(min-width: 1024px) 45vw, 90vw"
-            className="object-contain object-bottom drop-shadow-[0_24px_60px_rgba(0,99,144,0.28)]"
+            className="object-contain object-center drop-shadow-[0_24px_60px_rgba(0,99,144,0.28)]"
           />
         </motion.div>
       </motion.div>
