@@ -73,18 +73,18 @@ function mRw(a: boolean): CSSProperties { return { display: 'flex', alignItems: 
 
 const STEPS = [
   { n: 1, label: 'Projet', qs: ['type_bien', 'communes', 'budget_max', 'surface_min', 'nb_pieces_min'] },
-  { n: 2, label: 'Crit\u00e8res', qs: ['criteres'] },
+  { n: 2, label: 'Crit\ères', qs: ['criteres'] },
   { n: 3, label: 'Budget', qs: ['apport', 'accord_bancaire', 'primo_accedant', 'recapitulatif'] },
   { n: 4, label: 'Contact', qs: ['coordonnees', 'done'] },
 ]
 const TYPE_BIEN = [
-  { value: 'appartement', label: 'Appartement', emoji: '\ud83c\udfe2' },
-  { value: 'maison', label: 'Maison', emoji: '\ud83c\udfe0' },
-  { value: 'terrain', label: 'Terrain', emoji: '\ud83c\udf3f' },
-  { value: 'commerce', label: 'Commerce', emoji: '\ud83c\udfea' },
-  { value: 'autre', label: 'Autre', emoji: '\u00b7\u00b7\u00b7' },
+  { value: 'appartement', label: 'Appartement', emoji: '\�\�' },
+  { value: 'maison', label: 'Maison', emoji: '\�\�' },
+  { value: 'terrain', label: 'Terrain', emoji: '\�\�' },
+  { value: 'commerce', label: 'Commerce', emoji: '\�\�' },
+  { value: 'autre', label: 'Autre', emoji: '\·\·\·' },
 ]
-const CRITERES = ['Rez-de-chauss\u00e9e accept\u00e9', 'Parking indispensable', 'Ext\u00e9rieur indispensable', 'Travaux accept\u00e9s']
+const CRITERES = ['Rez-de-chauss\ée accept\é', 'Parking indispensable', 'Ext\érieur indispensable', 'Travaux accept\és']
 const BIEN_LBL: Record<string, string> = { appartement: 'Appartement', maison: 'Maison', terrain: 'Terrain', commerce: 'Commerce', autre: 'Autre' }
 
 function getNext(q: AcheterQuestionId): AcheterQuestionId {
@@ -95,32 +95,32 @@ function getNext(q: AcheterQuestionId): AcheterQuestionId {
 function fmt(n: number) { return new Intl.NumberFormat('fr-FR').format(n) }
 
 function buildRecap(a: AcheterAnswers): string {
-  const lines = ['Tr\u00e8s bien, r\u00e9capitulons votre projet\u00a0!', '']
-  lines.push('\ud83c\udfe0 ' + (BIEN_LBL[a.type_bien ?? ''] ?? 'Bien'))
-  if (a.communes) lines.push('\ud83d\udccd ' + a.communes)
-  if (a.budget_max) lines.push('\ud83d\udcb0 Budget max\u00a0: ' + fmt(a.budget_max) + ' \u20ac')
-  if (a.surface_min) lines.push('\ud83d\udcd0 Surface min\u00a0: ' + a.surface_min + ' m\u00b2')
-  if (a.nb_pieces_min) lines.push('\ud83d\udeaa ' + a.nb_pieces_min + ' pi\u00e8ce' + (Number(a.nb_pieces_min) > 1 ? 's' : '') + ' min')
-  if (a.criteres?.length) lines.push('\u2705 ' + a.criteres.join(', '))
-  if (a.apport != null) lines.push('\ud83c\udfe6 Apport\u00a0: ' + fmt(a.apport) + ' \u20ac')
-  if (a.accord_bancaire) lines.push('\ud83d\udccb Accord bancaire\u00a0: ' + a.accord_bancaire)
-  if (a.primo_accedant) lines.push('\ud83c\udfe1 Primo-acc\u00e9dant\u00a0: ' + a.primo_accedant)
-  lines.push('', 'Ces informations sont-elles correctes\u00a0?')
+  const lines = ['Tr\ès bien, r\écapitulons votre projet\ !', '']
+  lines.push('\�\� ' + (BIEN_LBL[a.type_bien ?? ''] ?? 'Bien'))
+  if (a.communes) lines.push('\�\� ' + a.communes)
+  if (a.budget_max) lines.push('\�\� Budget max\ : ' + fmt(a.budget_max) + ' \€')
+  if (a.surface_min) lines.push('\�\� Surface min\ : ' + a.surface_min + ' m\²')
+  if (a.nb_pieces_min) lines.push('\�\� ' + a.nb_pieces_min + ' pi\èce' + (Number(a.nb_pieces_min) > 1 ? 's' : '') + ' min')
+  if (a.criteres?.length) lines.push('\✅ ' + a.criteres.join(', '))
+  if (a.apport != null) lines.push('\�\� Apport\ : ' + fmt(a.apport) + ' \€')
+  if (a.accord_bancaire) lines.push('\�\� Accord bancaire\ : ' + a.accord_bancaire)
+  if (a.primo_accedant) lines.push('\�\� Primo-acc\édant\ : ' + a.primo_accedant)
+  lines.push('', 'Ces informations sont-elles correctes\ ?')
   return lines.join('\n')
 }
 
 function getMsg(q: AcheterQuestionId, a: AcheterAnswers): string {
   switch (q) {
-    case 'communes': return 'Dans quelle(s) commune(s) de Provence Verte & Haut-Var souhaitez-vous acheter\u00a0?'
-    case 'budget_max': return 'Quel est votre budget maximum\u00a0?'
-    case 'surface_min': return 'Quelle surface minimum recherchez-vous\u00a0?'
-    case 'nb_pieces_min': return 'Combien de pi\u00e8ces minimum\u00a0?'
-    case 'criteres': return 'Quels sont vos crit\u00e8res importants\u00a0?\n(S\u00e9lectionnez ceux qui comptent pour vous)'
-    case 'apport': return 'Passons au financement. Quel est votre apport disponible\u00a0?'
-    case 'accord_bancaire': return 'Avez-vous un accord de principe bancaire\u00a0?'
-    case 'primo_accedant': return '\u00cates-vous primo-acc\u00e9dant\u00a0?'
+    case 'communes': return 'Dans quelle(s) commune(s) de Provence Verte & Haut-Var souhaitez-vous acheter\ ?'
+    case 'budget_max': return 'Quel est votre budget maximum\ ?'
+    case 'surface_min': return 'Quelle surface minimum recherchez-vous\ ?'
+    case 'nb_pieces_min': return 'Combien de pi\èces minimum\ ?'
+    case 'criteres': return 'Quels sont vos crit\ères importants\ ?\n(S\électionnez ceux qui comptent pour vous)'
+    case 'apport': return 'Passons au financement. Quel est votre apport disponible\ ?'
+    case 'accord_bancaire': return 'Avez-vous un accord de principe bancaire\ ?'
+    case 'primo_accedant': return '\Êtes-vous primo-acc\édant\ ?'
     case 'recapitulatif': return buildRecap(a)
-    case 'coordonnees': return "Parfait\u00a0! Pour finaliser, j'ai besoin de vos coordonn\u00e9es."
+    case 'coordonnees': return "Parfait\ ! Pour finaliser, j'ai besoin de vos coordonn\ées."
     default: return ''
   }
 }
@@ -189,7 +189,7 @@ export default function AcheterPage() {
             <Avatar />
             <div>
               <div style={nnSt}>Alex Lopez</div>
-              <span style={toolPillSt}><span>\ud83d\udd0d</span> Trouver un bien</span>
+              <span style={toolPillSt}><span>\�\�</span> Trouver un bien</span>
             </div>
           </div>
           <div style={navR}>
@@ -220,16 +220,16 @@ function InputZone({ q, a, onAnswer, onSubmit }: {
   onSubmit: (p: string, n: string, t: string, e: string, c: 'monsieur' | 'madame') => void
 }) {
   if (q === 'type_bien') return <Cards opts={TYPE_BIEN} cols={2} onPick={(v, l) => onAnswer('type_bien', v, l)} />
-  if (q === 'communes') return <TextInput placeholder="Ex\u00a0: Brignoles, Cotignac, Barjols..." onSend={v => onAnswer('communes', v, v)} />
-  if (q === 'budget_max') return <SliderInput unit="\u20ac" min={50000} max={2000000} def={300000} step={10000} format={fmt} onOk={v => onAnswer('budget_max', v, fmt(v) + ' \u20ac')} />
-  if (q === 'surface_min') return <SliderInput unit="m\u00b2" min={20} max={500} def={80} step={5} onOk={v => onAnswer('surface_min', v, v + ' m\u00b2')} />
-  if (q === 'nb_pieces_min') return <Cards opts={['1','2','3','4','5','6+'].map(n => ({ value: n, label: n, emoji: '' }))} cols={3} onPick={(v, l) => onAnswer('nb_pieces_min', parseInt(v) || 6, l + ' pi\u00e8ce' + (parseInt(v) !== 1 ? 's' : ''))} />
-  if (q === 'criteres') return <MultiSel opts={CRITERES} onOk={sel => onAnswer('criteres', sel, sel.length ? sel.join(', ') : 'Aucun crit\u00e8re particulier')} />
-  if (q === 'apport') return <SliderInput unit="\u20ac" min={0} max={500000} def={30000} step={5000} format={fmt} onOk={v => onAnswer('apport', v, fmt(v) + ' \u20ac')} />
+  if (q === 'communes') return <TextInput placeholder="Ex\ : Brignoles, Cotignac, Barjols..." onSend={v => onAnswer('communes', v, v)} />
+  if (q === 'budget_max') return <SliderInput unit="\€" min={50000} max={2000000} def={300000} step={10000} format={fmt} onOk={v => onAnswer('budget_max', v, fmt(v) + ' \€')} />
+  if (q === 'surface_min') return <SliderInput unit="m\²" min={20} max={500} def={80} step={5} onOk={v => onAnswer('surface_min', v, v + ' m\²')} />
+  if (q === 'nb_pieces_min') return <Cards opts={['1','2','3','4','5','6+'].map(n => ({ value: n, label: n, emoji: '' }))} cols={3} onPick={(v, l) => onAnswer('nb_pieces_min', parseInt(v) || 6, l + ' pi\èce' + (parseInt(v) !== 1 ? 's' : ''))} />
+  if (q === 'criteres') return <MultiSel opts={CRITERES} onOk={sel => onAnswer('criteres', sel, sel.length ? sel.join(', ') : 'Aucun crit\ère particulier')} />
+  if (q === 'apport') return <SliderInput unit="\€" min={0} max={500000} def={30000} step={5000} format={fmt} onOk={v => onAnswer('apport', v, fmt(v) + ' \€')} />
   if (q === 'accord_bancaire') return <YesNo onPick={(v, l) => onAnswer('accord_bancaire', v, l)} />
   if (q === 'primo_accedant') return <YesNo onPick={(v, l) => onAnswer('primo_accedant', v, l)} />
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (q === 'recapitulatif') return <RecapConfirm onOk={() => onAnswer('recapitulatif' as any, true as any, "C'est correct \u2705")} />
+  if (q === 'recapitulatif') return <RecapConfirm onOk={() => onAnswer('recapitulatif' as any, true as any, "C'est correct \✅")} />
   if (q === 'coordonnees') return <Coordonnees onSubmit={onSubmit} />
   return null
 }
@@ -279,8 +279,8 @@ function MultiSel({ opts, onOk }: { opts: string[]; onOk: (sel: string[]) => voi
 function YesNo({ onPick }: { onPick: (v: string, l: string) => void }) {
   return (
     <div style={_g2}>
-      <div style={cardS(false)} onClick={() => onPick('Oui', 'Oui \u2705')}><span style={_emo}>\u2705</span><span>Oui</span></div>
-      <div style={cardS(false)} onClick={() => onPick('Non', 'Non')}><span style={_emo}>\u274c</span><span>Non</span></div>
+      <div style={cardS(false)} onClick={() => onPick('Oui', 'Oui \✅')}><span style={_emo}>\✅</span><span>Oui</span></div>
+      <div style={cardS(false)} onClick={() => onPick('Non', 'Non')}><span style={_emo}>\❌</span><span>Non</span></div>
     </div>
   )
 }
@@ -292,22 +292,22 @@ function Coordonnees({ onSubmit }: { onSubmit: (p: string, n: string, t: string,
   const ok = p.trim() && n.trim() && t.trim() && em.includes('@') && rg
   return (
     <div style={cWr}>
-      <div style={cH}><div style={cBdg}>\ud83d\udccb</div><div><div style={cT}>Vos coordonn\u00e9es</div><div style={cSb}>Pour recevoir vos r\u00e9sultats</div></div></div>
+      <div style={cH}><div style={cBdg}>\�\�</div><div><div style={cT}>Vos coordonn\ées</div><div style={cSb}>Pour recevoir vos r\ésultats</div></div></div>
       <div style={cG}>
         <button style={civS(civ === 'monsieur')} onClick={() => setCiv('monsieur')}>M.</button>
         <button style={civS(civ === 'madame')} onClick={() => setCiv('madame')}>Mme</button>
       </div>
       <div style={cG}>
-        <input style={inF} placeholder="Pr\u00e9nom" value={p} onChange={e => setP(e.target.value)} />
+        <input style={inF} placeholder="Pr\énom" value={p} onChange={e => setP(e.target.value)} />
         <input style={inF} placeholder="Nom" value={n} onChange={e => setN(e.target.value)} />
       </div>
       <input style={inF} type="tel" placeholder="06 XX XX XX XX" value={t} onChange={e => setT(e.target.value)} />
       <input style={inF} type="email" placeholder="votre@email.com" value={em} onChange={e => setEm(e.target.value)} />
       <div style={rgS(rg)} onClick={() => setRg(!rg)}>
         <div style={rgBx(rg)}>{rg && <Check size={12} color={WH} />}</div>
-        <span style={rgTx}>J&apos;accepte d&apos;\u00eatre recontact\u00e9 par Alex Lopez, conseiller immobilier, concernant mon projet immobilier</span>
+        <span style={rgTx}>J&apos;accepte d&apos;\être recontact\é par Alex Lopez, conseiller immobilier, concernant mon projet immobilier</span>
       </div>
-      <button style={ok ? vBtn : vOff} onClick={() => ok && onSubmit(p, n, t, em, civ)} disabled={!ok}><Send size={14} /> Recevoir mes r\u00e9sultats</button>
+      <button style={ok ? vBtn : vOff} onClick={() => ok && onSubmit(p, n, t, em, civ)} disabled={!ok}><Send size={14} /> Recevoir mes r\ésultats</button>
     </div>
   )
 }

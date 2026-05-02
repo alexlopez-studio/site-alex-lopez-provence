@@ -155,7 +155,7 @@ function rgpdBoxSt(active: boolean): CSSProperties {
 
 const STEPS = [
   { n: 1, label: 'Bien', qs: ['adresse', 'type_bien', 'sous_type_maison', 'surface', 'surface_terrain', 'nb_pieces'] },
-  { n: 2, label: 'Détails', qs: ['etat', 'equipements'] },
+  { n: 2, label: 'Détails', qs: ['etat', 'dpe', 'equipements'] },
   { n: 3, label: 'Projet', qs: ['delai', 'recapitulatif'] },
   { n: 4, label: 'Contact', qs: ['coordonnees', 'done'] },
 ]
@@ -191,9 +191,9 @@ function ConfirmModal({ onCancel, onConfirm }: { onCancel: () => void; onConfirm
   return (
     <div style={overlayStyle} onClick={onCancel}>
       <div style={modalCard} onClick={(e) => e.stopPropagation()}>
-        <div style={modalIcon}>{'\u267b\ufe0f'}</div>
-        <div style={modalTitle}>{'Recommencer depuis le d\u00e9but\u00a0?'}</div>
-        <div style={modalSub}>{'Votre progression actuelle sera effac\u00e9e.'}</div>
+        <div style={modalIcon}>{'\♻\️'}</div>
+        <div style={modalTitle}>{'Recommencer depuis le d\ébut\ ?'}</div>
+        <div style={modalSub}>{'Votre progression actuelle sera effac\ée.'}</div>
         <div style={modalBtns}>
           <button style={modalBtnCancel} onClick={onCancel}>Annuler</button>
           <button style={modalBtnConfirm} onClick={onConfirm}>Recommencer</button>
@@ -204,31 +204,41 @@ function ConfirmModal({ onCancel, onConfirm }: { onCancel: () => void; onConfirm
 }
 
 const TYPE_BIEN = [
-  { value: 'appartement', label: 'Appartement', emoji: '\ud83c\udfe2' },
-  { value: 'maison', label: 'Maison', emoji: '\ud83c\udfe0' },
-  { value: 'terrain', label: 'Terrain', emoji: '\ud83c\udf3f' },
-  { value: 'commerce', label: 'Commerce', emoji: '\ud83c\udfea' },
-  { value: 'immeuble', label: 'Immeuble', emoji: '\ud83c\udfd7\ufe0f' },
-  { value: 'autre', label: 'Autre', emoji: '\u00b7\u00b7\u00b7' },
+  { value: 'appartement', label: 'Appartement', emoji: '\�\�' },
+  { value: 'maison', label: 'Maison', emoji: '\�\�' },
+  { value: 'terrain', label: 'Terrain', emoji: '\�\�' },
+  { value: 'commerce', label: 'Commerce', emoji: '\�\�' },
+  { value: 'immeuble', label: 'Immeuble', emoji: '\�\�\️' },
+  { value: 'autre', label: 'Autre', emoji: '\·\·\·' },
 ]
 const ETAT = [
-  { value: 'neuf', label: 'Neuf / r\u00e9cent', emoji: '\ud83c\udfc6' },
-  { value: 'tres_bon_etat', label: 'Tr\u00e8s bon \u00e9tat', emoji: '\u2728' },
-  { value: 'bon_etat', label: 'Bon \u00e9tat', emoji: '\ud83d\udc4d' },
-  { value: 'rafraichir', label: '\u00c0 rafra\u00eechir', emoji: '\ud83d\udd8c\ufe0f' },
-  { value: 'travaux', label: 'Travaux importants', emoji: '\ud83d\udd28' },
+  { value: 'neuf', label: 'Neuf / r\écent', emoji: '\�\�' },
+  { value: 'tres_bon_etat', label: 'Tr\ès bon \état', emoji: '\✨' },
+  { value: 'bon_etat', label: 'Bon \état', emoji: '\�\�' },
+  { value: 'rafraichir', label: '\À rafra\îchir', emoji: '\�\�\️' },
+  { value: 'travaux', label: 'Travaux importants', emoji: '\�\�' },
+]
+const DPE_OPTIONS = [
+  { value: 'A', label: 'A', emoji: '\⚡' },
+  { value: 'B', label: 'B', emoji: '\⚡' },
+  { value: 'C', label: 'C', emoji: '\⚡' },
+  { value: 'D', label: 'D', emoji: '\⚡' },
+  { value: 'E', label: 'E', emoji: '\⚡' },
+  { value: 'F', label: 'F', emoji: '\⚡' },
+  { value: 'G', label: 'G', emoji: '\⚡' },
+  { value: 'nc', label: 'Non connu', emoji: '\❓' },
 ]
 const DELAI = [
-  { value: 'immediat', label: 'Imm\u00e9diat', emoji: '\ud83d\udd25' },
-  { value: '1_3_mois', label: '1\u00a0-\u00a03 mois', emoji: '\ud83d\udcc5' },
-  { value: '3_6_mois', label: '3\u00a0-\u00a06 mois', emoji: '\ud83d\uddd3\ufe0f' },
-  { value: '6_mois', label: '+6 mois', emoji: '\u23f3' },
-  { value: 'pas_decide', label: 'Pas d\u00e9cid\u00e9', emoji: '\ud83e\udd14' },
+  { value: 'immediat', label: 'Imm\édiat', emoji: '\�\�' },
+  { value: '1_3_mois', label: '1\ -\ 3 mois', emoji: '\�\�' },
+  { value: '3_6_mois', label: '3\ -\ 6 mois', emoji: '\�\�\️' },
+  { value: '6_mois', label: '+6 mois', emoji: '\⏳' },
+  { value: 'pas_decide', label: 'Pas d\écid\é', emoji: '\�\�' },
 ]
 const EQUIPEMENTS = ['Balcon', 'Terrasse', 'Parking', 'Garage', 'Cave', 'Jardin', 'Vue exceptionnelle', 'Piscine']
 const BIEN_LBL: Record<string, string> = { appartement: 'Appartement', maison: 'Maison', terrain: 'Terrain', commerce: 'Commerce', immeuble: 'Immeuble', autre: 'Autre' }
-const ETAT_LBL: Record<string, string> = { neuf: 'Neuf / r\u00e9cent', tres_bon_etat: 'Tr\u00e8s bon \u00e9tat', bon_etat: 'Bon \u00e9tat', rafraichir: '\u00c0 rafra\u00eechir', travaux: 'Travaux importants' }
-const DELAI_LBL: Record<string, string> = { immediat: 'Imm\u00e9diat', '1_3_mois': '1\u00a0\u2013\u00a03 mois', '3_6_mois': '3\u00a0\u2013\u00a06 mois', '6_mois': '+6 mois', pas_decide: 'Pas d\u00e9cid\u00e9' }
+const ETAT_LBL: Record<string, string> = { neuf: 'Neuf / r\écent', tres_bon_etat: 'Tr\ès bon \état', bon_etat: 'Bon \état', rafraichir: '\À rafra\îchir', travaux: 'Travaux importants' }
+const DELAI_LBL: Record<string, string> = { immediat: 'Imm\édiat', '1_3_mois': '1\ \–\ 3 mois', '3_6_mois': '3\ \–\ 6 mois', '6_mois': '+6 mois', pas_decide: 'Pas d\écid\é' }
 
 function getNext(q: QuestionId, a: VendreAnswers): QuestionId {
   switch (q) {
@@ -238,7 +248,8 @@ function getNext(q: QuestionId, a: VendreAnswers): QuestionId {
     case 'surface': return a.type_bien === 'maison' ? 'surface_terrain' : 'nb_pieces'
     case 'surface_terrain': return 'nb_pieces'
     case 'nb_pieces': return 'etat'
-    case 'etat': return 'equipements'
+    case 'etat': return 'dpe'
+    case 'dpe': return 'equipements'
     case 'equipements': return 'delai'
     case 'delai': return 'recapitulatif'
     case 'recapitulatif': return 'coordonnees'
@@ -246,33 +257,46 @@ function getNext(q: QuestionId, a: VendreAnswers): QuestionId {
   }
 }
 
+const DPE_LBL: Record<string, string> = {
+  A: 'A (⚡ Très économe)',
+  B: 'B (⚡ Économe)',
+  C: 'C (⚡ Correct)',
+  D: 'D (⚡ Moyen)',
+  E: 'E (⚡ À améliorer)',
+  F: 'F (⚡ Énergivore)',
+  G: 'G (⚡ Très énergivore)',
+  nc: 'Non connu',
+}
+
 function buildRecap(a: VendreAnswers): string {
   const tl = BIEN_LBL[a.type_bien ?? ''] ?? a.type_bien ?? 'Bien'
   let desc = tl
-  if (a.surface) desc += ' de ' + a.surface + 'm\u00b2'
-  if (a.nb_pieces) desc += ', ' + a.nb_pieces + ' pi\u00e8ce' + (Number(a.nb_pieces) > 1 ? 's' : '')
-  if (a.surface_terrain) desc += ', terrain ' + a.surface_terrain + 'm\u00b2'
+  if (a.surface) desc += ' de ' + a.surface + 'm\²'
+  if (a.nb_pieces) desc += ', ' + a.nb_pieces + ' pi\èce' + (Number(a.nb_pieces) > 1 ? 's' : '')
+  if (a.surface_terrain) desc += ', terrain ' + a.surface_terrain + 'm\²'
   if (a.equipements?.length) desc += ' + ' + a.equipements.join(', ')
-  const lines = ['Tr\u00e8s bien, r\u00e9capitulons votre bien\u00a0!', '', '\ud83c\udfe1 ' + desc]
-  if (a.adresse) lines.push('\ud83d\udccd ' + a.adresse)
-  if (a.etat) lines.push('\ud83d\udd27 ' + (ETAT_LBL[a.etat] ?? a.etat))
-  if (a.delai) lines.push('\ud83d\uddd3 Vente\u00a0: ' + (DELAI_LBL[a.delai] ?? a.delai))
-  lines.push('', 'Ces informations sont-elles correctes\u00a0?')
+  const lines = ['Tr\ès bien, r\écapitulons votre bien\ !', '', '\�\� ' + desc]
+  if (a.adresse) lines.push('\�\� ' + a.adresse)
+  if (a.etat) lines.push('\�\� ' + (ETAT_LBL[a.etat] ?? a.etat))
+  if (a.dpe) lines.push('\⚡ DPE\ : ' + (DPE_LBL[a.dpe] ?? a.dpe))
+  if (a.delai) lines.push('\�\� Vente\ : ' + (DELAI_LBL[a.delai] ?? a.delai))
+  lines.push('', 'Ces informations sont-elles correctes\ ?')
   return lines.join('\n')
 }
 
 function getMsg(q: QuestionId, a: VendreAnswers): string {
   if (q === 'recapitulatif') return buildRecap(a)
   switch (q) {
-    case 'type_bien': return 'Parfait\u00a0! Quel type de bien souhaitez-vous faire estimer\u00a0?'
-    case 'sous_type_maison': return 'Tr\u00e8s bien\u00a0! S\'agit-il d\'une maison mitoyenne ou individuelle\u00a0?'
-    case 'surface': return 'Parfait\u00a0! Quelle est la surface habitable de votre bien\u00a0?'
-    case 'surface_terrain': return 'C\'est not\u00e9\u00a0! Quelle est la superficie totale du terrain\u00a0?'
-    case 'nb_pieces': return 'C\'est not\u00e9\u00a0! Combien de pi\u00e8ces principales compte votre bien\u00a0?\n(S\u00e9jour + chambres, sans cuisine, salle de bain et WC)'
-    case 'etat': return 'Compris\u00a0! Quel est l\'\u00e9tat g\u00e9n\u00e9ral de votre bien\u00a0?'
-    case 'equipements': return 'Tr\u00e8s bien\u00a0! Quels \u00e9quipements poss\u00e8de votre bien\u00a0?'
-    case 'delai': return 'Compris\u00a0! Dans quel d\u00e9lai souhaitez-vous vendre\u00a0?'
-    case 'coordonnees': return 'Parfait\u00a0! Pour finaliser votre estimation, j\'ai besoin de vos coordonn\u00e9es.'
+    case 'type_bien': return 'Parfait\ ! Quel type de bien souhaitez-vous faire estimer\ ?'
+    case 'sous_type_maison': return 'Tr\ès bien\ ! S\'agit-il d\'une maison mitoyenne ou individuelle\ ?'
+    case 'surface': return 'Parfait\ ! Quelle est la surface habitable de votre bien\ ?'
+    case 'surface_terrain': return 'C\'est not\é\ ! Quelle est la superficie totale du terrain\ ?'
+    case 'nb_pieces': return 'C\'est not\é\ ! Combien de pi\èces principales compte votre bien\ ?\n(S\éjour + chambres, sans cuisine, salle de bain et WC)'
+    case 'etat': return 'Compris\ ! Quel est l\'\état g\én\éral de votre bien\ ?'
+    case 'dpe': return 'Merci\ ! Quelle est la lettre de votre DPE (Diagnostic de Performance \Énerg\étique)\ ?\nSi vous ne le connaissez pas, s\électionnez "Non connu".'
+    case 'equipements': return 'Tr\ès bien\ ! Quels \équipements poss\ède votre bien\ ?'
+    case 'delai': return 'Compris\ ! Dans quel d\élai souhaitez-vous vendre\ ?'
+    case 'coordonnees': return 'Parfait\ ! Pour finaliser votre estimation, j\'ai besoin de vos coordonn\ées.'
     default: return ''
   }
 }
@@ -346,7 +370,7 @@ export default function VendrePage() {
             <Avatar />
             <div>
               <div style={navNameSt}>Alex Lopez</div>
-              <span style={toolPillSt}><span>\ud83c\udfe1</span> Estimer mon bien</span>
+              <span style={toolPillSt}><span>\�\�</span> Estimer mon bien</span>
             </div>
           </div>
           <div style={navRightSt}>
@@ -384,14 +408,15 @@ function InputZone(props: {
   const { question, answers, onAnswer, onFinalSubmit, onRestart, onAlMessage } = props
   if (question === 'adresse') return <AdresseInput onAnswer={onAnswer} onAlMessage={onAlMessage} />
   if (question === 'type_bien') return <Cards options={TYPE_BIEN} cols={2} onSelect={(v, l) => onAnswer('type_bien', v, l)} />
-  if (question === 'sous_type_maison') return <Cards options={[{ value: 'mitoyenne', label: 'Mitoyenne', emoji: '\ud83c\udfd8\ufe0f' }, { value: 'individuelle', label: 'Individuelle', emoji: '\ud83c\udfe0' }]} cols={2} onSelect={(v, l) => onAnswer('sous_type', v, l)} />
-  if (question === 'surface') return <Slider unit="m\u00b2" min={5} max={1000} def={80} onValidate={(v) => onAnswer('surface', v, v + ' m\u00b2')} />
-  if (question === 'surface_terrain') return <Slider unit="m\u00b2" min={50} max={5000} def={500} onValidate={(v) => onAnswer('surface_terrain', v, v + ' m\u00b2')} />
-  if (question === 'nb_pieces') return <Cards options={['1','2','3','4','5','6+'].map((n) => ({ value: n, label: n, emoji: '' }))} cols={3} onSelect={(v, l) => onAnswer('nb_pieces', parseInt(v) || 6, l + (parseInt(v) > 1 ? ' pi\u00e8ces' : ' pi\u00e8ce'))} />
+  if (question === 'sous_type_maison') return <Cards options={[{ value: 'mitoyenne', label: 'Mitoyenne', emoji: '\�\�\️' }, { value: 'individuelle', label: 'Individuelle', emoji: '\�\�' }]} cols={2} onSelect={(v, l) => onAnswer('sous_type', v, l)} />
+  if (question === 'surface') return <Slider unit="m\²" min={5} max={1000} def={80} onValidate={(v) => onAnswer('surface', v, v + ' m\²')} />
+  if (question === 'surface_terrain') return <Slider unit="m\²" min={50} max={5000} def={500} onValidate={(v) => onAnswer('surface_terrain', v, v + ' m\²')} />
+  if (question === 'nb_pieces') return <Cards options={['1','2','3','4','5','6+'].map((n) => ({ value: n, label: n, emoji: '' }))} cols={3} onSelect={(v, l) => onAnswer('nb_pieces', parseInt(v) || 6, l + (parseInt(v) > 1 ? ' pi\èces' : ' pi\èce'))} />
   if (question === 'etat') return <Cards options={ETAT} cols={2} onSelect={(v, l) => onAnswer('etat', v, l)} />
-  if (question === 'equipements') return <MultiSelect options={EQUIPEMENTS} onValidate={(sel) => onAnswer('equipements', sel, sel.length ? sel.join(', ') : 'Aucun \u00e9quipement')} />
+  if (question === 'dpe') return <Cards options={DPE_OPTIONS} cols={4} onSelect={(v, l) => onAnswer('dpe', v, v === 'nc' ? 'DPE non connu' : 'DPE ' + v)} />
+  if (question === 'equipements') return <MultiSelect options={EQUIPEMENTS} onValidate={(sel) => onAnswer('equipements', sel, sel.length ? sel.join(', ') : 'Aucun \équipement')} />
   if (question === 'delai') return <Cards options={DELAI} cols={2} onSelect={(v, l) => onAnswer('delai', v, l)} />
-  if (question === 'recapitulatif') return <RecapInput onConfirm={() => onAnswer('recapitulatif' as keyof VendreAnswers, true, "C'est correct \u2705")} onRestart={onRestart} />
+  if (question === 'recapitulatif') return <RecapInput onConfirm={() => onAnswer('recapitulatif' as keyof VendreAnswers, true, "C'est correct \✅")} onRestart={onRestart} />
   if (question === 'coordonnees') return <Coordonnees answers={answers} onFinalSubmit={onFinalSubmit} />
   return null
 }
@@ -439,12 +464,12 @@ function AdresseInput({ onAnswer, onAlMessage }: {
     onAnswer('lng', selected.lng, '')
     onAnswer('adresse', selected.label, selected.label)
     if (currentInfos.dpe || currentInfos.parcelle) {
-      const lines = ["Voici ce que j'ai trouv\u00e9 pour cette adresse\u00a0:"]
-      if (currentInfos.dpe) lines.push('\u26a1 DPE\u00a0: ' + currentInfos.dpe.lettre + ' (v\u00e9rifi\u00e9 ADEME)')
+      const lines = ["Voici ce que j'ai trouv\é pour cette adresse\ :"]
+      if (currentInfos.dpe) lines.push('\⚡ DPE\ : ' + currentInfos.dpe.lettre + ' (v\érifi\é ADEME)')
       if (currentInfos.parcelle) {
-        let p = '\ud83d\uddfa\ufe0f Parcelle\u00a0: ' + currentInfos.parcelle.id
-        if (currentInfos.parcelle.commune) p += ' \u00b7 ' + currentInfos.parcelle.commune
-        if (currentInfos.parcelle.surface) p += ' \u00b7 ' + currentInfos.parcelle.surface + ' m\u00b2'
+        let p = '\�\�\️ Parcelle\ : ' + currentInfos.parcelle.id
+        if (currentInfos.parcelle.commune) p += ' \· ' + currentInfos.parcelle.commune
+        if (currentInfos.parcelle.surface) p += ' \· ' + currentInfos.parcelle.surface + ' m\²'
         lines.push(p)
       }
       setTimeout(() => onAlMessage(lines.join('\n')), 50)
@@ -462,7 +487,7 @@ function AdresseInput({ onAnswer, onAlMessage }: {
   return (
     <div>
       <div style={inputRow}>
-        <input style={inputSt} type="text" placeholder="Ex\u00a0: 12 rue de la Paix, Cotignac" value={val} onChange={onChange} onKeyDown={(e) => e.key === 'Enter' && submit()} autoFocus autoComplete="off" />
+        <input style={inputSt} type="text" placeholder="Ex\ : 12 rue de la Paix, Cotignac" value={val} onChange={onChange} onKeyDown={(e) => e.key === 'Enter' && submit()} autoFocus autoComplete="off" />
         {!selected && <button style={sendBtnSt} onClick={submit}><Send size={16} color={white} /></button>}
       </div>
       {suggestions.length > 0 && (
@@ -475,16 +500,16 @@ function AdresseInput({ onAnswer, onAlMessage }: {
         </div>
       )}
       {loading && <p style={loadingSt}>Recherche en cours...</p>}
-      {fetching && <p style={loadingSt}>V\u00e9rification des donn\u00e9es officielles...</p>}
+      {fetching && <p style={loadingSt}>V\érification des donn\ées officielles...</p>}
       {selected && !fetching && (
         <div>
           {infos.dpe && (
-            <div style={infoCardGray}><Zap size={15} color={brand} /><span style={infoTxt}>DPE\u00a0: <strong>{infos.dpe.lettre}</strong></span><span style={dpeBadgeSt}>V\u00e9rifi\u00e9 ADEME</span></div>
+            <div style={infoCardGray}><Zap size={15} color={brand} /><span style={infoTxt}>DPE\ : <strong>{infos.dpe.lettre}</strong></span><span style={dpeBadgeSt}>V\érifi\é ADEME</span></div>
           )}
           {infos.parcelle && (
             <div style={infoCardYellow}>
               <Map size={15} color="#ca8a04" />
-              <span style={infoTxt}>Parcelle <strong>{infos.parcelle.id}</strong>{infos.parcelle.commune ? ' \u00b7 ' + infos.parcelle.commune : ''}{infos.parcelle.surface ? ' \u00b7 ' + infos.parcelle.surface + ' m\u00b2' : ''}</span>
+              <span style={infoTxt}>Parcelle <strong>{infos.parcelle.id}</strong>{infos.parcelle.commune ? ' \· ' + infos.parcelle.commune : ''}{infos.parcelle.surface ? ' \· ' + infos.parcelle.surface + ' m\²' : ''}</span>
               <span style={ignBadgeSt}>IGN</span>
             </div>
           )}
@@ -533,7 +558,7 @@ function MultiSelect({ options, onValidate }: { options: string[]; onValidate: (
         })}
       </div>
       <button style={validateBtn} onClick={() => onValidate(sel)}>
-        {sel.length === 0 ? 'Aucun \u00e9quipement' : `Valider (${sel.length} s\u00e9lectionn\u00e9${sel.length > 1 ? 's' : ''})`} <Send size={14} />
+        {sel.length === 0 ? 'Aucun \équipement' : `Valider (${sel.length} s\électionn\é${sel.length > 1 ? 's' : ''})`} <Send size={14} />
       </button>
     </div>
   )
@@ -542,7 +567,7 @@ function MultiSelect({ options, onValidate }: { options: string[]; onValidate: (
 function RecapInput({ onConfirm, onRestart }: { onConfirm: () => void; onRestart: () => void }) {
   return (
     <div style={recapGrid}>
-      <button style={recapBtnOk} onClick={onConfirm}><span style={emojiSt}>\u2705</span><span>C\'est correct</span></button>
+      <button style={recapBtnOk} onClick={onConfirm}><span style={emojiSt}>\✅</span><span>C\'est correct</span></button>
       <button style={recapBtnEdit} onClick={onRestart}><Edit3 size={20} color={muted} /><span>Je veux modifier</span></button>
     </div>
   )
@@ -567,23 +592,23 @@ function Coordonnees({ answers, onFinalSubmit }: { answers: VendreAnswers; onFin
   return (
     <div style={coordWrap}>
       <div style={coordHdr}>
-        <div style={coordBadge}>\u2728</div>
-        <div><div style={coordTitle}>Derni\u00e8re \u00e9tape\u00a0!</div><div style={coordSub}>Recevez votre estimation personnalis\u00e9e</div></div>
+        <div style={coordBadge}>\✨</div>
+        <div><div style={coordTitle}>Derni\ère \étape\ !</div><div style={coordSub}>Recevez votre estimation personnalis\ée</div></div>
       </div>
       <div style={civilRow}>
         <button style={civilBtnSt(civilite === 'monsieur')} onClick={() => setCiv('monsieur')}>Monsieur</button>
         <button style={civilBtnSt(civilite === 'madame')} onClick={() => setCiv('madame')}>Madame</button>
       </div>
       <div style={coordGrid}>
-        <input style={inputFull} placeholder="Pr\u00e9nom *" value={prenom} onChange={(e) => setPrenom(e.target.value)} />
+        <input style={inputFull} placeholder="Pr\énom *" value={prenom} onChange={(e) => setPrenom(e.target.value)} />
         <input style={inputFull} placeholder="Nom *" value={nom} onChange={(e) => setNom(e.target.value)} />
       </div>
       <input style={inputFull} type="email" placeholder="Email *" value={email} onChange={(e) => setEmail(e.target.value)} />
-      <input style={inputFull} type="tel" placeholder="T\u00e9l\u00e9phone *" value={tel} onChange={(e) => setTel(e.target.value)} />
+      <input style={inputFull} type="tel" placeholder="T\él\éphone *" value={tel} onChange={(e) => setTel(e.target.value)} />
       <div style={rgpdRowSt(rgpd, showErr && !rgpd)} onClick={() => { setRgpd(!rgpd); setShowErr(false) }}>
         <div style={rgpdBoxSt(rgpd)}>{rgpd && <Check size={11} color={white} strokeWidth={3} />}</div>
         <div>
-          <span style={rgpdTxt}><strong>J\'accepte</strong>{' que mes donn\u00e9es soient transmises \u00e0 Alex Lopez pour \u00eatre recontact\u00e9(e). '}<span style={rgpdLinkSt}>Politique de confidentialit\u00e9</span></span>
+          <span style={rgpdTxt}><strong>J\'accepte</strong>{' que mes donn\ées soient transmises \à Alex Lopez pour \être recontact\é(e). '}<span style={rgpdLinkSt}>Politique de confidentialit\é</span></span>
           {showErr && !rgpd && <div style={rgpdErrTxt}>Requis pour continuer</div>}
         </div>
       </div>
@@ -592,7 +617,7 @@ function Coordonnees({ answers, onFinalSubmit }: { answers: VendreAnswers; onFin
   )
 }
 
-const CALCUL_STEPS = ['Recherche des ventes r\u00e9centes...', 'Analyse du march\u00e9 local', 'Calcul de votre estimation']
+const CALCUL_STEPS = ['Recherche des ventes r\écentes...', 'Analyse du march\é local', 'Calcul de votre estimation']
 
 function CalculLoading({ onComplete }: { onComplete: () => void }) {
   const [activeStep, setActiveStep] = useState(0)
@@ -607,9 +632,9 @@ function CalculLoading({ onComplete }: { onComplete: () => void }) {
   }, [])
   return (
     <div style={calculPage}>
-      <div style={calculIcon}>\ud83c\udfe0</div>
+      <div style={calculIcon}>\�\�</div>
       <div style={calculTitle}>Calcul de votre estimation</div>
-      <div style={calculSub}>Analyse des ventes r\u00e9centes dans votre secteur</div>
+      <div style={calculSub}>Analyse des ventes r\écentes dans votre secteur</div>
       <div style={calculSteps}>
         {CALCUL_STEPS.map((step, i) => {
           const done = i < activeStep; const active = i === activeStep
@@ -632,22 +657,22 @@ function VerificationDonnees({ userSurface, cadastreSurface, onComplete }: { use
     <div style={verifPage}>
       <header style={verifNav}><div style={avatarSt}>AL</div><div style={navNameSt}>Alex Lopez</div></header>
       <div style={verifWrap}>
-        <div style={verifIconSt}>\ud83d\udee1\ufe0f</div>
-        <div style={verifTitle}>V\u00e9rification des informations</div>
-        <div style={verifSub}>Nous avons r\u00e9cup\u00e9r\u00e9 des donn\u00e9es officielles qui diff\u00e8rent de vos informations.</div>
+        <div style={verifIconSt}>\�\�\️</div>
+        <div style={verifTitle}>V\érification des informations</div>
+        <div style={verifSub}>Nous avons r\écup\ér\é des donn\ées officielles qui diff\èrent de vos informations.</div>
         <div style={verifCard}>
           <div style={verifCardTitle}>Surface terrain</div>
           <div style={chosen === 'user' ? verifRadioOn : verifRadioOff} onClick={() => setChosen('user')}>
             <div style={chosen === 'user' ? verifDotOn : verifDot} />
-            <span style={verifTxtSt}>Vos informations\u00a0: {userSurface} m\u00b2</span>
+            <span style={verifTxtSt}>Vos informations\ : {userSurface} m\²</span>
           </div>
           <div style={chosen === 'cadastre' ? verifRadioOn : verifRadioOff} onClick={() => setChosen('cadastre')}>
             <div style={chosen === 'cadastre' ? verifDotOn : verifDot} />
-            <span style={verifTxtSt}>Cadastre IGN\u00a0: {cadastreSurface} m\u00b2</span>
-            <div style={verifBadge}>Recommand\u00e9</div>
+            <span style={verifTxtSt}>Cadastre IGN\ : {cadastreSurface} m\²</span>
+            <div style={verifBadge}>Recommand\é</div>
           </div>
         </div>
-        <div style={verifNote}>Les donn\u00e9es officielles sont g\u00e9n\u00e9ralement plus pr\u00e9cises.</div>
+        <div style={verifNote}>Les donn\ées officielles sont g\én\éralement plus pr\écises.</div>
         <button style={validateBtn} onClick={() => onComplete(chosen === 'cadastre' ? cadastreSurface : userSurface)}>
           Valider et voir mon estimation <Send size={14} />
         </button>

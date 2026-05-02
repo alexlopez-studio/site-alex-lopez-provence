@@ -26,7 +26,7 @@ function now() { return new Date().toLocaleTimeString('fr-FR', { hour: '2-digit'
 
 const INIT: ChatMessage[] = [{
   id: '1', from: 'al',
-  text: "Bonjour\u00a0! Je suis Alex Lopez, votre conseiller immobilier en Provence Verte & Haut-Var.\n\nJe vais vous aider \u00e0 d\u00e9finir votre projet d'achat pour trouver le bien id\u00e9al.\n\nQuel type de bien recherchez-vous\u00a0?",
+  text: "Bonjour\ ! Je suis Alex Lopez, votre conseiller immobilier en Provence Verte & Haut-Var.\n\nJe vais vous aider \à d\éfinir votre projet d'achat pour trouver le bien id\éal.\n\nQuel type de bien recherchez-vous\ ?",
   timestamp: now(),
 }]
 

@@ -49,7 +49,7 @@ export async function pushLeadToAttio(params: AttioLeadParams): Promise<string |
             parent_object: 'people',
             parent_record_id: recordId,
             title: `Dossier ${params.type} — Alex Lopez Provence`,
-            content: `Type\u00a0: ${params.type}\nDossier admin\u00a0: ${adminUrl}`,
+            content: `Type\ : ${params.type}\nDossier admin\ : ${adminUrl}`,
           },
         }),
       }).catch(() => null)

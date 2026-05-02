@@ -75,46 +75,46 @@ function mRw(a: boolean): CSSProperties { return { display: 'flex', alignItems: 
 
 const STEPS = [
   { n: 1, label: 'Bien', qs: ['adresse', 'type_bien', 'surface'] },
-  { n: 2, label: '\u00c9tat', qs: ['etat_toiture', 'etat_facade', 'etat_menuiseries', 'etat_plomberie', 'etat_electricite', 'humidite', 'isolation', 'chauffage', 'dpe'] },
+  { n: 2, label: '\État', qs: ['etat_toiture', 'etat_facade', 'etat_menuiseries', 'etat_plomberie', 'etat_electricite', 'humidite', 'isolation', 'chauffage', 'dpe'] },
   { n: 3, label: 'Profil', qs: ['qualite', 'objectif', 'recapitulatif'] },
   { n: 4, label: 'Contact', qs: ['coordonnees', 'done'] },
 ]
 const TYPE_BIEN = [
-  { value: 'appartement', label: 'Appartement', emoji: '\ud83c\udfe2' },
-  { value: 'maison', label: 'Maison', emoji: '\ud83c\udfe0' },
-  { value: 'terrain', label: 'Terrain', emoji: '\ud83c\udf3f' },
-  { value: 'autre', label: 'Autre', emoji: '\u00b7\u00b7\u00b7' },
+  { value: 'appartement', label: 'Appartement', emoji: '\�\�' },
+  { value: 'maison', label: 'Maison', emoji: '\�\�' },
+  { value: 'terrain', label: 'Terrain', emoji: '\�\�' },
+  { value: 'autre', label: 'Autre', emoji: '\·\·\·' },
 ]
 const ETAT_OPTS = [
-  { value: 'bon', label: 'Bon \u00e9tat', emoji: '\u2705' },
-  { value: 'moyen', label: 'Moyen', emoji: '\u26a0\ufe0f' },
-  { value: 'mauvais', label: 'Mauvais', emoji: '\u274c' },
-  { value: 'nc', label: 'Ne sais pas', emoji: '\u2753' },
+  { value: 'bon', label: 'Bon \état', emoji: '\✅' },
+  { value: 'moyen', label: 'Moyen', emoji: '\⚠\️' },
+  { value: 'mauvais', label: 'Mauvais', emoji: '\❌' },
+  { value: 'nc', label: 'Ne sais pas', emoji: '\❓' },
 ]
-const ISOLATION_OPTS = ['Murs isol\u00e9s', 'Combles isol\u00e9s', 'Double vitrage']
+const ISOLATION_OPTS = ['Murs isol\és', 'Combles isol\és', 'Double vitrage']
 const CHAUFFAGE_OPTS = [
-  { value: 'electrique', label: '\u00c9lectrique', emoji: '\u26a1' },
-  { value: 'gaz', label: 'Gaz', emoji: '\ud83d\udd25' },
-  { value: 'fioul', label: 'Fioul', emoji: '\ud83d\udee2\ufe0f' },
-  { value: 'bois', label: 'Bois', emoji: '\ud83e\udeb5' },
-  { value: 'pac', label: 'Pompe \u00e0 chaleur', emoji: '\u2744\ufe0f' },
-  { value: 'autre', label: 'Autre', emoji: '\u00b7\u00b7\u00b7' },
+  { value: 'electrique', label: '\Électrique', emoji: '\⚡' },
+  { value: 'gaz', label: 'Gaz', emoji: '\�\�' },
+  { value: 'fioul', label: 'Fioul', emoji: '\�\�\️' },
+  { value: 'bois', label: 'Bois', emoji: '\�\�' },
+  { value: 'pac', label: 'Pompe \à chaleur', emoji: '\❄\️' },
+  { value: 'autre', label: 'Autre', emoji: '\·\·\·' },
 ]
 const DPE_OPTS = ['A', 'B', 'C', 'D', 'E', 'F', 'G'].map(l => ({ value: l, label: l, emoji: '' }))
 const QUALITE_OPTS = [
-  { value: 'proprietaire', label: 'Propri\u00e9taire', emoji: '\ud83c\udfe0' },
-  { value: 'acheteur', label: 'Acheteur potentiel', emoji: '\ud83d\udd0d' },
+  { value: 'proprietaire', label: 'Propri\étaire', emoji: '\�\�' },
+  { value: 'acheteur', label: 'Acheteur potentiel', emoji: '\�\�' },
 ]
 const OBJECTIF_OPTS = [
-  { value: 'vente', label: 'Vente', emoji: '\ud83d\udcb0' },
-  { value: 'achat', label: 'Achat', emoji: '\ud83c\udfe1' },
-  { value: 'renovation', label: 'R\u00e9novation', emoji: '\ud83d\udd28' },
-  { value: 'energie', label: '\u00c9nergie', emoji: '\u26a1' },
+  { value: 'vente', label: 'Vente', emoji: '\�\�' },
+  { value: 'achat', label: 'Achat', emoji: '\�\�' },
+  { value: 'renovation', label: 'R\énovation', emoji: '\�\�' },
+  { value: 'energie', label: '\Énergie', emoji: '\⚡' },
 ]
 const BIEN_LBL: Record<string, string> = { appartement: 'Appartement', maison: 'Maison', terrain: 'Terrain', autre: 'Autre' }
 const ETAT_LBL: Record<string, string> = { bon: 'Bon', moyen: 'Moyen', mauvais: 'Mauvais', nc: 'N/C' }
-const CHAUFF_LBL: Record<string, string> = { electrique: '\u00c9lectrique', gaz: 'Gaz', fioul: 'Fioul', bois: 'Bois', pac: 'PAC', autre: 'Autre' }
-const OBJ_LBL: Record<string, string> = { vente: 'Vente', achat: 'Achat', renovation: 'R\u00e9novation', energie: '\u00c9nergie' }
+const CHAUFF_LBL: Record<string, string> = { electrique: '\Électrique', gaz: 'Gaz', fioul: 'Fioul', bois: 'Bois', pac: 'PAC', autre: 'Autre' }
+const OBJ_LBL: Record<string, string> = { vente: 'Vente', achat: 'Achat', renovation: 'R\énovation', energie: '\Énergie' }
 
 function getNext(q: AuditQuestionId): AuditQuestionId {
   const f: Record<string, AuditQuestionId> = {
@@ -130,43 +130,43 @@ function getNext(q: AuditQuestionId): AuditQuestionId {
 
 function getMsg(q: AuditQuestionId, a: AuditAnswers): string {
   switch (q) {
-    case 'type_bien': return 'Quel type de bien\u00a0?'
-    case 'surface': return 'Quelle est la surface habitable\u00a0?'
-    case 'etat_toiture': return 'Passons \u00e0 l\u2019\u00e9tat du bien. Comment est la toiture\u00a0?'
-    case 'etat_facade': return 'Et la fa\u00e7ade\u00a0?'
-    case 'etat_menuiseries': return 'Les menuiseries (portes, fen\u00eatres)\u00a0?'
-    case 'etat_plomberie': return 'La plomberie\u00a0?'
-    case 'etat_electricite': return 'L\u2019installation \u00e9lectrique\u00a0?'
-    case 'humidite': return 'Constatez-vous des probl\u00e8mes d\u2019humidit\u00e9 ou de moisissures\u00a0?'
-    case 'isolation': return 'Quels \u00e9l\u00e9ments d\u2019isolation sont pr\u00e9sents\u00a0?'
-    case 'chauffage': return 'Quel type de chauffage\u00a0?'
-    case 'dpe': return 'Quel est le DPE actuel du bien\u00a0?\n(Si vous ne le connaissez pas, choisissez le plus proche)'
-    case 'qualite': return 'Vous \u00eates\u00a0:'
-    case 'objectif': return 'Quel est l\u2019objectif de cet audit\u00a0?'
+    case 'type_bien': return 'Quel type de bien\ ?'
+    case 'surface': return 'Quelle est la surface habitable\ ?'
+    case 'etat_toiture': return 'Passons \à l\’\état du bien. Comment est la toiture\ ?'
+    case 'etat_facade': return 'Et la fa\çade\ ?'
+    case 'etat_menuiseries': return 'Les menuiseries (portes, fen\êtres)\ ?'
+    case 'etat_plomberie': return 'La plomberie\ ?'
+    case 'etat_electricite': return 'L\’installation \électrique\ ?'
+    case 'humidite': return 'Constatez-vous des probl\èmes d\’humidit\é ou de moisissures\ ?'
+    case 'isolation': return 'Quels \él\éments d\’isolation sont pr\ésents\ ?'
+    case 'chauffage': return 'Quel type de chauffage\ ?'
+    case 'dpe': return 'Quel est le DPE actuel du bien\ ?\n(Si vous ne le connaissez pas, choisissez le plus proche)'
+    case 'qualite': return 'Vous \êtes\ :'
+    case 'objectif': return 'Quel est l\’objectif de cet audit\ ?'
     case 'recapitulatif': return buildRecap(a)
-    case 'coordonnees': return "Parfait\u00a0! Pour recevoir votre score d'audit et les recommandations, j'ai besoin de vos coordonn\u00e9es."
+    case 'coordonnees': return "Parfait\ ! Pour recevoir votre score d'audit et les recommandations, j'ai besoin de vos coordonn\ées."
     default: return ''
   }
 }
 
 function buildRecap(a: AuditAnswers): string {
-  const lines = ['Voici le r\u00e9capitulatif de votre audit\u00a0!', '']
-  lines.push('\ud83c\udfe0 ' + (BIEN_LBL[a.type_bien ?? ''] ?? 'Bien'))
-  if (a.adresse) lines.push('\ud83d\udccd ' + a.adresse)
-  if (a.surface) lines.push('\ud83d\udcd0 ' + a.surface + ' m\u00b2')
+  const lines = ['Voici le r\écapitulatif de votre audit\ !', '']
+  lines.push('\�\� ' + (BIEN_LBL[a.type_bien ?? ''] ?? 'Bien'))
+  if (a.adresse) lines.push('\�\� ' + a.adresse)
+  if (a.surface) lines.push('\�\� ' + a.surface + ' m\²')
   const etats = ['toiture', 'facade', 'menuiseries', 'plomberie', 'electricite']
-  const eLabels = ['Toiture', 'Fa\u00e7ade', 'Menuiseries', 'Plomberie', '\u00c9lectricit\u00e9']
+  const eLabels = ['Toiture', 'Fa\çade', 'Menuiseries', 'Plomberie', '\Électricit\é']
   etats.forEach((e, i) => {
     const val = a[('etat_' + e) as keyof AuditAnswers] as string | undefined
-    if (val) lines.push('\ud83d\udd27 ' + eLabels[i] + '\u00a0: ' + (ETAT_LBL[val] ?? val))
+    if (val) lines.push('\�\� ' + eLabels[i] + '\ : ' + (ETAT_LBL[val] ?? val))
   })
-  if (a.humidite) lines.push('\ud83d\udca7 Humidit\u00e9\u00a0: ' + a.humidite)
-  if (a.isolation?.length) lines.push('\ud83e\uddf1 Isolation\u00a0: ' + a.isolation.join(', '))
-  if (a.type_chauffage) lines.push('\ud83d\udd25 Chauffage\u00a0: ' + (CHAUFF_LBL[a.type_chauffage] ?? a.type_chauffage))
-  if (a.dpe) lines.push('\u26a1 DPE\u00a0: ' + a.dpe)
-  if (a.qualite) lines.push('\ud83d\udc64 ' + (a.qualite === 'proprietaire' ? 'Propri\u00e9taire' : 'Acheteur potentiel'))
-  if (a.objectif) lines.push('\ud83c\udfaf Objectif\u00a0: ' + (OBJ_LBL[a.objectif] ?? a.objectif))
-  lines.push('', 'Ces informations sont-elles correctes\u00a0?')
+  if (a.humidite) lines.push('\�\� Humidit\é\ : ' + a.humidite)
+  if (a.isolation?.length) lines.push('\�\� Isolation\ : ' + a.isolation.join(', '))
+  if (a.type_chauffage) lines.push('\�\� Chauffage\ : ' + (CHAUFF_LBL[a.type_chauffage] ?? a.type_chauffage))
+  if (a.dpe) lines.push('\⚡ DPE\ : ' + a.dpe)
+  if (a.qualite) lines.push('\�\� ' + (a.qualite === 'proprietaire' ? 'Propri\étaire' : 'Acheteur potentiel'))
+  if (a.objectif) lines.push('\�\� Objectif\ : ' + (OBJ_LBL[a.objectif] ?? a.objectif))
+  lines.push('', 'Ces informations sont-elles correctes\ ?')
   return lines.join('\n')
 }
 
@@ -234,7 +234,7 @@ export default function AuditPage() {
             <Avatar />
             <div>
               <div style={nnSt}>Alex Lopez</div>
-              <span style={toolPillSt}><span>\ud83d\udccb</span> Audit immobilier</span>
+              <span style={toolPillSt}><span>\�\�</span> Audit immobilier</span>
             </div>
           </div>
           <div style={navR}>
@@ -266,7 +266,7 @@ function InputZone({ q, a, onAnswer, onSubmit }: {
 }) {
   if (q === 'adresse') return <AdresseInput onAnswer={onAnswer} />
   if (q === 'type_bien') return <Cards opts={TYPE_BIEN} cols={2} onPick={(v, l) => onAnswer('type_bien', v, l)} />
-  if (q === 'surface') return <SliderInput unit="m\u00b2" min={10} max={1000} def={100} step={5} onOk={v => onAnswer('surface', v, v + ' m\u00b2')} />
+  if (q === 'surface') return <SliderInput unit="m\²" min={10} max={1000} def={100} step={5} onOk={v => onAnswer('surface', v, v + ' m\²')} />
   if (q === 'etat_toiture') return <Cards opts={ETAT_OPTS} cols={2} onPick={(v, l) => onAnswer('etat_toiture', v, l)} />
   if (q === 'etat_facade') return <Cards opts={ETAT_OPTS} cols={2} onPick={(v, l) => onAnswer('etat_facade', v, l)} />
   if (q === 'etat_menuiseries') return <Cards opts={ETAT_OPTS} cols={2} onPick={(v, l) => onAnswer('etat_menuiseries', v, l)} />
@@ -279,7 +279,7 @@ function InputZone({ q, a, onAnswer, onSubmit }: {
   if (q === 'qualite') return <Cards opts={QUALITE_OPTS} cols={2} onPick={(v, l) => onAnswer('qualite', v, l)} />
   if (q === 'objectif') return <Cards opts={OBJECTIF_OPTS} cols={2} onPick={(v, l) => onAnswer('objectif', v, l)} />
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (q === 'recapitulatif') return <RecapConfirm onOk={() => onAnswer('recapitulatif' as any, true as any, "C'est correct \u2705")} />
+  if (q === 'recapitulatif') return <RecapConfirm onOk={() => onAnswer('recapitulatif' as any, true as any, "C'est correct \✅")} />
   if (q === 'coordonnees') return <Coordonnees onSubmit={onSubmit} />
   return null
 }
@@ -322,7 +322,7 @@ function AdresseInput({ onAnswer }: { onAnswer: (k: keyof AuditAnswers, v: Audit
   return (
     <div>
       <div style={_ir}>
-        <input style={_inpR} placeholder="Ex\u00a0: 12 rue de la Paix, Cotignac" value={val} onChange={onChange} onKeyDown={e => e.key === 'Enter' && send()} autoFocus autoComplete="off" />
+        <input style={_inpR} placeholder="Ex\ : 12 rue de la Paix, Cotignac" value={val} onChange={onChange} onKeyDown={e => e.key === 'Enter' && send()} autoFocus autoComplete="off" />
         <button style={_sendBtn} onClick={send}><Send size={16} color={WH} /></button>
       </div>
       {sugs.length > 0 && (
@@ -371,8 +371,8 @@ function MultiSel({ opts, onOk }: { opts: string[]; onOk: (sel: string[]) => voi
 function YesNo({ onPick }: { onPick: (v: string, l: string) => void }) {
   return (
     <div style={_g2}>
-      <div style={cardS(false)} onClick={() => onPick('Oui', 'Oui')}><span style={_emo}>\u2705</span><span>Oui</span></div>
-      <div style={cardS(false)} onClick={() => onPick('Non', 'Non')}><span style={_emo}>\u274c</span><span>Non</span></div>
+      <div style={cardS(false)} onClick={() => onPick('Oui', 'Oui')}><span style={_emo}>\✅</span><span>Oui</span></div>
+      <div style={cardS(false)} onClick={() => onPick('Non', 'Non')}><span style={_emo}>\❌</span><span>Non</span></div>
     </div>
   )
 }
@@ -384,20 +384,20 @@ function Coordonnees({ onSubmit }: { onSubmit: (p: string, n: string, t: string,
   const ok = p.trim() && n.trim() && t.trim() && em.includes('@') && rg
   return (
     <div style={cWr}>
-      <div style={cH}><div style={cBdg}>\ud83d\udccb</div><div><div style={cT}>Vos coordonn\u00e9es</div><div style={cSb}>Pour recevoir votre audit</div></div></div>
+      <div style={cH}><div style={cBdg}>\�\�</div><div><div style={cT}>Vos coordonn\ées</div><div style={cSb}>Pour recevoir votre audit</div></div></div>
       <div style={cG}>
         <button style={civS(civ === 'monsieur')} onClick={() => setCiv('monsieur')}>M.</button>
         <button style={civS(civ === 'madame')} onClick={() => setCiv('madame')}>Mme</button>
       </div>
       <div style={cG}>
-        <input style={inF} placeholder="Pr\u00e9nom" value={p} onChange={e => setP(e.target.value)} />
+        <input style={inF} placeholder="Pr\énom" value={p} onChange={e => setP(e.target.value)} />
         <input style={inF} placeholder="Nom" value={n} onChange={e => setN(e.target.value)} />
       </div>
       <input style={inF} type="tel" placeholder="06 XX XX XX XX" value={t} onChange={e => setT(e.target.value)} />
       <input style={inF} type="email" placeholder="votre@email.com" value={em} onChange={e => setEm(e.target.value)} />
       <div style={rgS(rg)} onClick={() => setRg(!rg)}>
         <div style={rgBx(rg)}>{rg && <Check size={12} color={WH} />}</div>
-        <span style={rgTx}>J&apos;accepte d&apos;\u00eatre recontact\u00e9 par Alex Lopez, conseiller immobilier, concernant mon projet immobilier</span>
+        <span style={rgTx}>J&apos;accepte d&apos;\être recontact\é par Alex Lopez, conseiller immobilier, concernant mon projet immobilier</span>
       </div>
       <button style={ok ? vBtn : vOff} onClick={() => ok && onSubmit(p, n, t, em, civ)} disabled={!ok}><Send size={14} /> Recevoir mon audit</button>
     </div>

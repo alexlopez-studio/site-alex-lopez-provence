@@ -30,7 +30,7 @@ function now() { return new Date().toLocaleTimeString('fr-FR', { hour: '2-digit'
 
 const INIT: ChatMessage[] = [{
   id: '1', from: 'al',
-  text: "Bonjour\u00a0! Je suis Alex Lopez, votre conseiller immobilier.\n\nJe vais r\u00e9aliser un audit express de votre bien en quelques minutes.\n\nCommen\u00e7ons par l'adresse du bien\u00a0!",
+  text: "Bonjour\ ! Je suis Alex Lopez, votre conseiller immobilier.\n\nJe vais r\éaliser un audit express de votre bien en quelques minutes.\n\nCommen\çons par l'adresse du bien\ !",
   timestamp: now(),
 }]
 

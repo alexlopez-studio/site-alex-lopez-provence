@@ -32,8 +32,8 @@ export default function ResendMagicLinkButton({ token }: { token: string }) {
   const done: CSSProperties = { ...base, backgroundColor: '#d1fae5', color: success, borderColor: '#a7f3d0', cursor: 'default' }
   const errSt: CSSProperties = { ...base, backgroundColor: '#fee2e2', color: '#dc2626', borderColor: '#fca5a5', cursor: 'default' }
 
-  if (status === 'done') return <div style={done}>\u2705 Magic link renvoy\u00e9</div>
-  if (status === 'error') return <div style={errSt}>\u274c Erreur \u2014 r\u00e9essayez</div>
+  if (status === 'done') return <div style={done}>\✅ Magic link renvoy\é</div>
+  if (status === 'error') return <div style={errSt}>\❌ Erreur \— r\éessayez</div>
 
   return (
     <button
@@ -41,7 +41,7 @@ export default function ResendMagicLinkButton({ token }: { token: string }) {
       onClick={handleResend}
       disabled={status === 'loading'}
     >
-      {status === 'loading' ? 'Envoi...' : '\ud83d\udcec Renvoyer le magic link'}
+      {status === 'loading' ? 'Envoi...' : '\�\� Renvoyer le magic link'}
     </button>
   )
 }

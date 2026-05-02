@@ -1,5 +1,5 @@
 /**
- * API DVF Cerema — données de valeurs fonci\u00e8res
+ * API DVF Cerema — données de valeurs fonci\ères
  */
 
 const DVF_API = 'https://apidf-preprod.cerema.fr/dvf_opendata/geomutations/'

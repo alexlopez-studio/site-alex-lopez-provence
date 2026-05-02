@@ -50,7 +50,7 @@ function LoginForm() {
         setErr('Mot de passe incorrect')
       }
     } catch {
-      setErr('Erreur r\u00e9seau, r\u00e9essayez')
+      setErr('Erreur r\éseau, r\éessayez')
     } finally {
       setLoading(false)
     }
@@ -60,7 +60,7 @@ function LoginForm() {
     <div style={pageSt}>
       <div style={cardSt}>
         <div style={titleSt}>Administration</div>
-        <div style={subSt}>Alex Lopez Provence \u00b7 Acc\u00e8s r\u00e9serv\u00e9</div>
+        <div style={subSt}>Alex Lopez Provence \· Acc\ès r\éserv\é</div>
         <form onSubmit={handleSubmit}>
           <label style={labelSt}>Mot de passe</label>
           <input

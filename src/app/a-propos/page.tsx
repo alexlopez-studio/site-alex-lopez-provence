@@ -236,7 +236,7 @@ export default function AProposPage() {
           </p>
           <div className="flex flex-wrap justify-center gap-2 mb-8">
             {COMMUNES.map(function (c) {
-              const slug = c.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-')
+              const slug = c.toLowerCase().normalize('NFD').replace(/[\̀-\ͯ]/g, '').replace(/\s+/g, '-')
               return (
                 <Link key={c} href={'/marche/' + slug}
                   className="px-3 py-1.5 bg-white rounded-full border border-border text-sm text-foreground hover:border-brand hover:text-brand transition-colors">

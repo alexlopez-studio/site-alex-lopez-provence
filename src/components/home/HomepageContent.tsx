@@ -457,7 +457,7 @@ export default function HomepageContent() {
             className="max-w-4xl mx-auto text-center">
             <motion.div variants={staggerFast} className="flex flex-wrap justify-center gap-2 mb-8">
               {COMMUNES_TEASER.map(c => {
-                const slug = c.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-')
+                const slug = c.toLowerCase().normalize('NFD').replace(/[\̀-\ͯ]/g, '').replace(/\s+/g, '-')
                 return (
                   <motion.div key={c} variants={fadeInUp} whileHover={hoverComm}>
                     <Link href={'/marche/' + slug}

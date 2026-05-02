@@ -19,6 +19,7 @@ export interface VendreAnswers {
   surface_terrain?: number
   nb_pieces?: number
   etat?: string
+  dpe?: string
   equipements?: string[]
   delai?: string
   civilite?: 'monsieur' | 'madame'
@@ -37,6 +38,7 @@ export type QuestionId =
   | 'surface_terrain'
   | 'nb_pieces'
   | 'etat'
+  | 'dpe'
   | 'equipements'
   | 'delai'
   | 'recapitulatif'
@@ -61,7 +63,7 @@ const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: '1',
     from: 'al',
-    text: "Bonjour\u00a0! Je suis Alex Lopez, votre conseiller immobilier. Je vais vous aider \u00e0 estimer la valeur de votre bien en quelques minutes.\n\nCommen\u00e7ons par l'adresse de votre bien s'il vous pla\u00eet\u00a0!",
+    text: "Bonjour\ ! Je suis Alex Lopez, votre conseiller immobilier. Je vais vous aider \à estimer la valeur de votre bien en quelques minutes.\n\nCommen\çons par l'adresse de votre bien s'il vous pla\ît\ !",
     timestamp: now(),
   },
 ]
