@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import type { CSSProperties } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
   Phone, CheckCircle, ArrowRight, Database, MapPin, Calculator,
-  PartyPopper, Target, Lightbulb, ShieldCheck, Zap, FileText, Ruler, Building2,
+  PartyPopper, Target, Lightbulb, ShieldCheck, Zap, Ruler, Building2,
   Clock, Users, Handshake, Trees, Smile, Home as HomeIcon, Car, ChevronLeft, ChevronRight,
   TrendingUp, TrendingDown,
 } from 'lucide-react'
@@ -111,7 +112,6 @@ export default function ResultatsPage() {
 
   return (
     <div className="min-h-screen bg-surface">
-      {/* Header agent */}
       <header className="bg-white border-b border-border">
         <div className="max-w-3xl mx-auto px-6 py-5 flex items-center justify-center gap-3">
           <div className="w-11 h-11 rounded-full bg-brand text-white flex items-center justify-center text-sm font-bold">AL</div>
@@ -124,7 +124,7 @@ export default function ResultatsPage() {
         <CardCalcul est={est} data={data} />
         <CardDetail est={est} />
         <CardStrategie est={est} />
-        <CardEnvironnement data={data} />
+        <CardEnvironnement />
         <CardCtaFinale />
         <div className="text-center pt-2">
           <Link href="/outils/vendre" className="text-sm text-muted hover:text-brand transition-colors">
@@ -136,7 +136,6 @@ export default function ResultatsPage() {
   )
 }
 
-/* --------- Card 1: Votre estimation --------- */
 function CardEstimation({ est, prenom }: { est: EstimResult; prenom?: string }) {
   const labelPrecision = est.confiance >= 75 ? 'Haute précision' : est.confiance >= 55 ? 'Précision moyenne' : 'Estimation indicative'
   return (
@@ -170,7 +169,6 @@ function CardEstimation({ est, prenom }: { est: EstimResult; prenom?: string }) 
   )
 }
 
-/* --------- Card 2: Comment avons-nous calculé ? --------- */
 function CardCalcul({ est, data }: { est: EstimResult; data: LeadData }) {
   const equipPct = est.ajustements.filter(function (a) { return a.key.startsWith('eq:') }).reduce(function (s, a) { return s + a.pct }, 0)
   const dpeAdj = est.ajustements.find(function (a) { return a.key === 'dpe' })
@@ -258,7 +256,6 @@ function CardCalcul({ est, data }: { est: EstimResult; data: LeadData }) {
   )
 }
 
-/* --------- Card 3: Détail du calcul --------- */
 function CardDetail({ est }: { est: EstimResult }) {
   return (
     <motion.section initial="initial" whileInView="animate" viewport={vpOnce} variants={stagger}
@@ -322,7 +319,6 @@ function CardDetail({ est }: { est: EstimResult }) {
   )
 }
 
-/* --------- Card 4: Stratégie de prix (avec slider) --------- */
 function CardStrategie({ est }: { est: EstimResult }) {
   const [pos, setPos] = useState(50)
   const span = est.fourchette_haute - est.fourchette_basse || 1
@@ -336,6 +332,8 @@ function CardStrategie({ est }: { est: EstimResult }) {
   const delaiLbl = pos < 35 ? '1-2 mois' : pos > 65 ? '3-6 mois' : est.strategie.delai_estime
   const visitesLbl = pos < 35 ? 'Soutenues' : pos > 65 ? 'Espacées' : est.strategie.frequence_visites
   const negoLbl = pos < 35 ? 'Minimale' : pos > 65 ? 'Importante' : est.strategie.negociation
+  const cursorStyle: CSSProperties = { left: pos + '%' }
+  const probaStyle: CSSProperties = { width: proba + '%' }
   return (
     <motion.section initial="initial" whileInView="animate" viewport={vpOnce} variants={stagger}
       className="bg-white rounded-2xl border border-border p-7 lg:p-9">
@@ -354,14 +352,16 @@ function CardStrategie({ est }: { est: EstimResult }) {
       </motion.div>
       <motion.div variants={fadeInUp} className="relative mb-2">
         <div className="h-2.5 rounded-full overflow-hidden flex">
-          <div className="h-full bg-emerald-400" style=toolu_01WETM58mUz3DvsHk2HvjDnN />
-          <div className="h-full bg-amber-400" style=toolu_01WETM58mUz3DvsHk2HvjDnN />
-          <div className="h-full bg-rose-400" style=toolu_01WETM58mUz3DvsHk2HvjDnN />
+          <div className="h-full bg-emerald-400 basis-1/2" />
+          <div className="h-full bg-amber-400 basis-[30%]" />
+          <div className="h-full bg-rose-400 basis-[20%]" />
         </div>
         <input type="range" min={0} max={100} value={pos} onChange={function (e) { setPos(Number(e.target.value)) }}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" aria-label="Position prix" />
-        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-5 h-5 bg-white border-2 border-foreground rounded-full shadow pointer-events-none"
-          style=toolu_01WETM58mUz3DvsHk2HvjDnN />
+        <div
+          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-5 h-5 bg-white border-2 border-foreground rounded-full shadow pointer-events-none"
+          style={cursorStyle}
+        />
       </motion.div>
       <div className="flex items-center justify-between text-xs text-muted mb-7">
         <span>{fmt(est.fourchette_basse)}</span>
@@ -373,7 +373,7 @@ function CardStrategie({ est }: { est: EstimResult }) {
           <span className="font-semibold text-amber-500">{proba}%</span>
         </div>
         <div className="h-2.5 bg-surface rounded-full overflow-hidden">
-          <div className="h-full bg-amber-400 rounded-full transition-all duration-300" style=toolu_01WETM58mUz3DvsHk2HvjDnN />
+          <div className="h-full bg-amber-400 rounded-full transition-all duration-300" style={probaStyle} />
         </div>
       </div>
       <motion.div variants={staggerFast} className="grid grid-cols-3 gap-3 mb-6">
@@ -409,8 +409,7 @@ function CardStrategie({ est }: { est: EstimResult }) {
   )
 }
 
-/* --------- Card 5: Environnement --------- */
-function CardEnvironnement({ data }: { data: LeadData }) {
+function CardEnvironnement() {
   return (
     <motion.section initial="initial" whileInView="animate" viewport={vpOnce} variants={stagger}
       className="bg-emerald-50/40 border border-emerald-100 rounded-2xl p-7 lg:p-9">
@@ -459,7 +458,6 @@ function CardEnvironnement({ data }: { data: LeadData }) {
   )
 }
 
-/* --------- CTA finale --------- */
 function CardCtaFinale() {
   return (
     <motion.section initial="initial" whileInView="animate" viewport={vpOnce} variants={stagger}
