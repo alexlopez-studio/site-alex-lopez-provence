@@ -19,7 +19,7 @@ const white = '#ffffff'
 const success = '#10B981'
 const warning = '#F59E0B'
 const W = '680px'
-const FONT = 'var(--font-plus-jakarta-sans, system-ui, sans-serif)'
+const FONT = 'var(--font-inter, system-ui, sans-serif)'
 
 // Styles
 const pageSt: CSSProperties = { minHeight: '100vh', backgroundColor: surface, fontFamily: FONT }
@@ -29,7 +29,7 @@ const navLeftSt: CSSProperties = { display: 'flex', alignItems: 'center', gap: '
 const navRightSt: CSSProperties = { display: 'flex', alignItems: 'center', gap: '12px' }
 const avatarSt: CSSProperties = { width: '36px', height: '36px', borderRadius: '999px', backgroundColor: brand, color: white, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, flexShrink: 0 }
 const navNameSt: CSSProperties = { fontSize: '14px', fontWeight: 700, color: fg }
-const navSubSt: CSSProperties = { fontSize: '11px', color: muted }
+const toolPillSt: CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '10px', fontWeight: 700, color: brand, backgroundColor: brandLight, padding: '2px 8px', borderRadius: '999px', letterSpacing: '0.06em', textTransform: 'uppercase', marginTop: '2px' }
 const backSt: CSSProperties = { display: 'flex', alignItems: 'center', fontSize: '12px', fontWeight: 600, color: muted, textDecoration: 'none' }
 const phoneSt: CSSProperties = { display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 600, color: fg, textDecoration: 'none' }
 const restartBtnSt: CSSProperties = { display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 500, color: muted, backgroundColor: 'transparent', border: '1px solid ' + border, borderRadius: '999px', padding: '5px 10px', cursor: 'pointer' }
@@ -344,7 +344,10 @@ export default function VendrePage() {
           <div style={navLeftSt}>
             <Link href="/" style={backSt}><ChevronLeft size={14} /></Link>
             <Avatar />
-            <div><div style={navNameSt}>Alex Lopez</div><div style={navSubSt}>{'Mandataire IAD \u2014 Provence Verte'}</div></div>
+            <div>
+              <div style={navNameSt}>Alex Lopez</div>
+              <span style={toolPillSt}><span>\ud83c\udfe1</span> Estimer mon bien</span>
+            </div>
           </div>
           <div style={navRightSt}>
             <button style={restartBtnSt} onClick={() => setShowModal(true)}><RotateCcw size={12} /> Recommencer</button>
