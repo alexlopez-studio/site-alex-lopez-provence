@@ -77,15 +77,17 @@ export function HeroPhotoNoBg({
   const wrapperRef = useRef<HTMLDivElement>(null)
   const prefersReducedMotion = useReducedMotion()
 
-  const { scrollYProgress } = useScroll({
-    target: wrapperRef,
-    offset: ['start end', 'end start'],
-  })
-
-  // Parallaxe : amplitudes augmentées pour être clairement visibles au scroll.
-  const portraitY = useTransform(scrollYProgress, [0, 1], ['-10%', '12%'])
-  const shapeY = useTransform(scrollYProgress, [0, 1], ['-20%', '22%'])
-  const shapeScale = useTransform(scrollYProgress, [0, 1], [1.08, 0.88])
+  // Parallaxe basée sur le scroll global pour un effet plus visible
+  const { scrollY } = useScroll()
+  
+  // Parallaxe : le portrait et les halos se déplacent à des vitesses différentes
+  // Le portrait bouge plus lentement (effet de profondeur)
+  const portraitY = useTransform(scrollY, [0, 800], [0, 80])
+  const portraitScale = useTransform(scrollY, [0, 800], [1, 0.92])
+  
+  // Les halos bougent plus vite pour créer un effet de contre-parallaxe
+  const shapeY = useTransform(scrollY, [0, 800], [0, 120])
+  const shapeScale = useTransform(scrollY, [0, 800], [1.08, 0.85])
 
   const reduce = !!prefersReducedMotion
 
@@ -114,9 +116,9 @@ export function HeroPhotoNoBg({
         className="absolute top-[12%] right-[6%] w-52 h-52 rounded-full bg-brand/25 blur-3xl pointer-events-none"
       />
 
-      {/* Parallaxe lente (translate Y) */}
+      {/* Parallaxe lente (translate Y + scale) */}
       <motion.div
-        style={reduce ? undefined : { y: portraitY }}
+        style={reduce ? undefined : { y: portraitY, scale: portraitScale }}
         className="relative z-10 w-full h-full flex items-end justify-center"
       >
         {/* Opening animation: fade + scale + slide-up + blur-to-sharp */}
