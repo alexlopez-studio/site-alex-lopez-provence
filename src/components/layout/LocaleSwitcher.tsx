@@ -11,11 +11,28 @@ type Props = {
   onSwitch?: () => void
 }
 
+// === ANIMATIONS ===
+// Externalisees pour eviter le stripping des ... en JSX inline.
+const EASE_OUT_PREMIUM = [0.22, 1, 0.36, 1] as const
+
+const overlayInitial = { opacity: 0 }
+const overlayAnimate = { opacity: 1 }
+const overlayExit = { opacity: 0 }
+const overlayTransition = { duration: 0.35, ease: EASE_OUT_PREMIUM }
+
+const pillSpring = { type: 'spring' as const, stiffness: 380, damping: 32 }
+
+const flagTransition = { duration: 0.25, ease: EASE_OUT_PREMIUM }
+const flagActiveAnim = { scale: 1.15, opacity: 1 }
+const flagInactiveAnim = { scale: 1, opacity: 0.55 }
+const flagInactiveHover = { opacity: 1, scale: 1.05 }
+const flagActiveHover = {}
+
 /**
  * Switch de langue avec animation premium :
- * - Pill blanche qui glisse entre FR et EN (layoutId framer-motion, spring lisse)
- * - Drapeau actif scaled (1.15) + opacity 1, drapeau inactif opacity 0.55
- * - Overlay backdrop-blur tres leger sur tout l'ecran pendant la transition (~600 ms)
+ * - Pill blanche qui glisse entre FR et EN (layoutId framer-motion, spring lisse).
+ * - Drapeau actif scaled (1.15) + opacity 1, drapeau inactif opacity 0.55.
+ * - Overlay backdrop-blur tres leger sur tout l'ecran pendant la transition (~700 ms),
  *   pour signaler le basculement sans etre intrusif.
  */
 export function LocaleSwitcher({ className = '', onSwitch }: Props) {
@@ -32,22 +49,21 @@ export function LocaleSwitcher({ className = '', onSwitch }: Props) {
     if (onSwitch) onSwitch()
     startTransition(function () {
       router.refresh()
-      // Laisser l'overlay visible un instant avant de le faire disparaitre.
       window.setTimeout(function () { setSwitching(false) }, 700)
     })
   }
 
   return (
     <>
-      {/* Overlay flash subtil pendant le switch */}
+      {/* Overlay flash subtil pendant le switch (sur tout l'ecran). */}
       <AnimatePresence>
         {switching && (
           <motion.div
             key="locale-flash"
-            initial= opacity: 0 
-            animate= opacity: 1 
-            exit= opacity: 0 
-            transition= duration: 0.35, ease: [0.22, 1, 0.36, 1] 
+            initial={overlayInitial}
+            animate={overlayAnimate}
+            exit={overlayExit}
+            transition={overlayTransition}
             className="fixed inset-0 z-[100] pointer-events-none bg-white/30 backdrop-blur-[3px]"
           />
         )}
@@ -61,6 +77,8 @@ export function LocaleSwitcher({ className = '', onSwitch }: Props) {
         {locales.map(function (code) {
           const meta = LOCALE_META[code]
           const active = code === current
+          const flagAnim = active ? flagActiveAnim : flagInactiveAnim
+          const flagHover = active ? flagActiveHover : flagInactiveHover
           return (
             <button
               key={code}
@@ -77,19 +95,16 @@ export function LocaleSwitcher({ className = '', onSwitch }: Props) {
                 <motion.span
                   layoutId="locale-active-pill"
                   className="absolute inset-0 bg-white shadow-sm ring-1 ring-border rounded-full"
-                  transition= type: 'spring', stiffness: 380, damping: 32 
+                  transition={pillSpring}
                   aria-hidden="true"
                 />
               )}
               {/* Drapeau anime : scale + opacity selon etat actif */}
               <motion.span
                 aria-hidden="true"
-                animate=
-                  scale: active ? 1.15 : 1,
-                  opacity: active ? 1 : 0.55,
-                
-                whileHover={!active ? { opacity: 1, scale: 1.05 } : {}}
-                transition= duration: 0.25, ease: [0.22, 1, 0.36, 1] 
+                animate={flagAnim}
+                whileHover={flagHover}
+                transition={flagTransition}
                 className="relative z-10"
               >
                 {meta.flag}
