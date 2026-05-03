@@ -227,6 +227,22 @@ export async function appendEvent(
 }
 
 /**
+ * Marque la colonne `magic_link_sent_at` du lead comme envoyé maintenant.
+ * Audit trail — utilisé par /api/leads (premier envoi) et la future action
+ * "renvoyer le magic link" du dashboard admin.
+ */
+export async function markMagicLinkSent(leadId: string): Promise<void> {
+  const { error } = await supabaseAdmin
+    .from('leads')
+    .update({ magic_link_sent_at: new Date().toISOString() } as never)
+    .eq('id', leadId)
+
+  if (error) {
+    throw new RepoError('markMagicLinkSent', error.message, error)
+  }
+}
+
+/**
  * Erreur spécifique du repo, qui conserve la cause d'origine pour debug.
  */
 export class RepoError extends Error {
