@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { renderToBuffer } from '@react-pdf/renderer'
-import { verifyMagicToken, MagicTokenError } from '@/lib/magic-token'
+import { getLeadById } from '@/lib/leads-repo'
 import {
-  extractEstimationPdfData,
-  extractAuditPdfData,
+  extractEstimationPdfDataFromLead,
+  extractAuditPdfDataFromLead,
 } from '@/lib/pdf/extract'
 import { sanitizeFilename } from '@/lib/pdf/format'
 import EstimationPDFDocument from '@/components/pdf/EstimationPDF'
@@ -12,48 +12,69 @@ import AuditPDFDocument from '@/components/pdf/AuditPDF'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 /**
  * GET /api/pdf?token=...
  *
- * Decode le magic link, switch sur payload.type et renvoie le PDF approprie
- * en streaming (`application/pdf`, inline).
+ * Phase B (Step 4) : `token` est l'UUID id de la ligne `leads`. On lookup
+ * via getLeadById et on streame le PDF approprie selon `lead.tool`.
  */
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get('token')
+
   if (!token) {
     return NextResponse.json(
       { error: 'Token manquant' },
       { status: 400 },
     )
   }
+  if (!UUID_RE.test(token)) {
+    return NextResponse.json(
+      { error: 'Token invalide', code: 'invalid_format' },
+      { status: 401 },
+    )
+  }
 
-  let payload
+  let lead
   try {
-    payload = verifyMagicToken(token)
+    lead = await getLeadById(token)
   } catch (err) {
-    if (err instanceof MagicTokenError) {
-      return NextResponse.json(
-        { error: err.message, code: err.code },
-        { status: errorStatusForCode(err.code) },
-      )
-    }
-    return NextResponse.json({ error: 'Token invalide' }, { status: 401 })
+    console.error('[api/pdf] getLeadById failed', err)
+    return NextResponse.json(
+      { error: 'Erreur serveur' },
+      { status: 500 },
+    )
+  }
+  if (!lead) {
+    return NextResponse.json(
+      { error: 'Dossier introuvable', code: 'not_found' },
+      { status: 404 },
+    )
+  }
+  const expiresMs = new Date(lead.magic_link_expires_at).getTime()
+  if (Number.isFinite(expiresMs) && expiresMs < Date.now()) {
+    return NextResponse.json(
+      { error: 'Lien expire', code: 'expired' },
+      { status: 410 },
+    )
   }
 
   let element: React.ReactElement
   let filenameBase: string
   let prenomLabel: string
 
-  switch (payload.type) {
+  switch (lead.tool) {
     case 'vendre': {
-      const data = extractEstimationPdfData(payload)
+      const data = extractEstimationPdfDataFromLead(lead)
       element = <EstimationPDFDocument data={data} />
       filenameBase = 'estimation-alex-lopez'
       prenomLabel = data.prenom ?? ''
       break
     }
     case 'audit': {
-      const data = extractAuditPdfData(payload)
+      const data = extractAuditPdfDataFromLead(lead)
       element = <AuditPDFDocument data={data} />
       filenameBase = 'audit-alex-lopez'
       prenomLabel = data.prenom ?? ''
@@ -84,7 +105,7 @@ export async function GET(req: NextRequest) {
 
   const filenameParts = [filenameBase]
   if (prenomLabel) filenameParts.push(prenomLabel.toLowerCase())
-  filenameParts.push(payload.jti.slice(0, 8))
+  filenameParts.push(lead.id.slice(0, 8))
   const filename = sanitizeFilename(filenameParts.join('-')) + '.pdf'
 
   return new NextResponse(buffer, {
@@ -96,15 +117,4 @@ export async function GET(req: NextRequest) {
       'Content-Length': String(buffer.length),
     },
   })
-}
-
-function errorStatusForCode(code: string): number {
-  switch (code) {
-    case 'expired':
-      return 410
-    case 'missing_secret':
-      return 500
-    default:
-      return 401
-  }
 }
