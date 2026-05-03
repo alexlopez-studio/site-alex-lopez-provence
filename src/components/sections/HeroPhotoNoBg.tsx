@@ -41,6 +41,9 @@ const portraitAnimate = {
  *   • object-bottom pour ancrer la photo en bas du conteneur.
  *   • pas de drop-shadow filter (causait des halos sur les bords transparents).
  *
+ * Sur grands écrans, on agrandit la photo via un scale CSS (origin-bottom) pour
+ * qu'Alexandre prenne plus de place verticalement et ne paraisse plus « tassé en bas ».
+ *
  * Effets à l'ouverture :
  *   • fade-in + scale doux
  *   • slide-up
@@ -58,7 +61,7 @@ export function HeroPhotoNoBg({
 
   return (
     <div
-      className={'relative w-full h-full flex items-end justify-center ' + className}
+      className={'relative w-full h-full flex items-end justify-center overflow-hidden ' + className}
     >
       {/* Opening animation: fade + scale + slide-up + blur-to-sharp */}
       <motion.div
@@ -73,7 +76,7 @@ export function HeroPhotoNoBg({
           fill
           priority
           sizes="(min-width: 1024px) 50vw, 100vw"
-          className="object-contain object-bottom"
+          className="object-contain object-bottom origin-bottom lg:scale-110 xl:scale-125"
         />
       </motion.div>
     </div>

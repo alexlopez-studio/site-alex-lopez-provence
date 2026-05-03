@@ -25,11 +25,15 @@ export async function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 mb-10">
 
           <div>
-            <div className="mb-4 leading-tight">
-              <span className="font-script text-[36px] text-white block leading-none">Alexandre Lopez</span>
-              <span className="block text-[10px] font-bold text-white/80 uppercase tracking-[0.18em] mt-2">
-                {t('brandLine2')}
-              </span>
+            {/* Logo officiel Alexandre Lopez (sur carte blanche pour ressortir sur fond sombre) */}
+            <div className="inline-block bg-white rounded-2xl px-5 py-3 mb-5 shadow-sm">
+              <Image
+                src="/Logo-alexandre-lopez.png"
+                alt="Alexandre Lopez — Conseiller immobilier iad"
+                width={400}
+                height={400}
+                className="h-20 w-auto"
+              />
             </div>
             <p className="text-sm text-white/75 leading-relaxed max-w-xs">
               {t('tagline')}
@@ -69,7 +73,7 @@ export async function Footer() {
                 })}
               </div>
             </div>
-            {/* Logo iad officiel (version blanche) */}
+            {/* Logo iad officiel (version blanche, transparent) */}
             <div className="flex items-end justify-start sm:justify-end">
               <Image
                 src="/IAD_LOGO_BLANC.png"

@@ -8,17 +8,23 @@ import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LocaleSwitcher } from './LocaleSwitcher'
 
+// Tant que les outils « Estimation gratuite » et « Bilan gratuit » (Audit) ne sont pas
+// finalisés, on masque le lien Audit dans la nav et le bouton CTA dans le header.
+// Repassez SHOW_TOOLS_CTAS à true pour les réactiver d'un coup.
+const SHOW_TOOLS_CTAS = false
+
 export function Header() {
   const t = useTranslations('header')
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const assistantUrl = '/outils'
 
-  // Navigation simplifiée - uniquement l'essentiel
+  // Navigation simplifiée - uniquement l'essentiel.
+  // Le lien « Audit » (= Bilan gratuit) est masqué tant que les outils ne sont pas prêts.
   const NAV_LINKS = [
     { label: t('navSell'), href: '/vendre' },
     { label: t('navBuy'), href: '/acheter' },
-    { label: t('navAudit'), href: '/audit' },
+    ...(SHOW_TOOLS_CTAS ? [{ label: t('navAudit'), href: '/audit' }] : []),
     { label: t('navApproach'), href: '/a-propos' },
   ]
 
@@ -40,25 +46,26 @@ export function Header() {
       className={
         'fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ' +
         (scrolled
-          ? 'bg-white/95 backdrop-blur-md shadow-sm py-2'
-          : 'bg-white/90 backdrop-blur-sm py-3')
+          ? 'bg-white/95 backdrop-blur-md shadow-sm py-1'
+          : 'bg-white/90 backdrop-blur-sm py-2')
       }
     >
       <div className="max-w-[75rem] mx-auto px-6 flex items-center justify-between">
 
-        {/* Logo officiel : signature Alexandre Lopez + iad conseiller immobilier */}
+        {/* Logo officiel : signature Alexandre Lopez + iad conseiller immobilier.
+            Taille augmentée significativement par rapport à la version précédente. */}
         <Link href="/" className="shrink-0 flex items-center" aria-label="Alexandre Lopez — Conseiller immobilier iad">
           <Image
             src="/Logo-alexandre-lopez.png"
             alt="Alexandre Lopez — Conseiller immobilier iad"
-            width={400}
-            height={400}
+            width={500}
+            height={500}
             priority
-            className="h-14 md:h-16 w-auto"
+            className="h-20 md:h-24 w-auto"
           />
         </Link>
 
-        {/* Navigation desktop - 4 liens maximum */}
+        {/* Navigation desktop */}
         <nav className="hidden lg:flex items-center gap-8" aria-label="Navigation">
           {NAV_LINKS.map(function (link) {
             return (
@@ -70,16 +77,17 @@ export function Header() {
           })}
         </nav>
 
-        {/* Actions droite : Langue + CTA */}
+        {/* Actions droite : Langue + (CTA si outils dispo) */}
         <div className="hidden lg:flex items-center gap-4 shrink-0">
-          {/* Selecteur de langue - drapeaux uniquement */}
           <LocaleSwitcher />
-          
-          <Button asChild size="sm" variant="primary">
-            <Link href={assistantUrl}>
-              {t('ctaEstimate')}
-            </Link>
-          </Button>
+
+          {SHOW_TOOLS_CTAS && (
+            <Button asChild size="sm" variant="primary">
+              <Link href={assistantUrl}>
+                {t('ctaEstimate')}
+              </Link>
+            </Button>
+          )}
         </div>
 
         {/* Menu burger mobile */}
@@ -97,11 +105,10 @@ export function Header() {
       {menuOpen && (
         <div className="lg:hidden absolute top-full left-0 right-0 bg-white border-b border-border shadow-lg">
           <div className="max-w-[75rem] mx-auto px-6 py-6 space-y-2">
-            {/* Selecteur de langue mobile */}
             <div className="flex items-center gap-2 pb-4 border-b border-border mb-2">
               <LocaleSwitcher />
             </div>
-            
+
             {NAV_LINKS.map(function (link) {
               return (
                 <Link key={link.href} href={link.href}
@@ -111,15 +118,16 @@ export function Header() {
                 </Link>
               )
             })}
-            <div className="pt-4 border-t border-border mt-4">
-              <Button asChild size="default" variant="primary" className="w-full">
-                <Link
-                  href={assistantUrl}
-                  onClick={function () { setMenuOpen(false) }}>
-                  {t('ctaEstimate')}
-                </Link>
-              </Button>
-            </div>
+
+            {SHOW_TOOLS_CTAS && (
+              <div className="pt-4 border-t border-border mt-4">
+                <Button asChild size="default" variant="primary" className="w-full">
+                  <Link href={assistantUrl} onClick={function () { setMenuOpen(false) }}>
+                    {t('ctaEstimate')}
+                  </Link>
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}
