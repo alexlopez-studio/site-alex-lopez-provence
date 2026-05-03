@@ -25,15 +25,14 @@ export async function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 mb-10">
 
           <div>
-            {/* Logo officiel Alexandre Lopez (PNG transparent, signature en noir).
+            {/* Logo officiel Alexandre Lopez (version HD, PNG transparent).
                 Sur fond sombre, on inverse les couleurs avec invert + brightness pour
-                obtenir un rendu blanc lisible. Si le logo n'est pas réellement transparent
-                ou si le rendu n'est pas satisfaisant, fournir une version blanche dédiée. */}
+                obtenir un rendu blanc lisible. */}
             <Image
-              src="/Logo-alexandre-lopez.png"
+              src="/logo-alexandre-lopez-high-resolution.png"
               alt="Alexandre Lopez — Conseiller immobilier iad"
-              width={500}
-              height={500}
+              width={600}
+              height={600}
               className="h-24 w-auto mb-5 invert brightness-200 contrast-125"
             />
             <p className="text-sm text-white/75 leading-relaxed max-w-xs">

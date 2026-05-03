@@ -53,14 +53,13 @@ export function Header() {
     >
       <div className="max-w-[75rem] mx-auto px-6 flex items-center justify-between gap-6">
 
-        {/* Logo officiel : signature Alexandre Lopez + iad conseiller immobilier.
-            Taille fortement augmentée pour donner du poids à la marque dans le header. */}
+        {/* Logo officiel : version haute résolution pour rendu net sur grands écrans / retina. */}
         <Link href="/" className="shrink-0 flex items-center" aria-label="Alexandre Lopez — Conseiller immobilier iad">
           <Image
-            src="/Logo-alexandre-lopez.png"
+            src="/logo-alexandre-lopez-high-resolution.png"
             alt="Alexandre Lopez — Conseiller immobilier iad"
-            width={600}
-            height={600}
+            width={800}
+            height={800}
             priority
             className="h-32 sm:h-40 md:h-52 lg:h-60 w-auto"
           />
