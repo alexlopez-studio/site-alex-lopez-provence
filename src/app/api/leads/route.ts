@@ -1,139 +1,179 @@
 /**
- * Création de lead — Phase A (magic link JWT, calcul serveur).
+ * POST /api/leads — Phase B v2.
  *
- * 1. Calcul des results côté serveur (computeLeadResults).
- * 2. Signature d'un magic-token JWT (signMagicToken, HS256, 30j).
- * 3. Persistance Supabase + push Attio (env-guardés, supprimés en Phase B).
- * 4. Envoi du magic link Resend avec le JWT en URL.
+ * Pipeline :
+ *   1. Validation basique (email, type, opt-in RGPD).
+ *   2. Calcul des `results` côté serveur via `computeLeadResults` (best-effort).
+ *   3. `upsertProspect` (atomique sur l'email) puis `createLead` via le repo.
+ *   4. Le `id` UUID généré par Supabase devient le token magic link.
+ *   5. Envoi de l'email Resend pointant vers `/resultats/[id]`.
+ *   6. `markMagicLinkSent` pour l'audit trail.
+ *
+ * Retiré par rapport à la Phase A : signature JWT (`signMagicToken`) et push
+ * Attio (`pushLeadToAttio`). Les anciens magic links Phase A restent
+ * déchiffrables côté lecture (Step 4 fera le pivot complet).
+ *
+ * Réponse (backward-compat avec Phase A) :
+ *   { success: true, token: leadId, leadId, magicLinkUrl, emailSent }
  */
 import { NextRequest, NextResponse } from 'next/server'
-import { randomUUID } from 'node:crypto'
-import { supabaseAdmin } from '@/lib/supabase'
-import { pushLeadToAttio } from '@/lib/attio'
+import {
+  upsertProspect,
+  createLead,
+  markMagicLinkSent,
+  RepoError,
+} from '@/lib/leads-repo'
 import { sendMagicLinkEmail } from '@/lib/resend'
-import { signMagicToken, MagicTokenError } from '@/lib/magic-token'
-import { computeLeadResults, type LeadType } from '@/lib/leads/compute-results'
+import {
+  computeLeadResults,
+  type LeadType,
+} from '@/lib/leads/compute-results'
 
-function isLeadType(v: unknown): v is LeadType {
-  return v === 'vendre' || v === 'acheter' || v === 'audit'
+function isLeadType(value: unknown): value is LeadType {
+  return value === 'vendre' || value === 'acheter' || value === 'audit'
 }
 
-export async function POST(req: NextRequest) {
+function asNonEmptyString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim().length > 0
+    ? value.trim()
+    : undefined
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {}
+}
+
+function extractCommune(formData: Record<string, unknown>): string | null {
+  return (
+    asNonEmptyString(formData.commune) ??
+    asNonEmptyString(formData.ville) ??
+    asNonEmptyString(formData.city) ??
+    null
+  )
+}
+
+function resolveSiteUrl(req: NextRequest): string {
+  const env = process.env.NEXT_PUBLIC_SITE_URL
+  if (env && env.length > 0) return env.replace(/\/+$/, '')
+  // Fallback : reconstruction depuis l'origin de la requête (preview Vercel).
   try {
-    const body = await req.json()
-    const {
-      prenom,
-      nom,
-      email,
-      telephone,
-      type: rawType = 'vendre',
-      form_data,
-      opt_in = false,
-    } = body ?? {}
-
-    if (!email) {
-      return NextResponse.json({ error: 'email requis' }, { status: 400 })
-    }
-    if (!isLeadType(rawType)) {
-      return NextResponse.json({ error: 'type invalide' }, { status: 400 })
-    }
-
-    const type: LeadType = rawType
-    const siteUrl =
-      process.env.NEXT_PUBLIC_SITE_URL ?? 'https://alexlopez-provence.fr'
-    const jti = randomUUID()
-    const formData =
-      (form_data ?? body) as Record<string, unknown>
-
-    // 1. Calcul serveur des results (DVF / scoring audit / passthrough acheter).
-    let results: Record<string, unknown> = {}
-    try {
-      results = await computeLeadResults({ type, formData })
-    } catch (err) {
-      console.error('[API /leads] computeLeadResults a échoué :', err)
-      // On continue sans bloquer le prospect : email envoyé quand même.
-      results = {}
-    }
-
-    // 2. Signature JWT magic-token (Phase A : payload stateless).
-    let magicToken: string | null = null
-    try {
-      magicToken = signMagicToken({ jti, type, formData, results })
-    } catch (err) {
-      if (err instanceof MagicTokenError && err.code === 'missing_secret') {
-        console.error(
-          '[API /leads] MAGIC_LINK_JWT_SECRET manquant — fallback UUID.',
-        )
-      } else {
-        console.error('[API /leads] signMagicToken a échoué :', err)
-      }
-    }
-
-    // En l'absence de JWT (env mal configuré), on retombe sur le jti UUID :
-    // l'émail garde un lien valide vers la page legacy (localStorage).
-    const tokenForUrl = magicToken ?? jti
-    const magicLinkUrl = `${siteUrl}/resultats/${tokenForUrl}`
-
-    // 3. Supabase (legacy, env-guardé — sera supprimé en Phase B).
-    let attioRecordId: string | null = null
-    if (
-      process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      process.env.SUPABASE_SERVICE_ROLE_KEY
-    ) {
-      // NOTE: `as never` pattern jusqu'à ce que le générique `Database` soit
-      // câblé dans createClient(). Cf. commit 419cf28 (resend-magic-link).
-      const { error } = await supabaseAdmin
-        .from('leads')
-        .insert({
-          type,
-          prenom: prenom ?? null,
-          nom: nom ?? null,
-          email,
-          telephone: telephone ?? null,
-          form_data: formData,
-          results,
-          token: jti,
-          opt_in: Boolean(opt_in),
-          opt_in_date: opt_in ? new Date().toISOString() : null,
-        } as never)
-
-      if (error) console.error('[API /leads] Supabase :', error)
-
-      // 3b. Attio (legacy, sera supprimé en Phase B).
-      attioRecordId = await pushLeadToAttio({
-        prenom: prenom ?? null,
-        nom: nom ?? null,
-        email,
-        telephone: telephone ?? null,
-        type,
-        token: jti,
-        siteUrl,
-      })
-      if (attioRecordId) {
-        await supabaseAdmin
-          .from('leads')
-          .update({ attio_record_id: attioRecordId } as never)
-          .eq('token', jti)
-      }
-    }
-
-    // 4. Magic link (URL = JWT si signature OK, sinon jti UUID en fallback).
-    await sendMagicLinkEmail({
-      to: email,
-      prenom: prenom ?? null,
-      token: tokenForUrl,
-      type,
-      siteUrl,
-    })
-
-    return NextResponse.json({
-      success: true,
-      token: tokenForUrl,
-      jti,
-      magicLinkUrl,
-    })
-  } catch (e) {
-    console.error('[API /leads]', e)
-    return NextResponse.json({ success: false }, { status: 500 })
+    const origin = new URL(req.url).origin
+    return origin
+  } catch {
+    return 'https://alexlopez-provence.fr'
   }
+}
+
+export async function POST(req: NextRequest): Promise<NextResponse> {
+  let body: unknown
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json(
+      { success: false, error: 'JSON invalide' },
+      { status: 400 },
+    )
+  }
+
+  const payload = asRecord(body)
+  const email = asNonEmptyString(payload.email)
+  const rawType = payload.type ?? 'vendre'
+  const prenom = asNonEmptyString(payload.prenom)
+  const nom = asNonEmptyString(payload.nom)
+  const telephone = asNonEmptyString(payload.telephone)
+  const optIn = Boolean(payload.opt_in)
+  const formData = asRecord(payload.form_data ?? payload)
+
+  // 1. Validation
+  if (!email) {
+    return NextResponse.json(
+      { success: false, error: 'email requis' },
+      { status: 400 },
+    )
+  }
+  if (!isLeadType(rawType)) {
+    return NextResponse.json(
+      { success: false, error: 'type invalide' },
+      { status: 400 },
+    )
+  }
+  if (!optIn) {
+    return NextResponse.json(
+      { success: false, error: 'opt-in RGPD requis' },
+      { status: 400 },
+    )
+  }
+
+  const tool: LeadType = rawType
+  const siteUrl = resolveSiteUrl(req)
+
+  // 2. Calcul des results (best-effort, ne bloque pas la création du lead).
+  let results: Record<string, unknown> = {}
+  try {
+    const computed = await computeLeadResults({ type: tool, formData })
+    if (computed && typeof computed === 'object') {
+      results = computed as Record<string, unknown>
+    }
+  } catch (err) {
+    console.error('[API /leads] computeLeadResults a échoué :', err)
+  }
+
+  // 3. + 4. Persistance Supabase.
+  let leadId: string
+  try {
+    const prospect = await upsertProspect({
+      email,
+      firstName: prenom,
+      lastName: nom,
+      phone: telephone ?? null,
+      rgpdConsentAt: new Date().toISOString(),
+    })
+    const lead = await createLead({
+      prospectId: prospect.id,
+      tool,
+      formData,
+      results,
+      commune: extractCommune(formData),
+    })
+    leadId = lead.id
+  } catch (err) {
+    const detail =
+      err instanceof RepoError ? err.message : (err as Error)?.message ?? 'unknown'
+    console.error('[API /leads] persistance Supabase :', detail)
+    return NextResponse.json(
+      { success: false, error: 'persistance échouée' },
+      { status: 500 },
+    )
+  }
+
+  const magicLinkUrl = `${siteUrl}/resultats/${leadId}`
+
+  // 5. Envoi du magic link.
+  const emailSent = await sendMagicLinkEmail({
+    to: email,
+    prenom: prenom ?? null,
+    token: leadId,
+    type: tool,
+    siteUrl,
+  })
+
+  // 6. Audit trail (best-effort).
+  if (emailSent) {
+    try {
+      await markMagicLinkSent(leadId)
+    } catch (err) {
+      console.error('[API /leads] markMagicLinkSent :', err)
+    }
+  }
+
+  return NextResponse.json({
+    success: true,
+    /** Backward-compat avec la Phase A : le front utilise `token` pour le redirect. */
+    token: leadId,
+    leadId,
+    magicLinkUrl,
+    emailSent,
+  })
 }
