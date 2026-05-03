@@ -6,12 +6,13 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import {
-  ArrowRight, Home, Search, ClipboardCheck, MapPin, Star,
-  ShieldCheck, Clock, Lock, Users, ChevronDown,
+  ArrowRight, MapPin, Star,
+  ShieldCheck, Clock, Lock, ChevronDown,
   Send, Phone, TrendingUp, Gift, BarChart2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import HeroPhotoNoBg from '@/components/sections/HeroPhotoNoBg'
+import ServicesTabs from '@/components/sections/ServicesTabs'
 import { appUrl, biensUrl, env } from '@/lib/env'
 import { VP as vpOnce, fadeInUp, scaleIn, stagger, staggerFast } from '@/lib/animations'
 
@@ -114,7 +115,6 @@ export default function HomepageContent() {
   const tLand = useTranslations('homepage.landscape')
   const tVillages = useTranslations('homepage.villages')
   const tStory = useTranslations('homepage.story')
-  const tServ = useTranslations('homepage.services')
   const tZone = useTranslations('homepage.zone')
   const tForSale = useTranslations('homepage.forSale')
   const tSold = useTranslations('homepage.sold')
@@ -141,13 +141,6 @@ export default function HomepageContent() {
     { icon: ShieldCheck, label: tUsp('fullAudit') },
     { icon: Clock, label: tUsp('reply24h') },
     { icon: Lock, label: tUsp('noCommitment') },
-  ]
-
-  const SERVICES = [
-    { icon: Home,           title: tServ('sellTitle'),  description: tServ('sellDesc'),  cta: tServ('sellCta'),  href: '/vendre',  external: false },
-    { icon: Search,         title: tServ('buyTitle'),   description: tServ('buyDesc'),   cta: tServ('buyCta'),   href: '/acheter', external: false },
-    { icon: ClipboardCheck, title: tServ('auditTitle'), description: tServ('auditDesc'), cta: tServ('auditCta'), href: '/audit',   external: false },
-    { icon: Users,          title: tServ('joinTitle'),  description: tServ('joinDesc'),  cta: tServ('joinCta'),  href: 'https://www.iadfrance.fr/rejoindre-iad', external: true },
   ]
 
   const FAQ_ITEMS = [
@@ -398,39 +391,8 @@ export default function HomepageContent() {
         </div>
       </section>
 
-      {/* ===== SERVICES ===== */}
-      <section className="py-28 px-6 bg-white">
-        <div className="max-w-[75rem] mx-auto">
-          <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-16">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">{tServ('eyebrow')}</p>
-            <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl font-medium text-foreground leading-[1.05] tracking-[-0.02em]">
-              {tServ('titlePart1')} <span className="italic text-brand">{tServ('titlePart2')}</span>
-            </h2>
-          </motion.div>
-          <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
-            className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {SERVICES.map(service => {
-              const Icon = service.icon
-              const href = service.external ? service.href : appUrl(service.href) || service.href
-              return (
-                <motion.div key={service.title} variants={fadeInUp} whileHover={hoverCard} whileTap={tapCard} transition={springFast}>
-                  <Link href={href} target={service.external ? '_blank' : undefined} rel={service.external ? 'noopener noreferrer' : undefined}
-                    className="group flex flex-col bg-surface rounded-2xl border border-border p-8 h-full hover:shadow-md hover:border-brand/40 transition-all duration-200">
-                    <div className="w-12 h-12 rounded-xl bg-white border border-border flex items-center justify-center mb-5">
-                      <Icon size={22} className="text-brand" />
-                    </div>
-                    <h3 className="font-serif text-2xl font-medium text-foreground mb-3 leading-tight">{service.title}</h3>
-                    <p className="text-sm text-muted leading-relaxed mb-5 flex-1">{service.description}</p>
-                    <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand group-hover:gap-2.5 transition-all">
-                      {service.cta} <ArrowRight size={15} />
-                    </span>
-                  </Link>
-                </motion.div>
-              )
-            })}
-          </motion.div>
-        </div>
-      </section>
+      {/* ===== SERVICES (4 onglets) ===== */}
+      <ServicesTabs />
 
       {/* ===== ZONE ===== */}
       <section className="relative overflow-hidden">
@@ -457,7 +419,7 @@ export default function HomepageContent() {
             className="max-w-4xl mx-auto text-center">
             <motion.div variants={staggerFast} className="flex flex-wrap justify-center gap-2 mb-8">
               {COMMUNES_TEASER.map(c => {
-                const slug = c.toLowerCase().normalize('NFD').replace(/[\̀-\ͯ]/g, '').replace(/\s+/g, '-')
+                const slug = c.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-')
                 return (
                   <motion.div key={c} variants={fadeInUp} whileHover={hoverComm}>
                     <Link href={'/marche/' + slug}
