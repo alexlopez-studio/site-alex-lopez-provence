@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { renderToBuffer } from '@react-pdf/renderer'
+import { renderToBuffer, type DocumentProps } from '@react-pdf/renderer'
 import { getLeadById } from '@/lib/leads-repo'
 import {
   extractEstimationPdfDataFromLead,
@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  let element: React.ReactElement
+  let element: React.ReactElement<DocumentProps>
   let filenameBase: string
   let prenomLabel: string
 
