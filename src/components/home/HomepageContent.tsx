@@ -19,6 +19,7 @@ import { VP as vpOnce, fadeInUp, scaleIn, stagger, staggerFast } from '@/lib/ani
 const springFast = { type: 'spring' as const, stiffness: 400, damping: 25 }
 const hoverCard = { y: -6 }
 const hoverChip = { scale: 1.04 as number }
+const tapCard = { scale: 0.97 as number }
 const hoverComm = { scale: 1.04 as number, y: -2 as number }
 const heroRightInitial = { opacity: 0, scale: 0.96 as number }
 const heroRightAnimate = { opacity: 1, scale: 1 as number }
@@ -67,6 +68,7 @@ const PHONE_RAW = '+33613180168'
 const HERO_PHOTO = '/alexandre-lopez.jpg'
 const COMMUNES_TEASER = ['Barjols', 'Montmeyan', 'Quinson', 'Fox-Amphoux', 'Tavernes', 'Rians', 'Aups', 'Salernes', 'Ginasservis', 'Varages', 'Esparron-de-Verdon', 'Artignosc-sur-Verdon']
 
+// Photos locales (public/) — nouvelles photos authentiques Provence Verte & Haut-Var
 const PHOTO_LAVANDE = '/lavandes-proche.jpg'
 const PHOTO_OLIVIER = '/hans-olive-tree-1595493_1920.jpg'
 const PHOTO_VERDON = '/gorges-du-verdon.jpg'
@@ -95,16 +97,16 @@ type ForSaleTypeKey = 'typeVillageHouse' | 'typeBastide' | 'typeHouseWithLand'
 type SoldTypeKey = 'typeCharacterHouse' | 'typeProvencalMas' | 'typeVillaWithPool' | 'typeVillageHouse'
 
 const BIENS_VENTE_DATA: Array<{ key: string; image: string; tag: ForSaleTag; typeKey: ForSaleTypeKey; commune: string; prix: string; surface: string; rooms: number }> = [
-  { key: 'a', image: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800&q=80&auto=format&fit=crop', tag: 'new',       typeKey: 'typeVillageHouse',  commune: 'Barjols (83670)',    prix: '245 000 \u20ac', surface: '110 m\u00b2', rooms: 4 },
-  { key: 'b', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80&auto=format&fit=crop', tag: 'new',       typeKey: 'typeBastide',       commune: 'Rians (83560)',      prix: '385 000 \u20ac', surface: '180 m\u00b2', rooms: 6 },
-  { key: 'c', image: 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&q=80&auto=format&fit=crop', tag: 'priceDown', typeKey: 'typeHouseWithLand', commune: 'Montmeyan (83670)', prix: '198 000 \u20ac', surface: '95 m\u00b2',  rooms: 3 },
+  { key: 'a', image: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800&q=80&auto=format&fit=crop', tag: 'new',       typeKey: 'typeVillageHouse',  commune: 'Barjols (83670)',    prix: '245 000 €', surface: '110 m²', rooms: 4 },
+  { key: 'b', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80&auto=format&fit=crop', tag: 'new',       typeKey: 'typeBastide',       commune: 'Rians (83560)',      prix: '385 000 €', surface: '180 m²', rooms: 6 },
+  { key: 'c', image: 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&q=80&auto=format&fit=crop', tag: 'priceDown', typeKey: 'typeHouseWithLand', commune: 'Montmeyan (83670)', prix: '198 000 €', surface: '95 m²',  rooms: 3 },
 ]
 
 const BIENS_VENDUS_DATA: Array<{ key: string; image: string; typeKey: SoldTypeKey; commune: string; prix: string }> = [
-  { key: 'a', image: 'https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=600&q=80&auto=format&fit=crop', typeKey: 'typeCharacterHouse', commune: 'Barjols',  prix: '265 000 \u20ac' },
-  { key: 'b', image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&q=80&auto=format&fit=crop', typeKey: 'typeProvencalMas',  commune: 'Aups',     prix: '420 000 \u20ac' },
-  { key: 'c', image: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=600&q=80&auto=format&fit=crop', typeKey: 'typeVillaWithPool', commune: 'Rians',    prix: '345 000 \u20ac' },
-  { key: 'd', image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&q=80&auto=format&fit=crop', typeKey: 'typeVillageHouse',  commune: 'Salernes', prix: '185 000 \u20ac' },
+  { key: 'a', image: 'https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=600&q=80&auto=format&fit=crop', typeKey: 'typeCharacterHouse', commune: 'Barjols',  prix: '265 000 €' },
+  { key: 'b', image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&q=80&auto=format&fit=crop', typeKey: 'typeProvencalMas',  commune: 'Aups',     prix: '420 000 €' },
+  { key: 'c', image: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=600&q=80&auto=format&fit=crop', typeKey: 'typeVillaWithPool', commune: 'Rians',    prix: '345 000 €' },
+  { key: 'd', image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&q=80&auto=format&fit=crop', typeKey: 'typeVillageHouse',  commune: 'Salernes', prix: '185 000 €' },
 ]
 
 export default function HomepageContent() {
@@ -170,8 +172,8 @@ export default function HomepageContent() {
             </motion.h1>
             <motion.div variants={fadeInUp} className="mb-5"><HeartDivider /></motion.div>
             <motion.div variants={fadeInUp} className="inline-flex self-start items-center gap-3 px-5 py-2.5 rounded-full bg-brand text-white text-[10px] font-semibold uppercase tracking-[0.22em] mb-8 shadow-sm">
-              <span>{tHero('valueListening')}</span><span className="text-white/50">\u2022</span>
-              <span>{tHero('valueClarity')}</span><span className="text-white/50">\u2022</span>
+              <span>{tHero('valueListening')}</span><span className="text-white/50">•</span>
+              <span>{tHero('valueClarity')}</span><span className="text-white/50">•</span>
               <span>{tHero('valueTransparency')}</span>
             </motion.div>
             <motion.p variants={fadeInUp} className="text-base text-muted leading-relaxed mb-8 max-w-md">{tHero('description')}</motion.p>
@@ -199,7 +201,7 @@ export default function HomepageContent() {
             <motion.div initial={floatingCardInitial} animate={floatingCardAnimate} transition={floatingCardTransition}
               className="absolute bottom-8 left-4 bg-white rounded-2xl shadow-xl p-5 w-60 border border-border z-20">
               <p className="text-[10px] font-semibold text-muted uppercase tracking-[0.18em] mb-1">{tHero('estimationCardEyebrow')}</p>
-              <p className="font-serif text-2xl font-semibold text-foreground mb-0.5">245 000 \u20ac</p>
+              <p className="font-serif text-2xl font-semibold text-foreground mb-0.5">245 000 €</p>
               <p className="text-xs text-muted mb-3">{tHero('estimationCardHint')}</p>
               <div className="w-full bg-surface rounded-full h-1.5 mb-3">
                 <motion.div className="bg-brand h-1.5 rounded-full"
@@ -234,7 +236,7 @@ export default function HomepageContent() {
         </div>
       </motion.section>
 
-      {/* ===== CARTE POSTALE XL \u2014 BIENVENUE EN HAUT-VAR ===== */}
+      {/* ===== CARTE POSTALE XL — BIENVENUE EN HAUT-VAR ===== */}
       <section className="relative h-[78vh] md:h-[88vh] overflow-hidden" aria-label="Haut-Var & Provence Verte">
         <Image src={POSTCARD_IMAGE} alt="Paysage Provence Verte & Haut-Var" fill priority
           sizes="100vw" className="object-cover" />
@@ -252,7 +254,7 @@ export default function HomepageContent() {
           </motion.h2>
           <motion.div variants={fadeInUp} className="w-12 h-px bg-white/60 my-10" />
           <motion.p variants={fadeInUp} className="font-serif italic text-white/95 text-lg md:text-xl leading-relaxed max-w-2xl">
-            Entre champs de lavande, villages perch\u00e9s et eaux turquoise du Verdon &mdash; un art de vivre qui se red\u00e9couvre chaque matin.
+            Entre champs de lavande, villages perchés et eaux turquoise du Verdon &mdash; un art de vivre qui se redécouvre chaque matin.
           </motion.p>
           <motion.p variants={fadeInUp} className="font-script text-white text-3xl md:text-4xl mt-10">
             Alexandre
@@ -286,7 +288,7 @@ export default function HomepageContent() {
         </div>
       </section>
 
-      {/* ===== VILLAGES DE CARACT\u00c8RE \u2014 DIPTYQUE + 3 CARTES ===== */}
+      {/* ===== VILLAGES DE CARACTÈRE — DIPTYQUE + 3 CARTES ===== */}
       <section className="py-28 px-6 bg-surface">
         <div className="max-w-[85rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-14 max-w-2xl mx-auto">
@@ -371,7 +373,7 @@ export default function HomepageContent() {
                 <p className="text-xs text-muted mt-2 uppercase tracking-wider">{tStory('statAccompaniment')}</p>
               </motion.div>
               <motion.div variants={scaleIn}>
-                <p className="font-serif text-4xl font-semibold text-brand">0 \u20ac</p>
+                <p className="font-serif text-4xl font-semibold text-brand">0 €</p>
                 <p className="text-xs text-muted mt-2 uppercase tracking-wider">{tStory('statHiddenFees')}</p>
               </motion.div>
               <motion.div variants={scaleIn}>
@@ -389,7 +391,7 @@ export default function HomepageContent() {
         </div>
       </section>
 
-      {/* ===== SERVICES (onglets) ===== */}
+      {/* ===== SERVICES (4 onglets) ===== */}
       <ServicesTabs />
 
       {/* ===== ZONE ===== */}
@@ -456,7 +458,7 @@ export default function HomepageContent() {
                 <motion.div key={bien.key} variants={fadeInUp} whileHover={hoverCard} transition={springFast}
                   className="group bg-surface rounded-2xl border border-border overflow-hidden">
                   <div className="aspect-[4/3] bg-surface relative overflow-hidden">
-                    <Image src={bien.image} alt={typeLabel + ' \u2014 ' + bien.commune} fill
+                    <Image src={bien.image} alt={typeLabel + ' — ' + bien.commune} fill
                       sizes="(min-width: 768px) 33vw, 100vw"
                       className="object-cover transition-transform duration-500 group-hover:scale-105" />
                     <span className={'absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full ' + tagColor}>{tagLabel}</span>
@@ -466,7 +468,7 @@ export default function HomepageContent() {
                     <p className="font-semibold text-foreground text-sm mb-1">{typeLabel}</p>
                     <p className="text-xs text-muted flex items-center gap-1 mb-3"><MapPin size={11} />{bien.commune}</p>
                     <div className="flex gap-3 text-xs text-muted">
-                      <span>{bien.surface}</span><span>\u00b7</span>
+                      <span>{bien.surface}</span><span>·</span>
                       <span>{bien.rooms} {tForSale('roomsShort')}</span>
                     </div>
                   </div>
@@ -482,7 +484,7 @@ export default function HomepageContent() {
         </div>
       </section>
 
-      {/* ===== VENTES R\u00c9CENTES ===== */}
+      {/* ===== VENTES RÉCENTES ===== */}
       <section className="py-28 px-6 paper-surface">
         <div className="max-w-[75rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-14">
@@ -500,7 +502,7 @@ export default function HomepageContent() {
                   className="group rounded-2xl border border-border bg-white p-4 relative">
                   <span className="absolute top-5 right-5 z-10 text-xs font-bold text-white bg-success px-2 py-0.5 rounded-full shadow-sm">{tSold('badge')}</span>
                   <div className="aspect-[4/3] bg-surface rounded-xl overflow-hidden mb-4 relative">
-                    <Image src={bien.image} alt={typeLabel + ' \u2014 ' + bien.commune} fill
+                    <Image src={bien.image} alt={typeLabel + ' — ' + bien.commune} fill
                       sizes="(min-width: 768px) 25vw, 50vw"
                       className="object-cover transition-transform duration-500 group-hover:scale-105" />
                   </div>
@@ -514,7 +516,7 @@ export default function HomepageContent() {
         </div>
       </section>
 
-      {/* ===== T\u00c9MOIGNAGES ===== */}
+      {/* ===== TÉMOIGNAGES ===== */}
       <section className="py-28 px-6 bg-white">
         <div className="max-w-[75rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-14">
@@ -534,7 +536,7 @@ export default function HomepageContent() {
                   <span className="text-[10px] font-bold text-brand bg-brand-light px-2 py-0.5 rounded-full uppercase tracking-[0.15em]">{avis.transaction}</span>
                 </div>
                 <p className="font-serif text-lg italic text-foreground leading-relaxed flex-1 mb-4">{avis.text}</p>
-                <p className="text-xs font-semibold text-muted">\u2014 {avis.name}</p>
+                <p className="text-xs font-semibold text-muted">— {avis.name}</p>
               </motion.div>
             ))}
           </motion.div>
