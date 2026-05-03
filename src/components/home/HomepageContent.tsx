@@ -33,6 +33,24 @@ const progressBarInitial = { width: 0 }
 const progressBarAnimate = { width: '75%' }
 const progressBarTransition = { delay: 1.1, duration: 0.9, ease: 'easeOut' as const }
 
+// Animations « flottantes » pour les cartes posées par dessus la photo du Hero.
+// Mouvement vertical doux et infini, décalé entre les deux cartes pour ne pas
+// flotter en parfaite synchro.
+const floatLoop = { y: [0, -10, 0] }
+const floatLoopTransition = {
+  duration: 4.2,
+  repeat: Infinity,
+  ease: 'easeInOut' as const,
+  delay: 1.4,
+}
+const badgeFloatLoop = { y: [0, -7, 0] }
+const badgeFloatLoopTransition = {
+  duration: 3.6,
+  repeat: Infinity,
+  ease: 'easeInOut' as const,
+  delay: 1.8,
+}
+
 function Counter({ target, suffix }: { target: number; suffix: string }) {
   const ref = useRef<HTMLSpanElement>(null)
   const inView = useInView(ref, { once: true })
@@ -51,6 +69,8 @@ function Counter({ target, suffix }: { target: number; suffix: string }) {
   return <span ref={ref}>{count}{suffix}</span>
 }
 
+// HeartDivider conservé ici uniquement pour la section Témoignages.
+// Le Hero utilise désormais une simple barre latérale (cf. plus bas).
 function HeartDivider({ className = '' }: { className?: string }) {
   return (
     <div className={'flex items-center gap-3 text-brand ' + className} aria-hidden="true">
@@ -115,11 +135,15 @@ export default function HomepageContent() {
   const assistantUrl = appUrl('') || '/assistant'
   const biens = biensUrl() || IAD_URL_DEFAULT
 
+  // Galerie paysages : on harmonise les hauteurs en md+ via md:aspect-auto.
+  // Sur mobile, chaque image garde son aspect ratio. Sur md+, c'est le grid
+  // (grid-rows-[20rem_20rem]) qui dicte la hauteur — plus de décalage de la
+  // tuile vignobles vs villages perchés / oliveraies.
   const PAYSAGES = [
     { src: PAYSAGE_SRC.valensole, alt: tLand('valensoleAlt'), caption: tLand('valensoleCaption'), className: 'md:col-span-2 md:row-span-2 aspect-[4/3] md:aspect-auto' },
-    { src: PAYSAGE_SRC.villages,  alt: tLand('villagesAlt'),  caption: tLand('villagesCaption'),  className: 'aspect-[4/3]' },
-    { src: PAYSAGE_SRC.olives,    alt: tLand('olivesAlt'),    caption: tLand('olivesCaption'),    className: 'aspect-[4/3]' },
-    { src: PAYSAGE_SRC.vineyards, alt: tLand('vineyardsAlt'), caption: tLand('vineyardsCaption'), className: 'md:col-span-2 aspect-[16/9]' },
+    { src: PAYSAGE_SRC.villages,  alt: tLand('villagesAlt'),  caption: tLand('villagesCaption'),  className: 'aspect-[4/3] md:aspect-auto' },
+    { src: PAYSAGE_SRC.olives,    alt: tLand('olivesAlt'),    caption: tLand('olivesCaption'),    className: 'aspect-[4/3] md:aspect-auto' },
+    { src: PAYSAGE_SRC.vineyards, alt: tLand('vineyardsAlt'), caption: tLand('vineyardsCaption'), className: 'md:col-span-2 aspect-[16/9] md:aspect-auto' },
   ]
 
   const USP_CHIPS = [
@@ -152,12 +176,16 @@ export default function HomepageContent() {
           <motion.div variants={stagger} initial="initial" animate="animate"
             className="flex flex-col justify-center px-6 py-20 lg:py-0 order-2 lg:order-1">
             <motion.p variants={fadeInUp} className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-5">{tHero('tagline')}</motion.p>
-            <motion.p variants={fadeInUp} className="font-script text-6xl sm:text-7xl xl:text-8xl text-brand leading-[0.9] mb-4">{tHero('signature')}</motion.p>
+            {/* Le nom et prénom de la signature ont été retirés : le logo est déjà dans le header,
+                cela permet de gagner de l'espace vertical au-dessus du fold. */}
             <motion.h1 variants={stagger} className="font-serif text-3xl sm:text-4xl xl:text-5xl font-medium text-foreground leading-[1.15] mb-6 max-w-md tracking-[-0.02em]">
               <motion.span variants={fadeInUp} className="block">{tHero('titleLine1')}</motion.span>
               <motion.span variants={fadeInUp} className="block italic text-muted">{tHero('titleLine2')}</motion.span>
             </motion.h1>
-            <motion.div variants={fadeInUp} className="mb-5"><HeartDivider /></motion.div>
+            {/* Barre latérale simple (au lieu de l'ancien HeartDivider). */}
+            <motion.div variants={fadeInUp} className="mb-5">
+              <div className="h-px w-16 bg-brand/40" aria-hidden="true" />
+            </motion.div>
             <motion.div variants={fadeInUp} className="inline-flex self-start items-center gap-3 px-5 py-2.5 rounded-full bg-brand text-white text-[10px] font-semibold uppercase tracking-[0.22em] mb-8 shadow-sm">
               <span>{tHero('valueListening')}</span><span className="text-white/50">•</span>
               <span>{tHero('valueClarity')}</span><span className="text-white/50">•</span>
@@ -183,29 +211,39 @@ export default function HomepageContent() {
           <motion.div initial={heroRightInitial} animate={heroRightAnimate} transition={heroRightTransition}
             className="relative flex items-center justify-center min-h-[60vh] lg:min-h-full order-1 lg:order-2">
             <HeroPhotoNoBg alt={tHero('photoAlt')} className="absolute inset-0" />
+
+            {/* Card flottante « Avis de valeur » : entrée + boucle douce up/down. */}
             <motion.div initial={floatingCardInitial} animate={floatingCardAnimate} transition={floatingCardTransition}
-              className="absolute bottom-8 left-4 bg-white rounded-2xl shadow-xl p-5 w-60 border border-border z-20">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-full bg-brand-light flex items-center justify-center">
-                  <TrendingUp size={15} className="text-brand" />
+              className="absolute bottom-8 left-4 z-20">
+              <motion.div animate={floatLoop} transition={floatLoopTransition}
+                className="bg-white rounded-2xl shadow-xl p-5 w-60 border border-border">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 rounded-full bg-brand-light flex items-center justify-center">
+                    <TrendingUp size={15} className="text-brand" />
+                  </div>
+                  <p className="text-[10px] font-semibold text-muted uppercase tracking-[0.18em]">{tHero('floatingCardLabel')}</p>
                 </div>
-                <p className="text-[10px] font-semibold text-muted uppercase tracking-[0.18em]">{tHero('floatingCardLabel')}</p>
-              </div>
-              <p className="font-serif text-2xl font-semibold text-foreground mb-1">245 000 €</p>
-              <p className="text-xs text-muted mb-3">{tHero('floatingCardSubtitle')}</p>
-              <div className="h-1.5 bg-surface rounded-full overflow-hidden">
-                <motion.div initial={progressBarInitial} animate={progressBarAnimate} transition={progressBarTransition}
-                  className="h-full bg-brand rounded-full" />
-              </div>
+                <p className="font-serif text-2xl font-semibold text-foreground mb-1">245 000 €</p>
+                <p className="text-xs text-muted mb-3">{tHero('floatingCardSubtitle')}</p>
+                <div className="h-1.5 bg-surface rounded-full overflow-hidden">
+                  <motion.div initial={progressBarInitial} animate={progressBarAnimate} transition={progressBarTransition}
+                    className="h-full bg-brand rounded-full" />
+                </div>
+              </motion.div>
             </motion.div>
+
+            {/* Badge flottant « 5/5 » : entrée + boucle douce up/down décalée. */}
             <motion.div initial={badgeInitial} animate={badgeAnimate} transition={badgeTransition}
-              className="absolute top-6 right-4 bg-white rounded-xl shadow-md px-3 py-2 flex items-center gap-2 border border-border z-20">
-              <div className="flex gap-0.5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} size={11} className="text-accent fill-accent" />
-                ))}
-              </div>
-              <span className="text-[10px] font-bold text-foreground">5/5</span>
+              className="absolute top-6 right-4 z-20">
+              <motion.div animate={badgeFloatLoop} transition={badgeFloatLoopTransition}
+                className="bg-white rounded-xl shadow-md px-3 py-2 flex items-center gap-2 border border-border">
+                <div className="flex gap-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star key={i} size={11} className="text-accent fill-accent" />
+                  ))}
+                </div>
+                <span className="text-[10px] font-bold text-foreground">5/5</span>
+              </motion.div>
             </motion.div>
           </motion.div>
         </div>
@@ -227,21 +265,21 @@ export default function HomepageContent() {
         </div>
       </motion.section>
 
-      {/* ===== CARTE POSTALE XL — BIENVENUE EN PROVENCE & VAR ===== */}
-      <section className="relative h-[78vh] md:h-[88vh] overflow-hidden" aria-label="Provence et Var">
-        <Image src={POSTCARD_IMAGE} alt="Paysage de Provence et du Var" fill priority
+      {/* ===== CARTE POSTALE XL — BIENVENUE DANS LE SUD ===== */}
+      <section className="relative h-[78vh] md:h-[88vh] overflow-hidden" aria-label="Bienvenue dans le sud">
+        <Image src={POSTCARD_IMAGE} alt="Paysage du sud de la France" fill priority
           sizes="100vw" className="object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/75" />
         <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
           className="relative h-full flex flex-col items-center justify-center text-center px-6 max-w-5xl mx-auto">
           <motion.p variants={fadeInUp} className="text-white/90 text-[11px] font-semibold uppercase tracking-[0.32em] mb-8">
-            Bienvenue en
+            Bienvenue
           </motion.p>
           <motion.h2 variants={fadeInUp}
             className="font-serif italic text-white text-4xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.95] tracking-[-0.02em] drop-shadow-[0_2px_20px_rgba(0,0,0,0.3)]">
-            Provence
+            dans le
             <br />
-            <span className="text-brand-light">& Var.</span>
+            <span className="text-brand-light">sud.</span>
           </motion.h2>
           <motion.div variants={fadeInUp} className="w-12 h-px bg-white/60 my-10" />
           <motion.p variants={fadeInUp} className="font-serif italic text-white/95 text-lg md:text-xl leading-relaxed max-w-2xl">
