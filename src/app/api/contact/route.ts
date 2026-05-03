@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 const RESEND_API = 'https://api.resend.com/emails'
-const FROM = 'Site Alex Lopez <contact@alexlopez-provence.fr>'
-const TO = 'alexlopez.studio@gmail.com'
+
+// FROM par défaut : sender de test Resend (pas besoin de domaine vérifié).
+// Une fois le domaine alexlopez-provence.fr vérifié dans Resend, surcharger
+// via l'env var RESEND_FROM, par ex :
+//   RESEND_FROM='Site Alex Lopez <contact@alexlopez-provence.fr>'
+const DEFAULT_FROM = 'Site Alex Lopez <onboarding@resend.dev>'
+
+// TO par défaut : la mailbox admin. Surchargeable via env RESEND_TO.
+// ⚠️ En mode sandbox Resend (FROM=onboarding@resend.dev), le mail ne peut
+// partir QUE vers l'email associé au compte Resend (anti-spam).
+const DEFAULT_TO = 'alexlopez.studio@gmail.com'
 
 function asString(value: unknown): string {
   return typeof value === 'string' ? value.trim() : ''
@@ -20,8 +29,13 @@ function escapeHtml(value: string): string {
  * POST /api/contact
  *
  * Phase B (hotfix) : la route ne persiste plus rien côté DB. Elle forwarde le
- * message au mailbox admin (`alexlopez.studio@gmail.com`) via Resend, avec
- * `reply_to` positionné sur l'email du prospect pour pouvoir répondre directement.
+ * message au mailbox admin via Resend, avec `reply_to` positionné sur l'email
+ * du prospect pour pouvoir répondre directement.
+ *
+ * Configuration Vercel :
+ *   - RESEND_API_KEY (requis) : clé API Resend.
+ *   - RESEND_FROM (optionnel) : sender, défaut = onboarding@resend.dev (sandbox).
+ *   - RESEND_TO (optionnel) : destinataire, défaut = alexlopez.studio@gmail.com.
  *
  * Migration vers une table dédiée (`contacts` ou `lead_events kind=note`) à
  * décider quand le dashboard admin Phase B sera opérationnel.
@@ -47,6 +61,9 @@ export async function POST(req: NextRequest) {
         { status: 503 },
       )
     }
+
+    const from = process.env.RESEND_FROM || DEFAULT_FROM
+    const to = process.env.RESEND_TO || DEFAULT_TO
 
     const prenom = asString(body?.prenom)
     const nom = asString(body?.nom)
@@ -96,8 +113,8 @@ export async function POST(req: NextRequest) {
           Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          from: FROM,
-          to: [TO],
+          from,
+          to: [to],
           reply_to: email,
           subject,
           html,

@@ -30,8 +30,9 @@ export function ContactFormClient() {
         setState('error')
       }
     } catch {
-      setState('success')
-      form.reset()
+      // Bug précédent : ce catch passait en 'success' au lieu de 'error', ce qui
+      // masquait les échecs réseau à l'utilisateur. Corrigé.
+      setState('error')
     }
   }
 
