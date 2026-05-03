@@ -52,7 +52,7 @@ export function HeroPhotoNoBg({
 
   return (
     <div
-      className={'relative w-full h-full flex items-end justify-center overflow-hidden ' + className}
+      className={'relative w-full h-full flex items-end justify-center ' + className}
     >
       {/* Opening animation: fade + scale + slide-up + blur-to-sharp */}
       <motion.div
@@ -67,7 +67,7 @@ export function HeroPhotoNoBg({
           fill
           priority
           sizes="(min-width: 1024px) 50vw, 100vw"
-          className="object-cover object-bottom drop-shadow-[0_24px_60px_rgba(0,99,144,0.28)]"
+          className="object-contain object-bottom drop-shadow-[0_24px_60px_rgba(0,99,144,0.18)]"
         />
       </motion.div>
     </div>
