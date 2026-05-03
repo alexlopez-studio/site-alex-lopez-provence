@@ -46,11 +46,12 @@ export default function VendrePage() {
       acceptedAnswer: { '@type': 'Answer', text: item.a },
     })),
   }
+  const jsonLdHtml = { __html: JSON.stringify(jsonLd) }
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML= __html: JSON.stringify(jsonLd) 
+        dangerouslySetInnerHTML={jsonLdHtml}
       />
       <VendrePageContent />
     </>
