@@ -1,51 +1,73 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { findDpeNearby } from '@/lib/ademe'
+import { findParcelByPoint } from '@/lib/cadastre'
 
+/**
+ * GET /api/adresse-infos?lat=...&lng=...
+ *
+ * Phase B v2 — câblé sur les libs typées :
+ *  - DPE : recherche géographique sur l'API ADEME (data-fair, dataset v2)
+ *  - Parcelle : APICarto IGN (endpoint moderne, remplace look4/parcel/search déprécié)
+ *
+ * Répond avec un JSON tolérant aux trous : si une API est down ou ne trouve
+ * rien, le champ correspondant est simplement absent de la réponse.
+ */
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
-  const lat = searchParams.get('lat')
-  const lng = searchParams.get('lng')
-  const q = searchParams.get('q') ?? ''
+  const latStr = searchParams.get('lat')
+  const lngStr = searchParams.get('lng')
 
-  if (!lat || !lng) return NextResponse.json({ error: 'lat et lng requis' }, { status: 400 })
+  if (!latStr || !lngStr) {
+    return NextResponse.json(
+      { error: 'lat et lng requis' },
+      { status: 400 },
+    )
+  }
+
+  const lat = Number(latStr)
+  const lng = Number(lngStr)
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    return NextResponse.json(
+      { error: 'lat et lng invalides' },
+      { status: 400 },
+    )
+  }
 
   const result: {
-    dpe?: { lettre: string }
-    parcelle?: { id: string; commune: string; surface: number | null }
+    dpe?: { lettre: string; confidence: 'exact' | 'approximatif' | 'non_trouve' }
+    parcelle?: {
+      id: string
+      idu: string
+      commune: string
+      surface: number | null
+    }
   } = {}
 
-  // Parcelle cadastrale IGN
-  try {
-    const ignUrl =
-      'https://geocodage.ign.fr/look4/parcel/search' +
-      '?lat=' + lat + '&lon=' + lng +
-      '&outputfields=all&fuzzyMatch=false&returntruegeometry=false&maximumResponses=1'
-    const r = await fetch(ignUrl, { next: { revalidate: 86400 } })
-    if (r.ok) {
-      const d = await r.json()
-      const first = d.results?.[0]
-      if (first) {
-        result.parcelle = {
-          id: first.extrafields?.parcelle_id ?? first.toponym ?? '',
-          commune: first.city ?? '',
-          surface: first.extrafields?.surface_parcelle ?? null,
-        }
-      }
-    }
-  } catch { /* non disponible */ }
+  // Lookups en parallèle pour minimiser la latence côté client.
+  // Les deux libs sont résilientes (retournent null / non_trouve sur erreur),
+  // donc Promise.all ne peut pas rejeter ici.
+  const [dpeLookup, parcel] = await Promise.all([
+    findDpeNearby({ lat, lng }),
+    findParcelByPoint({ lat, lng }),
+  ])
 
-  // DPE ADEME
-  try {
-    const ademeUrl =
-      'https://data.ademe.fr/data-fair/api/v1/datasets/dpe-v2-logements-existants/lines' +
-      '?qs=adresse_ban%3A' + encodeURIComponent(q) +
-      '&size=1&select=etiquette_dpe'
-    const r = await fetch(ademeUrl, { next: { revalidate: 86400 } })
-    if (r.ok) {
-      const d = await r.json()
-      const lettre = d.results?.[0]?.etiquette_dpe
-      if (lettre) result.dpe = { lettre }
+  if (dpeLookup.dpe?.etiquette_dpe) {
+    result.dpe = {
+      lettre: dpeLookup.dpe.etiquette_dpe,
+      confidence: dpeLookup.confidence,
     }
-  } catch { /* non disponible */ }
+  }
+
+  if (parcel) {
+    result.parcelle = {
+      // Format affichable : section-numero, ex. "0D-1366"
+      id: parcel.section + '-' + parcel.numero,
+      // Identifiant unique 14-15 chars (pour lookups en aval, BDNB notamment)
+      idu: parcel.idu,
+      commune: parcel.nom_com,
+      surface: parcel.contenance_m2,
+    }
+  }
 
   return NextResponse.json(result)
 }
