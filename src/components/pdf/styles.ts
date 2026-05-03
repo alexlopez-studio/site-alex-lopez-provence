@@ -1,7 +1,7 @@
 import { StyleSheet } from '@react-pdf/renderer'
 
 /**
- * Charte couleur PDF, alignee sur la charte web.
+ * Charte couleur PDF, alignée sur la charte web.
  * Brand: #0077B6 — Hover: #005F96 — Light: #E0F0FA
  */
 export const COLORS = {
@@ -179,6 +179,10 @@ export const styles = StyleSheet.create({
     padding: 24,
     borderRadius: 12,
     marginBottom: 24,
+  },
+  scoreInline: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
   },
   scoreBig: {
     fontSize: 64,

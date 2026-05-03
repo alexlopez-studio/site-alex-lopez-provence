@@ -1,6 +1,6 @@
 /**
  * Formatters purs pour les rendus PDF (Estimation / Audit).
- * Toutes les fonctions sont deterministes, sans side-effect, et compatibles
+ * Toutes les fonctions sont déterministes, sans side-effect, et compatibles
  * avec react-pdf (pas de DOM, pas de Intl absent).
  */
 
@@ -20,14 +20,23 @@ const dateFormatter = new Intl.DateTimeFormat('fr-FR', {
 
 const FALLBACK = '\u2014' // em-dash
 
+/**
+ * Helvetica (font built-in PDF) ne couvre pas U+202F (narrow no-break space)
+ * que Intl.NumberFormat fr-FR émet sous Node 20+ entre les milliers et avant
+ * la devise. On le remplace par U+00A0 (non-breaking space) qui est supporté.
+ */
+function normalizeFrSpaces(s: string): string {
+  return s.replace(/\u202f/g, '\u00a0')
+}
+
 export function formatEur(n: number): string {
   if (!Number.isFinite(n)) return FALLBACK
-  return eurFormatter.format(n)
+  return normalizeFrSpaces(eurFormatter.format(n))
 }
 
 export function formatEurPerM2(n: number): string {
   if (!Number.isFinite(n)) return FALLBACK
-  return `${numberFormatter.format(Math.round(n))} \u20ac/m\u00b2`
+  return `${normalizeFrSpaces(numberFormatter.format(Math.round(n)))} \u20ac/m\u00b2`
 }
 
 export function formatSignedEur(n: number): string {
@@ -45,13 +54,13 @@ export function formatSignedPct(pct: number): string {
 export function formatDateFr(iso: string): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
-  return dateFormatter.format(d)
+  return normalizeFrSpaces(dateFormatter.format(d))
 }
 
 /**
- * Sanitise une chaine destinee a un nom de fichier ASCII safe.
+ * Sanitise une chaîne destinée à un nom de fichier ASCII safe.
  * - Conserve [a-zA-Z0-9._-]
- * - Remplace tout autre caractere par _
+ * - Remplace tout autre caractère par _
  * - Collapse les _ multiples
  * - Trim les _ en bord
  */
