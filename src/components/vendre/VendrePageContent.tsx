@@ -4,9 +4,9 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import {
-  ArrowRight, ChevronDown, MapPin, Phone, Star, Check,
+  ArrowRight, ChevronDown, MapPin, Phone, Star, Check, Clock,
   Home, TrendingUp, Calculator, ClipboardCheck, FileText,
-  Award, Eye, Lock, ShieldCheck, MessageCircle, BarChart2,
+  Award, Eye, Lock, ShieldCheck, MessageCircle, BarChart2, Calendar,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { env } from '@/lib/env'
@@ -18,19 +18,14 @@ const EYEBROW = 'text-[13px] font-bold uppercase tracking-[0.22em]'
 const PHONE_RAW = '+33613180168'
 const PHONE_DISPLAY = '06 13 18 01 68'
 
-// Photo libre de droit Pixabay (auteur "hans", slug "olive-tree", id 1595493).
-// Utilisée en encadré dans le hero plutôt qu'en backdrop pleine largeur.
-const HERO_PHOTO = '/hans-olive-tree-1595493_1920.jpg'
+// PLACEHOLDER : photo à remplacer par un visuel Pixabay représentatif d'une vente immobilière
+// (clés, poignée de main, signature de contrat). En attendant, maison-bleue-cotignac évoque
+// le bien immobilier.
+const HERO_PHOTO = '/maison-bleue-cotignac.jpg'
 const CTA_BACKDROP = '/village-cotignac.jpg'
 
 // Réactiver quand de vraies ventes récentes seront fournies par Alexandre.
 const SHOW_RECENT_SALES = false
-
-const HERO_STATS = [
-  { value: '0\u00a0\u20ac', label: 'estimation' },
-  { value: '48\u202fh', label: 'délai réponse' },
-  { value: 'iAD', label: 'réseau France' },
-]
 
 const HERO_CHIPS = [
   'Réseau iAD France',
@@ -124,13 +119,31 @@ const FAQ = [
   },
 ] as const
 
+// === ANIMATIONS DES CARTES FLOTTANTES (même pattern que la home) ===
+const floatingCardInitial = { opacity: 0, x: -20, y: 20 }
+const floatingCardAnimate = { opacity: 1, x: 0, y: 0 }
+const floatingCardTransition = { delay: 0.65, duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }
+
+const badgeInitial = { opacity: 0, scale: 0.8 as number }
+const badgeAnimate = { opacity: 1, scale: 1 as number }
+const badgeTransitionTopRight = { delay: 0.85, duration: 0.4 }
+const badgeTransitionBottomRight = { delay: 1.05, duration: 0.4 }
+
+// Boucles flottantes douces, désynchronisées entre les 3 cartes.
+const floatLoopA = { y: [0, -10, 0] }
+const floatLoopATransition = { duration: 4.2, repeat: Infinity, ease: 'easeInOut' as const, delay: 1.4 }
+const floatLoopB = { y: [0, -7, 0] }
+const floatLoopBTransition = { duration: 3.6, repeat: Infinity, ease: 'easeInOut' as const, delay: 1.8 }
+const floatLoopC = { y: [0, -8, 0] }
+const floatLoopCTransition = { duration: 4.8, repeat: Infinity, ease: 'easeInOut' as const, delay: 2.0 }
+
 export default function VendrePageContent() {
   const calcomUrl = env.app.calcomUrl
 
   return (
     <>
-      {/* ===== 1. HERO (split : texte à gauche, photo encadrée à droite, fond doux) ===== */}
-      <section className="relative paper-surface pt-32 md:pt-40 pb-20 md:pb-28 overflow-hidden" aria-label="Hero Vendre">
+      {/* ===== 1. HERO (split + photo encadrée + 3 cartes flottantes) ===== */}
+      <section className="relative paper-surface pt-16 md:pt-24 pb-20 md:pb-28 overflow-hidden" aria-label="Hero Vendre">
         <div className="max-w-[75rem] mx-auto px-6 grid grid-cols-1 lg:grid-cols-[1.15fr_1fr] gap-12 lg:gap-16 items-center">
 
           {/* Bloc texte */}
@@ -142,22 +155,12 @@ export default function VendrePageContent() {
               className="font-serif text-4xl sm:text-5xl md:text-6xl font-medium leading-[1.05] tracking-[-0.02em] text-foreground mb-6">
               Estimer et vendre votre bien <span className="italic text-brand">en toute sérénité.</span>
             </motion.h1>
-            <motion.p variants={fadeInUp} className="text-muted text-lg leading-relaxed mb-8 max-w-xl">
+            <motion.p variants={fadeInUp} className="text-muted text-lg leading-relaxed mb-10 max-w-xl">
               Je m&rsquo;appuie sur une analyse fine du marché local et une véritable stratégie de positionnement pour valoriser votre bien, optimiser sa commercialisation et vous accompagner jusqu&rsquo;à la signature.
             </motion.p>
 
-            {/* Stats */}
-            <motion.div variants={stagger} className="grid grid-cols-3 gap-5 max-w-md mb-8 py-5 border-y border-foreground/10">
-              {HERO_STATS.map((s) => (
-                <motion.div key={s.label} variants={scaleIn}>
-                  <p className="font-serif text-2xl md:text-3xl font-semibold text-brand leading-none">{s.value}</p>
-                  <p className="text-[11px] text-muted mt-2 uppercase tracking-wider">{s.label}</p>
-                </motion.div>
-              ))}
-            </motion.div>
-
             {/* CTAs */}
-            <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-3 mb-8">
+            <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-3">
               <Button asChild size="lg" variant="primary">
                 <Link href={calcomUrl} target="_blank" rel="noopener noreferrer">
                   Prendre rendez-vous <ArrowRight size={18} />
@@ -167,34 +170,104 @@ export default function VendrePageContent() {
                 <Link href="/contact">Me contacter</Link>
               </Button>
             </motion.div>
+          </motion.div>
 
-            {/* Chips */}
-            <motion.div variants={fadeInUp} className="flex flex-wrap gap-2">
-              {HERO_CHIPS.map((chip) => (
-                <span key={chip} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-border text-xs font-semibold text-foreground">
-                  <Check size={13} className="text-brand" />
-                  {chip}
-                </span>
-              ))}
+          {/* Photo encadrée + 3 cartes flottantes */}
+          <div className="relative order-1 lg:order-2 max-w-md w-full mx-auto lg:mx-0 lg:ml-auto">
+            {/* Photo principale */}
+            <motion.div
+              variants={scaleIn}
+              initial="initial"
+              animate="animate"
+              className="relative aspect-[4/5] rounded-3xl overflow-hidden border border-border shadow-xl bg-surface"
+            >
+              <Image
+                src={HERO_PHOTO}
+                alt="Maison à vendre en Provence"
+                fill
+                sizes="(min-width: 1024px) 40vw, 90vw"
+                priority
+                className="object-cover"
+              />
             </motion.div>
-          </motion.div>
 
-          {/* Photo encadrée (Pixabay, libre de droit) */}
-          <motion.div
-            variants={scaleIn}
-            initial="initial"
-            animate="animate"
-            className="relative aspect-[4/5] rounded-3xl overflow-hidden border border-border shadow-xl bg-surface order-1 lg:order-2 max-w-md w-full mx-auto lg:mx-0 lg:ml-auto"
-          >
-            <Image
-              src={HERO_PHOTO}
-              alt="Oliveraie en Provence"
-              fill
-              sizes="(min-width: 1024px) 40vw, 90vw"
-              priority
-              className="object-cover"
-            />
-          </motion.div>
+            {/* Carte flottante « Réseau iAD France » — grosse card, bottom-left, contient le mini logo iAD blanc */}
+            <motion.div
+              initial={floatingCardInitial}
+              animate={floatingCardAnimate}
+              transition={floatingCardTransition}
+              className="absolute -bottom-6 -left-4 sm:-left-8 z-20"
+            >
+              <motion.div
+                animate={floatLoopA}
+                transition={floatLoopATransition}
+                className="bg-white rounded-2xl shadow-xl px-5 py-4 w-56 border border-border flex items-center gap-3"
+              >
+                <div className="shrink-0 w-12 h-12 rounded-xl bg-brand-dark flex items-center justify-center p-2">
+                  <Image src="/IAD_LOGO_BLANC.png" alt="" width={120} height={88} className="h-full w-auto" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-muted uppercase tracking-[0.16em] mb-0.5">Réseau</p>
+                  <p className="font-serif text-base font-semibold text-foreground leading-tight">iAD France</p>
+                  <p className="text-[11px] text-muted mt-0.5">+18\u202f000 conseillers</p>
+                </div>
+              </motion.div>
+            </motion.div>
+
+            {/* Badge flottant « Estimation gratuite » — top-right */}
+            <motion.div
+              initial={badgeInitial}
+              animate={badgeAnimate}
+              transition={badgeTransitionTopRight}
+              className="absolute -top-4 -right-3 sm:-right-6 z-20"
+            >
+              <motion.div
+                animate={floatLoopB}
+                transition={floatLoopBTransition}
+                className="bg-white rounded-2xl shadow-lg px-4 py-3 flex items-center gap-2.5 border border-border"
+              >
+                <div className="shrink-0 w-9 h-9 rounded-full bg-brand-light flex items-center justify-center">
+                  <Calculator size={16} className="text-brand" />
+                </div>
+                <div>
+                  <p className="font-serif text-base font-semibold text-foreground leading-none">0\u202f\u20ac</p>
+                  <p className="text-[10px] text-muted uppercase tracking-wider mt-0.5">Estimation</p>
+                </div>
+              </motion.div>
+            </motion.div>
+
+            {/* Badge flottant « Disponible 7j/7 » — right milieu, légèrement vers le bas */}
+            <motion.div
+              initial={badgeInitial}
+              animate={badgeAnimate}
+              transition={badgeTransitionBottomRight}
+              className="absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-20"
+            >
+              <motion.div
+                animate={floatLoopC}
+                transition={floatLoopCTransition}
+                className="bg-white rounded-2xl shadow-lg px-4 py-3 flex items-center gap-2.5 border border-border"
+              >
+                <div className="shrink-0 w-9 h-9 rounded-full bg-brand-light flex items-center justify-center">
+                  <Calendar size={16} className="text-brand" />
+                </div>
+                <div>
+                  <p className="font-serif text-base font-semibold text-foreground leading-none">7\u202fj/7</p>
+                  <p className="text-[10px] text-muted uppercase tracking-wider mt-0.5">Disponible</p>
+                </div>
+              </motion.div>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Chips déplacées sous le hero, sur toute la largeur, pour rester visibles même avec les cartes flottantes */}
+        <div className="max-w-[75rem] mx-auto px-6 mt-16 lg:mt-20 flex flex-wrap justify-center gap-3">
+          {HERO_CHIPS.map((chip) => (
+            <span key={chip} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-border text-xs font-semibold text-foreground shadow-sm">
+              <Check size={13} className="text-brand" />
+              {chip}
+            </span>
+          ))}
         </div>
       </section>
 
@@ -273,7 +346,7 @@ export default function VendrePageContent() {
         </section>
       )}
 
-      {/* ===== 5. PROCESSUS — FRISE HORIZONTALE 6 ÉTAPES ===== */}
+      {/* ===== 5. PROCESSUS — FRISE HORIZONTALE 6 ÉTAPES + HOVER ANIMATIONS ===== */}
       <section className="py-28 px-6 bg-white">
         <div className="max-w-[80rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-16 max-w-2xl mx-auto">
@@ -288,7 +361,6 @@ export default function VendrePageContent() {
           <motion.div variants={staggerFast} initial="initial" whileInView="animate" viewport={vpOnce}
             className="relative"
           >
-            {/* Ligne de connexion (desktop uniquement, tombée au centre vertical des cercles) */}
             <div
               aria-hidden="true"
               className="hidden md:block absolute left-0 right-0 top-12 h-px bg-gradient-to-r from-transparent via-brand/40 to-transparent z-0"
@@ -298,18 +370,24 @@ export default function VendrePageContent() {
               {PROCESS.map((step) => {
                 const Icon = step.icon
                 return (
-                  <motion.article key={step.num} variants={scaleIn}
-                    className="flex flex-col items-center text-center px-2"
+                  <motion.article
+                    key={step.num}
+                    variants={scaleIn}
+                    whileHover=toolu_015YL7RZFG6PTA8S4jUj4JCx
+                    transition=toolu_019gmM53MDA4zNvgT9T6RmdF
+                    className="group flex flex-col items-center text-center px-2 cursor-pointer"
                   >
-                    {/* Cercle numéroté */}
-                    <div className="relative w-24 h-24 rounded-full bg-white border-2 border-brand flex flex-col items-center justify-center shadow-md mb-5">
-                      <Icon size={20} className="text-brand" />
-                      <span className="text-[10px] font-bold text-brand uppercase tracking-wider mt-1">
+                    {/* Cercle numéroté — animé au survol via group-hover */}
+                    <div className="relative w-24 h-24 rounded-full bg-white border-2 border-brand flex flex-col items-center justify-center shadow-md mb-5
+                                    transition-all duration-300
+                                    group-hover:scale-110 group-hover:bg-brand group-hover:shadow-xl group-hover:shadow-brand/30">
+                      <Icon size={20} className="text-brand transition-colors duration-300 group-hover:text-white" />
+                      <span className="text-[10px] font-bold text-brand uppercase tracking-wider mt-1 transition-colors duration-300 group-hover:text-white">
                         Étape {step.num.toString().padStart(2, '0')}
                       </span>
                     </div>
 
-                    <h3 className="font-serif text-base lg:text-[15px] font-semibold text-foreground mb-2 leading-tight">
+                    <h3 className="font-serif text-base lg:text-[15px] font-semibold text-foreground mb-2 leading-tight transition-colors duration-300 group-hover:text-brand">
                       {step.title}
                     </h3>
                     <p className="text-xs text-muted leading-relaxed">
