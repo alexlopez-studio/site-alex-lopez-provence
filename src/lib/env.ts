@@ -10,7 +10,7 @@ export const env = {
   app: {
     siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://alexlopez-provence.fr',
     calcomUrl: process.env.NEXT_PUBLIC_CALCOM_URL ?? 'https://cal.com/alex-lopez/consultation-gratuite',
-    iadListingsUrl: process.env.NEXT_PUBLIC_IAD_LISTINGS_URL ?? '',
+    iadListingsUrl: process.env.NEXT_PUBLIC_IAD_LISTINGS_URL ?? 'https://www.iadfrance.fr/conseiller-immobilier/alexandre.lopez',
   },
 } as const
 
@@ -31,6 +31,7 @@ export function appUrl(path: string = ''): string {
 
 /**
  * URL publique des biens Alex Lopez sur IAD (ou '' si non configurée).
+ * Par défaut: page conseiller iad officielle d'Alexandre Lopez.
  */
 export function biensUrl(): string {
   return env.app.iadListingsUrl || ''

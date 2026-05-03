@@ -33,7 +33,13 @@ const portraitAnimate = {
 
 /**
  * Portrait détouré pour le hero.
- * La photo prend toute la hauteur du hero section.
+ *
+ * IMPORTANT — pour les PNG à fond transparent :
+ *   • on utilise object-contain (pas object-cover) pour ne PAS étirer/zoomer la photo
+ *     à grande résolution. object-cover provoquait des artefacts verticaux sur les bords
+ *     du PNG transparent quand le conteneur devenait plus large que la photo.
+ *   • object-bottom pour ancrer la photo en bas du conteneur.
+ *   • pas de drop-shadow filter (causait des halos sur les bords transparents).
  *
  * Effets à l'ouverture :
  *   • fade-in + scale doux
@@ -52,14 +58,14 @@ export function HeroPhotoNoBg({
 
   return (
     <div
-      className={'relative w-full h-full flex items-end justify-center overflow-hidden ' + className}
+      className={'relative w-full h-full flex items-end justify-center ' + className}
     >
       {/* Opening animation: fade + scale + slide-up + blur-to-sharp */}
       <motion.div
         initial={reduce ? false : portraitInitial}
         animate={reduce ? undefined : portraitAnimate}
         transition={portraitTransition}
-        className="relative w-full h-full flex items-end justify-center"
+        className="relative w-full h-full flex items-end justify-center select-none pointer-events-none"
       >
         <Image
           src={src}
@@ -67,7 +73,7 @@ export function HeroPhotoNoBg({
           fill
           priority
           sizes="(min-width: 1024px) 50vw, 100vw"
-          className="object-cover object-bottom drop-shadow-[0_24px_60px_rgba(0,99,144,0.28)]"
+          className="object-contain object-bottom"
         />
       </motion.div>
     </div>
