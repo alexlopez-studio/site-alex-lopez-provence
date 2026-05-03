@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import {
-  ArrowRight, ChevronDown, MapPin, Phone, Star, Check, Clock,
+  ArrowRight, ChevronDown, MapPin, Phone, Star, Check,
   Home, TrendingUp, Calculator, ClipboardCheck, FileText,
   Award, Eye, Lock, ShieldCheck, MessageCircle, BarChart2, Calendar,
 } from 'lucide-react'
@@ -12,47 +12,45 @@ import { Button } from '@/components/ui/button'
 import { env } from '@/lib/env'
 import { VP as vpOnce, fadeInUp, scaleIn, stagger, staggerFast } from '@/lib/animations'
 
-// Eyebrow partagé (même style que la home)
 const EYEBROW = 'text-[13px] font-bold uppercase tracking-[0.22em]'
 
 const PHONE_RAW = '+33613180168'
 const PHONE_DISPLAY = '06 13 18 01 68'
 
-// PLACEHOLDER : photo à remplacer par un visuel Pixabay représentatif d'une vente immobilière
-// (clés, poignée de main, signature de contrat). En attendant, maison-bleue-cotignac évoque
+// PLACEHOLDER : photo a remplacer par un visuel Pixabay representatif d'une vente immobiliere
+// (cles, poignee de main, signature de contrat). En attendant, maison-bleue-cotignac evoque
 // le bien immobilier.
 const HERO_PHOTO = '/maison-bleue-cotignac.jpg'
 const CTA_BACKDROP = '/village-cotignac.jpg'
 
-// Réactiver quand de vraies ventes récentes seront fournies par Alexandre.
 const SHOW_RECENT_SALES = false
 
 const HERO_CHIPS = [
   'Réseau iAD France',
   'Estimation gratuite',
-  'Disponible 7\u202fj/7',
+  'Disponible 7 j/7',
 ]
 
 const PROMESSES = [
   { icon: TrendingUp, title: 'Estimation précise', desc: 'Analyse du marché local et expertise patrimoniale.' },
   { icon: Award, title: 'Vente optimisée', desc: 'Stratégie commerciale personnalisée, sur-mesure.' },
-  { icon: Lock, title: '100\u202f% confidentiel', desc: 'Transaction sécurisée et accompagnement total.' },
+  { icon: Lock, title: '100 % confidentiel', desc: 'Transaction sécurisée et accompagnement total.' },
 ]
 
 const EXPERTISES = [
   {
     icon: Calculator,
     title: 'Estimation immobilière gratuite',
-    desc: "\u00c9valuation pr\u00e9cise de votre bien gr\u00e2ce \u00e0 des outils performants, une strat\u00e9gie de positionnement claire et une connaissance approfondie du march\u00e9 en Provence et sur la C\u00f4te d'Azur. Analyse comparative des ventes r\u00e9centes et \u00e9tude personnalis\u00e9e de votre propri\u00e9t\u00e9.",
+    desc: "Évaluation précise de votre bien grâce à des outils performants, une stratégie de positionnement claire et une connaissance approfondie du marché en Provence et sur la Côte d'Azur. Analyse comparative des ventes récentes et étude personnalisée de votre propriété.",
     chips: ['Gratuit & sans engagement', 'Analyse du marché', 'Rapport détaillé'],
-    footer: 'Délai de réponse : 48\u202fh maximum',
+    footer: 'Délai de réponse : 48 h maximum',
   },
   {
     icon: Home,
     title: 'Vente de biens immobiliers',
     desc: 'Stratégie de vente personnalisée adaptée à votre bien et au marché local. Marketing ciblé, visites qualifiées et négociation experte pour obtenir le meilleur prix dans les meilleurs délais. Maisons de village, mas provençaux, villas avec piscine, terrains, programmes neufs.',
     chips: ['Marketing digital', 'Négociation experte', 'Suivi personnalisé'],
-    footer: "Accompagnement jusqu'\u00e0 la signature",
+    footer: "Accompagnement jusqu'à la signature",
   },
   {
     icon: Eye,
@@ -64,72 +62,70 @@ const EXPERTISES = [
   {
     icon: ClipboardCheck,
     title: 'Accompagnement juridique & administratif',
-    desc: "Je pr\u00e9pare l'ensemble du dossier notaire pour la r\u00e9daction du compromis, centralise les documents n\u00e9cessaires et coordonne avec toutes les parties prenantes. Suivi de A \u00e0 Z jusqu'\u00e0 la signature d\u00e9finitive, pour une transaction sereine et sans perte de temps.",
+    desc: "Je prépare l'ensemble du dossier notaire pour la rédaction du compromis, centralise les documents nécessaires et coordonne avec toutes les parties prenantes. Suivi de A à Z jusqu'à la signature définitive, pour une transaction sereine et sans perte de temps.",
     chips: ['Dossier notaire', 'Coordination notaires', 'Suivi complet'],
-    footer: "R\u00e9seau d'experts partenaires",
+    footer: "Réseau d'experts partenaires",
   },
 ] as const
 
-// Descriptions volontairement courtes pour le format frise horizontale.
 const PROCESS = [
-  { num: 1, icon: MessageCircle, title: 'Premier contact', desc: "\u00c9change sur votre projet et planification de la visite d'expertise sous 48\u202fh." },
-  { num: 2, icon: Eye, title: 'Visite du bien', desc: "Inspection d\u00e9taill\u00e9e : surface, \u00e9tat, \u00e9quipements, environnement, potentiel." },
-  { num: 3, icon: BarChart2, title: 'Analyse marché', desc: "Comparaison des transactions r\u00e9centes et positionnement pr\u00e9cis de votre bien." },
-  { num: 4, icon: FileText, title: 'Estimation & rapport', desc: "Prix optimal calcul\u00e9, rapport \u00e9crit avec fourchette et recommandations." },
-  { num: 5, icon: TrendingUp, title: 'Mise en vente', desc: "Marketing cibl\u00e9, mise en valeur du bien, planning des visites qualifi\u00e9es." },
-  { num: 6, icon: ClipboardCheck, title: 'Signature', desc: "N\u00e9gociation, coordination notaires et accompagnement jusqu'\u00e0 l'acte d\u00e9finitif." },
+  { num: 1, icon: MessageCircle, title: 'Premier contact', desc: "Échange sur votre projet et planification de la visite d'expertise sous 48 h." },
+  { num: 2, icon: Eye, title: 'Visite du bien', desc: "Inspection détaillée : surface, état, équipements, environnement, potentiel." },
+  { num: 3, icon: BarChart2, title: 'Analyse marché', desc: "Comparaison des transactions récentes et positionnement précis de votre bien." },
+  { num: 4, icon: FileText, title: 'Estimation & rapport', desc: "Prix optimal calculé, rapport écrit avec fourchette et recommandations." },
+  { num: 5, icon: TrendingUp, title: 'Mise en vente', desc: "Marketing ciblé, mise en valeur du bien, planning des visites qualifiées." },
+  { num: 6, icon: ClipboardCheck, title: 'Signature', desc: "Négociation, coordination notaires et accompagnement jusqu'à l'acte définitif." },
 ] as const
 
 const PILIERS = [
-  { icon: Award, title: 'Expertise immobilière', desc: "\u00c9valuation rigoureuse et conseils avis\u00e9s gr\u00e2ce \u00e0 des outils d'analyse performants et une m\u00e9thodologie \u00e9prouv\u00e9e." },
-  { icon: MapPin, title: 'Connaissance locale', desc: "Parfaite ma\u00eetrise du march\u00e9 en Provence et sur la C\u00f4te d'Azur, et de ses sp\u00e9cificit\u00e9s de quartier." },
-  { icon: ShieldCheck, title: 'Transparence totale', desc: "Aucun frais cach\u00e9, estimation gratuite et accompagnement jusqu'au bout." },
+  { icon: Award, title: 'Expertise immobilière', desc: "Évaluation rigoureuse et conseils avisés grâce à des outils d'analyse performants et une méthodologie éprouvée." },
+  { icon: MapPin, title: 'Connaissance locale', desc: "Parfaite maîtrise du marché en Provence et sur la Côte d'Azur, et de ses spécificités de quartier." },
+  { icon: ShieldCheck, title: 'Transparence totale', desc: "Aucun frais caché, estimation gratuite et accompagnement jusqu'au bout." },
 ] as const
 
 const AVIS = [
-  { name: 'Marie & Pierre', text: "Alexandre nous a accompagn\u00e9s avec \u00e9coute et clart\u00e9 du premier contact \u00e0 la signature. Estimation juste, vente rapide et professionnalisme \u00e0 toute \u00e9preuve.", date: '08.2025' },
-  { name: 'Sophie L.', text: "Bilan complet avant la mise en vente, conseils pr\u00e9cis pour valoriser la maison. R\u00e9sultat : vendue au prix souhait\u00e9 en moins de 3 mois. Je recommande.", date: '06.2025' },
-  { name: 'Jean-Marc R.', text: "Pas de blabla, du concret. Alexandre ma\u00eetrise son sujet et son march\u00e9. Communication impeccable, transaction s\u00e9curis\u00e9e. Que du positif.", date: '04.2025' },
+  { name: 'Marie & Pierre', text: "Alexandre nous a accompagnés avec écoute et clarté du premier contact à la signature. Estimation juste, vente rapide et professionnalisme à toute épreuve.", date: '08.2025' },
+  { name: 'Sophie L.', text: "Bilan complet avant la mise en vente, conseils précis pour valoriser la maison. Résultat : vendue au prix souhaité en moins de 3 mois. Je recommande.", date: '06.2025' },
+  { name: 'Jean-Marc R.', text: "Pas de blabla, du concret. Alexandre maîtrise son sujet et son marché. Communication impeccable, transaction sécurisée. Que du positif.", date: '04.2025' },
 ] as const
 
 const FAQ = [
   {
-    q: "Comment obtenir une estimation immobili\u00e8re gratuite et fiable en Provence ?",
-    a: "Mon estimation gratuite repose sur une analyse approfondie du march\u00e9 local en Provence et sur la C\u00f4te d'Azur : ventes r\u00e9centes comparables, \u00e9tat du bien et du quartier, tendances de march\u00e9 et outils d'analyse performants. Je me d\u00e9place \u00e0 votre domicile sous 48\u202fh et vous restitue un avis de valeur \u00e9crit dans les 48\u202fh suivantes. Sans engagement, sans frais cach\u00e9s.",
+    q: "Comment obtenir une estimation immobilière gratuite et fiable en Provence ?",
+    a: "Mon estimation gratuite repose sur une analyse approfondie du marché local en Provence et sur la Côte d'Azur : ventes récentes comparables, état du bien et du quartier, tendances de marché et outils d'analyse performants. Je me déplace à votre domicile sous 48 h et vous restitue un avis de valeur écrit dans les 48 h suivantes. Sans engagement, sans frais cachés.",
   },
   {
-    q: "Combien de temps faut-il pour vendre un bien en Provence ou sur la C\u00f4te d'Azur ?",
-    a: "Le d\u00e9lai d\u00e9pend du prix de mise sur le march\u00e9, de l'\u00e9tat du bien, du secteur et de la strat\u00e9gie marketing. En moyenne, un bien correctement positionn\u00e9 se vend entre 2 et 5 mois. Les cl\u00e9s : un prix juste d\u00e8s le d\u00e9part, une valorisation soign\u00e9e, du marketing cibl\u00e9 et des visites qualifi\u00e9es.",
+    q: "Combien de temps faut-il pour vendre un bien en Provence ou sur la Côte d'Azur ?",
+    a: "Le délai dépend du prix de mise sur le marché, de l'état du bien, du secteur et de la stratégie marketing. En moyenne, un bien correctement positionné se vend entre 2 et 5 mois. Les clés : un prix juste dès le départ, une valorisation soignée, du marketing ciblé et des visites qualifiées.",
   },
   {
-    q: "Quels sont les frais \u00e0 pr\u00e9voir lors de la vente d'un bien ?",
-    a: "C\u00f4t\u00e9 vendeur, les principaux frais \u00e0 anticiper sont : les diagnostics techniques obligatoires (DPE, \u00e9lectricit\u00e9, gaz, plomb, amiante, termites selon zone), l'\u00e9ventuelle plus-value immobili\u00e8re, et les honoraires du conseiller. Pas de frais cach\u00e9s : vous savez tout d\u00e8s le premier rendez-vous.",
+    q: "Quels sont les frais à prévoir lors de la vente d'un bien ?",
+    a: "Côté vendeur, les principaux frais à anticiper sont : les diagnostics techniques obligatoires (DPE, électricité, gaz, plomb, amiante, termites selon zone), l'éventuelle plus-value immobilière, et les honoraires du conseiller. Pas de frais cachés : vous savez tout dès le premier rendez-vous.",
   },
   {
-    q: "Quels avantages d'un mandataire iAD plut\u00f4t qu'une agence traditionnelle ?",
-    a: "Le r\u00e9seau iAD compte plus de 18\u202f000 conseillers en France et \u00e0 l'international, avec des outils digitaux performants et une couverture nationale. Avantages : disponibilit\u00e9 7\u202fj/7, accompagnement personnalis\u00e9, honoraires optimis\u00e9s (pas de frais de structure d'agence), expertise locale et formation continue.",
+    q: "Quels avantages d'un mandataire iAD plutôt qu'une agence traditionnelle ?",
+    a: "Le réseau iAD compte plus de 18 000 conseillers en France et à l'international, avec des outils digitaux performants et une couverture nationale. Avantages : disponibilité 7 j/7, accompagnement personnalisé, honoraires optimisés (pas de frais de structure d'agence), expertise locale et formation continue.",
   },
   {
     q: 'Comment se déroule la signature chez le notaire ?',
-    a: "Une fois le compromis sign\u00e9, le notaire dispose d'environ 2 \u00e0 3 mois pour v\u00e9rifier les pi\u00e8ces (titre de propri\u00e9t\u00e9, urbanisme, hypoth\u00e8ques, etc.) et pr\u00e9parer l'acte authentique. Je coordonne les \u00e9changes entre vous, l'acqu\u00e9reur et les notaires pour que tout soit pr\u00eat \u00e0 temps. La signature de l'acte d\u00e9finitif officialise la vente.",
+    a: "Une fois le compromis signé, le notaire dispose d'environ 2 à 3 mois pour vérifier les pièces (titre de propriété, urbanisme, hypothèques, etc.) et préparer l'acte authentique. Je coordonne les échanges entre vous, l'acquéreur et les notaires pour que tout soit prêt à temps. La signature de l'acte définitif officialise la vente.",
   },
   {
     q: 'Faut-il faire un home staging avant la vente ?',
-    a: "Pas syst\u00e9matiquement, mais quelques gestes simples augmentent fortement l'attractivit\u00e9 : d\u00e9sencombrer, d\u00e9personnaliser, soigner la lumi\u00e8re, rafra\u00eechir les peintures ab\u00eem\u00e9es, mettre en valeur les ext\u00e9rieurs. Je vous donne mes recommandations pr\u00e9cises lors de la visite d'expertise, adapt\u00e9es \u00e0 votre bien et \u00e0 votre budget.",
+    a: "Pas systématiquement, mais quelques gestes simples augmentent fortement l'attractivité : désencombrer, dépersonnaliser, soigner la lumière, rafraîchir les peintures abîmées, mettre en valeur les extérieurs. Je vous donne mes recommandations précises lors de la visite d'expertise, adaptées à votre bien et à votre budget.",
   },
 ] as const
 
-// === ANIMATIONS DES CARTES FLOTTANTES (même pattern que la home) ===
+// Animations cartes flottantes (meme pattern que la home)
 const floatingCardInitial = { opacity: 0, x: -20, y: 20 }
 const floatingCardAnimate = { opacity: 1, x: 0, y: 0 }
 const floatingCardTransition = { delay: 0.65, duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }
 
-const badgeInitial = { opacity: 0, scale: 0.8 as number }
-const badgeAnimate = { opacity: 1, scale: 1 as number }
+const badgeInitial = { opacity: 0, scale: 0.8 }
+const badgeAnimate = { opacity: 1, scale: 1 }
 const badgeTransitionTopRight = { delay: 0.85, duration: 0.4 }
 const badgeTransitionBottomRight = { delay: 1.05, duration: 0.4 }
 
-// Boucles flottantes douces, désynchronisées entre les 3 cartes.
 const floatLoopA = { y: [0, -10, 0] }
 const floatLoopATransition = { duration: 4.2, repeat: Infinity, ease: 'easeInOut' as const, delay: 1.4 }
 const floatLoopB = { y: [0, -7, 0] }
@@ -137,12 +133,16 @@ const floatLoopBTransition = { duration: 3.6, repeat: Infinity, ease: 'easeInOut
 const floatLoopC = { y: [0, -8, 0] }
 const floatLoopCTransition = { duration: 4.8, repeat: Infinity, ease: 'easeInOut' as const, delay: 2.0 }
 
+// Hover frise: lift + spring
+const stepHover = { y: -8 }
+const stepHoverTransition = { type: 'spring' as const, stiffness: 300, damping: 20 }
+
 export default function VendrePageContent() {
   const calcomUrl = env.app.calcomUrl
 
   return (
     <>
-      {/* ===== 1. HERO (split + photo encadrée + 3 cartes flottantes) ===== */}
+      {/* ===== 1. HERO (split + photo encadree + 3 cartes flottantes) ===== */}
       <section className="relative paper-surface pt-16 md:pt-24 pb-20 md:pb-28 overflow-hidden" aria-label="Hero Vendre">
         <div className="max-w-[75rem] mx-auto px-6 grid grid-cols-1 lg:grid-cols-[1.15fr_1fr] gap-12 lg:gap-16 items-center">
 
@@ -159,7 +159,6 @@ export default function VendrePageContent() {
               Je m&rsquo;appuie sur une analyse fine du marché local et une véritable stratégie de positionnement pour valoriser votre bien, optimiser sa commercialisation et vous accompagner jusqu&rsquo;à la signature.
             </motion.p>
 
-            {/* CTAs */}
             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-3">
               <Button asChild size="lg" variant="primary">
                 <Link href={calcomUrl} target="_blank" rel="noopener noreferrer">
@@ -172,9 +171,8 @@ export default function VendrePageContent() {
             </motion.div>
           </motion.div>
 
-          {/* Photo encadrée + 3 cartes flottantes */}
+          {/* Photo encadree + 3 cartes flottantes */}
           <div className="relative order-1 lg:order-2 max-w-md w-full mx-auto lg:mx-0 lg:ml-auto">
-            {/* Photo principale */}
             <motion.div
               variants={scaleIn}
               initial="initial"
@@ -191,7 +189,7 @@ export default function VendrePageContent() {
               />
             </motion.div>
 
-            {/* Carte flottante « Réseau iAD France » — grosse card, bottom-left, contient le mini logo iAD blanc */}
+            {/* Carte flottante Reseau iAD France (bottom-left) */}
             <motion.div
               initial={floatingCardInitial}
               animate={floatingCardAnimate}
@@ -209,12 +207,12 @@ export default function VendrePageContent() {
                 <div>
                   <p className="text-[10px] font-bold text-muted uppercase tracking-[0.16em] mb-0.5">Réseau</p>
                   <p className="font-serif text-base font-semibold text-foreground leading-tight">iAD France</p>
-                  <p className="text-[11px] text-muted mt-0.5">+18\u202f000 conseillers</p>
+                  <p className="text-[11px] text-muted mt-0.5">+18 000 conseillers</p>
                 </div>
               </motion.div>
             </motion.div>
 
-            {/* Badge flottant « Estimation gratuite » — top-right */}
+            {/* Badge Estimation gratuite (top-right) */}
             <motion.div
               initial={badgeInitial}
               animate={badgeAnimate}
@@ -230,13 +228,13 @@ export default function VendrePageContent() {
                   <Calculator size={16} className="text-brand" />
                 </div>
                 <div>
-                  <p className="font-serif text-base font-semibold text-foreground leading-none">0\u202f\u20ac</p>
+                  <p className="font-serif text-base font-semibold text-foreground leading-none">0 €</p>
                   <p className="text-[10px] text-muted uppercase tracking-wider mt-0.5">Estimation</p>
                 </div>
               </motion.div>
             </motion.div>
 
-            {/* Badge flottant « Disponible 7j/7 » — right milieu, légèrement vers le bas */}
+            {/* Badge Disponible 7j/7 (right milieu) */}
             <motion.div
               initial={badgeInitial}
               animate={badgeAnimate}
@@ -252,7 +250,7 @@ export default function VendrePageContent() {
                   <Calendar size={16} className="text-brand" />
                 </div>
                 <div>
-                  <p className="font-serif text-base font-semibold text-foreground leading-none">7\u202fj/7</p>
+                  <p className="font-serif text-base font-semibold text-foreground leading-none">7 j/7</p>
                   <p className="text-[10px] text-muted uppercase tracking-wider mt-0.5">Disponible</p>
                 </div>
               </motion.div>
@@ -260,7 +258,7 @@ export default function VendrePageContent() {
           </div>
         </div>
 
-        {/* Chips déplacées sous le hero, sur toute la largeur, pour rester visibles même avec les cartes flottantes */}
+        {/* Chips deplacees sous le hero */}
         <div className="max-w-[75rem] mx-auto px-6 mt-16 lg:mt-20 flex flex-wrap justify-center gap-3">
           {HERO_CHIPS.map((chip) => (
             <span key={chip} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-border text-xs font-semibold text-foreground shadow-sm">
@@ -271,7 +269,7 @@ export default function VendrePageContent() {
         </div>
       </section>
 
-      {/* ===== 2. PROMESSES (3 cards) ===== */}
+      {/* ===== 2. PROMESSES ===== */}
       <motion.section variants={staggerFast} initial="initial" whileInView="animate" viewport={vpOnce}
         className="py-14 px-6 bg-white border-y border-border">
         <div className="max-w-[75rem] mx-auto grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -293,7 +291,7 @@ export default function VendrePageContent() {
         </div>
       </motion.section>
 
-      {/* ===== 3. EXPERTISE (4 grosses cards) ===== */}
+      {/* ===== 3. EXPERTISE ===== */}
       <section className="py-28 px-6 paper-surface">
         <div className="max-w-[75rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-14 max-w-2xl mx-auto">
@@ -331,7 +329,7 @@ export default function VendrePageContent() {
         </div>
       </section>
 
-      {/* ===== 4. VENTES RÉCENTES — MASQUÉE (drapeau SHOW_RECENT_SALES) ===== */}
+      {/* ===== 4. VENTES RECENTES (masquees) ===== */}
       {SHOW_RECENT_SALES && (
         <section className="py-28 px-6 bg-white">
           <div className="max-w-[75rem] mx-auto">
@@ -346,7 +344,7 @@ export default function VendrePageContent() {
         </section>
       )}
 
-      {/* ===== 5. PROCESSUS — FRISE HORIZONTALE 6 ÉTAPES + HOVER ANIMATIONS ===== */}
+      {/* ===== 5. PROCESSUS - FRISE HORIZONTALE 6 ETAPES + HOVER ===== */}
       <section className="py-28 px-6 bg-white">
         <div className="max-w-[80rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-16 max-w-2xl mx-auto">
@@ -357,7 +355,6 @@ export default function VendrePageContent() {
             <p className="text-muted leading-relaxed text-lg">De la prise de contact à la signature, voici le chemin que nous parcourrons ensemble.</p>
           </motion.div>
 
-          {/* Frise : ligne horizontale en arrière-plan + 6 étapes en colonnes */}
           <motion.div variants={staggerFast} initial="initial" whileInView="animate" viewport={vpOnce}
             className="relative"
           >
@@ -373,14 +370,11 @@ export default function VendrePageContent() {
                   <motion.article
                     key={step.num}
                     variants={scaleIn}
-                    whileHover=toolu_015YL7RZFG6PTA8S4jUj4JCx
-                    transition=toolu_019gmM53MDA4zNvgT9T6RmdF
+                    whileHover={stepHover}
+                    transition={stepHoverTransition}
                     className="group flex flex-col items-center text-center px-2 cursor-pointer"
                   >
-                    {/* Cercle numéroté — animé au survol via group-hover */}
-                    <div className="relative w-24 h-24 rounded-full bg-white border-2 border-brand flex flex-col items-center justify-center shadow-md mb-5
-                                    transition-all duration-300
-                                    group-hover:scale-110 group-hover:bg-brand group-hover:shadow-xl group-hover:shadow-brand/30">
+                    <div className="relative w-24 h-24 rounded-full bg-white border-2 border-brand flex flex-col items-center justify-center shadow-md mb-5 transition-all duration-300 group-hover:scale-110 group-hover:bg-brand group-hover:shadow-xl group-hover:shadow-brand/30">
                       <Icon size={20} className="text-brand transition-colors duration-300 group-hover:text-white" />
                       <span className="text-[10px] font-bold text-brand uppercase tracking-wider mt-1 transition-colors duration-300 group-hover:text-white">
                         Étape {step.num.toString().padStart(2, '0')}
@@ -401,7 +395,7 @@ export default function VendrePageContent() {
         </div>
       </section>
 
-      {/* ===== 6. POURQUOI ÇA FONCTIONNE (3 piliers) ===== */}
+      {/* ===== 6. POURQUOI CA FONCTIONNE ===== */}
       <section className="py-28 px-6 paper-surface">
         <div className="max-w-[75rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-14 max-w-2xl mx-auto">
@@ -429,7 +423,7 @@ export default function VendrePageContent() {
         </div>
       </section>
 
-      {/* ===== 7. TÉMOIGNAGES ===== */}
+      {/* ===== 7. TEMOIGNAGES ===== */}
       <section className="py-28 px-6 bg-white">
         <div className="max-w-[75rem] mx-auto">
           <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-14 max-w-2xl mx-auto">
@@ -451,7 +445,7 @@ export default function VendrePageContent() {
                   </div>
                   <span className="text-[10px] font-bold text-brand bg-brand-light px-2 py-0.5 rounded-full uppercase tracking-[0.15em]">Vente</span>
                 </div>
-                <p className="font-serif text-lg italic text-foreground leading-relaxed flex-1 mb-5">« {a.text} »</p>
+                <p className="font-serif text-lg italic text-foreground leading-relaxed flex-1 mb-5">« {a.text} »</p>
                 <div className="flex items-center justify-between pt-4 border-t border-border">
                   <p className="text-xs font-semibold text-foreground">— {a.name}</p>
                   <p className="text-xs text-muted">{a.date}</p>
@@ -492,12 +486,12 @@ export default function VendrePageContent() {
         <div className="absolute inset-0 bg-gradient-to-r from-foreground/85 via-foreground/75 to-foreground/55" />
         <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
           className="relative max-w-3xl mx-auto text-center text-white">
-          <motion.p variants={fadeInUp} className={EYEBROW + ' text-brand-light mb-4'}>Une question sur votre projet ?</motion.p>
+          <motion.p variants={fadeInUp} className={EYEBROW + ' text-brand-light mb-4'}>Une question sur votre projet ?</motion.p>
           <motion.h2 variants={fadeInUp} className="font-serif text-4xl md:text-5xl lg:text-6xl font-medium leading-[1.05] tracking-[-0.02em] mb-6">
             Parlons de votre <span className="italic text-brand-light">bien.</span>
           </motion.h2>
           <motion.p variants={fadeInUp} className="text-white/85 text-lg leading-relaxed mb-10 max-w-xl mx-auto">
-            Contactez-moi pour un conseil personnalisé et une réponse adaptée à votre situation. Estimation gratuite, sans engagement, sous 48\u202fh.
+            Contactez-moi pour un conseil personnalisé et une réponse adaptée à votre situation. Estimation gratuite, sans engagement, sous 48 h.
           </motion.p>
           <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button asChild size="lg" variant="primary">
