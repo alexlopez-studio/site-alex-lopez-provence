@@ -34,21 +34,9 @@ const CONTACT_JSON_LD = {
 }
 
 const PILIERS = [
-  {
-    icon: MessageCircle,
-    title: 'Réactivité',
-    desc: 'Réponse sous 24 h, premier rendez-vous sous 48 h. Pas de chasse au numéro, pas de standardiste : vous m’avez directement.',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Confidentialité',
-    desc: 'Vos informations restent strictement entre nous. Aucune diffusion, aucune mise en relation forcée. Discrétion totale.',
-  },
-  {
-    icon: Award,
-    title: 'Conseil objectif',
-    desc: 'Aucune réponse formatée. J’écoute votre projet, j’évalue le contexte, je vous oriente même quand ce n’est pas dans mon intérêt immédiat.',
-  },
+  { icon: MessageCircle, title: 'Réactivité', desc: 'Réponse sous 24 h, premier rendez-vous sous 48 h. Pas de chasse au numéro, pas de standardiste : vous m’avez directement.' },
+  { icon: ShieldCheck, title: 'Confidentialité', desc: 'Vos informations restent strictement entre nous. Aucune diffusion, aucune mise en relation forcée. Discrétion totale.' },
+  { icon: Award, title: 'Conseil objectif', desc: 'Aucune réponse formatée. J’écoute votre projet, j’évalue le contexte, je vous oriente même quand ce n’est pas dans mon intérêt immédiat.' },
 ] as const
 
 function buildInnerHtml(data: object) {
@@ -62,8 +50,8 @@ export default function ContactPage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={buildInnerHtml(CONTACT_JSON_LD)} />
 
-      {/* ===== 1. HERO ===== */}
-      <section className="relative paper-surface pt-16 md:pt-20 pb-14 md:pb-16" aria-label="Contact">
+      {/* HERO */}
+      <section className="relative paper-surface pt-32 md:pt-40 pb-14 md:pb-16" aria-label="Contact">
         <div className="max-w-[75rem] mx-auto px-6 text-center">
           <p className={EYEBROW + ' text-brand mb-5'}>Contact</p>
           <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl font-medium leading-[1.05] tracking-[-0.02em] text-foreground mb-6">
@@ -75,11 +63,9 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* ===== 2. FORM + SIDEBAR ===== */}
+      {/* FORM + SIDEBAR */}
       <section className="py-16 md:py-20 px-6 bg-white">
         <div className="max-w-[75rem] mx-auto grid grid-cols-1 lg:grid-cols-[1.2fr_400px] gap-10 lg:gap-12 items-start">
-
-          {/* Formulaire dans une grosse card */}
           <div className="rounded-3xl border border-border bg-surface p-7 md:p-10 shadow-sm">
             <p className={EYEBROW + ' text-brand mb-3'}>Formulaire</p>
             <h2 className="font-serif text-2xl md:text-3xl font-semibold text-foreground mb-2 leading-tight">
@@ -89,10 +75,7 @@ export default function ContactPage() {
             <ContactFormClient />
           </div>
 
-          {/* Sidebar : RDV + coordonnées + lien découvrir */}
           <aside className="space-y-5">
-
-            {/* RDV Cal.com — carte mise en avant avec accent brand */}
             <div className="rounded-3xl bg-gradient-to-br from-brand to-brand-dark text-white p-7 shadow-lg">
               <div className="w-11 h-11 rounded-full bg-white/15 backdrop-blur flex items-center justify-center mb-5">
                 <Calendar size={18} className="text-white" />
@@ -102,44 +85,33 @@ export default function ContactPage() {
               <p className="text-sm text-white/85 leading-relaxed mb-6">
                 30 minutes par visio ou téléphone pour discuter de votre projet. Sans engagement.
               </p>
-              <a
-                href={calUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 w-full rounded-full bg-white py-3 text-sm font-semibold text-brand-dark hover:bg-white/90 transition-colors"
-              >
+              <a href={calUrl} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 w-full rounded-full bg-white py-3 text-sm font-semibold text-brand-dark hover:bg-white/90 transition-colors">
                 Réserver un créneau <ArrowRight size={15} />
               </a>
             </div>
 
-            {/* Coordonnées */}
             <div className="rounded-3xl border border-border bg-white p-7">
               <p className={EYEBROW + ' text-foreground mb-5'}>Coordonnées</p>
-
               <div className="space-y-4">
-                <a href={'tel:' + PHONE_RAW}
-                  className="flex items-center gap-3 text-sm font-semibold text-foreground hover:text-brand transition-colors group">
+                <a href={'tel:' + PHONE_RAW} className="flex items-center gap-3 text-sm font-semibold text-foreground hover:text-brand transition-colors group">
                   <div className="w-10 h-10 rounded-full bg-brand-light flex items-center justify-center shrink-0 group-hover:bg-brand transition-colors">
                     <Phone size={15} className="text-brand group-hover:text-white transition-colors" />
                   </div>
                   {PHONE_DISPLAY}
                 </a>
-
-                <a href={'mailto:' + EMAIL}
-                  className="flex items-center gap-3 text-sm text-foreground hover:text-brand transition-colors group">
+                <a href={'mailto:' + EMAIL} className="flex items-center gap-3 text-sm text-foreground hover:text-brand transition-colors group">
                   <div className="w-10 h-10 rounded-full bg-brand-light flex items-center justify-center shrink-0 group-hover:bg-brand transition-colors">
                     <Mail size={15} className="text-brand group-hover:text-white transition-colors" />
                   </div>
                   <span className="break-all">{EMAIL}</span>
                 </a>
-
                 <div className="flex items-center gap-3 text-sm text-muted">
                   <div className="w-10 h-10 rounded-full bg-brand-light flex items-center justify-center shrink-0">
                     <MapPin size={15} className="text-brand" />
                   </div>
                   Provence et Côte d’Azur (Var, 83)
                 </div>
-
                 <div className="flex items-center gap-3 text-sm text-muted">
                   <div className="w-10 h-10 rounded-full bg-brand-light flex items-center justify-center shrink-0">
                     <Clock size={15} className="text-brand" />
@@ -149,17 +121,9 @@ export default function ContactPage() {
               </div>
             </div>
 
-            {/* Mini-card : photo + lien découvrir */}
-            <Link href="/a-propos"
-              className="flex items-center gap-4 rounded-3xl border border-border bg-surface p-5 hover:bg-white hover:shadow-md transition-all group">
+            <Link href="/a-propos" className="flex items-center gap-4 rounded-3xl border border-border bg-surface p-5 hover:bg-white hover:shadow-md transition-all group">
               <div className="shrink-0 w-14 h-14 rounded-full overflow-hidden border border-border bg-white">
-                <Image
-                  src="/alexandre-lopez.jpg"
-                  alt="Alexandre Lopez"
-                  width={120}
-                  height={120}
-                  className="w-full h-full object-cover"
-                />
+                <Image src="/alexandre-lopez.jpg" alt="Alexandre Lopez" width={120} height={120} className="w-full h-full object-cover" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-muted mb-1">Vous ne me connaissez pas encore ?</p>
@@ -170,11 +134,10 @@ export default function ContactPage() {
               </div>
             </Link>
           </aside>
-
         </div>
       </section>
 
-      {/* ===== 3. POURQUOI ME CONTACTER (3 piliers) ===== */}
+      {/* POURQUOI ME CONTACTER */}
       <section className="py-20 md:py-24 px-6 paper-surface">
         <div className="max-w-[75rem] mx-auto">
           <div className="text-center mb-12 max-w-2xl mx-auto">
@@ -187,8 +150,7 @@ export default function ContactPage() {
             {PILIERS.map((pi) => {
               const Icon = pi.icon
               return (
-                <div key={pi.title}
-                  className="text-center p-8 rounded-2xl bg-white border border-border">
+                <div key={pi.title} className="text-center p-8 rounded-2xl bg-white border border-border">
                   <div className="w-14 h-14 rounded-full bg-brand-light flex items-center justify-center mx-auto mb-5">
                     <Icon size={22} className="text-brand" />
                   </div>
@@ -198,8 +160,6 @@ export default function ContactPage() {
               )
             })}
           </div>
-
-          {/* Mini CTA secondaire */}
           <div className="text-center mt-12">
             <Button asChild size="lg" variant="primary">
               <a href={'tel:' + PHONE_RAW} className="inline-flex items-center gap-2">
