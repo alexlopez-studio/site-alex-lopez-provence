@@ -4,8 +4,8 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import {
-  ArrowRight, ChevronDown, MapPin, Phone, Star, Check, Clock,
-  Home, TrendingUp, Search, Calculator, ClipboardCheck, FileText,
+  ArrowRight, ChevronDown, MapPin, Phone, Star, Check,
+  Home, TrendingUp, Calculator, ClipboardCheck, FileText,
   Award, Eye, Lock, ShieldCheck, MessageCircle, BarChart2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -18,7 +18,9 @@ const EYEBROW = 'text-[13px] font-bold uppercase tracking-[0.22em]'
 const PHONE_RAW = '+33613180168'
 const PHONE_DISPLAY = '06 13 18 01 68'
 
-const HERO_BACKDROP = '/vignobles-var.jpg'
+// Photo libre de droit Pixabay (auteur "hans", slug "olive-tree", id 1595493).
+// Utilisée en encadré dans le hero plutôt qu'en backdrop pleine largeur.
+const HERO_PHOTO = '/hans-olive-tree-1595493_1920.jpg'
 const CTA_BACKDROP = '/village-cotignac.jpg'
 
 // Réactiver quand de vraies ventes récentes seront fournies par Alexandre.
@@ -73,13 +75,14 @@ const EXPERTISES = [
   },
 ] as const
 
+// Descriptions volontairement courtes pour le format frise horizontale.
 const PROCESS = [
-  { num: 1, icon: MessageCircle, title: 'Premier contact & échange', desc: "Discussion de votre projet, vos attentes et contraintes. Explication de ma m\u00e9thode et planification de la visite d'expertise dans les 48\u202fh.", chips: ['Gratuit & sans engagement', 'Conseil personnalisé'] },
-  { num: 2, icon: Eye, title: 'Visite approfondie du bien', desc: "Inspection d\u00e9taill\u00e9e de votre propri\u00e9t\u00e9 : surface, \u00e9tat g\u00e9n\u00e9ral, \u00e9quipements, exposition, environnement proche et potentiel d'am\u00e9lioration.", chips: ['Analyse technique', "Points d'am\u00e9lioration", 'Visite 60-90\u202fmin'] },
-  { num: 3, icon: BarChart2, title: 'Analyse comparative du marché', desc: "Examen des transactions r\u00e9centes dans votre secteur et comparaison avec des biens toujours en vente. L'objectif : positionner votre bien au bon niveau, en \u00e9vitant les erreurs de prix qui bloquent la vente.", chips: ['Données locales', 'Tendances marché', 'Positionnement précis'] },
-  { num: 4, icon: FileText, title: 'Estimation précise & rapport', desc: "Calcul du prix de vente optimal bas\u00e9 sur mon expertise et les donn\u00e9es du march\u00e9. Remise d'un rapport d\u00e9taill\u00e9 avec fourchette de prix et recommandations concr\u00e8tes.", chips: ['Expertise patrimoniale', 'Rapport écrit', 'Fourchette précise'] },
-  { num: 5, icon: TrendingUp, title: 'Stratégie de mise en vente', desc: 'Définition de la stratégie commerciale : prix de lancement, mise en valeur du bien, planning des visites et campagne marketing ciblée.', chips: ['Home staging conseil', 'Marketing digital', 'Réseau iAD'] },
-  { num: 6, icon: ClipboardCheck, title: 'Suivi & finalisation', desc: "Accompagnement jusqu'\u00e0 la signature : n\u00e9gociation, coordination avec les notaires, suivi administratif et conseil post-vente.", chips: ['Négociation experte', 'Suivi notarial', 'Disponible 7\u202fj/7'] },
+  { num: 1, icon: MessageCircle, title: 'Premier contact', desc: "\u00c9change sur votre projet et planification de la visite d'expertise sous 48\u202fh." },
+  { num: 2, icon: Eye, title: 'Visite du bien', desc: "Inspection d\u00e9taill\u00e9e : surface, \u00e9tat, \u00e9quipements, environnement, potentiel." },
+  { num: 3, icon: BarChart2, title: 'Analyse marché', desc: "Comparaison des transactions r\u00e9centes et positionnement pr\u00e9cis de votre bien." },
+  { num: 4, icon: FileText, title: 'Estimation & rapport', desc: "Prix optimal calcul\u00e9, rapport \u00e9crit avec fourchette et recommandations." },
+  { num: 5, icon: TrendingUp, title: 'Mise en vente', desc: "Marketing cibl\u00e9, mise en valeur du bien, planning des visites qualifi\u00e9es." },
+  { num: 6, icon: ClipboardCheck, title: 'Signature', desc: "N\u00e9gociation, coordination notaires et accompagnement jusqu'\u00e0 l'acte d\u00e9finitif." },
 ] as const
 
 const PILIERS = [
@@ -126,59 +129,78 @@ export default function VendrePageContent() {
 
   return (
     <>
-      {/* ===== 1. HERO ===== */}
-      <section className="relative min-h-[92vh] flex items-center overflow-hidden" aria-label="Hero Vendre">
-        <Image src={HERO_BACKDROP} alt="Paysage de vignobles en Provence" fill priority
-          sizes="100vw" className="object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-br from-foreground/85 via-foreground/70 to-foreground/55" />
+      {/* ===== 1. HERO (split : texte à gauche, photo encadrée à droite, fond doux) ===== */}
+      <section className="relative paper-surface pt-32 md:pt-40 pb-20 md:pb-28 overflow-hidden" aria-label="Hero Vendre">
+        <div className="max-w-[75rem] mx-auto px-6 grid grid-cols-1 lg:grid-cols-[1.15fr_1fr] gap-12 lg:gap-16 items-center">
 
-        <motion.div variants={stagger} initial="initial" animate="animate"
-          className="relative max-w-[75rem] mx-auto w-full px-6 py-32 md:py-40 text-white">
-          <motion.p variants={fadeInUp} className={EYEBROW + ' text-brand-light mb-5'}>
-            Provence et Côte d&rsquo;Azur
-          </motion.p>
-          <motion.h1 variants={fadeInUp}
-            className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-medium leading-[1.05] tracking-[-0.02em] max-w-4xl mb-8">
-            Estimer et vendre votre bien <span className="italic text-brand-light">en toute sérénité.</span>
-          </motion.h1>
-          <motion.p variants={fadeInUp} className="text-white/85 text-lg md:text-xl leading-relaxed max-w-2xl mb-10">
-            Je m&rsquo;appuie sur une analyse fine du marché local et une véritable stratégie de positionnement pour valoriser votre bien, optimiser sa commercialisation et vous accompagner jusqu&rsquo;à la signature.
-          </motion.p>
+          {/* Bloc texte */}
+          <motion.div variants={stagger} initial="initial" animate="animate" className="order-2 lg:order-1">
+            <motion.p variants={fadeInUp} className={EYEBROW + ' text-brand mb-5'}>
+              Provence et Côte d&rsquo;Azur
+            </motion.p>
+            <motion.h1 variants={fadeInUp}
+              className="font-serif text-4xl sm:text-5xl md:text-6xl font-medium leading-[1.05] tracking-[-0.02em] text-foreground mb-6">
+              Estimer et vendre votre bien <span className="italic text-brand">en toute sérénité.</span>
+            </motion.h1>
+            <motion.p variants={fadeInUp} className="text-muted text-lg leading-relaxed mb-8 max-w-xl">
+              Je m&rsquo;appuie sur une analyse fine du marché local et une véritable stratégie de positionnement pour valoriser votre bien, optimiser sa commercialisation et vous accompagner jusqu&rsquo;à la signature.
+            </motion.p>
 
-          <motion.div variants={stagger} className="grid grid-cols-3 gap-6 max-w-xl mb-10 py-6 border-y border-white/20">
-            {HERO_STATS.map((s) => (
-              <motion.div key={s.label} variants={scaleIn}>
-                <p className="font-serif text-3xl md:text-4xl font-semibold text-brand-light leading-none">{s.value}</p>
-                <p className="text-xs text-white/75 mt-2 uppercase tracking-wider">{s.label}</p>
-              </motion.div>
-            ))}
+            {/* Stats */}
+            <motion.div variants={stagger} className="grid grid-cols-3 gap-5 max-w-md mb-8 py-5 border-y border-foreground/10">
+              {HERO_STATS.map((s) => (
+                <motion.div key={s.label} variants={scaleIn}>
+                  <p className="font-serif text-2xl md:text-3xl font-semibold text-brand leading-none">{s.value}</p>
+                  <p className="text-[11px] text-muted mt-2 uppercase tracking-wider">{s.label}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+
+            {/* CTAs */}
+            <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-3 mb-8">
+              <Button asChild size="lg" variant="primary">
+                <Link href={calcomUrl} target="_blank" rel="noopener noreferrer">
+                  Prendre rendez-vous <ArrowRight size={18} />
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link href="/contact">Me contacter</Link>
+              </Button>
+            </motion.div>
+
+            {/* Chips */}
+            <motion.div variants={fadeInUp} className="flex flex-wrap gap-2">
+              {HERO_CHIPS.map((chip) => (
+                <span key={chip} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-border text-xs font-semibold text-foreground">
+                  <Check size={13} className="text-brand" />
+                  {chip}
+                </span>
+              ))}
+            </motion.div>
           </motion.div>
 
-          <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-3 mb-8">
-            <Button asChild size="lg" variant="primary">
-              <Link href={calcomUrl} target="_blank" rel="noopener noreferrer">
-                Prendre rendez-vous <ArrowRight size={18} />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="!border-white/40 !text-white hover:!bg-white hover:!text-foreground">
-              <Link href="/contact">Me contacter</Link>
-            </Button>
+          {/* Photo encadrée (Pixabay, libre de droit) */}
+          <motion.div
+            initial= opacity: 0, scale: 0.96 
+            animate= opacity: 1, scale: 1 
+            transition= delay: 0.2, duration: 0.6, ease: [0.22, 1, 0.36, 1] 
+            className="relative aspect-[4/5] rounded-3xl overflow-hidden border border-border shadow-xl bg-surface order-1 lg:order-2 max-w-md w-full mx-auto lg:mx-0 lg:ml-auto"
+          >
+            <Image
+              src={HERO_PHOTO}
+              alt="Oliveraie en Provence"
+              fill
+              sizes="(min-width: 1024px) 40vw, 90vw"
+              priority
+              className="object-cover"
+            />
           </motion.div>
-
-          <motion.div variants={fadeInUp} className="flex flex-wrap gap-2">
-            {HERO_CHIPS.map((chip) => (
-              <span key={chip} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/25 text-xs font-semibold text-white backdrop-blur-sm">
-                <Check size={13} className="text-brand-light" />
-                {chip}
-              </span>
-            ))}
-          </motion.div>
-        </motion.div>
+        </div>
       </section>
 
       {/* ===== 2. PROMESSES (3 cards) ===== */}
       <motion.section variants={staggerFast} initial="initial" whileInView="animate" viewport={vpOnce}
-        className="py-14 px-6 bg-white border-b border-border">
+        className="py-14 px-6 bg-white border-y border-border">
         <div className="max-w-[75rem] mx-auto grid grid-cols-1 md:grid-cols-3 gap-5">
           {PROMESSES.map((p) => {
             const Icon = p.icon
@@ -251,40 +273,52 @@ export default function VendrePageContent() {
         </section>
       )}
 
-      {/* ===== 5. PROCESSUS EN 6 ÉTAPES ===== */}
+      {/* ===== 5. PROCESSUS — FRISE HORIZONTALE 6 ÉTAPES ===== */}
       <section className="py-28 px-6 bg-white">
-        <div className="max-w-[75rem] mx-auto">
-          <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-14 max-w-2xl mx-auto">
+        <div className="max-w-[80rem] mx-auto">
+          <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce} className="text-center mb-16 max-w-2xl mx-auto">
             <p className={EYEBROW + ' text-brand mb-4'}>Mon processus</p>
             <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl font-medium text-foreground leading-[1.05] tracking-[-0.02em] mb-6">
               Une méthode <span className="italic text-brand">en 6 étapes</span>
             </h2>
-            <p className="text-muted leading-relaxed text-lg">Une approche éprouvée qui garantit l&rsquo;estimation la plus juste et la stratégie de vente optimale pour votre bien.</p>
+            <p className="text-muted leading-relaxed text-lg">De la prise de contact à la signature, voici le chemin que nous parcourrons ensemble.</p>
           </motion.div>
+
+          {/* Frise : ligne horizontale en arrière-plan + 6 étapes en colonnes */}
           <motion.div variants={staggerFast} initial="initial" whileInView="animate" viewport={vpOnce}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {PROCESS.map((step) => {
-              const Icon = step.icon
-              return (
-                <motion.article key={step.num} variants={scaleIn}
-                  className="relative flex flex-col rounded-2xl bg-surface border border-border p-7 hover:shadow-md hover:border-brand/40 transition-all duration-200">
-                  <span className="absolute top-5 right-5 font-serif text-5xl font-medium text-brand/20 leading-none">{step.num.toString().padStart(2, '0')}</span>
-                  <div className="w-12 h-12 rounded-xl bg-white border border-border flex items-center justify-center mb-5">
-                    <Icon size={20} className="text-brand" />
-                  </div>
-                  <h3 className="font-serif text-xl font-semibold text-foreground mb-3 leading-tight pr-12">{step.title}</h3>
-                  <p className="text-sm text-muted leading-relaxed mb-5 flex-1">{step.desc}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {step.chips.map((c) => (
-                      <span key={c} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-border text-[11px] font-medium text-foreground">
-                        <Check size={10} className="text-brand" />
-                        {c}
+            className="relative"
+          >
+            {/* Ligne de connexion (desktop uniquement, tombée au centre vertical des cercles) */}
+            <div
+              aria-hidden="true"
+              className="hidden md:block absolute left-0 right-0 top-12 h-px bg-gradient-to-r from-transparent via-brand/40 to-transparent z-0"
+            />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-y-10 gap-x-3 relative z-10">
+              {PROCESS.map((step) => {
+                const Icon = step.icon
+                return (
+                  <motion.article key={step.num} variants={scaleIn}
+                    className="flex flex-col items-center text-center px-2"
+                  >
+                    {/* Cercle numéroté */}
+                    <div className="relative w-24 h-24 rounded-full bg-white border-2 border-brand flex flex-col items-center justify-center shadow-md mb-5">
+                      <Icon size={20} className="text-brand" />
+                      <span className="text-[10px] font-bold text-brand uppercase tracking-wider mt-1">
+                        Étape {step.num.toString().padStart(2, '0')}
                       </span>
-                    ))}
-                  </div>
-                </motion.article>
-              )
-            })}
+                    </div>
+
+                    <h3 className="font-serif text-base lg:text-[15px] font-semibold text-foreground mb-2 leading-tight">
+                      {step.title}
+                    </h3>
+                    <p className="text-xs text-muted leading-relaxed">
+                      {step.desc}
+                    </p>
+                  </motion.article>
+                )
+              })}
+            </div>
           </motion.div>
         </div>
       </section>
