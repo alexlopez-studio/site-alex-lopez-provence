@@ -197,7 +197,8 @@ async function searchDataset(
   const data = await ademeFetch(
     slug,
     {
-      geo_distance: `${opts.lat}:${opts.lng}:${radius}`,
+      // data-fair geo_distance syntax: comma-separated lat,lng,distance_m
+      geo_distance: `${opts.lat},${opts.lng},${radius}`,
       select: SELECT_FIELDS,
       size: 25,
       sort: '-date_etablissement_dpe',
