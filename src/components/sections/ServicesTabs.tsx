@@ -6,10 +6,10 @@ import Link from 'next/link'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import {
-  ArrowRight, BookOpen, Calculator, Check, ClipboardCheck, Home, Search,
+  ArrowRight, BookOpen, Calculator, Check, ClipboardCheck, Clock, Home, Search,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { appUrl, env } from '@/lib/env'
+import { env } from '@/lib/env'
 import { fadeInUp, VP as vpOnce } from '@/lib/animations'
 
 type TabKey = 'sell' | 'buy' | 'estimation' | 'blog'
@@ -41,114 +41,19 @@ const panelAnimate = { opacity: 1, y: 0 }
 const panelExit = { opacity: 0, y: -8 }
 const panelTransition = { duration: 0.32, ease: [0.22, 1, 0.36, 1] as const }
 
-function isExternalUrl(href: string) {
-  return href.startsWith('http://') || href.startsWith('https://')
-}
-
-function resolveAppHref(path: string): { href: string; external: boolean } {
-  const candidate = appUrl(path)
-  if (candidate) return { href: candidate, external: isExternalUrl(candidate) }
-  return { href: path, external: false }
-}
-
-function SimplePanel(props: SimplePanelProps) {
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] gap-12 lg:gap-16 items-start">
-      <div>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">{props.eyebrow}</p>
-        <h3 className="font-serif text-3xl md:text-4xl lg:text-5xl font-medium text-foreground leading-[1.1] mb-6 tracking-[-0.02em]">{props.title}</h3>
-        <p className="text-muted leading-relaxed text-lg mb-8">{props.desc}</p>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <Button asChild size="lg" variant="primary">
-            <Link
-              href={props.primaryCta.href}
-              target={props.primaryCta.external ? '_blank' : undefined}
-              rel={props.primaryCta.external ? 'noopener noreferrer' : undefined}
-            >
-              {props.primaryCta.label} <ArrowRight size={16} />
-            </Link>
-          </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link
-              href={props.secondaryCta.href}
-              target={props.secondaryCta.external ? '_blank' : undefined}
-              rel={props.secondaryCta.external ? 'noopener noreferrer' : undefined}
-            >
-              {props.secondaryCta.label}
-            </Link>
-          </Button>
-        </div>
-      </div>
-      <ul className="space-y-3">
-        {props.bullets.map((bullet, i) => (
-          <li
-            key={i}
-            className="flex items-start gap-3 bg-surface rounded-2xl border border-border px-5 py-4"
-          >
-            <span className="shrink-0 w-7 h-7 rounded-full bg-brand-light flex items-center justify-center mt-0.5">
-              <Check size={14} className="text-brand" />
-            </span>
-            <span className="text-sm text-foreground leading-relaxed">{bullet}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
-}
-
-function EstimationPanel({
-  eyebrow,
-  title,
-  desc,
-  cards,
-}: {
-  eyebrow: string
-  title: string
-  desc: string
-  cards: ReadonlyArray<EstimationCard>
-}) {
-  return (
-    <div>
-      <div className="max-w-2xl mb-12">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">{eyebrow}</p>
-        <h3 className="font-serif text-3xl md:text-4xl lg:text-5xl font-medium text-foreground leading-[1.1] mb-6 tracking-[-0.02em]">{title}</h3>
-        <p className="text-muted leading-relaxed text-lg">{desc}</p>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {cards.map((card) => {
-          const Icon = card.icon
-          return (
-            <Link
-              key={card.title}
-              href={card.href}
-              target={card.external ? '_blank' : undefined}
-              rel={card.external ? 'noopener noreferrer' : undefined}
-              className="group flex flex-col bg-surface rounded-2xl border border-border p-7 hover:shadow-md hover:border-brand/40 transition-all duration-200"
-            >
-              <div className="w-12 h-12 rounded-xl bg-white border border-border flex items-center justify-center mb-5">
-                <Icon size={22} className="text-brand" />
-              </div>
-              <h4 className="font-serif text-xl md:text-2xl font-medium text-foreground mb-3 leading-tight">{card.title}</h4>
-              <p className="text-sm text-muted leading-relaxed mb-5 flex-1">{card.desc}</p>
-              <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand group-hover:gap-2.5 transition-all">
-                {card.cta} <ArrowRight size={15} />
-              </span>
-            </Link>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
+// Tant que les outils Vendre / Acheter / Estimation / Audit ne sont pas finalisés,
+// on remplace tous les CTA correspondants par « Bientôt disponible » et on renvoie
+// l'utilisateur vers le blog (qui est, lui, d'actualité). Repasser SHOW_TOOLS_CTAS
+// à true pour réactiver les vrais liens.
+const SHOW_TOOLS_CTAS = false
+const SOON_LABEL = 'Bientôt disponible'
+const BLOG_FALLBACK_HREF = '/blog'
 
 export default function ServicesTabs() {
   const t = useTranslations('homepage.servicesTabs')
   const [active, setActive] = useState<TabKey>('sell')
   const baseId = useId()
 
-  const vendre = resolveAppHref('/vendre')
-  const acheter = resolveAppHref('/acheter')
-  const audit = resolveAppHref('/audit')
   const calcomUrl = env.app.calcomUrl
   const blogUrl = '/blog'
 
@@ -188,12 +93,21 @@ export default function ServicesTabs() {
     }
   }
 
+  // Helper : si les outils sont désactivés, on renvoie un CTA « Bientôt disponible »
+  // pointant vers le blog. Sinon on garde le lien d'origine.
+  function toolCta(originalLabel: string, originalHref: string): CtaDef {
+    if (SHOW_TOOLS_CTAS) {
+      return { label: originalLabel, href: originalHref, external: false }
+    }
+    return { label: SOON_LABEL, href: BLOG_FALLBACK_HREF, external: false }
+  }
+
   const sellPanel: SimplePanelProps = {
     eyebrow: t('sellEyebrow'),
     title: t('sellTitle'),
     desc: t('sellDesc'),
     bullets: [t('sellBullet1'), t('sellBullet2'), t('sellBullet3'), t('sellBullet4')],
-    primaryCta: { label: t('sellCta1'), href: vendre.href, external: vendre.external },
+    primaryCta: toolCta(t('sellCta1'), '/vendre'),
     secondaryCta: { label: t('sellCta2'), href: calcomUrl, external: true },
   }
 
@@ -202,7 +116,7 @@ export default function ServicesTabs() {
     title: t('buyTitle'),
     desc: t('buyDesc'),
     bullets: [t('buyBullet1'), t('buyBullet2'), t('buyBullet3'), t('buyBullet4')],
-    primaryCta: { label: t('buyCta1'), href: acheter.href, external: acheter.external },
+    primaryCta: toolCta(t('buyCta1'), '/acheter'),
     secondaryCta: { label: t('buyCta2'), href: calcomUrl, external: true },
   }
 
@@ -220,25 +134,25 @@ export default function ServicesTabs() {
       icon: Home,
       title: t('estimationCard1Title'),
       desc: t('estimationCard1Desc'),
-      cta: t('estimationCard1Cta'),
-      href: vendre.href,
-      external: vendre.external,
+      ...(SHOW_TOOLS_CTAS
+        ? { cta: t('estimationCard1Cta'), href: '/vendre', external: false }
+        : { cta: SOON_LABEL, href: BLOG_FALLBACK_HREF, external: false }),
     },
     {
       icon: Search,
       title: t('estimationCard2Title'),
       desc: t('estimationCard2Desc'),
-      cta: t('estimationCard2Cta'),
-      href: acheter.href,
-      external: acheter.external,
+      ...(SHOW_TOOLS_CTAS
+        ? { cta: t('estimationCard2Cta'), href: '/acheter', external: false }
+        : { cta: SOON_LABEL, href: BLOG_FALLBACK_HREF, external: false }),
     },
     {
       icon: ClipboardCheck,
       title: t('estimationCard3Title'),
       desc: t('estimationCard3Desc'),
-      cta: t('estimationCard3Cta'),
-      href: audit.href,
-      external: audit.external,
+      ...(SHOW_TOOLS_CTAS
+        ? { cta: t('estimationCard3Cta'), href: '/audit', external: false }
+        : { cta: SOON_LABEL, href: BLOG_FALLBACK_HREF, external: false }),
     },
   ]
 
@@ -252,7 +166,7 @@ export default function ServicesTabs() {
           viewport={vpOnce}
           className="text-center mb-12 md:mb-16"
         >
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-4">{t('eyebrow')}</p>
+          <p className="text-[13px] font-bold uppercase tracking-[0.22em] text-brand mb-4">{t('eyebrow')}</p>
           <h2
             id={baseId + '-heading'}
             className="font-serif text-4xl md:text-5xl lg:text-6xl font-medium text-foreground leading-[1.05] tracking-[-0.02em]"
@@ -324,5 +238,109 @@ export default function ServicesTabs() {
         </div>
       </div>
     </section>
+  )
+}
+
+function SimplePanel(props: SimplePanelProps) {
+  // Le primary CTA peut maintenant porter le label « Bientôt disponible »
+  // (cf. SHOW_TOOLS_CTAS dans le scope module). Dans ce cas on remplace l'icône
+  // arrow-right par une icône Clock pour une lecture immédiate.
+  const isPrimarySoon = props.primaryCta.label === SOON_LABEL
+  const PrimaryIcon = isPrimarySoon ? Clock : ArrowRight
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] gap-12 lg:gap-16 items-start">
+      <div>
+        <p className="text-[13px] font-bold uppercase tracking-[0.22em] text-brand mb-4">{props.eyebrow}</p>
+        <h3 className="font-serif text-3xl md:text-4xl lg:text-5xl font-medium text-foreground leading-[1.1] mb-6 tracking-[-0.02em]">{props.title}</h3>
+        <p className="text-muted leading-relaxed text-lg mb-8">{props.desc}</p>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button asChild size="lg" variant="primary">
+            <Link
+              href={props.primaryCta.href}
+              target={props.primaryCta.external ? '_blank' : undefined}
+              rel={props.primaryCta.external ? 'noopener noreferrer' : undefined}
+            >
+              {props.primaryCta.label} <PrimaryIcon size={16} />
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline">
+            <Link
+              href={props.secondaryCta.href}
+              target={props.secondaryCta.external ? '_blank' : undefined}
+              rel={props.secondaryCta.external ? 'noopener noreferrer' : undefined}
+            >
+              {props.secondaryCta.label}
+            </Link>
+          </Button>
+        </div>
+      </div>
+      <ul className="space-y-3">
+        {props.bullets.map((bullet, i) => (
+          <li
+            key={i}
+            className="flex items-start gap-3 bg-surface rounded-2xl border border-border px-5 py-4"
+          >
+            <span className="shrink-0 w-7 h-7 rounded-full bg-brand-light flex items-center justify-center mt-0.5">
+              <Check size={14} className="text-brand" />
+            </span>
+            <span className="text-sm text-foreground leading-relaxed">{bullet}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function EstimationPanel({
+  eyebrow,
+  title,
+  desc,
+  cards,
+}: {
+  eyebrow: string
+  title: string
+  desc: string
+  cards: ReadonlyArray<EstimationCard>
+}) {
+  return (
+    <div>
+      <div className="max-w-2xl mb-12">
+        <p className="text-[13px] font-bold uppercase tracking-[0.22em] text-brand mb-4">{eyebrow}</p>
+        <h3 className="font-serif text-3xl md:text-4xl lg:text-5xl font-medium text-foreground leading-[1.1] mb-6 tracking-[-0.02em]">{title}</h3>
+        <p className="text-muted leading-relaxed text-lg">{desc}</p>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {cards.map((card) => {
+          const Icon = card.icon
+          const isSoon = card.cta === SOON_LABEL
+          const CtaIcon = isSoon ? Clock : ArrowRight
+          return (
+            <Link
+              key={card.title}
+              href={card.href}
+              target={card.external ? '_blank' : undefined}
+              rel={card.external ? 'noopener noreferrer' : undefined}
+              className="group flex flex-col bg-surface rounded-2xl border border-border p-7 hover:shadow-md hover:border-brand/40 transition-all duration-200 relative"
+            >
+              {isSoon && (
+                <span className="absolute top-5 right-5 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.16em] text-brand bg-brand-light px-2.5 py-1 rounded-full">
+                  <Clock size={11} />
+                  {SOON_LABEL}
+                </span>
+              )}
+              <div className="w-12 h-12 rounded-xl bg-white border border-border flex items-center justify-center mb-5">
+                <Icon size={22} className="text-brand" />
+              </div>
+              <h4 className="font-serif text-xl md:text-2xl font-medium text-foreground mb-3 leading-tight">{card.title}</h4>
+              <p className="text-sm text-muted leading-relaxed mb-5 flex-1">{card.desc}</p>
+              <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand group-hover:gap-2.5 transition-all">
+                {card.cta} <CtaIcon size={15} />
+              </span>
+            </Link>
+          )
+        })}
+      </div>
+    </div>
   )
 }

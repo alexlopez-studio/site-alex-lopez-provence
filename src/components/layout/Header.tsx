@@ -19,12 +19,13 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const assistantUrl = '/outils'
 
-  // Navigation simplifiée - uniquement l'essentiel.
-  // Le lien « Audit » (= Bilan gratuit) est masqué tant que les outils ne sont pas prêts.
+  // Navigation simplifiée — le lien Audit est masqué tant que les outils ne sont pas prêts.
+  // Le label « Blog » est identique en FR et EN, donc on le hardcode (pas de clé i18n nécessaire).
   const NAV_LINKS = [
     { label: t('navSell'), href: '/vendre' },
     { label: t('navBuy'), href: '/acheter' },
     ...(SHOW_TOOLS_CTAS ? [{ label: t('navAudit'), href: '/audit' }] : []),
+    { label: 'Blog', href: '/blog' },
     { label: t('navApproach'), href: '/a-propos' },
   ]
 
@@ -47,30 +48,30 @@ export function Header() {
         'fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ' +
         (scrolled
           ? 'bg-white/95 backdrop-blur-md shadow-sm py-1'
-          : 'bg-white/90 backdrop-blur-sm py-2')
+          : 'bg-white/95 backdrop-blur-sm py-2')
       }
     >
-      <div className="max-w-[75rem] mx-auto px-6 flex items-center justify-between">
+      <div className="max-w-[75rem] mx-auto px-6 flex items-center justify-between gap-6">
 
         {/* Logo officiel : signature Alexandre Lopez + iad conseiller immobilier.
-            Taille augmentée significativement par rapport à la version précédente. */}
+            Taille fortement augmentée pour donner du poids à la marque dans le header. */}
         <Link href="/" className="shrink-0 flex items-center" aria-label="Alexandre Lopez — Conseiller immobilier iad">
           <Image
             src="/Logo-alexandre-lopez.png"
             alt="Alexandre Lopez — Conseiller immobilier iad"
-            width={500}
-            height={500}
+            width={600}
+            height={600}
             priority
-            className="h-20 md:h-24 w-auto"
+            className="h-32 sm:h-40 md:h-52 lg:h-60 w-auto"
           />
         </Link>
 
         {/* Navigation desktop */}
-        <nav className="hidden lg:flex items-center gap-8" aria-label="Navigation">
+        <nav className="hidden lg:flex items-center gap-7" aria-label="Navigation">
           {NAV_LINKS.map(function (link) {
             return (
               <Link key={link.href} href={link.href}
-                className="text-sm font-medium text-muted hover:text-foreground transition-colors">
+                className="text-sm font-medium text-muted hover:text-foreground transition-colors whitespace-nowrap">
                 {link.label}
               </Link>
             )
@@ -96,7 +97,7 @@ export function Header() {
           onClick={function () { setMenuOpen(function (v) { return !v }) }}
           aria-label={menuOpen ? t('menuClose') : t('menuOpen')}
           aria-expanded={menuOpen}>
-          {menuOpen ? <X size={22} /> : <Menu size={22} />}
+          {menuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
 
       </div>
