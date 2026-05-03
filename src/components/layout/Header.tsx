@@ -49,7 +49,7 @@ export function Header() {
         {/* Logo officiel : signature Alexandre Lopez + iad conseiller immobilier */}
         <Link href="/" className="shrink-0 flex items-center" aria-label="Alexandre Lopez — Conseiller immobilier iad">
           <Image
-            src="/alexandre-lopez-logo.png"
+            src="/Logo-alexandre-lopez.png"
             alt="Alexandre Lopez — Conseiller immobilier iad"
             width={400}
             height={400}

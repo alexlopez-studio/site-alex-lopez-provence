@@ -401,7 +401,7 @@ export default function HomepageContent() {
               <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce}
                 className="hidden md:flex justify-end items-center">
                 <Image
-                  src="/iad-logo-blanc.png"
+                  src="/IAD_LOGO_BLANC.png"
                   alt="iad immobilier"
                   width={500}
                   height={370}

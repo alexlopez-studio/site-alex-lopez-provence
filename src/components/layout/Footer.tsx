@@ -72,7 +72,7 @@ export async function Footer() {
             {/* Logo iad officiel (version blanche) */}
             <div className="flex items-end justify-start sm:justify-end">
               <Image
-                src="/iad-logo-blanc.png"
+                src="/IAD_LOGO_BLANC.png"
                 alt="iad immobilier"
                 width={300}
                 height={220}
