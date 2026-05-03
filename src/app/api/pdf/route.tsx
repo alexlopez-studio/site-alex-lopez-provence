@@ -108,7 +108,11 @@ export async function GET(req: NextRequest) {
   filenameParts.push(lead.id.slice(0, 8))
   const filename = sanitizeFilename(filenameParts.join('-')) + '.pdf'
 
-  return new NextResponse(buffer, {
+  // Next.js 15 / TS strict : Buffer<ArrayBufferLike> n'est plus assignable
+  // a BodyInit. Uint8Array l'est, et partage le meme backing buffer.
+  const body = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength)
+
+  return new NextResponse(body, {
     status: 200,
     headers: {
       'Content-Type': 'application/pdf',
