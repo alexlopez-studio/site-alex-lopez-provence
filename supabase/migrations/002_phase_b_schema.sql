@@ -2,14 +2,17 @@
 -- Phase B MVP v1 — Schéma initial (3 mai 2026)
 -- Pivot du 29 avril → 3 mai : Notion-only abandonné, retour Supabase + dashboard admin custom.
 -- Tables : prospects, leads (refondu), lead_events, admin_users
+-- Cette migration est idempotente : safe à re-run sur un projet neuf ou un projet legacy.
 -- =============================================================
 
 -- ============================================================
 -- 1. Drop legacy (single-tenant `leads`)
+--    Note : `cascade` supprime aussi le trigger leads_updated_at.
+--    On ne fait PAS `drop trigger ... on public.leads` car ça échouerait
+--    avec 42P01 si la table n'existe pas (le `if exists` du trigger
+--    ne couvre pas l'absence de la table parente).
 -- ============================================================
-drop trigger if exists leads_updated_at on public.leads;
 drop table if exists public.leads cascade;
--- set_updated_at() function reused below (recreate to ensure idempotence)
 
 -- ============================================================
 -- 2. Extensions
