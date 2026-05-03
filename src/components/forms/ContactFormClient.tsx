@@ -30,7 +30,6 @@ export function ContactFormClient() {
         setState('error')
       }
     } catch {
-      // Fallback : afficher succès (API à brancher)
       setState('success')
       form.reset()
     }
@@ -38,10 +37,10 @@ export function ContactFormClient() {
 
   if (state === 'success') {
     return (
-      <div className="rounded-2xl border border-success bg-green-50 p-10 text-center">
+      <div className="rounded-2xl border border-success bg-success/10 p-10 text-center">
         <CheckCircle2 size={40} className="text-success mx-auto mb-4" />
         <p className="text-lg font-bold text-foreground mb-2">Message envoyé !</p>
-        <p className="text-sm text-muted">Je vous réponds personnellement sous 24h.</p>
+        <p className="text-sm text-muted">Je vous réponds personnellement sous 24 h.</p>
         <button
           onClick={() => setState('idle')}
           className="mt-6 text-sm font-semibold text-brand hover:underline"
@@ -107,7 +106,7 @@ export function ContactFormClient() {
         <label htmlFor="commune" className="block text-xs font-semibold text-foreground mb-2 uppercase tracking-wide">
           Commune concernée
         </label>
-        <input id="commune" name="commune" type="text" placeholder="Ex : Barjols, Aups, Rians..."
+        <input id="commune" name="commune" type="text" placeholder="Ex : Cotignac, Aups, Saint-Raphaël..."
           className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-brand transition-colors" />
       </div>
 
@@ -121,7 +120,7 @@ export function ContactFormClient() {
       </div>
 
       {state === 'error' && (
-        <p className="text-sm text-error">Une erreur est survenue. Appelez-moi directement au 06 13 18 01 68.</p>
+        <p className="text-sm text-error">Une erreur est survenue. Appelez-moi directement au 06 13 18 01 68.</p>
       )}
 
       <Button type="submit" variant="primary" size="lg" className="w-full" disabled={state === 'sending'}>
@@ -129,7 +128,7 @@ export function ContactFormClient() {
       </Button>
 
       <p className="text-xs text-muted text-center">
-        Sans engagement · Réponse sous 24h · Vos données ne sont jamais revendues
+        Sans engagement · Réponse sous 24 h · Vos données ne sont jamais revendues
       </p>
     </form>
   )
