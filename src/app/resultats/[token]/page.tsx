@@ -1,4 +1,4 @@
-import ResultatsClient from './resultats-client'
+import ResultatsClient, { type ResultatsClientInitialData } from './resultats-client'
 import { verifyMagicToken, MagicTokenError } from '@/lib/magic-token'
 
 type Props = { params: Promise<{ token: string }> }
@@ -23,17 +23,14 @@ type Props = { params: Promise<{ token: string }> }
 export default async function ResultatsPage({ params }: Props) {
   const { token } = await params
 
+  let initialData: ResultatsClientInitialData | undefined
   try {
     const payload = verifyMagicToken(token)
     if (payload.type === 'vendre') {
-      return (
-        <ResultatsClient
-          initialData=
-            data: payload.formData,
-            est: payload.results,
-          
-        />
-      )
+      initialData = {
+        data: payload.formData,
+        est: payload.results,
+      }
     }
     // audit / acheter : pas encore de vue dédiée côté client.
     // On laisse le legacy s'afficher (au pire « Estimation indisponible »,
@@ -46,5 +43,5 @@ export default async function ResultatsPage({ params }: Props) {
     }
   }
 
-  return <ResultatsClient />
+  return <ResultatsClient initialData={initialData} />
 }
