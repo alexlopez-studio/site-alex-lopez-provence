@@ -195,26 +195,30 @@ export default function HomepageContent() {
           </motion.div>
           <motion.div initial={heroRightInitial} animate={heroRightAnimate} transition={heroRightTransition}
             className="relative flex items-center justify-center min-h-[60vh] lg:min-h-full order-1 lg:order-2">
-            <div className="absolute inset-0 flex items-center justify-center px-2 lg:px-4">
-              <HeroPhotoNoBg alt={tHero('photoAlt')} className="max-w-md lg:max-w-lg xl:max-w-xl 2xl:max-w-2xl" />
-            </div>
+            <HeroPhotoNoBg alt={tHero('photoAlt')} className="absolute inset-0" />
             <motion.div initial={floatingCardInitial} animate={floatingCardAnimate} transition={floatingCardTransition}
               className="absolute bottom-8 left-4 bg-white rounded-2xl shadow-xl p-5 w-60 border border-border z-20">
-              <p className="text-[10px] font-semibold text-muted uppercase tracking-[0.18em] mb-1">{tHero('estimationCardEyebrow')}</p>
-              <p className="font-serif text-2xl font-semibold text-foreground mb-0.5">245 000 €</p>
-              <p className="text-xs text-muted mb-3">{tHero('estimationCardHint')}</p>
-              <div className="w-full bg-surface rounded-full h-1.5 mb-3">
-                <motion.div className="bg-brand h-1.5 rounded-full"
-                  initial={progressBarInitial} animate={progressBarAnimate} transition={progressBarTransition} />
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-full bg-brand-light flex items-center justify-center">
+                  <TrendingUp size={15} className="text-brand" />
+                </div>
+                <p className="text-[10px] font-semibold text-muted uppercase tracking-[0.18em]">{tHero('floatingCardLabel')}</p>
               </div>
-              <p className="text-xs text-brand font-semibold flex items-center gap-1">
-                <TrendingUp size={11} /> {tHero('estimationCardTrend')}
-              </p>
+              <p className="font-serif text-2xl font-semibold text-foreground mb-1">245 000 €</p>
+              <p className="text-xs text-muted mb-3">{tHero('floatingCardSubtitle')}</p>
+              <div className="h-1.5 bg-surface rounded-full overflow-hidden">
+                <motion.div initial={progressBarInitial} animate={progressBarAnimate} transition={progressBarTransition}
+                  className="h-full bg-brand rounded-full" />
+              </div>
             </motion.div>
             <motion.div initial={badgeInitial} animate={badgeAnimate} transition={badgeTransition}
               className="absolute top-6 right-4 bg-white rounded-xl shadow-md px-3 py-2 flex items-center gap-2 border border-border z-20">
-              <div className="flex gap-0.5">{[1,2,3,4,5].map(i => <Star key={i} size={11} className="text-accent fill-accent" />)}</div>
-              <span className="text-xs font-semibold text-foreground">5/5</span>
+              <div className="flex gap-0.5">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star key={i} size={11} className="text-accent fill-accent" />
+                ))}
+              </div>
+              <span className="text-[10px] font-bold text-foreground">5/5</span>
             </motion.div>
           </motion.div>
         </div>
