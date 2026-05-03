@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { getTranslations } from 'next-intl/server'
 import { Phone, Mail, Instagram, Linkedin, Facebook } from 'lucide-react'
 
@@ -68,11 +69,15 @@ export async function Footer() {
                 })}
               </div>
             </div>
+            {/* Logo iad officiel (version blanche) */}
             <div className="flex items-end justify-start sm:justify-end">
-              <div className="flex flex-col leading-none">
-                <span className="font-serif italic font-black text-white text-[32px] tracking-[-0.04em]">iad</span>
-                <span className="text-[10px] font-bold text-white uppercase tracking-[0.18em] -mt-0.5">IMMOBILIER</span>
-              </div>
+              <Image
+                src="/iad-logo-blanc.png"
+                alt="iad immobilier"
+                width={300}
+                height={220}
+                className="h-14 w-auto"
+              />
             </div>
           </div>
 

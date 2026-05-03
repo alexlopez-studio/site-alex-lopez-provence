@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -39,17 +40,22 @@ export function Header() {
       className={
         'fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ' +
         (scrolled
-          ? 'bg-white/95 backdrop-blur-md shadow-sm py-3'
-          : 'bg-white/90 backdrop-blur-sm py-4')
+          ? 'bg-white/95 backdrop-blur-md shadow-sm py-2'
+          : 'bg-white/90 backdrop-blur-sm py-3')
       }
     >
       <div className="max-w-[75rem] mx-auto px-6 flex items-center justify-between">
 
-        {/* Logo simplifié - uniquement le nom */}
-        <Link href="/" className="shrink-0">
-          <span className="font-script text-2xl md:text-3xl text-foreground font-medium">
-            Alexandre Lopez
-          </span>
+        {/* Logo officiel : signature Alexandre Lopez + iad conseiller immobilier */}
+        <Link href="/" className="shrink-0 flex items-center" aria-label="Alexandre Lopez — Conseiller immobilier iad">
+          <Image
+            src="/alexandre-lopez-logo.png"
+            alt="Alexandre Lopez — Conseiller immobilier iad"
+            width={400}
+            height={400}
+            priority
+            className="h-14 md:h-16 w-auto"
+          />
         </Link>
 
         {/* Navigation desktop - 4 liens maximum */}

@@ -34,8 +34,6 @@ const progressBarAnimate = { width: '75%' }
 const progressBarTransition = { delay: 1.1, duration: 0.9, ease: 'easeOut' as const }
 
 // Animations « flottantes » pour les cartes posées par dessus la photo du Hero.
-// Mouvement vertical doux et infini, décalé entre les deux cartes pour ne pas
-// flotter en parfaite synchro.
 const floatLoop = { y: [0, -10, 0] }
 const floatLoopTransition = {
   duration: 4.2,
@@ -70,7 +68,6 @@ function Counter({ target, suffix }: { target: number; suffix: string }) {
 }
 
 // HeartDivider conservé ici uniquement pour la section Témoignages.
-// Le Hero utilise désormais une simple barre latérale (cf. plus bas).
 function HeartDivider({ className = '' }: { className?: string }) {
   return (
     <div className={'flex items-center gap-3 text-brand ' + className} aria-hidden="true">
@@ -135,10 +132,6 @@ export default function HomepageContent() {
   const assistantUrl = appUrl('') || '/assistant'
   const biens = biensUrl() || IAD_URL_DEFAULT
 
-  // Galerie paysages : on harmonise les hauteurs en md+ via md:aspect-auto.
-  // Sur mobile, chaque image garde son aspect ratio. Sur md+, c'est le grid
-  // (grid-rows-[20rem_20rem]) qui dicte la hauteur — plus de décalage de la
-  // tuile vignobles vs villages perchés / oliveraies.
   const PAYSAGES = [
     { src: PAYSAGE_SRC.valensole, alt: tLand('valensoleAlt'), caption: tLand('valensoleCaption'), className: 'md:col-span-2 md:row-span-2 aspect-[4/3] md:aspect-auto' },
     { src: PAYSAGE_SRC.villages,  alt: tLand('villagesAlt'),  caption: tLand('villagesCaption'),  className: 'aspect-[4/3] md:aspect-auto' },
@@ -176,13 +169,10 @@ export default function HomepageContent() {
           <motion.div variants={stagger} initial="initial" animate="animate"
             className="flex flex-col justify-center px-6 py-20 lg:py-0 order-2 lg:order-1">
             <motion.p variants={fadeInUp} className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-5">{tHero('tagline')}</motion.p>
-            {/* Le nom et prénom de la signature ont été retirés : le logo est déjà dans le header,
-                cela permet de gagner de l'espace vertical au-dessus du fold. */}
             <motion.h1 variants={stagger} className="font-serif text-3xl sm:text-4xl xl:text-5xl font-medium text-foreground leading-[1.15] mb-6 max-w-md tracking-[-0.02em]">
               <motion.span variants={fadeInUp} className="block">{tHero('titleLine1')}</motion.span>
               <motion.span variants={fadeInUp} className="block italic text-muted">{tHero('titleLine2')}</motion.span>
             </motion.h1>
-            {/* Barre latérale simple (au lieu de l'ancien HeartDivider). */}
             <motion.div variants={fadeInUp} className="mb-5">
               <div className="h-px w-16 bg-brand/40" aria-hidden="true" />
             </motion.div>
@@ -407,10 +397,16 @@ export default function HomepageContent() {
                   </Button>
                 </motion.div>
               </motion.div>
+              {/* Logo iad officiel (version blanche) */}
               <motion.div variants={fadeInUp} initial="initial" whileInView="animate" viewport={vpOnce}
-                className="hidden md:flex flex-col items-end leading-none text-right">
-                <span className="font-serif italic font-black text-white text-[140px] lg:text-[180px] tracking-[-0.06em]">iad</span>
-                <span className="text-xs font-bold text-white uppercase tracking-[0.22em] -mt-2">Immobilier</span>
+                className="hidden md:flex justify-end items-center">
+                <Image
+                  src="/iad-logo-blanc.png"
+                  alt="iad immobilier"
+                  width={500}
+                  height={370}
+                  className="w-full max-w-[260px] lg:max-w-[300px] h-auto"
+                />
               </motion.div>
             </div>
           </motion.div>
