@@ -15,33 +15,35 @@ const surface = '#F8FAFC'
 const white = '#ffffff'
 const FONT = 'var(--font-plus-jakarta-sans, system-ui, sans-serif)'
 
-const TYPE_BG: Record<string, string> = { vendre: '#E0F0FA', acheter: '#d1fae5', audit: '#fef9c3' }
-const TYPE_CLR: Record<string, string> = { vendre: brand, acheter: '#059669', audit: '#92400e' }
-const TYPE_LBL: Record<string, string> = { vendre: 'Estimation', acheter: 'Acheteur', audit: 'Audit' }
+const TOOL_BG: Record<string, string> = { vendre: '#E0F0FA', acheter: '#d1fae5', audit: '#fef9c3' }
+const TOOL_CLR: Record<string, string> = { vendre: brand, acheter: '#059669', audit: '#92400e' }
+const TOOL_LBL: Record<string, string> = { vendre: 'Estimation', acheter: 'Acheteur', audit: 'Audit' }
 
-type Lead = Database['public']['Tables']['leads']['Row']
+type LeadRow = Database['public']['Tables']['leads']['Row']
+type ProspectRow = Database['public']['Tables']['prospects']['Row']
+type LeadWithProspect = LeadRow & {
+  prospect: Pick<ProspectRow, 'email' | 'first_name' | 'last_name'> | null
+}
 
 function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
-function getCommune(lead: Lead): string {
-  try {
-    const fd = lead.form_data as Record<string, unknown>
-    const adresse = (fd?.adresse ?? '') as string
-    const parts = adresse.split(',')
-    return parts[parts.length - 1]?.trim() ?? '—'
-  } catch { return '—' }
-}
-
-async function getLeads(): Promise<Lead[]> {
+async function getLeads(): Promise<LeadWithProspect[]> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !key) return []
   const sb = createClient<Database>(url, key)
-  const { data, error } = await sb.from('leads').select('*').order('created_at', { ascending: false })
-  if (error) return []
-  return data ?? []
+  const { data, error } = await sb
+    .from('leads')
+    .select('*, prospect:prospects(email, first_name, last_name)')
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false })
+  if (error) {
+    console.error('[admin] getLeads error', error)
+    return []
+  }
+  return (data ?? []) as unknown as LeadWithProspect[]
 }
 
 export default async function AdminPage() {
@@ -69,13 +71,13 @@ export default async function AdminPage() {
   const backLnkSt: CSSProperties = { fontSize: '13px', color: muted, textDecoration: 'none' }
   const emptyWrap: CSSProperties = { padding: '60px 24px', textAlign: 'center' as const, color: muted }
 
-  const vendreCount = leads.filter((l) => l.type === 'vendre').length
-  const acheterCount = leads.filter((l) => l.type === 'acheter').length
-  const auditCount = leads.filter((l) => l.type === 'audit').length
+  const vendreCount = leads.filter((l) => l.tool === 'vendre').length
+  const acheterCount = leads.filter((l) => l.tool === 'acheter').length
+  const auditCount = leads.filter((l) => l.tool === 'audit').length
 
-  function typeBadge(type: string) {
-    const badgeSt: CSSProperties = { display: 'inline-block', backgroundColor: TYPE_BG[type] ?? border, color: TYPE_CLR[type] ?? muted, fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '999px' }
-    return <span style={badgeSt}>{TYPE_LBL[type] ?? type}</span>
+  function toolBadge(tool: string) {
+    const badgeSt: CSSProperties = { display: 'inline-block', backgroundColor: TOOL_BG[tool] ?? border, color: TOOL_CLR[tool] ?? muted, fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '999px' }
+    return <span style={badgeSt}>{TOOL_LBL[tool] ?? tool}</span>
   }
 
   return (
@@ -111,14 +113,15 @@ export default async function AdminPage() {
                   const td = isLast ? tdLastSt : tdSt
                   const tdB = isLast ? tdBoldLastSt : tdBoldSt
                   const tdM = isLast ? tdMutedLastSt : tdMutedSt
+                  const fullName = `${lead.prospect?.first_name ?? ''} ${lead.prospect?.last_name ?? ''}`.trim() || '—'
                   return (
                     <tr key={lead.id}>
                       <td style={td}>{fmtDate(lead.created_at)}</td>
-                      <td style={tdB}>{lead.prenom ?? ''} {lead.nom ?? ''}</td>
-                      <td style={td}>{typeBadge(lead.type)}</td>
-                      <td style={td}>{getCommune(lead)}</td>
-                      <td style={tdM}>{lead.email}</td>
-                      <td style={td}><Link href={'/admin/' + lead.token} style={lnkSt}>Ouvrir →</Link></td>
+                      <td style={tdB}>{fullName}</td>
+                      <td style={td}>{toolBadge(lead.tool)}</td>
+                      <td style={td}>{lead.commune ?? '—'}</td>
+                      <td style={tdM}>{lead.prospect?.email ?? '—'}</td>
+                      <td style={td}><Link href={'/admin/' + lead.id} style={lnkSt}>Ouvrir →</Link></td>
                     </tr>
                   )
                 })}
