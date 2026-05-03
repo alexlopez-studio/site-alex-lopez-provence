@@ -18,6 +18,7 @@ export function Header() {
     { label: t('navSell'), href: '/vendre' },
     { label: t('navBuy'), href: '/acheter' },
     { label: t('navAudit'), href: '/audit' },
+    { label: t('navBlog'), href: '/blog' },
     { label: t('navApproach'), href: '/a-propos' },
   ]
 
@@ -52,7 +53,7 @@ export function Header() {
           </span>
         </Link>
 
-        {/* Navigation desktop - 4 liens maximum */}
+        {/* Navigation desktop */}
         <nav className="hidden lg:flex items-center gap-8" aria-label="Navigation">
           {NAV_LINKS.map(function (link) {
             return (
