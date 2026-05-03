@@ -8,9 +8,13 @@ import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LocaleSwitcher } from './LocaleSwitcher'
 
-// Tant que les outils « Estimation gratuite » et « Bilan gratuit » (Audit) ne sont pas
-// finalisés, on masque le lien Audit dans la nav et le bouton CTA dans le header.
+// Outils « Estimation gratuite » / « Bilan gratuit » : drapeau temporaire pour cacher la nav
+// Audit + le bouton CTA dédié tant que les outils ne sont pas finalisés.
 const SHOW_TOOLS_CTAS = false
+
+// Ease premium type Apple : ease-out cubique avec un léger overshoot perçu.
+const APPLE_EASE = 'cubic-bezier(0.22,1,0.36,1)'
+const HEADER_DURATION_MS = 700
 
 export function Header() {
   const t = useTranslations('header')
@@ -18,13 +22,14 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const assistantUrl = '/outils'
 
-  // Navigation simplifiée — « Blog » hardcodé (même label FR/EN).
+  // Navigation : labels neutres, même mot FR/EN pour Blog et Contact (donc hardcodés).
   const NAV_LINKS = [
     { label: t('navSell'), href: '/vendre' },
     { label: t('navBuy'), href: '/acheter' },
     ...(SHOW_TOOLS_CTAS ? [{ label: t('navAudit'), href: '/audit' }] : []),
     { label: 'Blog', href: '/blog' },
     { label: t('navApproach'), href: '/a-propos' },
+    { label: 'Contact', href: '/contact' },
   ]
 
   useEffect(function () {
@@ -40,30 +45,41 @@ export function Header() {
     return function () { window.removeEventListener('resize', onResize) }
   }, [])
 
-  // === CLASSES DYNAMIQUES SCROLL ===
-  // - État non scrollé : header pleine largeur, conventionnel.
-  // - État scrollé : header se rétracte en "pill" centrée (max-w-5xl, rounded-full, shadow-2xl).
-  // Transitions all 500ms ease-out pour un effet premium.
+  // Style transition partagé (long, courbé ease-out premium, transform-gpu).
+  const sharedTransition = {
+    transitionProperty: 'top, left, right, width, max-width, padding, background-color, box-shadow, border-radius, border-color, transform',
+    transitionDuration: HEADER_DURATION_MS + 'ms',
+    transitionTimingFunction: APPLE_EASE,
+  } as const
+
+  // États wrapper du header.
   const headerWrapperClasses = scrolled
-    ? 'fixed z-50 transition-all duration-500 ease-out top-3 left-1/2 -translate-x-1/2 w-[min(95vw,64rem)] rounded-full shadow-2xl bg-white/95 backdrop-blur-md border border-border'
-    : 'fixed z-50 transition-all duration-500 ease-out top-0 left-0 right-0 w-full bg-white/95 backdrop-blur-sm shadow-sm border-b border-border'
+    ? 'fixed z-50 transform-gpu top-5 md:top-6 left-1/2 -translate-x-1/2 w-[min(95vw,64rem)] rounded-full shadow-2xl bg-white/95 backdrop-blur-md border border-border'
+    : 'fixed z-50 transform-gpu top-0 left-0 right-0 w-full bg-white/95 backdrop-blur-sm shadow-sm border-b border-border rounded-none'
 
   const headerInnerClasses = scrolled
-    ? 'mx-auto flex items-center justify-between gap-6 transition-all duration-500 ease-out px-5 py-2'
-    : 'mx-auto flex items-center justify-between gap-6 transition-all duration-500 ease-out max-w-[75rem] px-6 py-3'
+    ? 'mx-auto flex items-center justify-between gap-6 px-5 py-2'
+    : 'mx-auto flex items-center justify-between gap-6 max-w-[75rem] px-6 py-3'
+
+  // Logo : taille animée via styles inline (transition synchronisée avec header).
+  const logoStyle = {
+    transitionProperty: 'height, transform',
+    transitionDuration: HEADER_DURATION_MS + 'ms',
+    transitionTimingFunction: APPLE_EASE,
+  } as const
 
   const logoClasses = scrolled
-    ? 'w-auto transition-all duration-500 ease-out h-10 md:h-12'
-    : 'w-auto transition-all duration-500 ease-out h-16 md:h-20'
+    ? 'w-auto h-10 md:h-12'
+    : 'w-auto h-16 md:h-20'
 
   return (
     <>
       {/* Spacer : réserve la hauteur du header pour ne pas masquer le contenu en haut de page.
-          Hauteur fixe correspondant à l'état non scrollé (pour que la page ne saute pas au scroll). */}
+          Hauteur fixe correspondant à l'état non scrollé. */}
       <div aria-hidden="true" className="h-[5.5rem] md:h-[6rem]" />
 
-      <header className={headerWrapperClasses}>
-        <div className={headerInnerClasses}>
+      <header className={headerWrapperClasses} style={sharedTransition}>
+        <div className={headerInnerClasses} style={sharedTransition}>
 
           {/* Logo officiel HD */}
           <Link href="/" className="shrink-0 flex items-center" aria-label="Alexandre Lopez — Conseiller immobilier iad">
@@ -74,6 +90,7 @@ export function Header() {
               height={800}
               priority
               className={logoClasses}
+              style={logoStyle}
             />
           </Link>
 
