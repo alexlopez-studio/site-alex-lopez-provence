@@ -28,6 +28,8 @@ const PHONE_DISPLAY = '06 13 18 01 68'
 
 // Spring smooth pour hover lift (même ressenti que les cards homepage)
 const hoverCard = { y: -6, transition: { type: 'spring' as const, stiffness: 400, damping: 25 } }
+const hoverFilter = { y: -2 }
+const tapFilter = { scale: 0.97 as number }
 
 // ─── Config catégories ──────────────────────────────────────────────
 const CATEGORY_CONFIG: Record<BlogCategory | 'all', { label: string; icon: React.ElementType }> = {
@@ -182,8 +184,8 @@ function CategoryCard({
     <motion.button
       variants={scaleIn}
       onClick={onClick}
-      whileHover= y: -2 
-      whileTap= scale: 0.97 
+      whileHover={hoverFilter}
+      whileTap={tapFilter}
       className={
         'flex items-center gap-3 rounded-2xl border px-4 py-3.5 text-left transition-colors w-full ' +
         (isActive
