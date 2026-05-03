@@ -108,9 +108,10 @@ export async function GET(req: NextRequest) {
   filenameParts.push(lead.id.slice(0, 8))
   const filename = sanitizeFilename(filenameParts.join('-')) + '.pdf'
 
-  // Next.js 15 / TS strict : Buffer<ArrayBufferLike> n'est plus assignable
-  // a BodyInit. Uint8Array l'est, et partage le meme backing buffer.
-  const body = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength)
+  // TS 5.7+ : BodyInit n'accepte plus Uint8Array<ArrayBufferLike> (BufferSource
+  // est resserre sur ArrayBuffer strict). Blob est un membre direct de
+  // BodyInit et est supporte nativement par le runtime Node de Next.js 15.
+  const body = new Blob([buffer], { type: 'application/pdf' })
 
   return new NextResponse(body, {
     status: 200,
