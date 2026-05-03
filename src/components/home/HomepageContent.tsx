@@ -8,7 +8,7 @@ import { useTranslations } from 'next-intl'
 import {
   ArrowRight, MapPin, Star,
   ShieldCheck, Clock, Lock, ChevronDown,
-  Send, Phone, TrendingUp, Gift, BarChart2,
+  Send, Phone, Gift, BarChart2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import HeroPhotoNoBg from '@/components/sections/HeroPhotoNoBg'
@@ -24,15 +24,6 @@ const hoverComm = { scale: 1.04 as number, y: -2 as number }
 const heroRightInitial = { opacity: 0, scale: 0.96 as number }
 const heroRightAnimate = { opacity: 1, scale: 1 as number }
 const heroRightTransition = { delay: 0.3, duration: 0.55, ease: [0.22, 1, 0.36, 1] as const }
-const floatingCardInitial = { opacity: 0, x: -20, y: 20 }
-const floatingCardAnimate = { opacity: 1, x: 0, y: 0 }
-const floatingCardTransition = { delay: 0.65, duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }
-const badgeInitial = { opacity: 0, scale: 0.8 as number }
-const badgeAnimate = { opacity: 1, scale: 1 as number }
-const badgeTransition = { delay: 0.85, duration: 0.4 }
-const progressBarInitial = { width: 0 }
-const progressBarAnimate = { width: '75%' }
-const progressBarTransition = { delay: 1.1, duration: 0.9, ease: 'easeOut' as const }
 
 function Counter({ target, suffix }: { target: number; suffix: string }) {
   const ref = useRef<HTMLSpanElement>(null)
@@ -195,27 +186,7 @@ export default function HomepageContent() {
           </motion.div>
           <motion.div initial={heroRightInitial} animate={heroRightAnimate} transition={heroRightTransition}
             className="relative flex items-center justify-center min-h-[60vh] lg:min-h-full order-1 lg:order-2">
-            <div className="absolute inset-0 flex items-center justify-center px-2 lg:px-4">
-              <HeroPhotoNoBg alt={tHero('photoAlt')} className="max-w-md lg:max-w-lg xl:max-w-xl 2xl:max-w-2xl" />
-            </div>
-            <motion.div initial={floatingCardInitial} animate={floatingCardAnimate} transition={floatingCardTransition}
-              className="absolute bottom-8 left-4 bg-white rounded-2xl shadow-xl p-5 w-60 border border-border z-20">
-              <p className="text-[10px] font-semibold text-muted uppercase tracking-[0.18em] mb-1">{tHero('estimationCardEyebrow')}</p>
-              <p className="font-serif text-2xl font-semibold text-foreground mb-0.5">245 000 €</p>
-              <p className="text-xs text-muted mb-3">{tHero('estimationCardHint')}</p>
-              <div className="w-full bg-surface rounded-full h-1.5 mb-3">
-                <motion.div className="bg-brand h-1.5 rounded-full"
-                  initial={progressBarInitial} animate={progressBarAnimate} transition={progressBarTransition} />
-              </div>
-              <p className="text-xs text-brand font-semibold flex items-center gap-1">
-                <TrendingUp size={11} /> {tHero('estimationCardTrend')}
-              </p>
-            </motion.div>
-            <motion.div initial={badgeInitial} animate={badgeAnimate} transition={badgeTransition}
-              className="absolute top-6 right-4 bg-white rounded-xl shadow-md px-3 py-2 flex items-center gap-2 border border-border z-20">
-              <div className="flex gap-0.5">{[1,2,3,4,5].map(i => <Star key={i} size={11} className="text-accent fill-accent" />)}</div>
-              <span className="text-xs font-semibold text-foreground">5/5</span>
-            </motion.div>
+            <HeroPhotoNoBg alt={tHero('photoAlt')} className="absolute inset-0" />
           </motion.div>
         </div>
       </section>
