@@ -181,9 +181,9 @@ export default function VendrePageContent() {
 
           {/* Photo encadrée (Pixabay, libre de droit) */}
           <motion.div
-            initial= opacity: 0, scale: 0.96 
-            animate= opacity: 1, scale: 1 
-            transition= delay: 0.2, duration: 0.6, ease: [0.22, 1, 0.36, 1] 
+            variants={scaleIn}
+            initial="initial"
+            animate="animate"
             className="relative aspect-[4/5] rounded-3xl overflow-hidden border border-border shadow-xl bg-surface order-1 lg:order-2 max-w-md w-full mx-auto lg:mx-0 lg:ml-auto"
           >
             <Image
