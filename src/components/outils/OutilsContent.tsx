@@ -2,125 +2,160 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { useTranslations } from 'next-intl'
 import {
-  Home, Search, ClipboardCheck, ArrowRight, Phone,
-  Gift, ShieldCheck, Lock, MapPin,
+  ArrowRight,
+  BadgeCheck,
+  ClipboardCheck,
+  Home,
+  MapPin,
+  Search,
+  ShieldCheck,
+  Sparkles,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { VP as vpOnce, fadeInUp, scaleIn, stagger, staggerFast } from '@/lib/animations'
 
-const PHONE_RAW = '+33613180168'
-const hoverCard = { y: -6 }
-const springFast = { type: 'spring' as const, stiffness: 400, damping: 25 }
+const hoverCard = { y: -4 }
+const springFast = { type: 'spring' as const, stiffness: 420, damping: 28 }
+
+const tools = [
+  {
+    href: '/outils/vendre',
+    icon: Home,
+    emoji: '🏡',
+    title: 'Estimer mon bien',
+    duration: '3 min',
+    desc: 'Obtenir une fourchette de prix réaliste à partir de votre adresse, du bien et des ventes récentes.',
+    details: ['Prix estimé', 'Fourchette basse / haute', 'Lecture marché local'],
+    cta: 'Lancer l’estimation',
+    accent: 'bg-brand-light text-brand',
+  },
+  {
+    href: '/outils/acheter',
+    icon: Search,
+    emoji: '🔎',
+    title: 'Trouver un bien',
+    duration: '2 min',
+    desc: 'Décrire votre recherche pour clarifier votre budget, vos communes et vos critères prioritaires.',
+    details: ['Budget cible', 'Communes recherchées', 'Critères essentiels'],
+    cta: 'Décrire ma recherche',
+    accent: 'bg-emerald-50 text-emerald-700',
+  },
+  {
+    href: '/outils/audit',
+    icon: ClipboardCheck,
+    emoji: '✅',
+    title: 'Audit immobilier',
+    duration: '4 min',
+    desc: 'Identifier les points de vigilance d’un bien : état général, énergie, travaux et potentiel.',
+    details: ['Score du bien', 'Points de vigilance', 'Priorités travaux'],
+    cta: 'Démarrer l’audit',
+    accent: 'bg-amber-50 text-amber-700',
+  },
+]
+
+const reassurance = [
+  { icon: BadgeCheck, label: 'Gratuit' },
+  { icon: ShieldCheck, label: 'Sans engagement' },
+  { icon: MapPin, label: 'Provence Verte & Haut-Var' },
+]
 
 export default function OutilsContent() {
-  const t = useTranslations('outils')
-  const tCommon = useTranslations('common')
-  const tHeader = useTranslations('header')
-  const phoneDisplay = tCommon('phoneDisplay')
-
-  const chips = [
-    { icon: Gift,        label: t('chipFree') },
-    { icon: ShieldCheck, label: t('chipNoCommitment') },
-    { icon: Lock,        label: t('chipNoAccount') },
-    { icon: MapPin,      label: t('chipRegion') },
-  ]
-
-  const tools = [
-    {
-      href: '/outils/vendre',
-      icon: Home,
-      eyebrow: t('sellEyebrow'),
-      title: t('sellTitle'),
-      desc: t('sellDesc'),
-      cta: t('sellCta'),
-      badge: t('sellBadge'),
-    },
-    {
-      href: '/outils/acheter',
-      icon: Search,
-      eyebrow: t('buyEyebrow'),
-      title: t('buyTitle'),
-      desc: t('buyDesc'),
-      cta: t('buyCta'),
-      badge: t('buyBadge'),
-    },
-    {
-      href: '/outils/audit',
-      icon: ClipboardCheck,
-      eyebrow: t('auditEyebrow'),
-      title: t('auditTitle'),
-      desc: t('auditDesc'),
-      cta: t('auditCta'),
-      badge: t('auditBadge'),
-    },
-  ]
-
   return (
-    <>
-      {/* Hero */}
-      <section className="bg-white pt-12 pb-20 lg:pt-16 lg:pb-24">
-        <motion.div variants={stagger} initial="initial" animate="animate"
-          className="max-w-[75rem] mx-auto px-6 text-center">
-          <motion.p variants={fadeInUp} className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-5">
-            {t('eyebrow')}
-          </motion.p>
-          <motion.h1 variants={fadeInUp}
-            className="font-serif text-4xl sm:text-5xl lg:text-6xl font-medium text-foreground leading-[1.05] tracking-[-0.02em] mb-6">
-            {t('titleLine1')}<br />
-            <span className="italic text-brand">{t('titleAccent')}</span>
-          </motion.h1>
-          <motion.p variants={fadeInUp}
-            className="text-muted leading-relaxed text-lg max-w-2xl mx-auto mb-10">
-            {t('subtitle')}
-          </motion.p>
-          <motion.div variants={staggerFast} className="flex flex-wrap justify-center gap-2.5">
-            {chips.map(function (chip) {
-              const Icon = chip.icon
-              return (
-                <motion.span key={chip.label} variants={fadeInUp}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-surface rounded-full border border-border text-sm font-medium text-foreground">
-                  <Icon size={14} className="text-brand" />
-                  {chip.label}
-                </motion.span>
-              )
-            })}
-          </motion.div>
+    <section className="min-h-[calc(100vh-5rem)] bg-[#F8FAFC] px-4 py-10 sm:px-6 lg:py-14">
+      <motion.div
+        variants={stagger}
+        initial="initial"
+        animate="animate"
+        className="mx-auto flex w-full max-w-[70rem] flex-col items-center"
+      >
+        <motion.div variants={fadeInUp} className="mb-6 flex flex-col items-center text-center">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-brand text-lg font-bold text-white shadow-sm">
+            AL
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-3 py-1.5 text-xs font-semibold text-muted shadow-sm">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            Outils disponibles maintenant
+          </div>
         </motion.div>
-      </section>
 
-      {/* Cards */}
-      <section className="bg-surface py-20 px-6">
-        <motion.div variants={staggerFast} initial="initial" whileInView="animate" viewport={vpOnce}
-          className="max-w-[75rem] mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+        <motion.div variants={fadeInUp} className="max-w-3xl text-center">
+          <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.24em] text-brand">
+            Moteur d’estimation
+          </p>
+          <h1 className="font-serif text-4xl font-medium leading-[1.05] tracking-[-0.03em] text-foreground sm:text-5xl lg:text-6xl">
+            Choisissez l’outil adapté à votre projet immobilier.
+          </h1>
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted sm:text-lg">
+            Une page hub simple, comme une prise de rendez-vous : sélectionnez un outil, puis avancez étape par étape dans le parcours correspondant.
+          </p>
+        </motion.div>
+
+        <motion.div variants={staggerFast} className="mt-7 flex flex-wrap justify-center gap-2.5">
+          {reassurance.map(function (item) {
+            const Icon = item.icon
+            return (
+              <motion.span
+                key={item.label}
+                variants={fadeInUp}
+                className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-foreground shadow-sm"
+              >
+                <Icon size={14} className="text-brand" />
+                {item.label}
+              </motion.span>
+            )
+          })}
+        </motion.div>
+
+        <motion.div
+          variants={staggerFast}
+          initial="initial"
+          whileInView="animate"
+          viewport={vpOnce}
+          className="mt-12 grid w-full grid-cols-1 gap-4 md:grid-cols-3 md:gap-5"
+        >
           {tools.map(function (tool) {
             const Icon = tool.icon
             return (
               <motion.div key={tool.href} variants={scaleIn} whileHover={hoverCard} transition={springFast}>
-                <Link href={tool.href}
-                  className="group flex flex-col h-full bg-white rounded-2xl border border-border p-8 transition-all duration-200 hover:shadow-md hover:border-brand/40">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted mb-5">
-                    {tool.eyebrow}
-                  </p>
-                  <div className="w-12 h-12 rounded-xl bg-brand-light flex items-center justify-center mb-5">
-                    <Icon size={22} className="text-brand" />
-                  </div>
-                  <h2 className="font-serif text-2xl font-medium text-foreground tracking-[-0.01em] mb-3 leading-tight">
-                    {tool.title}
-                  </h2>
-                  <p className="text-sm text-muted leading-relaxed mb-5 flex-1">
-                    {tool.desc}
-                  </p>
-                  <p className="text-xs font-semibold text-success inline-flex items-center gap-1.5 mb-6">
-                    <ShieldCheck size={13} />
-                    {tool.badge}
-                  </p>
-                  <div className="flex items-center justify-between pt-5 border-t border-border">
-                    <span className="text-sm font-semibold text-brand">
-                      {tool.cta}
+                <Link
+                  href={tool.href}
+                  className="group flex h-full flex-col rounded-[1.75rem] border border-border bg-white p-5 shadow-sm transition-all duration-200 hover:border-brand/40 hover:shadow-lg sm:p-6"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className={'flex h-12 w-12 items-center justify-center rounded-2xl ' + tool.accent}>
+                      <Icon size={22} />
+                    </div>
+                    <span className="rounded-full bg-surface px-3 py-1 text-xs font-semibold text-muted">
+                      {tool.duration}
                     </span>
-                    <span className="w-9 h-9 rounded-full bg-brand-light text-brand flex items-center justify-center group-hover:bg-brand group-hover:text-white transition-colors">
+                  </div>
+
+                  <div className="mt-6 flex-1">
+                    <div className="mb-3 flex items-center gap-2">
+                      <span className="text-xl" aria-hidden="true">{tool.emoji}</span>
+                      <h2 className="text-xl font-extrabold tracking-[-0.02em] text-foreground">
+                        {tool.title}
+                      </h2>
+                    </div>
+                    <p className="text-sm leading-relaxed text-muted">
+                      {tool.desc}
+                    </p>
+
+                    <ul className="mt-5 space-y-2">
+                      {tool.details.map(function (detail) {
+                        return (
+                          <li key={detail} className="flex items-center gap-2 text-sm font-medium text-foreground">
+                            <Sparkles size={13} className="text-brand" />
+                            {detail}
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </div>
+
+                  <div className="mt-7 flex items-center justify-between border-t border-border pt-5">
+                    <span className="text-sm font-bold text-brand">{tool.cta}</span>
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-light text-brand transition-colors group-hover:bg-brand group-hover:text-white">
                       <ArrowRight size={15} />
                     </span>
                   </div>
@@ -129,32 +164,11 @@ export default function OutilsContent() {
             )
           })}
         </motion.div>
-      </section>
 
-      {/* CTA */}
-      <section className="bg-brand-light py-20 px-6">
-        <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce}
-          className="max-w-3xl mx-auto text-center">
-          <motion.p variants={fadeInUp} className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand mb-3">
-            {t('ctaEyebrow')}
-          </motion.p>
-          <motion.h2 variants={fadeInUp}
-            className="font-serif text-3xl sm:text-4xl md:text-5xl font-medium text-foreground leading-[1.05] tracking-[-0.02em] mb-4">
-            {t('ctaTitle')}
-          </motion.h2>
-          <motion.p variants={fadeInUp} className="text-muted leading-relaxed text-lg mb-8">
-            {t('ctaDescription')}
-          </motion.p>
-          <motion.div variants={fadeInUp}>
-            <Button asChild size="lg" variant="primary">
-              <a href={'tel:' + PHONE_RAW} aria-label={tHeader('callAria', { phone: phoneDisplay })}>
-                <Phone size={16} />
-                {phoneDisplay}
-              </a>
-            </Button>
-          </motion.div>
+        <motion.div variants={fadeInUp} className="mt-10 w-full max-w-2xl rounded-2xl border border-border bg-white px-5 py-4 text-center text-sm leading-relaxed text-muted shadow-sm">
+          Les parcours s’ouvrent séparément : vous cliquez sur l’outil voulu, puis vous entrez dans le formulaire conversationnel correspondant.
         </motion.div>
-      </section>
-    </>
+      </motion.div>
+    </section>
   )
 }
