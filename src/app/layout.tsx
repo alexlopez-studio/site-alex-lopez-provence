@@ -5,7 +5,7 @@ import { getLocale, getMessages } from 'next-intl/server'
 import './globals.css'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
-import { PageTransition } from '@/components/layout/PageTransition'
+import { AppChrome } from '@/components/layout/AppChrome'
 import { LOCALE_META, type Locale } from '@/i18n/config'
 
 const inter = Inter({
@@ -58,11 +58,9 @@ export default async function RootLayout({
     <html lang={htmlLang} className={inter.variable + ' ' + buffalo.variable}>
       <body className="font-sans antialiased">
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <Header />
-          <PageTransition>
-            <main className="pt-20">{children}</main>
-          </PageTransition>
-          <Footer />
+          <AppChrome header={<Header />} footer={<Footer />}>
+            {children}
+          </AppChrome>
         </NextIntlClientProvider>
       </body>
     </html>
