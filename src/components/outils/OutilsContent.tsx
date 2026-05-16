@@ -12,7 +12,7 @@ import {
   Search,
   ShieldCheck,
 } from 'lucide-react'
-import { fadeInUp, scaleIn, stagger, staggerFast } from '@/lib/animations'
+import { VP as vpOnce, fadeInUp, scaleIn, stagger, staggerFast } from '@/lib/animations'
 
 const hoverCard = { y: -2 }
 const springFast = { type: 'spring' as const, stiffness: 420, damping: 28 }
@@ -25,7 +25,6 @@ const tools = [
     duration: '3 min',
     desc: 'Obtenez une première fourchette de valeur pour votre maison, appartement ou terrain.',
     details: ['Valeur estimée', 'Fourchette de prix', 'Atouts du bien'],
-    cta: 'Commencer',
     accent: 'bg-brand text-white',
   },
   {
@@ -35,7 +34,6 @@ const tools = [
     duration: '2 min',
     desc: 'Précisez vos critères, votre budget et les communes qui vous intéressent.',
     details: ['Budget', 'Critères', 'Secteurs ciblés'],
-    cta: 'Décrire mon projet',
     accent: 'bg-emerald-600 text-white',
   },
   {
@@ -45,7 +43,6 @@ const tools = [
     duration: '4 min',
     desc: 'Identifiez les points à vérifier avant une vente, un achat ou des travaux.',
     details: ['État général', 'Énergie', 'Travaux possibles'],
-    cta: 'Démarrer l’analyse',
     accent: 'bg-amber-500 text-white',
   },
 ]
@@ -102,7 +99,7 @@ export default function OutilsContent() {
           variants={staggerFast}
           initial="initial"
           whileInView="animate"
-          viewport= once: true, margin: '-80px' 
+          viewport={vpOnce}
           className="w-full overflow-hidden rounded-[1.5rem] border border-border bg-white shadow-[0_18px_50px_rgba(15,23,42,0.08)]"
         >
           {tools.map(function (tool, index) {
