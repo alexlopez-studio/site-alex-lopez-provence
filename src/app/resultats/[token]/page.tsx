@@ -6,65 +6,41 @@ import { lookupLead } from './lookup'
 type Props = { params: Promise<{ token: string }> }
 
 /**
- * /resultats/[token] — server component qui lookup le lead via Supabase.
+ * /resultats/[token]
  *
- * Phase B (Step 4) : le `token` est l'UUID `id` de la ligne `leads` créée
- * par /api/leads v2. On résout via `getLeadById` puis on affiche :
- *   - les résultats pré-hydratés pour `vendre`
- *   - un fallback ResultatsClient pour `audit`/`acheter` (vues dédiées à venir)
- *   - un écran d'erreur friendly pour invalide / expiré / introuvable / erreur
- *
- * Plus de fallback localStorage : un lien direct reçu par email doit suffire.
+ * Pendant la phase estimation-first, Supabase ne doit plus bloquer l'affichage
+ * des résultats. On tente encore le lookup Supabase pour les anciens liens,
+ * mais si le dossier n'est pas trouvé ou si la DB est indisponible, on rend le
+ * client qui sait recalculer l'estimation depuis le store local du formulaire.
  */
 export default async function ResultatsPage({ params }: Props) {
   const { token } = await params
   const state = await lookupLead(token)
 
-  if (state.kind === 'invalid-format' || state.kind === 'not-found') {
-    return (
-      <ErrorScreen
-        title="Lien invalide"
-        message="Ce lien ne correspond à aucun dossier. Il a peut-être été modifié, supprimé ou mal copié. Refais une demande pour recevoir un nouveau lien par email."
-        cta="Refaire une demande"
-        href="/"
-      />
-    )
-  }
-
   if (state.kind === 'expired') {
     return (
       <ErrorScreen
         title="Lien expiré"
-        message="Ce lien a dépassé sa durée de validité de 30 jours. Demande un nouveau lien depuis le formulaire et tu en recevras un par email immédiatement."
-        cta="Demander un nouveau lien"
-        href="/"
+        message="Ce lien a dépassé sa durée de validité de 30 jours. Reprenez le simulateur pour générer une nouvelle estimation."
+        cta="Refaire une estimation"
+        href="/outils/vendre"
       />
     )
   }
 
-  if (state.kind === 'error') {
-    return (
-      <ErrorScreen
-        title="Erreur temporaire"
-        message="Nous n'arrivons pas à charger ton dossier pour le moment. Réessaie dans quelques instants."
-        cta="Réessayer"
-        href="."
-      />
-    )
-  }
-
-  const { lead } = state
-  let initialData: ResultatsClientInitialData | undefined
-  if (lead.tool === 'vendre') {
-    initialData = {
-      data: (lead.form_data ?? {}) as Record<string, unknown>,
-      est: (lead.results ?? {}) as Record<string, unknown>,
+  if (state.kind === 'ok') {
+    const { lead } = state
+    let initialData: ResultatsClientInitialData | undefined
+    if (lead.tool === 'vendre') {
+      initialData = {
+        data: (lead.form_data ?? {}) as Record<string, unknown>,
+        est: (lead.results ?? {}) as Record<string, unknown>,
+      }
     }
+    return <ResultatsClient initialData={initialData} />
   }
-  // audit / acheter : pas de pré-hydratation pour l'instant.
-  // Le ResultatsClient affichera son état legacy minimal jusqu'aux vues dédiées.
 
-  return <ResultatsClient initialData={initialData} />
+  return <ResultatsClient />
 }
 
 function ErrorScreen({
