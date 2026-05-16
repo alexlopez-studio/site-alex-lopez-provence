@@ -1,11 +1,8 @@
 import type { Metadata } from 'next'
-import { createClient } from '@supabase/supabase-js'
 import Link from 'next/link'
 import type { CSSProperties } from 'react'
-import type { Database } from '@/types/supabase'
 
 export const metadata: Metadata = { title: 'Administration — Alex Lopez Provence' }
-export const dynamic = 'force-dynamic'
 
 const brand = '#0077B6'
 const fg = '#0F172A'
@@ -15,120 +12,44 @@ const surface = '#F8FAFC'
 const white = '#ffffff'
 const FONT = 'var(--font-plus-jakarta-sans, system-ui, sans-serif)'
 
-const TOOL_BG: Record<string, string> = { vendre: '#E0F0FA', acheter: '#d1fae5', audit: '#fef9c3' }
-const TOOL_CLR: Record<string, string> = { vendre: brand, acheter: '#059669', audit: '#92400e' }
-const TOOL_LBL: Record<string, string> = { vendre: 'Estimation', acheter: 'Acheteur', audit: 'Audit' }
-
-type LeadRow = Database['public']['Tables']['leads']['Row']
-type ProspectRow = Database['public']['Tables']['prospects']['Row']
-type LeadWithProspect = LeadRow & {
-  prospect: Pick<ProspectRow, 'email' | 'first_name' | 'last_name'> | null
-}
-
-function fmtDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-}
-
-async function getLeads(): Promise<LeadWithProspect[]> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !key) return []
-  const sb = createClient<Database>(url, key)
-  const { data, error } = await sb
-    .from('leads')
-    .select('*, prospect:prospects(email, first_name, last_name)')
-    .is('deleted_at', null)
-    .order('created_at', { ascending: false })
-  if (error) {
-    console.error('[admin] getLeads error', error)
-    return []
-  }
-  return (data ?? []) as unknown as LeadWithProspect[]
-}
-
-export default async function AdminPage() {
-  const leads = await getLeads()
-
+export default function AdminPage() {
   const pageSt: CSSProperties = { minHeight: '100vh', backgroundColor: surface, fontFamily: FONT }
   const headerSt: CSSProperties = { backgroundColor: white, borderBottom: '1px solid ' + border, padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }
   const titleSt: CSSProperties = { fontSize: '18px', fontWeight: 900, color: fg, letterSpacing: '-0.02em' }
   const subTitleSt: CSSProperties = { fontSize: '12px', color: muted }
-  const mainSt: CSSProperties = { maxWidth: '1100px', margin: '0 auto', padding: '32px 24px' }
-  const statRow: CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px' }
-  const statCard: CSSProperties = { backgroundColor: white, border: '1px solid ' + border, borderRadius: '16px', padding: '20px 24px' }
-  const statNum: CSSProperties = { fontSize: '28px', fontWeight: 900, color: fg, letterSpacing: '-0.03em' }
-  const statLbl: CSSProperties = { fontSize: '12px', color: muted, marginTop: '4px' }
-  const tableSt: CSSProperties = { backgroundColor: white, border: '1px solid ' + border, borderRadius: '16px', overflow: 'hidden' }
-  const tableInnerSt: CSSProperties = { width: '100%', borderCollapse: 'collapse' }
-  const thSt: CSSProperties = { padding: '12px 16px', fontSize: '11px', fontWeight: 600, color: muted, textTransform: 'uppercase' as const, letterSpacing: '0.1em', textAlign: 'left' as const, borderBottom: '1px solid ' + border, backgroundColor: surface }
-  const tdSt: CSSProperties = { padding: '14px 16px', fontSize: '13px', color: fg, borderBottom: '1px solid ' + border, verticalAlign: 'middle' as const }
-  const tdLastSt: CSSProperties = { ...tdSt, borderBottom: 'none' }
-  const tdBoldSt: CSSProperties = { ...tdSt, fontWeight: 700 }
-  const tdBoldLastSt: CSSProperties = { ...tdLastSt, fontWeight: 700 }
-  const tdMutedSt: CSSProperties = { ...tdSt, color: muted }
-  const tdMutedLastSt: CSSProperties = { ...tdLastSt, color: muted }
-  const lnkSt: CSSProperties = { color: brand, fontWeight: 600, textDecoration: 'none' }
+  const mainSt: CSSProperties = { maxWidth: '720px', margin: '0 auto', padding: '48px 24px' }
+  const cardSt: CSSProperties = { backgroundColor: white, border: '1px solid ' + border, borderRadius: '20px', padding: '28px', boxShadow: '0 8px 24px rgba(15, 23, 42, 0.04)' }
+  const h1St: CSSProperties = { fontSize: '24px', fontWeight: 900, color: fg, letterSpacing: '-0.03em', margin: 0 }
+  const pSt: CSSProperties = { fontSize: '14px', lineHeight: 1.7, color: muted, marginTop: '12px' }
+  const badgeSt: CSSProperties = { display: 'inline-flex', alignItems: 'center', borderRadius: '999px', backgroundColor: '#E0F0FA', color: brand, fontSize: '12px', fontWeight: 800, padding: '6px 12px', marginBottom: '16px' }
   const backLnkSt: CSSProperties = { fontSize: '13px', color: muted, textDecoration: 'none' }
-  const emptyWrap: CSSProperties = { padding: '60px 24px', textAlign: 'center' as const, color: muted }
-
-  const vendreCount = leads.filter((l) => l.tool === 'vendre').length
-  const acheterCount = leads.filter((l) => l.tool === 'acheter').length
-  const auditCount = leads.filter((l) => l.tool === 'audit').length
-
-  function toolBadge(tool: string) {
-    const badgeSt: CSSProperties = { display: 'inline-block', backgroundColor: TOOL_BG[tool] ?? border, color: TOOL_CLR[tool] ?? muted, fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '999px' }
-    return <span style={badgeSt}>{TOOL_LBL[tool] ?? tool}</span>
-  }
+  const ctaSt: CSSProperties = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginTop: '20px', borderRadius: '999px', backgroundColor: brand, color: white, padding: '12px 18px', fontSize: '14px', fontWeight: 700, textDecoration: 'none' }
 
   return (
     <div style={pageSt}>
       <header style={headerSt}>
         <div>
           <div style={titleSt}>Administration</div>
-          <div style={subTitleSt}>Alex Lopez Provence · {leads.length} dossier{leads.length !== 1 ? 's' : ''}</div>
+          <div style={subTitleSt}>Dashboard mis en pause — priorité estimation</div>
         </div>
         <Link href="/" style={backLnkSt}>← Retour au site</Link>
       </header>
       <main style={mainSt}>
-        <div style={statRow}>
-          <div style={statCard}><div style={statNum}>{leads.length}</div><div style={statLbl}>Total dossiers</div></div>
-          <div style={statCard}><div style={statNum}>{vendreCount}</div><div style={statLbl}>Estimations vendeur</div></div>
-          <div style={statCard}><div style={statNum}>{acheterCount + auditCount}</div><div style={statLbl}>Acheteurs + Audits</div></div>
-        </div>
-        <div style={tableSt}>
-          {leads.length === 0 ? (
-            <div style={emptyWrap}>Aucun dossier pour le moment.</div>
-          ) : (
-            <table style={tableInnerSt}>
-              <thead>
-                <tr>
-                  {['Date', 'Nom', 'Type', 'Commune', 'Email', 'Dossier'].map((h) => (
-                    <th key={h} style={thSt}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {leads.map((lead, i) => {
-                  const isLast = i === leads.length - 1
-                  const td = isLast ? tdLastSt : tdSt
-                  const tdB = isLast ? tdBoldLastSt : tdBoldSt
-                  const tdM = isLast ? tdMutedLastSt : tdMutedSt
-                  const fullName = `${lead.prospect?.first_name ?? ''} ${lead.prospect?.last_name ?? ''}`.trim() || '—'
-                  return (
-                    <tr key={lead.id}>
-                      <td style={td}>{fmtDate(lead.created_at)}</td>
-                      <td style={tdB}>{fullName}</td>
-                      <td style={td}>{toolBadge(lead.tool)}</td>
-                      <td style={td}>{lead.commune ?? '—'}</td>
-                      <td style={tdM}>{lead.prospect?.email ?? '—'}</td>
-                      <td style={td}><Link href={'/admin/' + lead.id} style={lnkSt}>Ouvrir →</Link></td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          )}
-        </div>
+        <section style={cardSt}>
+          <div style={badgeSt}>Mode estimation-first</div>
+          <h1 style={h1St}>Le dashboard Supabase est temporairement désactivé.</h1>
+          <p style={pSt}>
+            Pour stabiliser rapidement l’outil d’estimation sur preview, Supabase
+            est sorti du chemin critique. Les nouvelles demandes d’estimation
+            passent par le flux autonome et peuvent être sauvegardées dans Notion
+            si les variables Notion sont configurées.
+          </p>
+          <p style={pSt}>
+            Le dashboard complet sera repris plus tard, après validation de
+            l’estimation.
+          </p>
+          <Link href="/outils/vendre" style={ctaSt}>Tester l’estimation</Link>
+        </section>
       </main>
     </div>
   )
