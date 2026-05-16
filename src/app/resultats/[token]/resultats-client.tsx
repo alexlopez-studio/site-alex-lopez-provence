@@ -42,10 +42,6 @@ interface EstimResult {
 
 const BIEN_LBL: Record<string, string> = { appartement: 'Appartement', maison: 'Maison', terrain: 'Terrain', autre: 'Autre' }
 
-/**
- * Données pré-hydratées par le server component (après décodage du JWT).
- * Si présent, court-circuite la lecture localStorage et le fetch /api/estimation.
- */
 export interface ResultatsClientInitialData {
   data: Record<string, unknown>
   est: Record<string, unknown>
@@ -66,7 +62,6 @@ export default function ResultatsClient({ initialData }: ResultatsClientProps = 
   const [loading, setLoading] = useState(initialData == null)
 
   useEffect(function () {
-    // Server component a déjà fourni les données via JWT — rien à faire.
     if (initialData) return
 
     async function load() {
@@ -100,11 +95,6 @@ export default function ResultatsClient({ initialData }: ResultatsClientProps = 
           if (res.ok) {
             const estData = await res.json()
             setEst(estData)
-            fetch('/api/leads/update-results', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ token, results: estData }),
-            }).catch(function () { return null })
           }
         } catch { /* fallback */ }
       }
