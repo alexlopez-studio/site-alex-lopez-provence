@@ -13,6 +13,7 @@ Renforcer la cohérence visuelle du site autour d’un univers plus local, immob
 - Les paysages Verdon / lavandes / vignes restent possibles, mais seulement en respiration.
 - Éviter les images hors territoire ou trop Côte d’Azur.
 - Ne pas surutiliser les mêmes images d’une page à l’autre.
+- Ne pas enchaîner deux sections image au scroll : une section éditoriale / contenu doit séparer deux grands visuels.
 - Optimiser les images lourdes avant usage intensif.
 - Limiter fortement le portrait d’Alexandre : il doit créer de la confiance, pas devenir une répétition sur chaque page.
 - Les visuels de hero secondaires doivent être **full bleed** : la photo recouvre toute la section, avec un overlay sombre et le contenu posé dessus. Pas d’image en encadré.
@@ -52,6 +53,7 @@ Renforcer la cohérence visuelle du site autour d’un univers plus local, immob
   - `/contact` : ambiance village / proximité, source Pexels.
 - Les visuels de hero recouvrent maintenant toute la section : suppression de l’image en encadré, ajout d’overlays pour garder la lisibilité du texte.
 - Les visuels éditoriaux distinguent maintenant image de hero et image de section, pour éviter le même rendu répété dans une page.
+- Les sections image ne sont plus enchaînées directement : une section de contenu sépare les grands visuels.
 - Les choix sont centralisés dans `src/lib/site-visuals.ts` avec source, crédit et usage recommandé.
 
 ## Shortlist gratuite utilisée / testée
