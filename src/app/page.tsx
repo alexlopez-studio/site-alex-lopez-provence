@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { env } from '@/lib/env'
+import { getFeaturedArticles } from '@/lib/sanity.queries'
 import HomepageContent from '@/components/home/HomepageContent'
 
 export const metadata: Metadata = {
@@ -15,11 +16,10 @@ export const metadata: Metadata = {
 }
 
 const FAQ_ITEMS = [
-  { question: 'Quelle est la différence entre un mandataire et une agence immobilière ?', answer: "Un mandataire immobilier est un professionnel indépendant rattaché à un réseau (ici IAD France). Il propose les mêmes services qu'une agence (estimation, vente, achat) mais avec des honoraires souvent inférieurs, car il n'a pas de local commercial à entretenir." },
-  { question: 'Combien coûte une estimation immobilière en Provence Verte et Haut-Var ?', answer: "L'estimation est entièrement gratuite et sans engagement. Elle s'appuie sur les prix réels des ventes récentes dans votre secteur." },
-  { question: 'Quelles communes couvrez-vous en Provence Verte et Haut-Var ?', answer: "J'interviens sur l'ensemble de la Provence Verte et du Haut-Var : Barjols, Montmeyan, Quinson, Fox-Amphoux, Tavernes, Rians, Aups, Salernes, Ginasservis, Varages et toutes les communes limitrophes." },
-  { question: 'Combien de temps faut-il pour vendre un bien en Provence Verte ?', answer: 'Le délai moyen de vente dépend du bien et de son positionnement prix. Avec une estimation juste, la majorité des biens trouvent preneur en 4 à 12 semaines.' },
-  { question: "Qu'est-ce que l'audit immobilier express ?", answer: "C'est un bilan gratuit de votre bien réalisé en quelques minutes. Il identifie les points de vigilance — légaux, techniques, environnementaux." },
+  { question: 'Quelle est la différence entre un mandataire et une agence immobilière ?', answer: "Un mandataire immobilier est un professionnel indépendant rattaché à un réseau (ici IAD France). Il propose les mêmes services qu'une agence — estimation, vente, achat — avec des frais de structure réduits." },
+  { question: 'Combien coûte une estimation immobilière en Provence Verte et Haut-Var ?', answer: "L'estimation est gratuite et sans engagement. Elle s'appuie sur les prix réels des ventes récentes dans votre secteur et sur une lecture locale du marché." },
+  { question: 'Quelles communes couvrez-vous en Provence Verte et Haut-Var ?', answer: "J'interviens sur l'ensemble de la Provence Verte et du Haut-Var : Barjols, Montmeyan, Quinson, Fox-Amphoux, Tavernes, Rians, Aups, Salernes, Ginasservis, Varages et les communes limitrophes." },
+  { question: 'Comment démarrer un projet immobilier ?', answer: "Vous pouvez utiliser les outils en ligne pour obtenir un premier repère, puis me contacter pour affiner votre projet avec une analyse personnalisée." },
 ]
 
 const PHONE_RAW = '+33613180168'
@@ -41,7 +41,6 @@ function buildJsonLd(siteUrl: string) {
         telephone: PHONE_RAW,
         areaServed: ['Provence Verte', 'Haut-Var', 'Barjols', 'Montmeyan', 'Quinson', 'Fox-Amphoux', 'Tavernes', 'Rians', 'Aups', 'Salernes', 'Ginasservis', 'Varages'],
         address: { '@type': 'PostalAddress', addressRegion: 'Var', addressCountry: 'FR' },
-        aggregateRating: { '@type': 'AggregateRating', ratingValue: '5', reviewCount: '3', bestRating: '5' },
       },
       {
         '@type': 'FAQPage',
@@ -53,12 +52,14 @@ function buildJsonLd(siteUrl: string) {
   }
 }
 
-export default function HomePage() {
+export default async function HomePage() {
   const jsonLd = buildJsonLd(env.app.siteUrl)
+  const posts = await getFeaturedArticles(3)
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={buildInnerHtml(jsonLd)} />
-      <HomepageContent />
+      <HomepageContent posts={posts} />
     </>
   )
 }
