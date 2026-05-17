@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl'
 import { ArrowRight, CheckCircle2, MapPin, Phone, Sparkles } from 'lucide-react'
 import { VP as vpOnce, fadeInUp, scaleIn, stagger, staggerFast } from '@/lib/animations'
 import { alignTerritory } from '@/lib/territory'
-import { editorialVisuals, siteVisuals } from '@/lib/site-visuals'
+import { editorialVisuals } from '@/lib/site-visuals'
 
 const PHONE_RAW = '+33613180168'
 export type EditorialNamespace = 'vendre' | 'acheter' | 'audit'
@@ -29,12 +29,16 @@ export default function EditorialPage({ namespace, simulatorHref }: { namespace:
         <div className="absolute right-0 top-0 h-[34rem] w-[34rem] translate-x-1/3 rounded-full bg-brand-light/70 blur-3xl" /><div className="absolute bottom-0 left-0 h-[24rem] w-[24rem] -translate-x-1/2 rounded-full bg-white blur-3xl" />
         <motion.div variants={stagger} initial="initial" animate="animate" className="relative mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1fr_0.9fr]">
           <div><motion.div variants={fadeInUp} className="mb-6 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-foreground shadow-sm"><Sparkles size={15} className="text-brand" /> {copy('heroEyebrow')}</motion.div><motion.h1 variants={fadeInUp} className="max-w-3xl text-4xl font-bold leading-[1.04] tracking-[-0.05em] text-foreground md:text-6xl lg:text-7xl">{copy('heroTitleLine1')} <span className="text-brand">{copy('heroTitleAccent')}</span></motion.h1><motion.p variants={fadeInUp} className="mt-7 max-w-2xl text-lg leading-relaxed text-muted md:text-xl">{copy('heroSubtitle')}</motion.p><motion.div variants={fadeInUp} className="mt-9 flex flex-col gap-4 sm:flex-row"><PrimaryLink href={simulatorHref}>{copy('heroCtaSimulator')} <ArrowRight size={18} /></PrimaryLink><OutlinePhone><Phone size={16} /> {copy('heroCtaPhone')}</OutlinePhone></motion.div><motion.div variants={staggerFast} className="mt-8 flex flex-wrap gap-2">{[visual.focus, 'Provence Verte & Verdon', 'Réponse personnalisée'].map((item) => <motion.span key={item} variants={fadeInUp} className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-foreground shadow-sm"><CheckCircle2 size={14} className="text-brand" /> {item}</motion.span>)}</motion.div></div>
-          <motion.div variants={scaleIn} className="relative mx-auto flex min-h-[32rem] w-full max-w-[34rem] items-end justify-center lg:ml-auto"><div className="absolute inset-x-8 bottom-0 h-40 rounded-full bg-brand/20 blur-3xl" /><div className="absolute bottom-0 h-[82%] w-[82%] rounded-t-full bg-gradient-to-br from-brand-light via-white to-[#eaeef1]" /><Image src={siteVisuals.portraitCutout.src} alt={siteVisuals.portraitCutout.alt} width={760} height={920} priority className="relative z-10 h-auto max-h-[35rem] w-auto object-contain drop-shadow-2xl" /><div className="absolute bottom-6 left-0 z-20 rounded-2xl bg-white/90 px-5 py-4 shadow-xl backdrop-blur"><p className="text-sm font-bold text-foreground">Alexandre Lopez</p><p className="text-xs text-muted">Conseiller immobilier iad France</p></div></motion.div>
+          <motion.div variants={scaleIn} className="relative mx-auto min-h-[30rem] w-full max-w-[34rem] overflow-hidden rounded-[2rem] shadow-2xl lg:ml-auto">
+            <Image src={visual.heroImage} alt={visual.heroAlt} fill priority sizes="(min-width: 1024px) 42vw, 100vw" className="object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#101828]/74 via-[#101828]/14 to-transparent" />
+            <div className="absolute bottom-6 left-6 right-6 rounded-2xl bg-white/92 px-5 py-4 shadow-xl backdrop-blur"><p className="text-sm font-bold text-foreground">{visual.label}</p><p className="text-xs text-muted">Provence Verte & Verdon</p></div>
+          </motion.div>
         </motion.div>
       </section>
 
       <section className="relative min-h-[32rem] overflow-hidden px-6 py-24 text-white md:min-h-[40rem] md:py-32">
-        <Image src={visual.image} alt={visual.alt} fill sizes="100vw" className="object-cover" />
+        <Image src={visual.featureImage} alt={visual.featureAlt} fill sizes="100vw" className="object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#101828]/82 via-[#101828]/42 to-transparent" />
         <motion.div variants={stagger} initial="initial" whileInView="animate" viewport={vpOnce} className="relative mx-auto flex min-h-[24rem] max-w-7xl items-end md:min-h-[28rem]">
           <div className="max-w-3xl"><motion.p variants={fadeInUp} className="mb-4 inline-flex rounded-full bg-white/12 px-4 py-2 text-sm font-bold uppercase tracking-[0.18em] text-brand-light backdrop-blur">{visual.label}</motion.p><motion.h2 variants={fadeInUp} className="text-4xl font-bold leading-tight tracking-[-0.045em] md:text-6xl">{visual.note}</motion.h2><motion.p variants={fadeInUp} className="mt-6 max-w-2xl text-lg leading-relaxed text-white/82">En immobilier, la bonne décision vient rarement d’un seul chiffre. Elle vient d’une lecture précise du bien, de son contexte, de son marché local et de votre objectif réel.</motion.p></div>

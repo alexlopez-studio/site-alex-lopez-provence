@@ -14,12 +14,13 @@ Renforcer la cohérence visuelle du site autour d’un univers plus local, immob
 - Éviter les images hors territoire ou trop Côte d’Azur.
 - Ne pas surutiliser les mêmes images d’une page à l’autre.
 - Optimiser les images lourdes avant usage intensif.
+- Limiter fortement le portrait d’Alexandre : il doit créer de la confiance, pas devenir une répétition sur chaque page.
 
 ## Inventaire initial
 
 | Image | Poids approx. | Diagnostic | Action recommandée |
 | --- | ---: | --- | --- |
-| `alexandre-lopez-no-background.png` | 1,16 Mo | Très pertinent pour la confiance, mais lourd | Garder, optimiser en WebP/AVIF |
+| `alexandre-lopez-no-background.png` | 1,16 Mo | Très pertinent pour la confiance, mais trop répétitif si présent sur toutes les pages | Garder surtout pour la homepage ; retirer des pages secondaires |
 | `alexandre-lopez.jpg` | 1,95 Mo | Portrait potentiellement utile, lourd | Évaluer visuellement, compresser si gardé |
 | `alexandre-lopez-face.jpg` | 2,42 Mo | Redondant et lourd | Archiver ou compresser fortement |
 | `village-cotignac.jpg` | 3,35 Mo | Très local, très pertinent, mais trop répété | Garder comme image territoire principale, optimiser |
@@ -38,15 +39,20 @@ Renforcer la cohérence visuelle du site autour d’un univers plus local, immob
 - Le visuel audit passe temporairement sur `maison-bleue-cotignac.jpg`, plus cohérent avec le bâti, la maison et la décision immobilière.
 - `next.config.ts` autorise désormais `images.pexels.com` et `cdn.pixabay.com` pour faciliter des tests de visuels gratuits en remote si nécessaire.
 
-## Changement lot 2
+## Changement lot 2 — correction après retour
 
-- Ajout de `src/lib/site-visuals.ts` comme registre central des visuels du site.
-- Les visuels éditoriaux `/vendre`, `/acheter`, `/audit` sont maintenant déclarés au même endroit.
-- Le portrait détouré d’Alexandre est centralisé dans ce registre.
-- La section parcours de `/a-propos` n’utilise plus `lver-south-4790158_1920.jpg` et passe sur une image plus immobilière : `maison-bleue-cotignac.jpg`.
-- Les `alt` sont centralisés et renforcés sur les pages éditoriales.
+- Le portrait d’Alexandre est retiré des heroes secondaires : `/vendre`, `/acheter`, `/audit`, `/a-propos`, `/contact`.
+- Le portrait reste surtout utile sur la homepage, où il crée un premier lien humain.
+- Chaque page éditoriale reçoit maintenant un visuel hero différent :
+  - `/vendre` : maison / extérieur de bien, source Pexels.
+  - `/acheter` : maison de village provençale, source Pexels.
+  - `/audit` : façade / maison à observer, source Pexels.
+  - `/a-propos` : rue / bâtiments provençaux, source Pexels + maison de Cotignac en section parcours.
+  - `/contact` : ambiance village / proximité, source Pexels.
+- Les visuels éditoriaux distinguent maintenant image de hero et image de section, pour éviter le même rendu répété dans une page.
+- Les choix sont centralisés dans `src/lib/site-visuals.ts` avec source, crédit et usage recommandé.
 
-## Shortlist gratuite initiale
+## Shortlist gratuite utilisée / testée
 
 ### Habitat / immobilier
 
@@ -67,7 +73,7 @@ Renforcer la cohérence visuelle du site autour d’un univers plus local, immob
 
 ## Prochain lot recommandé
 
-1. Télécharger 3 à 5 candidats depuis Pexels / Pixabay.
-2. Les convertir en WebP optimisé.
-3. Remplacer progressivement : `/vendre`, diversification homepage et remplacement transitoire de l’image audit si un meilleur visuel gratuit est retenu.
-4. Ajouter un registre interne des crédits / sources.
+1. Vérifier le rendu réel des images Pexels dans la preview.
+2. Télécharger les meilleures images retenues et les servir localement plutôt qu’en remote.
+3. Les convertir en WebP optimisé.
+4. Diversifier ensuite la homepage sans multiplier les paysages génériques.

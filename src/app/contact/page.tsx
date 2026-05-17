@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowRight, Calendar, Clock, Mail, MapPin, Phone } from 'lucide-react'
 import { env } from '@/lib/env'
 import { ContactFormClient } from '@/components/forms/ContactFormClient'
+import { siteVisuals } from '@/lib/site-visuals'
 
 export const metadata: Metadata = {
   title: 'Contact — Alexandre Lopez, conseiller immobilier iad Provence Verte & Verdon',
@@ -62,11 +63,10 @@ export default function ContactPage() {
             </div>
           </div>
 
-          <div className="relative mx-auto flex min-h-[32rem] w-full max-w-[34rem] items-end justify-center lg:ml-auto">
-            <div className="absolute inset-x-8 bottom-0 h-40 rounded-full bg-brand/20 blur-3xl" />
-            <div className="absolute bottom-0 h-[82%] w-[82%] rounded-t-full bg-gradient-to-br from-brand-light via-white to-[#eaeef1]" />
-            <Image src="/alexandre-lopez-no-background.png" alt="Alexandre Lopez, conseiller immobilier iad France" width={760} height={920} priority className="relative z-10 h-auto max-h-[35rem] w-auto object-contain drop-shadow-2xl" />
-            <div className="absolute bottom-6 left-0 z-20 rounded-2xl bg-white/90 px-5 py-4 shadow-xl backdrop-blur">
+          <div className="relative mx-auto min-h-[30rem] w-full max-w-[34rem] overflow-hidden rounded-[2rem] shadow-2xl lg:ml-auto">
+            <Image src={siteVisuals.contactVillage.src} alt={siteVisuals.contactVillage.alt} fill priority sizes="(min-width: 1024px) 42vw, 100vw" className="object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#101828]/72 via-[#101828]/12 to-transparent" />
+            <div className="absolute bottom-6 left-6 right-6 rounded-2xl bg-white/92 px-5 py-4 shadow-xl backdrop-blur">
               <p className="text-sm font-bold text-foreground">Réponse personnalisée</p>
               <p className="text-xs text-muted">Par téléphone, email ou rendez-vous</p>
             </div>
