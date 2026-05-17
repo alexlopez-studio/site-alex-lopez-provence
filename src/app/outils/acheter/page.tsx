@@ -1,146 +1,114 @@
 'use client'
 
-import { Fragment, useRef, useEffect, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { Check, ChevronLeft, Home, Phone, RotateCcw, Search, Send } from 'lucide-react'
 import { useAcheterStore } from '@/stores/acheterStore'
 import type { AcheterAnswers, AcheterQuestionId } from '@/stores/acheterStore'
-import type { CSSProperties } from 'react'
-import { Phone, ChevronLeft, Send, Check, RotateCcw } from 'lucide-react'
-import Link from 'next/link'
-import { Cards, RecapConfirm } from '@/components/forms/FormCards'
 
-const B = '#0077B6', BL = '#E0F0FA', FG = '#0F172A', M = '#64748B', BD = '#E2E8F0', SF = '#F8FAFC', WH = '#ffffff'
-const MW = '680px', FN = 'var(--font-inter, system-ui, sans-serif)'
-
-const page: CSSProperties = { minHeight: '100vh', background: SF, fontFamily: FN }
-const navSt: CSSProperties = { position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, background: WH, borderBottom: '1px solid ' + BD }
-const navIn: CSSProperties = { maxWidth: MW, margin: '0 auto', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }
-const navL: CSSProperties = { display: 'flex', alignItems: 'center', gap: 10 }
-const navR: CSSProperties = { display: 'flex', alignItems: 'center', gap: 12 }
-const avSt: CSSProperties = { width: 36, height: 36, borderRadius: 999, background: B, color: WH, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, flexShrink: 0 }
-const nnSt: CSSProperties = { fontSize: 14, fontWeight: 700, color: FG }
-const toolPillSt: CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, color: B, background: BL, padding: '2px 8px', borderRadius: 999, letterSpacing: '0.06em', textTransform: 'uppercase', marginTop: 2 }
-const bkSt: CSSProperties = { display: 'flex', alignItems: 'center', fontSize: 12, fontWeight: 600, color: M, textDecoration: 'none' }
-const phSt: CSSProperties = { display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: FG, textDecoration: 'none' }
-const rbSt: CSSProperties = { display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 500, color: M, background: 'transparent', border: '1px solid ' + BD, borderRadius: 999, padding: '5px 10px', cursor: 'pointer' }
-const cwSt: CSSProperties = { maxWidth: MW, margin: '0 auto', padding: '148px 20px 40px', display: 'flex', flexDirection: 'column', gap: 16 }
-const rAl: CSSProperties = { display: 'flex', gap: 10, alignItems: 'flex-end' }
-const rUs: CSSProperties = { display: 'flex', justifyContent: 'flex-end' }
-const bAl: CSSProperties = { background: WH, border: '1px solid ' + BD, borderRadius: '16px 16px 16px 4px', padding: '14px 16px', fontSize: 14, color: FG, lineHeight: 1.65, whiteSpace: 'pre-wrap', overflowWrap: 'break-word', maxWidth: '84%' }
-const bUs: CSSProperties = { background: B, borderRadius: '16px 16px 4px 16px', padding: '10px 16px', fontSize: 14, fontWeight: 500, color: WH, lineHeight: 1.5, maxWidth: '95%' }
-const tL: CSSProperties = { fontSize: 10, color: M, marginTop: 4 }
-const tR: CSSProperties = { fontSize: 10, color: M, marginTop: 4, textAlign: 'right' }
-const inF: CSSProperties = { width: '100%', fontSize: 14, color: FG, border: '1.5px solid ' + BD, borderRadius: 12, padding: '12px 14px', outline: 'none', background: WH, boxSizing: 'border-box' }
-const vBtn: CSSProperties = { width: '100%', padding: 13, borderRadius: 12, background: B, border: 'none', color: WH, fontSize: 14, fontWeight: 600, cursor: 'pointer', marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }
-const vOff: CSSProperties = { width: '100%', padding: 13, borderRadius: 12, background: BD, border: 'none', color: M, fontSize: 14, fontWeight: 600, cursor: 'not-allowed', marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }
-const sWr: CSSProperties = { background: WH, borderRadius: 16, border: '1px solid ' + BD, padding: 20 }
-const cWr: CSSProperties = { background: WH, borderRadius: 16, border: '1px solid ' + BD, padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }
-const cG: CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }
-const cH: CSSProperties = { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2 }
-const cBdg: CSSProperties = { width: 32, height: 32, borderRadius: 999, background: BL, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }
-const cT: CSSProperties = { fontSize: 15, fontWeight: 700, color: FG }
-const cSb: CSSProperties = { fontSize: 12, fontWeight: 300, color: M }
-const rgTx: CSSProperties = { fontSize: 12, fontWeight: 400, color: FG, lineHeight: 1.5 }
-const spW: CSSProperties = { maxWidth: MW, margin: '0 auto', padding: '10px 20px 12px', display: 'flex', alignItems: 'center' }
-const spC: CSSProperties = { display: 'flex', flexDirection: 'column', alignItems: 'center' }
-const spL: CSSProperties = { fontSize: 10, fontWeight: 600, marginTop: 5, textAlign: 'center' }
-const dB: CSSProperties = { width: 28, height: 28, borderRadius: 999, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }
-const dDn: CSSProperties = { ...dB, background: B, color: WH, border: '2px solid ' + B }
-const dCu: CSSProperties = { ...dB, background: BL, color: B, border: '2px solid ' + B }
-const dFu: CSSProperties = { ...dB, background: WH, color: M, border: '2px solid ' + BD }
-const lDn: CSSProperties = { ...spL, color: FG }
-const lCu: CSSProperties = { ...spL, color: B, fontWeight: 700 }
-const lFu: CSSProperties = { ...spL, color: M }
-const cnO: CSSProperties = { flex: 1, height: 3, background: BD, borderRadius: 999, overflow: 'hidden', margin: '0 4px', marginBottom: 15 }
-const cnOn: CSSProperties = { height: '100%', width: '100%', background: B, borderRadius: 999 }
-const cnOf: CSSProperties = { height: '100%', width: '0%', background: B, borderRadius: 999 }
-const _iz: CSSProperties = { marginTop: 8 }
-const _emo: CSSProperties = { fontSize: 20 }
-const _ir: CSSProperties = { display: 'flex', gap: 10 }
-const _inpR: CSSProperties = { width: '100%', fontSize: 14, color: FG, border: '1.5px solid ' + BD, borderRadius: 12, padding: '12px 14px', outline: 'none', background: WH, boxSizing: 'border-box', flex: 1 } as CSSProperties
-const _sendBtn: CSSProperties = { width: 42, height: 42, borderRadius: 12, background: B, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }
-const _slVal: CSSProperties = { textAlign: 'center', fontSize: 18, fontWeight: 700, color: FG, marginBottom: 16 }
-const _slInp: CSSProperties = { width: '100%', accentColor: B } as CSSProperties
-const _slRow: CSSProperties = { display: 'flex', justifyContent: 'space-between', marginTop: 8 }
-const _slLbl: CSSProperties = { fontSize: 11, color: M }
-const _g2: CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }
-function cardS(a: boolean): CSSProperties { return { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '14px 10px', borderRadius: 14, cursor: 'pointer', border: '2px solid ' + (a ? B : BD), background: a ? BL : WH, fontSize: 13, fontWeight: 600, color: a ? B : FG, textAlign: 'center', width: '100%' } }
-function civS(a: boolean): CSSProperties { return { flex: 1, padding: 11, borderRadius: 12, border: '2px solid ' + (a ? B : BD), background: a ? B : WH, color: a ? WH : FG, fontSize: 13, fontWeight: 600, cursor: 'pointer' } }
-function rgS(a: boolean): CSSProperties { return { display: 'flex', alignItems: 'flex-start', gap: 10, padding: 14, borderRadius: 12, cursor: 'pointer', border: '1.5px solid ' + (a ? B : BD), background: a ? BL : WH } }
-function rgBx(a: boolean): CSSProperties { return { width: 18, height: 18, borderRadius: 4, border: '2px solid ' + (a ? B : BD), background: a ? B : WH, flexShrink: 0, marginTop: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' } }
-function mRw(a: boolean): CSSProperties { return { display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px', borderRadius: 12, cursor: 'pointer', border: '1.5px solid ' + (a ? B : BD), background: a ? BL : WH, fontSize: 13, fontWeight: 500, color: a ? B : FG, marginBottom: 8 } }
+const PHONE_RAW = '+33613180168'
+const BRAND = '#0077B6'
 
 const STEPS = [
   { n: 1, label: 'Projet', qs: ['type_bien', 'communes', 'budget_max', 'surface_min', 'nb_pieces_min'] },
-  { n: 2, label: 'Crit\ères', qs: ['criteres'] },
+  { n: 2, label: 'Critères', qs: ['criteres'] },
   { n: 3, label: 'Budget', qs: ['apport', 'accord_bancaire', 'primo_accedant', 'recapitulatif'] },
   { n: 4, label: 'Contact', qs: ['coordonnees', 'done'] },
 ]
+
 const TYPE_BIEN = [
-  { value: 'appartement', label: 'Appartement', emoji: '\�\�' },
-  { value: 'maison', label: 'Maison', emoji: '\�\�' },
-  { value: 'terrain', label: 'Terrain', emoji: '\�\�' },
-  { value: 'commerce', label: 'Commerce', emoji: '\�\�' },
-  { value: 'autre', label: 'Autre', emoji: '\·\·\·' },
+  { value: 'appartement', label: 'Appartement', icon: '🏢' },
+  { value: 'maison', label: 'Maison', icon: '🏡' },
+  { value: 'terrain', label: 'Terrain', icon: '🌿' },
+  { value: 'commerce', label: 'Commerce', icon: '🏬' },
+  { value: 'autre', label: 'Autre', icon: '···' },
 ]
-const CRITERES = ['Rez-de-chauss\ée accept\é', 'Parking indispensable', 'Ext\érieur indispensable', 'Travaux accept\és']
+const CRITERES = ['Stationnement indispensable', 'Extérieur indispensable', 'Travaux acceptés', 'Rez-de-chaussée accepté']
 const BIEN_LBL: Record<string, string> = { appartement: 'Appartement', maison: 'Maison', terrain: 'Terrain', commerce: 'Commerce', autre: 'Autre' }
 
 function getNext(q: AcheterQuestionId): AcheterQuestionId {
-  const f: Record<string, AcheterQuestionId> = { type_bien: 'communes', communes: 'budget_max', budget_max: 'surface_min', surface_min: 'nb_pieces_min', nb_pieces_min: 'criteres', criteres: 'apport', apport: 'accord_bancaire', accord_bancaire: 'primo_accedant', primo_accedant: 'recapitulatif', recapitulatif: 'coordonnees', coordonnees: 'done', done: 'done' }
-  return f[q] ?? 'done'
+  const flow: Record<string, AcheterQuestionId> = {
+    type_bien: 'communes',
+    communes: 'budget_max',
+    budget_max: 'surface_min',
+    surface_min: 'nb_pieces_min',
+    nb_pieces_min: 'criteres',
+    criteres: 'apport',
+    apport: 'accord_bancaire',
+    accord_bancaire: 'primo_accedant',
+    primo_accedant: 'recapitulatif',
+    recapitulatif: 'coordonnees',
+    coordonnees: 'done',
+    done: 'done',
+  }
+  return flow[q] ?? 'done'
 }
 
-function fmt(n: number) { return new Intl.NumberFormat('fr-FR').format(n) }
+function getCurrentStep(q: AcheterQuestionId) {
+  for (const step of STEPS) if (step.qs.includes(q)) return step.n
+  return 1
+}
+
+function fmt(n: number) {
+  return new Intl.NumberFormat('fr-FR').format(n)
+}
+
+function ts() {
+  return new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+}
 
 function buildRecap(a: AcheterAnswers): string {
-  const lines = ['Tr\ès bien, r\écapitulons votre projet\ !', '']
-  lines.push('\�\� ' + (BIEN_LBL[a.type_bien ?? ''] ?? 'Bien'))
-  if (a.communes) lines.push('\�\� ' + a.communes)
-  if (a.budget_max) lines.push('\�\� Budget max\ : ' + fmt(a.budget_max) + ' \€')
-  if (a.surface_min) lines.push('\�\� Surface min\ : ' + a.surface_min + ' m\²')
-  if (a.nb_pieces_min) lines.push('\�\� ' + a.nb_pieces_min + ' pi\èce' + (Number(a.nb_pieces_min) > 1 ? 's' : '') + ' min')
-  if (a.criteres?.length) lines.push('\✅ ' + a.criteres.join(', '))
-  if (a.apport != null) lines.push('\�\� Apport\ : ' + fmt(a.apport) + ' \€')
-  if (a.accord_bancaire) lines.push('\�\� Accord bancaire\ : ' + a.accord_bancaire)
-  if (a.primo_accedant) lines.push('\�\� Primo-acc\édant\ : ' + a.primo_accedant)
-  lines.push('', 'Ces informations sont-elles correctes\ ?')
+  const lines = ['Très bien, voici le récapitulatif de votre projet d’achat :', '']
+  lines.push('🏠 ' + (BIEN_LBL[a.type_bien ?? ''] ?? 'Bien à préciser'))
+  if (a.communes) lines.push('📍 Secteurs : ' + a.communes)
+  if (a.budget_max) lines.push('💶 Budget maximum : ' + fmt(a.budget_max) + ' €')
+  if (a.surface_min) lines.push('📐 Surface minimum : ' + a.surface_min + ' m²')
+  if (a.nb_pieces_min) lines.push('🚪 Pièces minimum : ' + a.nb_pieces_min)
+  if (a.criteres?.length) lines.push('✅ Critères : ' + a.criteres.join(', '))
+  if (a.apport != null) lines.push('💰 Apport : ' + fmt(a.apport) + ' €')
+  if (a.accord_bancaire) lines.push('🏦 Accord bancaire : ' + a.accord_bancaire)
+  if (a.primo_accedant) lines.push('🔑 Primo-accédant : ' + a.primo_accedant)
+  lines.push('', 'Ces informations sont-elles correctes ?')
   return lines.join('\n')
 }
 
 function getMsg(q: AcheterQuestionId, a: AcheterAnswers): string {
   switch (q) {
-    case 'communes': return 'Dans quelle(s) commune(s) de Provence Verte & Verdon souhaitez-vous acheter\ ?'
-    case 'budget_max': return 'Quel est votre budget maximum\ ?'
-    case 'surface_min': return 'Quelle surface minimum recherchez-vous\ ?'
-    case 'nb_pieces_min': return 'Combien de pi\èces minimum\ ?'
-    case 'criteres': return 'Quels sont vos crit\ères importants\ ?\n(S\électionnez ceux qui comptent pour vous)'
-    case 'apport': return 'Passons au financement. Quel est votre apport disponible\ ?'
-    case 'accord_bancaire': return 'Avez-vous un accord de principe bancaire\ ?'
-    case 'primo_accedant': return '\Êtes-vous primo-acc\édant\ ?'
+    case 'communes': return 'Dans quelle(s) commune(s) souhaitez-vous acheter ?'
+    case 'budget_max': return 'Quel est votre budget maximum ?'
+    case 'surface_min': return 'Quelle surface minimum recherchez-vous ?'
+    case 'nb_pieces_min': return 'Combien de pièces minimum souhaitez-vous ?'
+    case 'criteres': return 'Quels critères sont importants pour vous ?'
+    case 'apport': return 'Passons au financement. Quel est votre apport disponible ?'
+    case 'accord_bancaire': return 'Avez-vous déjà un accord de principe bancaire ?'
+    case 'primo_accedant': return 'Êtes-vous primo-accédant ?'
     case 'recapitulatif': return buildRecap(a)
-    case 'coordonnees': return "Parfait\ ! Pour finaliser, j'ai besoin de vos coordonn\ées."
+    case 'coordonnees': return 'Parfait. Pour recevoir votre synthèse, j’ai besoin de vos coordonnées.'
     default: return ''
   }
 }
 
-function ts() { return new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }
-function Avatar() { return <div style={avSt}>AL</div> }
-function getCurStep(q: AcheterQuestionId) { for (const s of STEPS) if (s.qs.includes(q)) return s.n; return 1 }
+function Avatar() {
+  return <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">AL</div>
+}
 
 function Stepper({ q }: { q: AcheterQuestionId }) {
-  const cs = getCurStep(q)
+  const current = getCurrentStep(q)
   return (
-    <div style={spW}>
-      {STEPS.map((s, i) => {
-        const st = s.n < cs ? 'done' : s.n === cs ? 'curr' : 'futu'
+    <div className="mx-auto flex max-w-[680px] items-center px-5 pb-3 pt-2">
+      {STEPS.map((step, index) => {
+        const done = step.n < current
+        const active = step.n === current
         return (
-          <Fragment key={s.n}>
-            <div style={spC}>
-              <div style={st === 'done' ? dDn : st === 'curr' ? dCu : dFu}>{st === 'done' ? <Check size={12} color={WH} strokeWidth={3} /> : s.n}</div>
-              <span style={st === 'done' ? lDn : st === 'curr' ? lCu : lFu}>{s.label}</span>
+          <Fragment key={step.n}>
+            <div className="flex flex-col items-center">
+              <div className={'flex h-7 w-7 items-center justify-center rounded-full border-2 text-[11px] font-bold ' + (done ? 'border-brand bg-brand text-white' : active ? 'border-brand bg-brand-light text-brand' : 'border-border bg-white text-muted')}>
+                {done ? <Check size={12} /> : step.n}
+              </div>
+              <span className={'mt-1 text-[10px] font-semibold ' + (active ? 'text-brand' : 'text-muted')}>{step.label}</span>
             </div>
-            {i < STEPS.length - 1 && <div style={cnO}><div style={s.n < cs ? cnOn : cnOf} /></div>}
+            {index < STEPS.length - 1 && <div className="mx-1 mb-4 h-[3px] flex-1 overflow-hidden rounded-full bg-border"><div className={'h-full rounded-full bg-brand ' + (step.n < current ? 'w-full' : 'w-0')} /></div>}
           </Fragment>
         )
       })}
@@ -151,162 +119,174 @@ function Stepper({ q }: { q: AcheterQuestionId }) {
 export default function AcheterPage() {
   const router = useRouter()
   const { messages, currentQuestion, answers, addMessage, setAnswer, setQuestion, reset } = useAcheterStore()
-  const ref = useRef<HTMLDivElement>(null)
+  const bottomRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => { ref.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, currentQuestion])
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, currentQuestion])
 
   function answer(key: keyof AcheterAnswers, value: AcheterAnswers[keyof AcheterAnswers], display: string) {
-    const newA = { ...answers, [key]: value }
+    const nextAnswers = { ...answers, [key]: value }
     setAnswer(key, value)
-    if (!display) return
-    addMessage({ from: 'user', text: display, timestamp: ts() })
+    if (display) addMessage({ from: 'user', text: display, timestamp: ts() })
     const next = getNext(currentQuestion)
     setTimeout(() => {
-      const msg = getMsg(next, newA)
+      const msg = getMsg(next, nextAnswers)
       if (msg) addMessage({ from: 'al', text: msg, timestamp: ts() })
       setQuestion(next)
-    }, 350)
+    }, 320)
   }
 
-  function submit(p: string, n: string, t: string, em: string, c: 'monsieur' | 'madame') {
-    setAnswer('prenom', p); setAnswer('nom', n); setAnswer('telephone', t); setAnswer('email', em); setAnswer('civilite', c)
-    addMessage({ from: 'user', text: p + ' ' + n, timestamp: ts() })
-    const tk = crypto.randomUUID()
+  function submit(prenom: string, nom: string, telephone: string, email: string, civilite: 'monsieur' | 'madame') {
+    setAnswer('prenom', prenom)
+    setAnswer('nom', nom)
+    setAnswer('telephone', telephone)
+    setAnswer('email', email)
+    setAnswer('civilite', civilite)
+    addMessage({ from: 'user', text: prenom + ' ' + nom, timestamp: ts() })
+    const token = crypto.randomUUID()
     fetch('/api/leads', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...answers, prenom: p, nom: n, telephone: t, email: em, civilite: c, token: tk, type: 'acheter', opt_in: answers.rgpd ?? false }),
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...answers, prenom, nom, telephone, email, civilite, token, type: 'acheter', opt_in: true }),
     }).catch(() => null)
-    router.push('/resultats/' + tk)
+    router.push('/resultats/' + token)
   }
 
   return (
-    <div style={page}>
-      <header style={navSt}>
-        <div style={navIn}>
-          <div style={navL}>
-            <Link href="/" style={bkSt}><ChevronLeft size={14} /></Link>
+    <div className="min-h-screen bg-surface font-sans text-foreground">
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-white">
+        <div className="mx-auto flex max-w-[680px] items-center justify-between px-5 py-3.5">
+          <div className="flex items-center gap-3">
+            <Link href="/" className="text-muted"><ChevronLeft size={16} /></Link>
             <Avatar />
             <div>
-              <div style={nnSt}>Alex Lopez</div>
-              <span style={toolPillSt}><span>\�\�</span> Trouver un bien</span>
+              <p className="text-sm font-bold">Alex Lopez</p>
+              <span className="inline-flex items-center gap-1 rounded-full bg-brand-light px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-brand"><Search size={11} /> Préparer mon achat</span>
             </div>
           </div>
-          <div style={navR}>
-            <button style={rbSt} onClick={() => reset()}><RotateCcw size={12} /> Recommencer</button>
-            <a href="tel:+33613180168" style={phSt}><Phone size={13} color={B} /></a>
+          <div className="flex items-center gap-2">
+            <button onClick={reset} className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-muted"><RotateCcw size={12} /> Recommencer</button>
+            <a href={'tel:' + PHONE_RAW} className="text-foreground"><Phone size={15} color={BRAND} /></a>
           </div>
         </div>
         <Stepper q={currentQuestion} />
       </header>
-      <div style={cwSt}>
-        {messages.map(m => (
-          <div key={m.id}>
-            {m.from === 'al'
-              ? <div style={rAl}><Avatar /><div><div style={bAl}>{m.text}</div><div style={tL}>{m.timestamp}</div></div></div>
-              : <div style={rUs}><div><div style={bUs}>{m.text}</div><div style={tR}>{m.timestamp}</div></div></div>}
+
+      <main className="mx-auto flex max-w-[680px] flex-col gap-4 px-5 pb-10 pt-36">
+        {messages.map((message) => (
+          <div key={message.id}>
+            {message.from === 'al' ? (
+              <div className="flex items-end gap-3">
+                <Avatar />
+                <div>
+                  <div className="max-w-[84%] whitespace-pre-wrap rounded-2xl rounded-bl-md border border-border bg-white px-4 py-3 text-sm leading-relaxed">{message.text}</div>
+                  <p className="mt-1 text-[10px] text-muted">{message.timestamp}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex justify-end">
+                <div>
+                  <div className="max-w-full whitespace-pre-wrap rounded-2xl rounded-br-md bg-brand px-4 py-2.5 text-sm font-medium leading-relaxed text-white">{message.text}</div>
+                  <p className="mt-1 text-right text-[10px] text-muted">{message.timestamp}</p>
+                </div>
+              </div>
+            )}
           </div>
         ))}
-        {currentQuestion !== 'done' && <div style={_iz}><InputZone q={currentQuestion} a={answers} onAnswer={answer} onSubmit={submit} /></div>}
-        <div ref={ref} />
-      </div>
+        {currentQuestion !== 'done' && <InputZone q={currentQuestion} onAnswer={answer} onSubmit={submit} />}
+        <div ref={bottomRef} />
+      </main>
     </div>
   )
 }
 
-function InputZone({ q, a, onAnswer, onSubmit }: {
-  q: AcheterQuestionId; a: AcheterAnswers
-  onAnswer: (k: keyof AcheterAnswers, v: AcheterAnswers[keyof AcheterAnswers], d: string) => void
-  onSubmit: (p: string, n: string, t: string, e: string, c: 'monsieur' | 'madame') => void
+function InputZone({ q, onAnswer, onSubmit }: {
+  q: AcheterQuestionId
+  onAnswer: (key: keyof AcheterAnswers, value: AcheterAnswers[keyof AcheterAnswers], display: string) => void
+  onSubmit: (prenom: string, nom: string, telephone: string, email: string, civilite: 'monsieur' | 'madame') => void
 }) {
-  if (q === 'type_bien') return <Cards opts={TYPE_BIEN} cols={2} onPick={(v, l) => onAnswer('type_bien', v, l)} />
-  if (q === 'communes') return <TextInput placeholder="Ex\ : Barjols, Cotignac, Aups..." onSend={v => onAnswer('communes', v, v)} />
-  if (q === 'budget_max') return <SliderInput unit="\€" min={50000} max={2000000} def={300000} step={10000} format={fmt} onOk={v => onAnswer('budget_max', v, fmt(v) + ' \€')} />
-  if (q === 'surface_min') return <SliderInput unit="m\²" min={20} max={500} def={80} step={5} onOk={v => onAnswer('surface_min', v, v + ' m\²')} />
-  if (q === 'nb_pieces_min') return <Cards opts={['1','2','3','4','5','6+'].map(n => ({ value: n, label: n, emoji: '' }))} cols={3} onPick={(v, l) => onAnswer('nb_pieces_min', parseInt(v) || 6, l + ' pi\èce' + (parseInt(v) !== 1 ? 's' : ''))} />
-  if (q === 'criteres') return <MultiSel opts={CRITERES} onOk={sel => onAnswer('criteres', sel, sel.length ? sel.join(', ') : 'Aucun crit\ère particulier')} />
-  if (q === 'apport') return <SliderInput unit="\€" min={0} max={500000} def={30000} step={5000} format={fmt} onOk={v => onAnswer('apport', v, fmt(v) + ' \€')} />
-  if (q === 'accord_bancaire') return <YesNo onPick={(v, l) => onAnswer('accord_bancaire', v, l)} />
-  if (q === 'primo_accedant') return <YesNo onPick={(v, l) => onAnswer('primo_accedant', v, l)} />
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (q === 'recapitulatif') return <RecapConfirm onOk={() => onAnswer('recapitulatif' as any, true as any, "C'est correct \✅")} />
-  if (q === 'coordonnees') return <Coordonnees onSubmit={onSubmit} />
+  if (q === 'type_bien') return <ChoiceGrid options={TYPE_BIEN} onPick={(v, l) => onAnswer('type_bien', v, l)} />
+  if (q === 'communes') return <TextInput placeholder="Ex : Barjols, Cotignac, Aups..." onSend={(v) => onAnswer('communes', v, v)} />
+  if (q === 'budget_max') return <SliderInput unit="€" min={50000} max={2000000} step={10000} def={300000} format={fmt} onOk={(v) => onAnswer('budget_max', v, fmt(v) + ' €')} />
+  if (q === 'surface_min') return <SliderInput unit="m²" min={20} max={500} step={5} def={80} onOk={(v) => onAnswer('surface_min', v, v + ' m²')} />
+  if (q === 'nb_pieces_min') return <ChoiceGrid options={['1', '2', '3', '4', '5', '6+'].map((n) => ({ value: n, label: n, icon: '' }))} cols={3} onPick={(v, l) => onAnswer('nb_pieces_min', parseInt(v) || 6, l + ' pièce' + (parseInt(v) !== 1 ? 's' : ''))} />
+  if (q === 'criteres') return <MultiSelect options={CRITERES} onOk={(sel) => onAnswer('criteres', sel, sel.length ? sel.join(', ') : 'Aucun critère particulier')} />
+  if (q === 'apport') return <SliderInput unit="€" min={0} max={500000} step={5000} def={30000} format={fmt} onOk={(v) => onAnswer('apport', v, fmt(v) + ' €')} />
+  if (q === 'accord_bancaire') return <ChoiceGrid options={[{ value: 'Oui', label: 'Oui', icon: '✅' }, { value: 'Non', label: 'Non', icon: '❌' }, { value: 'En cours', label: 'En cours', icon: '⏳' }]} onPick={(v, l) => onAnswer('accord_bancaire', v, l)} />
+  if (q === 'primo_accedant') return <ChoiceGrid options={[{ value: 'Oui', label: 'Oui', icon: '✅' }, { value: 'Non', label: 'Non', icon: '❌' }]} onPick={(v, l) => onAnswer('primo_accedant', v, l)} />
+  if (q === 'recapitulatif') return <button className="w-full rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white" onClick={() => onAnswer('recapitulatif' as keyof AcheterAnswers, true, "C'est correct ✅")}>C’est correct</button>
+  if (q === 'coordonnees') return <ContactForm cta="Recevoir ma synthèse" onSubmit={onSubmit} />
   return null
 }
 
-function TextInput({ placeholder, onSend }: { placeholder: string; onSend: (v: string) => void }) {
-  const [v, setV] = useState('')
+function ChoiceGrid({ options, cols = 2, onPick }: { options: { value: string; label: string; icon: string }[]; cols?: 2 | 3; onPick: (value: string, label: string) => void }) {
   return (
-    <div style={_ir}>
-      <input style={_inpR} placeholder={placeholder} value={v} onChange={e => setV(e.target.value)} onKeyDown={e => e.key === 'Enter' && v.trim() && onSend(v.trim())} autoFocus />
-      <button style={_sendBtn} onClick={() => v.trim() && onSend(v.trim())}><Send size={16} color={WH} /></button>
+    <div className={'grid gap-2 ' + (cols === 3 ? 'grid-cols-3' : 'grid-cols-2')}>
+      {options.map((option) => (
+        <button key={option.value} onClick={() => onPick(option.value, option.label)} className="flex flex-col items-center gap-1.5 rounded-xl border-2 border-border bg-white px-3 py-4 text-sm font-semibold text-foreground transition hover:border-brand hover:bg-brand-light">
+          {option.icon && <span className="text-xl">{option.icon}</span>}
+          {option.label}
+        </button>
+      ))}
     </div>
   )
 }
 
-function SliderInput({ unit, min, max, def, step, format, onOk }: { unit: string; min: number; max: number; def: number; step?: number; format?: (n: number) => string; onOk: (v: number) => void }) {
-  const [v, setV] = useState(def)
+function TextInput({ placeholder, onSend }: { placeholder: string; onSend: (value: string) => void }) {
+  const [value, setValue] = useState('')
+  return (
+    <div className="flex gap-2">
+      <input value={value} onChange={(e) => setValue(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && value.trim() && onSend(value.trim())} placeholder={placeholder} autoFocus className="min-w-0 flex-1 rounded-xl border-2 border-border bg-white px-4 py-3 text-sm outline-none focus:border-brand" />
+      <button onClick={() => value.trim() && onSend(value.trim())} className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand text-white"><Send size={16} /></button>
+    </div>
+  )
+}
+
+function SliderInput({ unit, min, max, step, def, format, onOk }: { unit: string; min: number; max: number; step?: number; def: number; format?: (n: number) => string; onOk: (value: number) => void }) {
+  const [value, setValue] = useState(def)
   const f = format ?? String
   return (
-    <div style={sWr}>
-      <div style={_slVal}>{f(v)} {unit}</div>
-      <input type="range" min={min} max={max} value={v} step={step ?? 1} onChange={e => setV(+e.target.value)} style={_slInp} />
-      <div style={_slRow}>
-        <span style={_slLbl}>{f(min)} {unit}</span>
-        <span style={_slLbl}>{f(max)} {unit}</span>
-      </div>
-      <button style={vBtn} onClick={() => onOk(v)}>Valider</button>
+    <div className="rounded-2xl border border-border bg-white p-5">
+      <div className="mb-4 text-center text-xl font-bold text-foreground">{f(value)} {unit}</div>
+      <input type="range" min={min} max={max} step={step ?? 1} value={value} onChange={(e) => setValue(Number(e.target.value))} className="w-full accent-brand" />
+      <div className="mt-2 flex justify-between text-xs text-muted"><span>{f(min)} {unit}</span><span>{f(max)} {unit}</span></div>
+      <button onClick={() => onOk(value)} className="mt-4 w-full rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white">Valider</button>
     </div>
   )
 }
 
-function MultiSel({ opts, onOk }: { opts: string[]; onOk: (sel: string[]) => void }) {
-  const [sel, setSel] = useState<string[]>([])
-  const t = (o: string) => setSel(s => s.includes(o) ? s.filter(x => x !== o) : [...s, o])
+function MultiSelect({ options, onOk }: { options: string[]; onOk: (selected: string[]) => void }) {
+  const [selected, setSelected] = useState<string[]>([])
+  const toggle = (item: string) => setSelected((prev) => prev.includes(item) ? prev.filter((x) => x !== item) : [...prev, item])
   return (
     <div>
-      {opts.map(o => (
-        <div key={o} style={mRw(sel.includes(o))} onClick={() => t(o)}>
-          <div style={rgBx(sel.includes(o))} />
-          {o}
-        </div>
-      ))}
-      <button style={vBtn} onClick={() => onOk(sel)}>{sel.length ? 'Valider (' + sel.length + ')' : 'Aucun, continuer'}</button>
+      <div className="space-y-2">
+        {options.map((option) => {
+          const active = selected.includes(option)
+          return <button key={option} onClick={() => toggle(option)} className={'flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm font-medium ' + (active ? 'border-brand bg-brand-light text-brand' : 'border-border bg-white text-foreground')}><span className={'h-4 w-4 rounded border-2 ' + (active ? 'border-brand bg-brand' : 'border-border')} />{option}</button>
+        })}
+      </div>
+      <button onClick={() => onOk(selected)} className="mt-3 w-full rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white">{selected.length ? 'Valider (' + selected.length + ')' : 'Aucun, continuer'}</button>
     </div>
   )
 }
 
-function YesNo({ onPick }: { onPick: (v: string, l: string) => void }) {
+function ContactForm({ cta, onSubmit }: { cta: string; onSubmit: (prenom: string, nom: string, telephone: string, email: string, civilite: 'monsieur' | 'madame') => void }) {
+  const [civilite, setCivilite] = useState<'monsieur' | 'madame'>('monsieur')
+  const [prenom, setPrenom] = useState('')
+  const [nom, setNom] = useState('')
+  const [telephone, setTelephone] = useState('')
+  const [email, setEmail] = useState('')
+  const [rgpd, setRgpd] = useState(false)
+  const ok = prenom.trim() && nom.trim() && telephone.trim() && email.includes('@') && rgpd
   return (
-    <div style={_g2}>
-      <div style={cardS(false)} onClick={() => onPick('Oui', 'Oui \✅')}><span style={_emo}>\✅</span><span>Oui</span></div>
-      <div style={cardS(false)} onClick={() => onPick('Non', 'Non')}><span style={_emo}>\❌</span><span>Non</span></div>
-    </div>
-  )
-}
-
-function Coordonnees({ onSubmit }: { onSubmit: (p: string, n: string, t: string, e: string, c: 'monsieur' | 'madame') => void }) {
-  const [civ, setCiv] = useState<'monsieur' | 'madame'>('monsieur')
-  const [p, setP] = useState(''); const [n, setN] = useState(''); const [t, setT] = useState(''); const [em, setEm] = useState('')
-  const [rg, setRg] = useState(false)
-  const ok = p.trim() && n.trim() && t.trim() && em.includes('@') && rg
-  return (
-    <div style={cWr}>
-      <div style={cH}><div style={cBdg}>\�\�</div><div><div style={cT}>Vos coordonn\ées</div><div style={cSb}>Pour recevoir vos r\ésultats</div></div></div>
-      <div style={cG}>
-        <button style={civS(civ === 'monsieur')} onClick={() => setCiv('monsieur')}>M.</button>
-        <button style={civS(civ === 'madame')} onClick={() => setCiv('madame')}>Mme</button>
-      </div>
-      <div style={cG}>
-        <input style={inF} placeholder="Pr\énom" value={p} onChange={e => setP(e.target.value)} />
-        <input style={inF} placeholder="Nom" value={n} onChange={e => setN(e.target.value)} />
-      </div>
-      <input style={inF} type="tel" placeholder="06 XX XX XX XX" value={t} onChange={e => setT(e.target.value)} />
-      <input style={inF} type="email" placeholder="votre@email.com" value={em} onChange={e => setEm(e.target.value)} />
-      <div style={rgS(rg)} onClick={() => setRg(!rg)}>
-        <div style={rgBx(rg)}>{rg && <Check size={12} color={WH} />}</div>
-        <span style={rgTx}>J&apos;accepte d&apos;\être recontact\é par Alex Lopez, conseiller immobilier, concernant mon projet immobilier</span>
-      </div>
-      <button style={ok ? vBtn : vOff} onClick={() => ok && onSubmit(p, n, t, em, civ)} disabled={!ok}><Send size={14} /> Recevoir mes r\ésultats</button>
+    <div className="rounded-2xl border border-border bg-white p-5">
+      <div className="mb-4 flex items-center gap-3"><div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-light"><Home size={16} className="text-brand" /></div><div><p className="text-sm font-bold">Vos coordonnées</p><p className="text-xs text-muted">Pour recevoir vos résultats</p></div></div>
+      <div className="mb-3 grid grid-cols-2 gap-2"><button className={'rounded-xl border-2 px-3 py-2 text-sm font-semibold ' + (civilite === 'monsieur' ? 'border-brand bg-brand text-white' : 'border-border')} onClick={() => setCivilite('monsieur')}>M.</button><button className={'rounded-xl border-2 px-3 py-2 text-sm font-semibold ' + (civilite === 'madame' ? 'border-brand bg-brand text-white' : 'border-border')} onClick={() => setCivilite('madame')}>Mme</button></div>
+      <div className="grid gap-2 sm:grid-cols-2"><input className="rounded-xl border border-border px-4 py-3 text-sm" placeholder="Prénom" value={prenom} onChange={(e) => setPrenom(e.target.value)} /><input className="rounded-xl border border-border px-4 py-3 text-sm" placeholder="Nom" value={nom} onChange={(e) => setNom(e.target.value)} /></div>
+      <input className="mt-2 w-full rounded-xl border border-border px-4 py-3 text-sm" placeholder="Téléphone" value={telephone} onChange={(e) => setTelephone(e.target.value)} />
+      <input className="mt-2 w-full rounded-xl border border-border px-4 py-3 text-sm" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <button onClick={() => setRgpd(!rgpd)} className={'mt-3 flex w-full items-start gap-3 rounded-xl border px-4 py-3 text-left text-xs leading-relaxed ' + (rgpd ? 'border-brand bg-brand-light' : 'border-border')}><span className={'mt-0.5 h-4 w-4 rounded border-2 ' + (rgpd ? 'border-brand bg-brand' : 'border-border')} />J’accepte d’être recontacté par Alex Lopez concernant mon projet immobilier.</button>
+      <button disabled={!ok} onClick={() => ok && onSubmit(prenom.trim(), nom.trim(), telephone.trim(), email.trim(), civilite)} className={'mt-4 w-full rounded-xl px-4 py-3 text-sm font-semibold text-white ' + (ok ? 'bg-brand' : 'bg-border')}>{cta}</button>
     </div>
   )
 }

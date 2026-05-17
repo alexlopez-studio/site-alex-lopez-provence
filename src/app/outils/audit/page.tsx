@@ -1,192 +1,155 @@
 'use client'
 
-import { Fragment, useRef, useEffect, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { Check, ChevronLeft, ClipboardCheck, Home, Phone, RotateCcw, Send } from 'lucide-react'
 import { useAuditStore } from '@/stores/auditStore'
 import type { AuditAnswers, AuditQuestionId } from '@/stores/auditStore'
-import type { CSSProperties } from 'react'
-import { Phone, ChevronLeft, Send, Check, RotateCcw } from 'lucide-react'
-import Link from 'next/link'
-import { Cards, RecapConfirm, SuggestionItem } from '@/components/forms/FormCards'
 
-const B = '#0077B6', BL = '#E0F0FA', FG = '#0F172A', M = '#64748B', BD = '#E2E8F0', SF = '#F8FAFC', WH = '#ffffff'
-const MW = '680px', FN = 'var(--font-inter, system-ui, sans-serif)'
-
-const page: CSSProperties = { minHeight: '100vh', background: SF, fontFamily: FN }
-const navSt: CSSProperties = { position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, background: WH, borderBottom: '1px solid ' + BD }
-const navIn: CSSProperties = { maxWidth: MW, margin: '0 auto', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }
-const navL: CSSProperties = { display: 'flex', alignItems: 'center', gap: 10 }
-const navR: CSSProperties = { display: 'flex', alignItems: 'center', gap: 12 }
-const avSt: CSSProperties = { width: 36, height: 36, borderRadius: 999, background: B, color: WH, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, flexShrink: 0 }
-const nnSt: CSSProperties = { fontSize: 14, fontWeight: 700, color: FG }
-const nsSt: CSSProperties = { fontSize: 11, color: M }
-const toolPillSt: CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, color: B, background: BL, padding: '2px 8px', borderRadius: 999, letterSpacing: '0.06em', textTransform: 'uppercase', marginTop: 2 }
-const bkSt: CSSProperties = { display: 'flex', alignItems: 'center', fontSize: 12, fontWeight: 600, color: M, textDecoration: 'none' }
-const phSt: CSSProperties = { display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: FG, textDecoration: 'none' }
-const rbSt: CSSProperties = { display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 500, color: M, background: 'transparent', border: '1px solid ' + BD, borderRadius: 999, padding: '5px 10px', cursor: 'pointer' }
-const cwSt: CSSProperties = { maxWidth: MW, margin: '0 auto', padding: '148px 20px 40px', display: 'flex', flexDirection: 'column', gap: 16 }
-const rAl: CSSProperties = { display: 'flex', gap: 10, alignItems: 'flex-end' }
-const rUs: CSSProperties = { display: 'flex', justifyContent: 'flex-end' }
-const bAl: CSSProperties = { background: WH, border: '1px solid ' + BD, borderRadius: '16px 16px 16px 4px', padding: '14px 16px', fontSize: 14, color: FG, lineHeight: 1.65, whiteSpace: 'pre-wrap', overflowWrap: 'break-word', maxWidth: '84%' }
-const bUs: CSSProperties = { background: B, borderRadius: '16px 16px 4px 16px', padding: '10px 16px', fontSize: 14, fontWeight: 500, color: WH, lineHeight: 1.5, maxWidth: '95%' }
-const tL: CSSProperties = { fontSize: 10, color: M, marginTop: 4 }
-const tR: CSSProperties = { fontSize: 10, color: M, marginTop: 4, textAlign: 'right' }
-const inF: CSSProperties = { width: '100%', fontSize: 14, color: FG, border: '1.5px solid ' + BD, borderRadius: 12, padding: '12px 14px', outline: 'none', background: WH, boxSizing: 'border-box' }
-const vBtn: CSSProperties = { width: '100%', padding: 13, borderRadius: 12, background: B, border: 'none', color: WH, fontSize: 14, fontWeight: 600, cursor: 'pointer', marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }
-const vOff: CSSProperties = { width: '100%', padding: 13, borderRadius: 12, background: BD, border: 'none', color: M, fontSize: 14, fontWeight: 600, cursor: 'not-allowed', marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }
-const sWr: CSSProperties = { background: WH, borderRadius: 16, border: '1px solid ' + BD, padding: 20 }
-const cWr: CSSProperties = { background: WH, borderRadius: 16, border: '1px solid ' + BD, padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }
-const cG: CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }
-const cH: CSSProperties = { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2 }
-const cBdg: CSSProperties = { width: 32, height: 32, borderRadius: 999, background: BL, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }
-const cT: CSSProperties = { fontSize: 15, fontWeight: 700, color: FG }
-const cSb: CSSProperties = { fontSize: 12, fontWeight: 300, color: M }
-const rgTx: CSSProperties = { fontSize: 12, fontWeight: 400, color: FG, lineHeight: 1.5 }
-const spW: CSSProperties = { maxWidth: MW, margin: '0 auto', padding: '10px 20px 12px', display: 'flex', alignItems: 'center' }
-const spC: CSSProperties = { display: 'flex', flexDirection: 'column', alignItems: 'center' }
-const spL: CSSProperties = { fontSize: 10, fontWeight: 600, marginTop: 5, textAlign: 'center' }
-const dB: CSSProperties = { width: 28, height: 28, borderRadius: 999, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }
-const dDn: CSSProperties = { ...dB, background: B, color: WH, border: '2px solid ' + B }
-const dCu: CSSProperties = { ...dB, background: BL, color: B, border: '2px solid ' + B }
-const dFu: CSSProperties = { ...dB, background: WH, color: M, border: '2px solid ' + BD }
-const lDn: CSSProperties = { ...spL, color: FG }
-const lCu: CSSProperties = { ...spL, color: B, fontWeight: 700 }
-const lFu: CSSProperties = { ...spL, color: M }
-const cnO: CSSProperties = { flex: 1, height: 3, background: BD, borderRadius: 999, overflow: 'hidden', margin: '0 4px', marginBottom: 15 }
-const cnOn: CSSProperties = { height: '100%', width: '100%', background: B, borderRadius: 999 }
-const cnOf: CSSProperties = { height: '100%', width: '0%', background: B, borderRadius: 999 }
-const _iz: CSSProperties = { marginTop: 8 }
-const _emo: CSSProperties = { fontSize: 20 }
-const _ir: CSSProperties = { display: 'flex', gap: 10 }
-const _inpR: CSSProperties = { width: '100%', fontSize: 14, color: FG, border: '1.5px solid ' + BD, borderRadius: 12, padding: '12px 14px', outline: 'none', background: WH, boxSizing: 'border-box', flex: 1 } as CSSProperties
-const _sendBtn: CSSProperties = { width: 42, height: 42, borderRadius: 12, background: B, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }
-const _slVal: CSSProperties = { textAlign: 'center', fontSize: 18, fontWeight: 700, color: FG, marginBottom: 16 }
-const _slInp: CSSProperties = { width: '100%', accentColor: B } as CSSProperties
-const _slRow: CSSProperties = { display: 'flex', justifyContent: 'space-between', marginTop: 8 }
-const _slLbl: CSSProperties = { fontSize: 11, color: M }
-const _g2: CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }
-const _sugWr: CSSProperties = { background: WH, border: '1px solid ' + BD, borderRadius: 12, overflow: 'hidden', marginTop: 6 }
-const _load: CSSProperties = { fontSize: 11, color: M, marginTop: 6 }
-function cardS(a: boolean): CSSProperties { return { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '14px 10px', borderRadius: 14, cursor: 'pointer', border: '2px solid ' + (a ? B : BD), background: a ? BL : WH, fontSize: 13, fontWeight: 600, color: a ? B : FG, textAlign: 'center', width: '100%' } }
-function civS(a: boolean): CSSProperties { return { flex: 1, padding: 11, borderRadius: 12, border: '2px solid ' + (a ? B : BD), background: a ? B : WH, color: a ? WH : FG, fontSize: 13, fontWeight: 600, cursor: 'pointer' } }
-function rgS(a: boolean): CSSProperties { return { display: 'flex', alignItems: 'flex-start', gap: 10, padding: 14, borderRadius: 12, cursor: 'pointer', border: '1.5px solid ' + (a ? B : BD), background: a ? BL : WH } }
-function rgBx(a: boolean): CSSProperties { return { width: 18, height: 18, borderRadius: 4, border: '2px solid ' + (a ? B : BD), background: a ? B : WH, flexShrink: 0, marginTop: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' } }
-function mRw(a: boolean): CSSProperties { return { display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px', borderRadius: 12, cursor: 'pointer', border: '1.5px solid ' + (a ? B : BD), background: a ? BL : WH, fontSize: 13, fontWeight: 500, color: a ? B : FG, marginBottom: 8 } }
+const PHONE_RAW = '+33613180168'
+const BRAND = '#0077B6'
 
 const STEPS = [
   { n: 1, label: 'Bien', qs: ['adresse', 'type_bien', 'surface'] },
-  { n: 2, label: '\État', qs: ['etat_toiture', 'etat_facade', 'etat_menuiseries', 'etat_plomberie', 'etat_electricite', 'humidite', 'isolation', 'chauffage', 'dpe'] },
+  { n: 2, label: 'État', qs: ['etat_toiture', 'etat_facade', 'etat_menuiseries', 'etat_plomberie', 'etat_electricite', 'humidite', 'isolation', 'chauffage', 'dpe'] },
   { n: 3, label: 'Profil', qs: ['qualite', 'objectif', 'recapitulatif'] },
   { n: 4, label: 'Contact', qs: ['coordonnees', 'done'] },
 ]
+
 const TYPE_BIEN = [
-  { value: 'appartement', label: 'Appartement', emoji: '\�\�' },
-  { value: 'maison', label: 'Maison', emoji: '\�\�' },
-  { value: 'terrain', label: 'Terrain', emoji: '\�\�' },
-  { value: 'autre', label: 'Autre', emoji: '\·\·\·' },
+  { value: 'appartement', label: 'Appartement', icon: '🏢' },
+  { value: 'maison', label: 'Maison', icon: '🏡' },
+  { value: 'terrain', label: 'Terrain', icon: '🌿' },
+  { value: 'autre', label: 'Autre', icon: '···' },
 ]
 const ETAT_OPTS = [
-  { value: 'bon', label: 'Bon \état', emoji: '\✅' },
-  { value: 'moyen', label: 'Moyen', emoji: '\⚠\️' },
-  { value: 'mauvais', label: 'Mauvais', emoji: '\❌' },
-  { value: 'nc', label: 'Ne sais pas', emoji: '\❓' },
+  { value: 'bon', label: 'Bon état', icon: '✅' },
+  { value: 'moyen', label: 'Moyen', icon: '⚠️' },
+  { value: 'mauvais', label: 'Mauvais', icon: '❌' },
+  { value: 'nc', label: 'Je ne sais pas', icon: '❓' },
 ]
-const ISOLATION_OPTS = ['Murs isol\és', 'Combles isol\és', 'Double vitrage']
+const ISOLATION_OPTS = ['Murs isolés', 'Combles isolés', 'Double vitrage']
 const CHAUFFAGE_OPTS = [
-  { value: 'electrique', label: '\Électrique', emoji: '\⚡' },
-  { value: 'gaz', label: 'Gaz', emoji: '\�\�' },
-  { value: 'fioul', label: 'Fioul', emoji: '\�\�\️' },
-  { value: 'bois', label: 'Bois', emoji: '\�\�' },
-  { value: 'pac', label: 'Pompe \à chaleur', emoji: '\❄\️' },
-  { value: 'autre', label: 'Autre', emoji: '\·\·\·' },
+  { value: 'electrique', label: 'Électrique', icon: '⚡' },
+  { value: 'gaz', label: 'Gaz', icon: '🔥' },
+  { value: 'fioul', label: 'Fioul', icon: '⛽' },
+  { value: 'bois', label: 'Bois', icon: '🪵' },
+  { value: 'pac', label: 'Pompe à chaleur', icon: '❄️' },
+  { value: 'autre', label: 'Autre', icon: '···' },
 ]
-const DPE_OPTS = ['A', 'B', 'C', 'D', 'E', 'F', 'G'].map(l => ({ value: l, label: l, emoji: '' }))
+const DPE_OPTS = ['A', 'B', 'C', 'D', 'E', 'F', 'G'].map((value) => ({ value, label: value, icon: '⚡' }))
 const QUALITE_OPTS = [
-  { value: 'proprietaire', label: 'Propri\étaire', emoji: '\�\�' },
-  { value: 'acheteur', label: 'Acheteur potentiel', emoji: '\�\�' },
+  { value: 'proprietaire', label: 'Propriétaire', icon: '🏠' },
+  { value: 'acheteur', label: 'Acheteur potentiel', icon: '🔎' },
 ]
 const OBJECTIF_OPTS = [
-  { value: 'vente', label: 'Vente', emoji: '\�\�' },
-  { value: 'achat', label: 'Achat', emoji: '\�\�' },
-  { value: 'renovation', label: 'R\énovation', emoji: '\�\�' },
-  { value: 'energie', label: '\Énergie', emoji: '\⚡' },
+  { value: 'vente', label: 'Vente', icon: '🏷️' },
+  { value: 'achat', label: 'Achat', icon: '🔑' },
+  { value: 'renovation', label: 'Rénovation', icon: '🛠️' },
+  { value: 'energie', label: 'Énergie', icon: '⚡' },
 ]
 const BIEN_LBL: Record<string, string> = { appartement: 'Appartement', maison: 'Maison', terrain: 'Terrain', autre: 'Autre' }
-const ETAT_LBL: Record<string, string> = { bon: 'Bon', moyen: 'Moyen', mauvais: 'Mauvais', nc: 'N/C' }
-const CHAUFF_LBL: Record<string, string> = { electrique: '\Électrique', gaz: 'Gaz', fioul: 'Fioul', bois: 'Bois', pac: 'PAC', autre: 'Autre' }
-const OBJ_LBL: Record<string, string> = { vente: 'Vente', achat: 'Achat', renovation: 'R\énovation', energie: '\Énergie' }
+const ETAT_LBL: Record<string, string> = { bon: 'Bon', moyen: 'Moyen', mauvais: 'Mauvais', nc: 'Non connu' }
+const CHAUFF_LBL: Record<string, string> = { electrique: 'Électrique', gaz: 'Gaz', fioul: 'Fioul', bois: 'Bois', pac: 'Pompe à chaleur', autre: 'Autre' }
+const OBJ_LBL: Record<string, string> = { vente: 'Vente', achat: 'Achat', renovation: 'Rénovation', energie: 'Énergie' }
 
 function getNext(q: AuditQuestionId): AuditQuestionId {
-  const f: Record<string, AuditQuestionId> = {
-    adresse: 'type_bien', type_bien: 'surface', surface: 'etat_toiture',
-    etat_toiture: 'etat_facade', etat_facade: 'etat_menuiseries', etat_menuiseries: 'etat_plomberie',
-    etat_plomberie: 'etat_electricite', etat_electricite: 'humidite',
-    humidite: 'isolation', isolation: 'chauffage', chauffage: 'dpe',
-    dpe: 'qualite', qualite: 'objectif', objectif: 'recapitulatif',
-    recapitulatif: 'coordonnees', coordonnees: 'done', done: 'done'
+  const flow: Record<string, AuditQuestionId> = {
+    adresse: 'type_bien',
+    type_bien: 'surface',
+    surface: 'etat_toiture',
+    etat_toiture: 'etat_facade',
+    etat_facade: 'etat_menuiseries',
+    etat_menuiseries: 'etat_plomberie',
+    etat_plomberie: 'etat_electricite',
+    etat_electricite: 'humidite',
+    humidite: 'isolation',
+    isolation: 'chauffage',
+    chauffage: 'dpe',
+    dpe: 'qualite',
+    qualite: 'objectif',
+    objectif: 'recapitulatif',
+    recapitulatif: 'coordonnees',
+    coordonnees: 'done',
+    done: 'done',
   }
-  return f[q] ?? 'done'
+  return flow[q] ?? 'done'
+}
+
+function getCurrentStep(q: AuditQuestionId) {
+  for (const step of STEPS) if (step.qs.includes(q)) return step.n
+  return 1
+}
+
+function ts() {
+  return new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+}
+
+function buildRecap(a: AuditAnswers): string {
+  const lines = ['Voici le récapitulatif de votre audit :', '']
+  lines.push('🏠 ' + (BIEN_LBL[a.type_bien ?? ''] ?? 'Bien'))
+  if (a.adresse) lines.push('📍 ' + a.adresse)
+  if (a.surface) lines.push('📐 Surface : ' + a.surface + ' m²')
+  const etats = [
+    ['Toiture', a.etat_toiture],
+    ['Façade', a.etat_facade],
+    ['Menuiseries', a.etat_menuiseries],
+    ['Plomberie', a.etat_plomberie],
+    ['Électricité', a.etat_electricite],
+  ] as const
+  for (const [label, value] of etats) if (value) lines.push('🔎 ' + label + ' : ' + (ETAT_LBL[value] ?? value))
+  if (a.humidite) lines.push('💧 Humidité : ' + a.humidite)
+  if (a.isolation?.length) lines.push('🧱 Isolation : ' + a.isolation.join(', '))
+  if (a.type_chauffage) lines.push('🔥 Chauffage : ' + (CHAUFF_LBL[a.type_chauffage] ?? a.type_chauffage))
+  if (a.dpe) lines.push('⚡ DPE : ' + a.dpe)
+  if (a.qualite) lines.push('👤 Profil : ' + (a.qualite === 'proprietaire' ? 'Propriétaire' : 'Acheteur potentiel'))
+  if (a.objectif) lines.push('🎯 Objectif : ' + (OBJ_LBL[a.objectif] ?? a.objectif))
+  lines.push('', 'Ces informations sont-elles correctes ?')
+  return lines.join('\n')
 }
 
 function getMsg(q: AuditQuestionId, a: AuditAnswers): string {
   switch (q) {
-    case 'type_bien': return 'Quel type de bien\ ?'
-    case 'surface': return 'Quelle est la surface habitable\ ?'
-    case 'etat_toiture': return 'Passons \à l\’\état du bien. Comment est la toiture\ ?'
-    case 'etat_facade': return 'Et la fa\çade\ ?'
-    case 'etat_menuiseries': return 'Les menuiseries (portes, fen\êtres)\ ?'
-    case 'etat_plomberie': return 'La plomberie\ ?'
-    case 'etat_electricite': return 'L\’installation \électrique\ ?'
-    case 'humidite': return 'Constatez-vous des probl\èmes d\’humidit\é ou de moisissures\ ?'
-    case 'isolation': return 'Quels \él\éments d\’isolation sont pr\ésents\ ?'
-    case 'chauffage': return 'Quel type de chauffage\ ?'
-    case 'dpe': return 'Quel est le DPE actuel du bien\ ?\n(Si vous ne le connaissez pas, choisissez le plus proche)'
-    case 'qualite': return 'Vous \êtes\ :'
-    case 'objectif': return 'Quel est l\’objectif de cet audit\ ?'
+    case 'type_bien': return 'Quel type de bien souhaitez-vous analyser ?'
+    case 'surface': return 'Quelle est la surface habitable approximative ?'
+    case 'etat_toiture': return 'Passons à l’état du bien. Comment est la toiture ?'
+    case 'etat_facade': return 'Et la façade ?'
+    case 'etat_menuiseries': return 'Quel est l’état des menuiseries : portes et fenêtres ?'
+    case 'etat_plomberie': return 'Quel est l’état de la plomberie ?'
+    case 'etat_electricite': return 'Quel est l’état de l’installation électrique ?'
+    case 'humidite': return 'Constatez-vous des problèmes d’humidité ou de moisissures ?'
+    case 'isolation': return 'Quels éléments d’isolation sont présents ?'
+    case 'chauffage': return 'Quel est le type de chauffage principal ?'
+    case 'dpe': return 'Quel est le DPE actuel du bien ?'
+    case 'qualite': return 'Vous êtes plutôt dans quelle situation ?'
+    case 'objectif': return 'Quel est l’objectif principal de cet audit ?'
     case 'recapitulatif': return buildRecap(a)
-    case 'coordonnees': return "Parfait\ ! Pour recevoir votre score d'audit et les recommandations, j'ai besoin de vos coordonn\ées."
+    case 'coordonnees': return 'Parfait. Pour recevoir votre score d’audit et les recommandations, j’ai besoin de vos coordonnées.'
     default: return ''
   }
 }
 
-function buildRecap(a: AuditAnswers): string {
-  const lines = ['Voici le r\écapitulatif de votre audit\ !', '']
-  lines.push('\�\� ' + (BIEN_LBL[a.type_bien ?? ''] ?? 'Bien'))
-  if (a.adresse) lines.push('\�\� ' + a.adresse)
-  if (a.surface) lines.push('\�\� ' + a.surface + ' m\²')
-  const etats = ['toiture', 'facade', 'menuiseries', 'plomberie', 'electricite']
-  const eLabels = ['Toiture', 'Fa\çade', 'Menuiseries', 'Plomberie', '\Électricit\é']
-  etats.forEach((e, i) => {
-    const val = a[('etat_' + e) as keyof AuditAnswers] as string | undefined
-    if (val) lines.push('\�\� ' + eLabels[i] + '\ : ' + (ETAT_LBL[val] ?? val))
-  })
-  if (a.humidite) lines.push('\�\� Humidit\é\ : ' + a.humidite)
-  if (a.isolation?.length) lines.push('\�\� Isolation\ : ' + a.isolation.join(', '))
-  if (a.type_chauffage) lines.push('\�\� Chauffage\ : ' + (CHAUFF_LBL[a.type_chauffage] ?? a.type_chauffage))
-  if (a.dpe) lines.push('\⚡ DPE\ : ' + a.dpe)
-  if (a.qualite) lines.push('\�\� ' + (a.qualite === 'proprietaire' ? 'Propri\étaire' : 'Acheteur potentiel'))
-  if (a.objectif) lines.push('\�\� Objectif\ : ' + (OBJ_LBL[a.objectif] ?? a.objectif))
-  lines.push('', 'Ces informations sont-elles correctes\ ?')
-  return lines.join('\n')
+function Avatar() {
+  return <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">AL</div>
 }
 
-function ts() { return new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }
-function Avatar() { return <div style={avSt}>AL</div> }
-function getCurStep(q: AuditQuestionId) { for (const s of STEPS) if (s.qs.includes(q)) return s.n; return 1 }
-
 function Stepper({ q }: { q: AuditQuestionId }) {
-  const cs = getCurStep(q)
+  const current = getCurrentStep(q)
   return (
-    <div style={spW}>
-      {STEPS.map((s, i) => {
-        const st = s.n < cs ? 'done' : s.n === cs ? 'curr' : 'futu'
+    <div className="mx-auto flex max-w-[680px] items-center px-5 pb-3 pt-2">
+      {STEPS.map((step, index) => {
+        const done = step.n < current
+        const active = step.n === current
         return (
-          <Fragment key={s.n}>
-            <div style={spC}>
-              <div style={st === 'done' ? dDn : st === 'curr' ? dCu : dFu}>{st === 'done' ? <Check size={12} color={WH} strokeWidth={3} /> : s.n}</div>
-              <span style={st === 'done' ? lDn : st === 'curr' ? lCu : lFu}>{s.label}</span>
+          <Fragment key={step.n}>
+            <div className="flex flex-col items-center">
+              <div className={'flex h-7 w-7 items-center justify-center rounded-full border-2 text-[11px] font-bold ' + (done ? 'border-brand bg-brand text-white' : active ? 'border-brand bg-brand-light text-brand' : 'border-border bg-white text-muted')}>
+                {done ? <Check size={12} /> : step.n}
+              </div>
+              <span className={'mt-1 text-[10px] font-semibold ' + (active ? 'text-brand' : 'text-muted')}>{step.label}</span>
             </div>
-            {i < STEPS.length - 1 && <div style={cnO}><div style={s.n < cs ? cnOn : cnOf} /></div>}
+            {index < STEPS.length - 1 && <div className="mx-1 mb-4 h-[3px] flex-1 overflow-hidden rounded-full bg-border"><div className={'h-full rounded-full bg-brand ' + (step.n < current ? 'w-full' : 'w-0')} /></div>}
           </Fragment>
         )
       })}
@@ -197,209 +160,179 @@ function Stepper({ q }: { q: AuditQuestionId }) {
 export default function AuditPage() {
   const router = useRouter()
   const { messages, currentQuestion, answers, addMessage, setAnswer, setQuestion, reset } = useAuditStore()
-  const ref = useRef<HTMLDivElement>(null)
+  const bottomRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => { ref.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, currentQuestion])
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, currentQuestion])
 
   function answer(key: keyof AuditAnswers, value: AuditAnswers[keyof AuditAnswers], display: string) {
-    const newA = { ...answers, [key]: value }
+    const nextAnswers = { ...answers, [key]: value }
     setAnswer(key, value)
-    if (!display) return
-    addMessage({ from: 'user', text: display, timestamp: ts() })
+    if (display) addMessage({ from: 'user', text: display, timestamp: ts() })
     const next = getNext(currentQuestion)
     setTimeout(() => {
-      const msg = getMsg(next, newA)
+      const msg = getMsg(next, nextAnswers)
       if (msg) addMessage({ from: 'al', text: msg, timestamp: ts() })
       setQuestion(next)
-    }, 350)
+    }, 320)
   }
 
-  function submit(p: string, n: string, t: string, em: string, c: 'monsieur' | 'madame') {
-    setAnswer('prenom', p); setAnswer('nom', n); setAnswer('telephone', t); setAnswer('email', em); setAnswer('civilite', c)
-    addMessage({ from: 'user', text: p + ' ' + n, timestamp: ts() })
-    const tk = crypto.randomUUID()
+  function submit(prenom: string, nom: string, telephone: string, email: string, civilite: 'monsieur' | 'madame') {
+    setAnswer('prenom', prenom)
+    setAnswer('nom', nom)
+    setAnswer('telephone', telephone)
+    setAnswer('email', email)
+    setAnswer('civilite', civilite)
+    addMessage({ from: 'user', text: prenom + ' ' + nom, timestamp: ts() })
+    const token = crypto.randomUUID()
     fetch('/api/leads', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...answers, prenom: p, nom: n, telephone: t, email: em, civilite: c, token: tk, type: 'audit', opt_in: answers.rgpd ?? false }),
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...answers, prenom, nom, telephone, email, civilite, token, type: 'audit', opt_in: true }),
     }).catch(() => null)
-    router.push('/resultats/' + tk)
+    router.push('/resultats/' + token)
   }
 
   return (
-    <div style={page}>
-      <header style={navSt}>
-        <div style={navIn}>
-          <div style={navL}>
-            <Link href="/" style={bkSt}><ChevronLeft size={14} /></Link>
+    <div className="min-h-screen bg-surface font-sans text-foreground">
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-white">
+        <div className="mx-auto flex max-w-[680px] items-center justify-between px-5 py-3.5">
+          <div className="flex items-center gap-3">
+            <Link href="/" className="text-muted"><ChevronLeft size={16} /></Link>
             <Avatar />
             <div>
-              <div style={nnSt}>Alex Lopez</div>
-              <span style={toolPillSt}><span>\�\�</span> Audit immobilier</span>
+              <p className="text-sm font-bold">Alex Lopez</p>
+              <span className="inline-flex items-center gap-1 rounded-full bg-brand-light px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-brand"><ClipboardCheck size={11} /> Audit immobilier</span>
             </div>
           </div>
-          <div style={navR}>
-            <button style={rbSt} onClick={() => reset()}><RotateCcw size={12} /> Recommencer</button>
-            <a href="tel:+33613180168" style={phSt}><Phone size={13} color={B} /></a>
+          <div className="flex items-center gap-2">
+            <button onClick={reset} className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-muted"><RotateCcw size={12} /> Recommencer</button>
+            <a href={'tel:' + PHONE_RAW} className="text-foreground"><Phone size={15} color={BRAND} /></a>
           </div>
         </div>
         <Stepper q={currentQuestion} />
       </header>
-      <div style={cwSt}>
-        {messages.map(m => (
-          <div key={m.id}>
-            {m.from === 'al'
-              ? <div style={rAl}><Avatar /><div><div style={bAl}>{m.text}</div><div style={tL}>{m.timestamp}</div></div></div>
-              : <div style={rUs}><div><div style={bUs}>{m.text}</div><div style={tR}>{m.timestamp}</div></div></div>}
+
+      <main className="mx-auto flex max-w-[680px] flex-col gap-4 px-5 pb-10 pt-36">
+        {messages.map((message) => (
+          <div key={message.id}>
+            {message.from === 'al' ? (
+              <div className="flex items-end gap-3">
+                <Avatar />
+                <div>
+                  <div className="max-w-[84%] whitespace-pre-wrap rounded-2xl rounded-bl-md border border-border bg-white px-4 py-3 text-sm leading-relaxed">{message.text}</div>
+                  <p className="mt-1 text-[10px] text-muted">{message.timestamp}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex justify-end">
+                <div>
+                  <div className="max-w-full whitespace-pre-wrap rounded-2xl rounded-br-md bg-brand px-4 py-2.5 text-sm font-medium leading-relaxed text-white">{message.text}</div>
+                  <p className="mt-1 text-right text-[10px] text-muted">{message.timestamp}</p>
+                </div>
+              </div>
+            )}
           </div>
         ))}
-        {currentQuestion !== 'done' && <div style={_iz}><InputZone q={currentQuestion} a={answers} onAnswer={answer} onSubmit={submit} /></div>}
-        <div ref={ref} />
-      </div>
+        {currentQuestion !== 'done' && <InputZone q={currentQuestion} onAnswer={answer} onSubmit={submit} />}
+        <div ref={bottomRef} />
+      </main>
     </div>
   )
 }
 
-function InputZone({ q, a, onAnswer, onSubmit }: {
-  q: AuditQuestionId; a: AuditAnswers
-  onAnswer: (k: keyof AuditAnswers, v: AuditAnswers[keyof AuditAnswers], d: string) => void
-  onSubmit: (p: string, n: string, t: string, e: string, c: 'monsieur' | 'madame') => void
+function InputZone({ q, onAnswer, onSubmit }: {
+  q: AuditQuestionId
+  onAnswer: (key: keyof AuditAnswers, value: AuditAnswers[keyof AuditAnswers], display: string) => void
+  onSubmit: (prenom: string, nom: string, telephone: string, email: string, civilite: 'monsieur' | 'madame') => void
 }) {
-  if (q === 'adresse') return <AdresseInput onAnswer={onAnswer} />
-  if (q === 'type_bien') return <Cards opts={TYPE_BIEN} cols={2} onPick={(v, l) => onAnswer('type_bien', v, l)} />
-  if (q === 'surface') return <SliderInput unit="m\²" min={10} max={1000} def={100} step={5} onOk={v => onAnswer('surface', v, v + ' m\²')} />
-  if (q === 'etat_toiture') return <Cards opts={ETAT_OPTS} cols={2} onPick={(v, l) => onAnswer('etat_toiture', v, l)} />
-  if (q === 'etat_facade') return <Cards opts={ETAT_OPTS} cols={2} onPick={(v, l) => onAnswer('etat_facade', v, l)} />
-  if (q === 'etat_menuiseries') return <Cards opts={ETAT_OPTS} cols={2} onPick={(v, l) => onAnswer('etat_menuiseries', v, l)} />
-  if (q === 'etat_plomberie') return <Cards opts={ETAT_OPTS} cols={2} onPick={(v, l) => onAnswer('etat_plomberie', v, l)} />
-  if (q === 'etat_electricite') return <Cards opts={ETAT_OPTS} cols={2} onPick={(v, l) => onAnswer('etat_electricite', v, l)} />
-  if (q === 'humidite') return <YesNo onPick={(v, l) => onAnswer('humidite', v, l)} />
-  if (q === 'isolation') return <MultiSel opts={ISOLATION_OPTS} onOk={sel => onAnswer('isolation', sel, sel.length ? sel.join(', ') : 'Aucune isolation')} />
-  if (q === 'chauffage') return <Cards opts={CHAUFFAGE_OPTS} cols={2} onPick={(v, l) => onAnswer('type_chauffage', v, l)} />
-  if (q === 'dpe') return <Cards opts={DPE_OPTS} cols={4} onPick={(v, l) => onAnswer('dpe', v, 'DPE ' + l)} />
-  if (q === 'qualite') return <Cards opts={QUALITE_OPTS} cols={2} onPick={(v, l) => onAnswer('qualite', v, l)} />
-  if (q === 'objectif') return <Cards opts={OBJECTIF_OPTS} cols={2} onPick={(v, l) => onAnswer('objectif', v, l)} />
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (q === 'recapitulatif') return <RecapConfirm onOk={() => onAnswer('recapitulatif' as any, true as any, "C'est correct \✅")} />
-  if (q === 'coordonnees') return <Coordonnees onSubmit={onSubmit} />
+  if (q === 'adresse') return <TextInput placeholder="Ex : 12 rue de la Paix, Cotignac" onSend={(v) => onAnswer('adresse', v, v)} />
+  if (q === 'type_bien') return <ChoiceGrid options={TYPE_BIEN} onPick={(v, l) => onAnswer('type_bien', v, l)} />
+  if (q === 'surface') return <SliderInput unit="m²" min={10} max={1000} step={5} def={100} onOk={(v) => onAnswer('surface', v, v + ' m²')} />
+  if (q === 'etat_toiture') return <ChoiceGrid options={ETAT_OPTS} onPick={(v, l) => onAnswer('etat_toiture', v, l)} />
+  if (q === 'etat_facade') return <ChoiceGrid options={ETAT_OPTS} onPick={(v, l) => onAnswer('etat_facade', v, l)} />
+  if (q === 'etat_menuiseries') return <ChoiceGrid options={ETAT_OPTS} onPick={(v, l) => onAnswer('etat_menuiseries', v, l)} />
+  if (q === 'etat_plomberie') return <ChoiceGrid options={ETAT_OPTS} onPick={(v, l) => onAnswer('etat_plomberie', v, l)} />
+  if (q === 'etat_electricite') return <ChoiceGrid options={ETAT_OPTS} onPick={(v, l) => onAnswer('etat_electricite', v, l)} />
+  if (q === 'humidite') return <ChoiceGrid options={[{ value: 'Oui', label: 'Oui', icon: '💧' }, { value: 'Non', label: 'Non', icon: '✅' }]} onPick={(v, l) => onAnswer('humidite', v, l)} />
+  if (q === 'isolation') return <MultiSelect options={ISOLATION_OPTS} onOk={(sel) => onAnswer('isolation', sel, sel.length ? sel.join(', ') : 'Aucune isolation connue')} />
+  if (q === 'chauffage') return <ChoiceGrid options={CHAUFFAGE_OPTS} onPick={(v, l) => onAnswer('type_chauffage', v, l)} />
+  if (q === 'dpe') return <ChoiceGrid options={DPE_OPTS} cols={4} onPick={(v) => onAnswer('dpe', v, 'DPE ' + v)} />
+  if (q === 'qualite') return <ChoiceGrid options={QUALITE_OPTS} onPick={(v, l) => onAnswer('qualite', v, l)} />
+  if (q === 'objectif') return <ChoiceGrid options={OBJECTIF_OPTS} onPick={(v, l) => onAnswer('objectif', v, l)} />
+  if (q === 'recapitulatif') return <button className="w-full rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white" onClick={() => onAnswer('recapitulatif' as keyof AuditAnswers, true, "C'est correct ✅")}>C’est correct</button>
+  if (q === 'coordonnees') return <ContactForm cta="Recevoir mon audit" onSubmit={onSubmit} />
   return null
 }
 
-const API_ADRESSE = 'https://api-adresse.data.gouv.fr/search/'
-interface Sug { label: string; lat: number; lng: number }
-
-function AdresseInput({ onAnswer }: { onAnswer: (k: keyof AuditAnswers, v: AuditAnswers[keyof AuditAnswers], d: string) => void }) {
-  const [val, setVal] = useState('')
-  const [sugs, setSugs] = useState<Sug[]>([])
-  const [loading, setLoading] = useState(false)
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  async function search(q: string) {
-    if (q.length < 3) { setSugs([]); return }
-    setLoading(true)
-    try {
-      const res = await fetch(API_ADRESSE + '?q=' + encodeURIComponent(q) + '&limit=5')
-      const data = await res.json()
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      setSugs(data.features.map((f: any) => ({ label: f.properties.label, lat: f.geometry.coordinates[1], lng: f.geometry.coordinates[0] })))
-    } catch { setSugs([]) } finally { setLoading(false) }
-  }
-
-  function pick(s: Sug) {
-    setSugs([]); setVal(s.label)
-    onAnswer('lat', s.lat, '')
-    onAnswer('lng', s.lng, '')
-    onAnswer('adresse', s.label, s.label)
-  }
-
-  function send() { if (val.trim()) { setSugs([]); onAnswer('adresse', val.trim(), val.trim()) } }
-
-  function onChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setVal(e.target.value)
-    if (timer.current) clearTimeout(timer.current)
-    timer.current = setTimeout(() => search(e.target.value), 300)
-  }
-
+function ChoiceGrid({ options, cols = 2, onPick }: { options: { value: string; label: string; icon: string }[]; cols?: 2 | 3 | 4; onPick: (value: string, label: string) => void }) {
+  const colClass = cols === 4 ? 'grid-cols-4' : cols === 3 ? 'grid-cols-3' : 'grid-cols-2'
   return (
-    <div>
-      <div style={_ir}>
-        <input style={_inpR} placeholder="Ex\ : 12 rue de la Paix, Cotignac" value={val} onChange={onChange} onKeyDown={e => e.key === 'Enter' && send()} autoFocus autoComplete="off" />
-        <button style={_sendBtn} onClick={send}><Send size={16} color={WH} /></button>
-      </div>
-      {sugs.length > 0 && (
-        <div style={_sugWr}>
-          {sugs.map((s, i) => (
-            <SuggestionItem key={i} label={s.label} isLast={i === sugs.length - 1} onPick={() => pick(s)} />
-          ))}
-        </div>
-      )}
-      {loading && <p style={_load}>Recherche en cours...</p>}
-    </div>
-  )
-}
-
-function SliderInput({ unit, min, max, def, step, onOk }: { unit: string; min: number; max: number; def: number; step?: number; onOk: (v: number) => void }) {
-  const [v, setV] = useState(def)
-  return (
-    <div style={sWr}>
-      <div style={_slVal}>{v} {unit}</div>
-      <input type="range" min={min} max={max} value={v} step={step ?? 1} onChange={e => setV(+e.target.value)} style={_slInp} />
-      <div style={_slRow}>
-        <span style={_slLbl}>{min} {unit}</span>
-        <span style={_slLbl}>{max} {unit}</span>
-      </div>
-      <button style={vBtn} onClick={() => onOk(v)}>Valider</button>
-    </div>
-  )
-}
-
-function MultiSel({ opts, onOk }: { opts: string[]; onOk: (sel: string[]) => void }) {
-  const [sel, setSel] = useState<string[]>([])
-  const t = (o: string) => setSel(s => s.includes(o) ? s.filter(x => x !== o) : [...s, o])
-  return (
-    <div>
-      {opts.map(o => (
-        <div key={o} style={mRw(sel.includes(o))} onClick={() => t(o)}>
-          <div style={rgBx(sel.includes(o))} />
-          {o}
-        </div>
+    <div className={'grid gap-2 ' + colClass}>
+      {options.map((option) => (
+        <button key={option.value} onClick={() => onPick(option.value, option.label)} className="flex flex-col items-center gap-1.5 rounded-xl border-2 border-border bg-white px-3 py-4 text-sm font-semibold text-foreground transition hover:border-brand hover:bg-brand-light">
+          {option.icon && <span className="text-xl">{option.icon}</span>}
+          {option.label}
+        </button>
       ))}
-      <button style={vBtn} onClick={() => onOk(sel)}>{sel.length ? 'Valider (' + sel.length + ')' : 'Aucun, continuer'}</button>
     </div>
   )
 }
 
-function YesNo({ onPick }: { onPick: (v: string, l: string) => void }) {
+function TextInput({ placeholder, onSend }: { placeholder: string; onSend: (value: string) => void }) {
+  const [value, setValue] = useState('')
   return (
-    <div style={_g2}>
-      <div style={cardS(false)} onClick={() => onPick('Oui', 'Oui')}><span style={_emo}>\✅</span><span>Oui</span></div>
-      <div style={cardS(false)} onClick={() => onPick('Non', 'Non')}><span style={_emo}>\❌</span><span>Non</span></div>
+    <div className="flex gap-2">
+      <input value={value} onChange={(e) => setValue(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && value.trim() && onSend(value.trim())} placeholder={placeholder} autoFocus className="min-w-0 flex-1 rounded-xl border-2 border-border bg-white px-4 py-3 text-sm outline-none focus:border-brand" />
+      <button onClick={() => value.trim() && onSend(value.trim())} className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand text-white"><Send size={16} /></button>
     </div>
   )
 }
 
-function Coordonnees({ onSubmit }: { onSubmit: (p: string, n: string, t: string, e: string, c: 'monsieur' | 'madame') => void }) {
-  const [civ, setCiv] = useState<'monsieur' | 'madame'>('monsieur')
-  const [p, setP] = useState(''); const [n, setN] = useState(''); const [t, setT] = useState(''); const [em, setEm] = useState('')
-  const [rg, setRg] = useState(false)
-  const ok = p.trim() && n.trim() && t.trim() && em.includes('@') && rg
+function SliderInput({ unit, min, max, step, def, onOk }: { unit: string; min: number; max: number; step?: number; def: number; onOk: (value: number) => void }) {
+  const [value, setValue] = useState(def)
   return (
-    <div style={cWr}>
-      <div style={cH}><div style={cBdg}>\�\�</div><div><div style={cT}>Vos coordonn\ées</div><div style={cSb}>Pour recevoir votre audit</div></div></div>
-      <div style={cG}>
-        <button style={civS(civ === 'monsieur')} onClick={() => setCiv('monsieur')}>M.</button>
-        <button style={civS(civ === 'madame')} onClick={() => setCiv('madame')}>Mme</button>
+    <div className="rounded-2xl border border-border bg-white p-5">
+      <div className="mb-4 text-center text-xl font-bold text-foreground">{value} {unit}</div>
+      <input type="range" min={min} max={max} step={step ?? 1} value={value} onChange={(e) => setValue(Number(e.target.value))} className="w-full accent-brand" />
+      <div className="mt-2 flex justify-between text-xs text-muted"><span>{min} {unit}</span><span>{max} {unit}</span></div>
+      <button onClick={() => onOk(value)} className="mt-4 w-full rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white">Valider</button>
+    </div>
+  )
+}
+
+function MultiSelect({ options, onOk }: { options: string[]; onOk: (selected: string[]) => void }) {
+  const [selected, setSelected] = useState<string[]>([])
+  const toggle = (item: string) => setSelected((prev) => prev.includes(item) ? prev.filter((x) => x !== item) : [...prev, item])
+  return (
+    <div>
+      <div className="space-y-2">
+        {options.map((option) => {
+          const active = selected.includes(option)
+          return <button key={option} onClick={() => toggle(option)} className={'flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm font-medium ' + (active ? 'border-brand bg-brand-light text-brand' : 'border-border bg-white text-foreground')}><span className={'h-4 w-4 rounded border-2 ' + (active ? 'border-brand bg-brand' : 'border-border')} />{option}</button>
+        })}
       </div>
-      <div style={cG}>
-        <input style={inF} placeholder="Pr\énom" value={p} onChange={e => setP(e.target.value)} />
-        <input style={inF} placeholder="Nom" value={n} onChange={e => setN(e.target.value)} />
-      </div>
-      <input style={inF} type="tel" placeholder="06 XX XX XX XX" value={t} onChange={e => setT(e.target.value)} />
-      <input style={inF} type="email" placeholder="votre@email.com" value={em} onChange={e => setEm(e.target.value)} />
-      <div style={rgS(rg)} onClick={() => setRg(!rg)}>
-        <div style={rgBx(rg)}>{rg && <Check size={12} color={WH} />}</div>
-        <span style={rgTx}>J&apos;accepte d&apos;\être recontact\é par Alex Lopez, conseiller immobilier, concernant mon projet immobilier</span>
-      </div>
-      <button style={ok ? vBtn : vOff} onClick={() => ok && onSubmit(p, n, t, em, civ)} disabled={!ok}><Send size={14} /> Recevoir mon audit</button>
+      <button onClick={() => onOk(selected)} className="mt-3 w-full rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white">{selected.length ? 'Valider (' + selected.length + ')' : 'Aucun, continuer'}</button>
+    </div>
+  )
+}
+
+function ContactForm({ cta, onSubmit }: { cta: string; onSubmit: (prenom: string, nom: string, telephone: string, email: string, civilite: 'monsieur' | 'madame') => void }) {
+  const [civilite, setCivilite] = useState<'monsieur' | 'madame'>('monsieur')
+  const [prenom, setPrenom] = useState('')
+  const [nom, setNom] = useState('')
+  const [telephone, setTelephone] = useState('')
+  const [email, setEmail] = useState('')
+  const [rgpd, setRgpd] = useState(false)
+  const ok = prenom.trim() && nom.trim() && telephone.trim() && email.includes('@') && rgpd
+  return (
+    <div className="rounded-2xl border border-border bg-white p-5">
+      <div className="mb-4 flex items-center gap-3"><div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-light"><Home size={16} className="text-brand" /></div><div><p className="text-sm font-bold">Vos coordonnées</p><p className="text-xs text-muted">Pour recevoir vos résultats</p></div></div>
+      <div className="mb-3 grid grid-cols-2 gap-2"><button className={'rounded-xl border-2 px-3 py-2 text-sm font-semibold ' + (civilite === 'monsieur' ? 'border-brand bg-brand text-white' : 'border-border')} onClick={() => setCivilite('monsieur')}>M.</button><button className={'rounded-xl border-2 px-3 py-2 text-sm font-semibold ' + (civilite === 'madame' ? 'border-brand bg-brand text-white' : 'border-border')} onClick={() => setCivilite('madame')}>Mme</button></div>
+      <div className="grid gap-2 sm:grid-cols-2"><input className="rounded-xl border border-border px-4 py-3 text-sm" placeholder="Prénom" value={prenom} onChange={(e) => setPrenom(e.target.value)} /><input className="rounded-xl border border-border px-4 py-3 text-sm" placeholder="Nom" value={nom} onChange={(e) => setNom(e.target.value)} /></div>
+      <input className="mt-2 w-full rounded-xl border border-border px-4 py-3 text-sm" placeholder="Téléphone" value={telephone} onChange={(e) => setTelephone(e.target.value)} />
+      <input className="mt-2 w-full rounded-xl border border-border px-4 py-3 text-sm" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <button onClick={() => setRgpd(!rgpd)} className={'mt-3 flex w-full items-start gap-3 rounded-xl border px-4 py-3 text-left text-xs leading-relaxed ' + (rgpd ? 'border-brand bg-brand-light' : 'border-border')}><span className={'mt-0.5 h-4 w-4 rounded border-2 ' + (rgpd ? 'border-brand bg-brand' : 'border-border')} />J’accepte d’être recontacté par Alex Lopez concernant mon projet immobilier.</button>
+      <button disabled={!ok} onClick={() => ok && onSubmit(prenom.trim(), nom.trim(), telephone.trim(), email.trim(), civilite)} className={'mt-4 w-full rounded-xl px-4 py-3 text-sm font-semibold text-white ' + (ok ? 'bg-brand' : 'bg-border')}>{cta}</button>
     </div>
   )
 }
