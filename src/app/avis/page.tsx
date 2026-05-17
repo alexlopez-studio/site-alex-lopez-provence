@@ -5,7 +5,7 @@ import { env } from '@/lib/env'
 
 export const metadata: Metadata = {
   title: 'Avis clients — Alexandre Lopez',
-  description: 'Avis clients et retours d’expérience sur l’accompagnement immobilier d’Alexandre Lopez en Provence Verte et Haut-Var.',
+  description: 'Avis clients et retours d’expérience sur l’accompagnement immobilier d’Alexandre Lopez en Provence Verte et Verdon.',
   alternates: { canonical: (env.app.siteUrl || 'https://alexlopez-provence.fr') + '/avis' },
 }
 

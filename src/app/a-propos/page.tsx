@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button'
 import { env } from '@/lib/env'
 
 export const metadata: Metadata = {
-  title: 'Mon approche — Alex Lopez, Mandataire IAD Provence Verte',
+  title: 'Mon approche — Alex Lopez, Mandataire IAD Provence Verte & Verdon',
   description:
-    'Mandataire immobilier IAD en Provence Verte et Haut-Var. Découvrez mon parcours, mes valeurs et ma méthode pour vous accompagner dans votre projet immobilier.',
+    'Mandataire immobilier IAD en Provence Verte et Verdon. Découvrez mon parcours, mes valeurs et ma méthode pour vous accompagner dans votre projet immobilier.',
   alternates: { canonical: (env.app.siteUrl || 'https://alexlopez-provence.fr') + '/a-propos' },
 }
 
@@ -20,10 +20,10 @@ const personJsonLd = {
   name: 'Alex Lopez',
   jobTitle: 'Mandataire immobilier IAD',
   description:
-    'Mandataire immobilier IAD en Provence Verte et Haut-Var, spécialisé dans la vente et l\'achat de biens immobiliers.',
+    'Mandataire immobilier IAD en Provence Verte et Verdon, spécialisé dans la vente et l\'achat de biens immobiliers.',
   telephone: PHONE_RAW,
   areaServed: [
-    'Provence Verte', 'Haut-Var', 'Barjols', 'Rians', 'Aups', 'Salernes',
+    'Provence Verte', 'Verdon', 'Provence Verdon', 'Barjols', 'Rians', 'Aups', 'Salernes',
     'Montmeyan', 'Quinson', 'Fox-Amphoux',
   ],
   address: {
@@ -52,7 +52,7 @@ const VALEURS = [
   {
     titre: 'Ancrage local',
     texte:
-      'Je vis et travaille en Provence Verte. Je connais les communes, les micro-marchés, les prix réels des ventes récentes. Cette connaissance terrain est irremplaçable — aucun algorithme ne la remplace.',
+      'Je vis et travaille en Provence Verte et Verdon. Je connais les communes, les micro-marchés, les prix réels des ventes récentes. Cette connaissance terrain est irremplaçable — aucun algorithme ne la remplace.',
   },
   {
     titre: 'Accompagnement complet',
@@ -94,7 +94,7 @@ export default function AProposPage() {
             </h1>
             <div className="space-y-4 text-muted leading-relaxed mb-8">
               <p>
-                Je suis Alex Lopez, mandataire immobilier IAD en Provence Verte et Haut-Var.
+                Je suis Alex Lopez, mandataire immobilier IAD en Provence Verte et Verdon.
                 Après une carrière en stratégie et organisation, j&apos;ai choisi
                 l&apos;immobilier pour une raison simple : c&apos;est un métier de lien,
                 de confiance et d&apos;utilité concrète.
@@ -171,7 +171,7 @@ export default function AProposPage() {
           <div className="mt-12 space-y-6">
             {[
               { periode: 'Avant', titre: 'Stratégie & organisation', desc: 'Conseil en organisation, gestion de projets complexes, accompagnement de dirigeants.' },
-              { periode: "Aujourd'hui", titre: 'Mandataire IAD — Provence Verte', desc: 'Estimation, vente, achat et audit immobilier en Provence Verte et Haut-Var.' },
+              { periode: "Aujourd'hui", titre: 'Mandataire IAD — Provence Verte & Verdon', desc: 'Estimation, vente, achat et audit immobilier en Provence Verte et Verdon.' },
             ].map(function (item) {
               return (
                 <div key={item.titre} className="flex gap-5 items-start">
@@ -225,12 +225,12 @@ export default function AProposPage() {
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand">Zone d&apos;intervention</p>
           </div>
           <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-4">
-            Provence Verte &amp; Haut-Var,
+            Provence Verte &amp; Verdon,
             <br />
             <span className="text-brand">ma Provence.</span>
           </h2>
           <p className="text-muted leading-relaxed mb-10 max-w-2xl mx-auto">
-            J&apos;interviens sur l&apos;ensemble de la Provence Verte et du Haut-Var, de la
+            J&apos;interviens sur l&apos;ensemble de la Provence Verte et du Verdon, de la
             plaine aux contreforts des Gorges du Verdon. Un territoire que je parcours
             quotidiennement.
           </p>
@@ -260,7 +260,7 @@ export default function AProposPage() {
           </h2>
           <p className="text-muted mb-8 leading-relaxed">
             Estimation gratuite, vente, achat ou simple question sur le marché
-            en Provence Verte. Réponse sous 24h, sans engagement.
+            en Provence Verte et Verdon. Réponse sous 24h, sans engagement.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild variant="primary" size="lg">

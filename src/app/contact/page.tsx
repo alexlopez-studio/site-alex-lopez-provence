@@ -5,9 +5,9 @@ import { env } from '@/lib/env'
 import { ContactFormClient } from '@/components/forms/ContactFormClient'
 
 export const metadata: Metadata = {
-  title: 'Contact — Alex Lopez, Mandataire IAD Provence Verte',
+  title: 'Contact — Alex Lopez, Mandataire IAD Provence Verte & Verdon',
   description:
-    'Contactez Alex Lopez, mandataire IAD en Provence Verte et Haut-Var. Estimation gratuite, réponse sous 24h. Appelez le 06 13 18 01 68.',
+    'Contactez Alex Lopez, mandataire IAD en Provence Verte et Verdon. Estimation gratuite, réponse sous 24h. Appelez le 06 13 18 01 68.',
   alternates: { canonical: (env.app.siteUrl || 'https://alexlopez-provence.fr') + '/contact' },
 }
 
@@ -26,7 +26,7 @@ const contactJsonLd = {
     jobTitle: 'Mandataire immobilier IAD',
     telephone: PHONE_RAW,
     email: EMAIL,
-    areaServed: 'Provence Verte et Haut-Var',
+    areaServed: 'Provence Verte et Verdon',
   },
 }
 
@@ -112,7 +112,7 @@ export default function ContactPage() {
                 <div className="w-9 h-9 rounded-full bg-brand-light flex items-center justify-center shrink-0">
                   <MapPin size={15} className="text-brand" />
                 </div>
-                Provence Verte &amp; Haut-Var (Var, 83)
+                Provence Verte &amp; Verdon (Var, 83)
               </div>
 
               <div className="flex items-center gap-3 text-sm text-muted">
