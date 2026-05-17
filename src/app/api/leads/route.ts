@@ -58,6 +58,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const nom = asNonEmptyString(payload.nom)
   const telephone = asNonEmptyString(payload.telephone)
   const optIn = Boolean(payload.opt_in)
+  const dryRun = Boolean(payload.dry_run)
   const formData = asRecord(payload.form_data ?? payload)
 
   if (!email) {
@@ -100,6 +101,19 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const magicLinkUrl = `${siteUrl}/resultats/${token}`
+
+  if (dryRun) {
+    return NextResponse.json({
+      success: true,
+      dryRun: true,
+      token,
+      leadId: token,
+      magicLinkUrl,
+      emailSent: false,
+      notionBackup: { ok: false, skipped: true, reason: 'dry_run' },
+      results,
+    })
+  }
 
   const [emailSent, notionBackup] = await Promise.all([
     sendMagicLinkEmail({
