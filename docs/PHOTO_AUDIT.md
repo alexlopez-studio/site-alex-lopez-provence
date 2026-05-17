@@ -32,11 +32,19 @@ Renforcer la cohérence visuelle du site autour d’un univers plus local, immob
 | `hans-olive-tree-1595493_1920.jpg` | 1,19 Mo | Ambiance locale possible, peu immobilier | Usage secondaire |
 | `Saint-Tropez.jpg` | 1,99 Mo | Hors territoire, trop littoral | Ne pas utiliser sur le site public |
 
-## Changement immédiat de ce lot
+## Changement lot 1
 
 - `/audit` ne s’appuie plus sur `vignobles-var.jpg`.
 - Le visuel audit passe temporairement sur `maison-bleue-cotignac.jpg`, plus cohérent avec le bâti, la maison et la décision immobilière.
 - `next.config.ts` autorise désormais `images.pexels.com` et `cdn.pixabay.com` pour faciliter des tests de visuels gratuits en remote si nécessaire.
+
+## Changement lot 2
+
+- Ajout de `src/lib/site-visuals.ts` comme registre central des visuels du site.
+- Les visuels éditoriaux `/vendre`, `/acheter`, `/audit` sont maintenant déclarés au même endroit.
+- Le portrait détouré d’Alexandre est centralisé dans ce registre.
+- La section parcours de `/a-propos` n’utilise plus `lver-south-4790158_1920.jpg` et passe sur une image plus immobilière : `maison-bleue-cotignac.jpg`.
+- Les `alt` sont centralisés et renforcés sur les pages éditoriales.
 
 ## Shortlist gratuite initiale
 
@@ -61,5 +69,5 @@ Renforcer la cohérence visuelle du site autour d’un univers plus local, immob
 
 1. Télécharger 3 à 5 candidats depuis Pexels / Pixabay.
 2. Les convertir en WebP optimisé.
-3. Remplacer progressivement : `/vendre`, `/a-propos`, diversification homepage.
+3. Remplacer progressivement : `/vendre`, diversification homepage et remplacement transitoire de l’image audit si un meilleur visuel gratuit est retenu.
 4. Ajouter un registre interne des crédits / sources.
