@@ -191,9 +191,9 @@ function ConfirmModal({ onCancel, onConfirm }: { onCancel: () => void; onConfirm
   return (
     <div style={overlayStyle} onClick={onCancel}>
       <div style={modalCard} onClick={(e) => e.stopPropagation()}>
-        <div style={modalIcon}>{'\♻\️'}</div>
-        <div style={modalTitle}>{'Recommencer depuis le d\ébut\ ?'}</div>
-        <div style={modalSub}>{'Votre progression actuelle sera effac\ée.'}</div>
+        <div style={modalIcon}>♻️</div>
+        <div style={modalTitle}>Recommencer depuis le début ?</div>
+        <div style={modalSub}>Votre progression actuelle sera effacée.</div>
         <div style={modalBtns}>
           <button style={modalBtnCancel} onClick={onCancel}>Annuler</button>
           <button style={modalBtnConfirm} onClick={onConfirm}>Recommencer</button>
@@ -204,41 +204,41 @@ function ConfirmModal({ onCancel, onConfirm }: { onCancel: () => void; onConfirm
 }
 
 const TYPE_BIEN = [
-  { value: 'appartement', label: 'Appartement', emoji: '\�\�' },
-  { value: 'maison', label: 'Maison', emoji: '\�\�' },
-  { value: 'terrain', label: 'Terrain', emoji: '\�\�' },
-  { value: 'commerce', label: 'Commerce', emoji: '\�\�' },
-  { value: 'immeuble', label: 'Immeuble', emoji: '\�\�\️' },
-  { value: 'autre', label: 'Autre', emoji: '\·\·\·' },
+  { value: 'appartement', label: 'Appartement', emoji: '🏢' },
+  { value: 'maison', label: 'Maison', emoji: '🏡' },
+  { value: 'terrain', label: 'Terrain', emoji: '🌿' },
+  { value: 'commerce', label: 'Commerce', emoji: '🏪' },
+  { value: 'immeuble', label: 'Immeuble', emoji: '🏘️' },
+  { value: 'autre', label: 'Autre', emoji: '···' },
 ]
 const ETAT = [
-  { value: 'neuf', label: 'Neuf / r\écent', emoji: '\�\�' },
-  { value: 'tres_bon_etat', label: 'Tr\ès bon \état', emoji: '\✨' },
-  { value: 'bon_etat', label: 'Bon \état', emoji: '\�\�' },
-  { value: 'rafraichir', label: '\À rafra\îchir', emoji: '\�\�\️' },
-  { value: 'travaux', label: 'Travaux importants', emoji: '\�\�' },
+  { value: 'neuf', label: 'Neuf / récent', emoji: '✨' },
+  { value: 'tres_bon_etat', label: 'Très bon état', emoji: '✅' },
+  { value: 'bon_etat', label: 'Bon état', emoji: '👍' },
+  { value: 'rafraichir', label: 'À rafraîchir', emoji: '🛠️' },
+  { value: 'travaux', label: 'Travaux importants', emoji: '🚧' },
 ]
 const DPE_OPTIONS = [
-  { value: 'A', label: 'A', emoji: '\⚡' },
-  { value: 'B', label: 'B', emoji: '\⚡' },
-  { value: 'C', label: 'C', emoji: '\⚡' },
-  { value: 'D', label: 'D', emoji: '\⚡' },
-  { value: 'E', label: 'E', emoji: '\⚡' },
-  { value: 'F', label: 'F', emoji: '\⚡' },
-  { value: 'G', label: 'G', emoji: '\⚡' },
-  { value: 'nc', label: 'Non connu', emoji: '\❓' },
+  { value: 'A', label: 'A', emoji: '⚡' },
+  { value: 'B', label: 'B', emoji: '⚡' },
+  { value: 'C', label: 'C', emoji: '⚡' },
+  { value: 'D', label: 'D', emoji: '⚡' },
+  { value: 'E', label: 'E', emoji: '⚡' },
+  { value: 'F', label: 'F', emoji: '⚡' },
+  { value: 'G', label: 'G', emoji: '⚡' },
+  { value: 'nc', label: 'Non connu', emoji: '❓' },
 ]
 const DELAI = [
-  { value: 'immediat', label: 'Imm\édiat', emoji: '\�\�' },
-  { value: '1_3_mois', label: '1\ -\ 3 mois', emoji: '\�\�' },
-  { value: '3_6_mois', label: '3\ -\ 6 mois', emoji: '\�\�\️' },
-  { value: '6_mois', label: '+6 mois', emoji: '\⏳' },
-  { value: 'pas_decide', label: 'Pas d\écid\é', emoji: '\�\�' },
+  { value: 'immediat', label: 'Immédiat', emoji: '🚀' },
+  { value: '1_3_mois', label: '1 - 3 mois', emoji: '📅' },
+  { value: '3_6_mois', label: '3 - 6 mois', emoji: '🗓️' },
+  { value: '6_mois', label: '+6 mois', emoji: '⏳' },
+  { value: 'pas_decide', label: 'Pas décidé', emoji: '🤔' },
 ]
 const EQUIPEMENTS = ['Balcon', 'Terrasse', 'Parking', 'Garage', 'Cave', 'Jardin', 'Vue exceptionnelle', 'Piscine']
 const BIEN_LBL: Record<string, string> = { appartement: 'Appartement', maison: 'Maison', terrain: 'Terrain', commerce: 'Commerce', immeuble: 'Immeuble', autre: 'Autre' }
-const ETAT_LBL: Record<string, string> = { neuf: 'Neuf / r\écent', tres_bon_etat: 'Tr\ès bon \état', bon_etat: 'Bon \état', rafraichir: '\À rafra\îchir', travaux: 'Travaux importants' }
-const DELAI_LBL: Record<string, string> = { immediat: 'Imm\édiat', '1_3_mois': '1\ \–\ 3 mois', '3_6_mois': '3\ \–\ 6 mois', '6_mois': '+6 mois', pas_decide: 'Pas d\écid\é' }
+const ETAT_LBL: Record<string, string> = { neuf: 'Neuf / récent', tres_bon_etat: 'Très bon état', bon_etat: 'Bon état', rafraichir: 'À rafraîchir', travaux: 'Travaux importants' }
+const DELAI_LBL: Record<string, string> = { immediat: 'Immédiat', '1_3_mois': '1 - 3 mois', '3_6_mois': '3 - 6 mois', '6_mois': '+6 mois', pas_decide: 'Pas décidé' }
 
 function getNext(q: QuestionId, a: VendreAnswers): QuestionId {
   switch (q) {
@@ -271,32 +271,32 @@ const DPE_LBL: Record<string, string> = {
 function buildRecap(a: VendreAnswers): string {
   const tl = BIEN_LBL[a.type_bien ?? ''] ?? a.type_bien ?? 'Bien'
   let desc = tl
-  if (a.surface) desc += ' de ' + a.surface + 'm\²'
-  if (a.nb_pieces) desc += ', ' + a.nb_pieces + ' pi\èce' + (Number(a.nb_pieces) > 1 ? 's' : '')
-  if (a.surface_terrain) desc += ', terrain ' + a.surface_terrain + 'm\²'
+  if (a.surface) desc += ' de ' + a.surface + ' m²'
+  if (a.nb_pieces) desc += ', ' + a.nb_pieces + ' pièce' + (Number(a.nb_pieces) > 1 ? 's' : '')
+  if (a.surface_terrain) desc += ', terrain ' + a.surface_terrain + ' m²'
   if (a.equipements?.length) desc += ' + ' + a.equipements.join(', ')
-  const lines = ['Tr\ès bien, r\écapitulons votre bien\ !', '', '\�\� ' + desc]
-  if (a.adresse) lines.push('\�\� ' + a.adresse)
-  if (a.etat) lines.push('\�\� ' + (ETAT_LBL[a.etat] ?? a.etat))
-  if (a.dpe) lines.push('\⚡ DPE\ : ' + (DPE_LBL[a.dpe] ?? a.dpe))
-  if (a.delai) lines.push('\�\� Vente\ : ' + (DELAI_LBL[a.delai] ?? a.delai))
-  lines.push('', 'Ces informations sont-elles correctes\ ?')
+  const lines = ['Très bien, récapitulons votre bien !', '', '🏡 ' + desc]
+  if (a.adresse) lines.push('📍 ' + a.adresse)
+  if (a.etat) lines.push('🛠️ ' + (ETAT_LBL[a.etat] ?? a.etat))
+  if (a.dpe) lines.push('⚡ DPE : ' + (DPE_LBL[a.dpe] ?? a.dpe))
+  if (a.delai) lines.push('⏱️ Vente : ' + (DELAI_LBL[a.delai] ?? a.delai))
+  lines.push('', 'Ces informations sont-elles correctes ?')
   return lines.join('\n')
 }
 
 function getMsg(q: QuestionId, a: VendreAnswers): string {
   if (q === 'recapitulatif') return buildRecap(a)
   switch (q) {
-    case 'type_bien': return 'Parfait\ ! Quel type de bien souhaitez-vous faire estimer\ ?'
-    case 'sous_type_maison': return 'Tr\ès bien\ ! S\'agit-il d\'une maison mitoyenne ou individuelle\ ?'
-    case 'surface': return 'Parfait\ ! Quelle est la surface habitable de votre bien\ ?'
-    case 'surface_terrain': return 'C\'est not\é\ ! Quelle est la superficie totale du terrain\ ?'
-    case 'nb_pieces': return 'C\'est not\é\ ! Combien de pi\èces principales compte votre bien\ ?\n(S\éjour + chambres, sans cuisine, salle de bain et WC)'
-    case 'etat': return 'Compris\ ! Quel est l\'\état g\én\éral de votre bien\ ?'
-    case 'dpe': return 'Merci\ ! Quelle est la lettre de votre DPE (Diagnostic de Performance \Énerg\étique)\ ?\nSi vous ne le connaissez pas, s\électionnez "Non connu".'
-    case 'equipements': return 'Tr\ès bien\ ! Quels \équipements poss\ède votre bien\ ?'
-    case 'delai': return 'Compris\ ! Dans quel d\élai souhaitez-vous vendre\ ?'
-    case 'coordonnees': return 'Parfait\ ! Pour finaliser votre estimation, j\'ai besoin de vos coordonn\ées.'
+    case 'type_bien': return 'Parfait ! Quel type de bien souhaitez-vous faire estimer ?'
+    case 'sous_type_maison': return "Très bien ! S'agit-il d'une maison mitoyenne ou individuelle ?"
+    case 'surface': return 'Parfait ! Quelle est la surface habitable de votre bien ?'
+    case 'surface_terrain': return "C'est noté ! Quelle est la superficie totale du terrain ?"
+    case 'nb_pieces': return "C'est noté ! Combien de pièces principales compte votre bien ?\n(Séjour + chambres, sans cuisine, salle de bain et WC)"
+    case 'etat': return "Compris ! Quel est l'état général de votre bien ?"
+    case 'dpe': return 'Merci ! Quelle est la lettre de votre DPE (Diagnostic de Performance Énergétique) ?\nSi vous ne le connaissez pas, sélectionnez “Non connu”.'
+    case 'equipements': return 'Très bien ! Quels équipements possède votre bien ?'
+    case 'delai': return 'Compris ! Dans quel délai souhaitez-vous vendre ?'
+    case 'coordonnees': return "Parfait ! Pour finaliser votre estimation, j'ai besoin de vos coordonnées."
     default: return ''
   }
 }
@@ -332,14 +332,14 @@ export default function VendrePage() {
   function handleAlMessage(text: string) { addMessage({ from: 'al', text, timestamp: ts() }) }
 
   function handleFinalSubmit(prenom: string, nom: string, tel: string, email: string, civilite: 'monsieur' | 'madame') {
-    setAnswer('prenom', prenom); setAnswer('nom', nom); setAnswer('telephone', tel); setAnswer('email', email); setAnswer('civilite', civilite)
+    setAnswer('prenom', prenom); setAnswer('nom', nom); setAnswer('telephone', tel); setAnswer('email', email); setAnswer('civilite', civilite); setAnswer('rgpd', true)
     addMessage({ from: 'user', text: prenom + ' ' + nom, timestamp: ts() })
     const t = crypto.randomUUID()
     setToken(t)
     fetch('/api/leads', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...answers, prenom, nom, telephone: tel, email, civilite, token: t, type: 'vendre', opt_in: answers.rgpd ?? false }),
+      body: JSON.stringify({ ...answers, prenom, nom, telephone: tel, email, civilite, rgpd: true, token: t, type: 'vendre', opt_in: true }),
     }).catch(() => null)
     setUiState('calcul')
   }
@@ -370,7 +370,7 @@ export default function VendrePage() {
             <Avatar />
             <div>
               <div style={navNameSt}>Alex Lopez</div>
-              <span style={toolPillSt}><span>\�\�</span> Estimer mon bien</span>
+              <span style={toolPillSt}><span>🏡</span> Estimer mon bien</span>
             </div>
           </div>
           <div style={navRightSt}>
@@ -408,15 +408,15 @@ function InputZone(props: {
   const { question, answers, onAnswer, onFinalSubmit, onRestart, onAlMessage } = props
   if (question === 'adresse') return <AdresseInput onAnswer={onAnswer} onAlMessage={onAlMessage} />
   if (question === 'type_bien') return <Cards options={TYPE_BIEN} cols={2} onSelect={(v, l) => onAnswer('type_bien', v, l)} />
-  if (question === 'sous_type_maison') return <Cards options={[{ value: 'mitoyenne', label: 'Mitoyenne', emoji: '\�\�\️' }, { value: 'individuelle', label: 'Individuelle', emoji: '\�\�' }]} cols={2} onSelect={(v, l) => onAnswer('sous_type', v, l)} />
-  if (question === 'surface') return <Slider unit="m\²" min={5} max={1000} def={80} onValidate={(v) => onAnswer('surface', v, v + ' m\²')} />
-  if (question === 'surface_terrain') return <Slider unit="m\²" min={50} max={5000} def={500} onValidate={(v) => onAnswer('surface_terrain', v, v + ' m\²')} />
-  if (question === 'nb_pieces') return <Cards options={['1','2','3','4','5','6+'].map((n) => ({ value: n, label: n, emoji: '' }))} cols={3} onSelect={(v, l) => onAnswer('nb_pieces', parseInt(v) || 6, l + (parseInt(v) > 1 ? ' pi\èces' : ' pi\èce'))} />
+  if (question === 'sous_type_maison') return <Cards options={[{ value: 'mitoyenne', label: 'Mitoyenne', emoji: '🏘️' }, { value: 'individuelle', label: 'Individuelle', emoji: '🏡' }]} cols={2} onSelect={(v, l) => onAnswer('sous_type', v, l)} />
+  if (question === 'surface') return <Slider unit="m²" min={5} max={1000} def={80} onValidate={(v) => onAnswer('surface', v, v + ' m²')} />
+  if (question === 'surface_terrain') return <Slider unit="m²" min={50} max={5000} def={500} onValidate={(v) => onAnswer('surface_terrain', v, v + ' m²')} />
+  if (question === 'nb_pieces') return <Cards options={['1','2','3','4','5','6+'].map((n) => ({ value: n, label: n, emoji: '' }))} cols={3} onSelect={(v, l) => onAnswer('nb_pieces', parseInt(v) || 6, l + (parseInt(v) > 1 ? ' pièces' : ' pièce'))} />
   if (question === 'etat') return <Cards options={ETAT} cols={2} onSelect={(v, l) => onAnswer('etat', v, l)} />
-  if (question === 'dpe') return <Cards options={DPE_OPTIONS} cols={4} onSelect={(v, l) => onAnswer('dpe', v, v === 'nc' ? 'DPE non connu' : 'DPE ' + v)} />
-  if (question === 'equipements') return <MultiSelect options={EQUIPEMENTS} onValidate={(sel) => onAnswer('equipements', sel, sel.length ? sel.join(', ') : 'Aucun \équipement')} />
+  if (question === 'dpe') return <Cards options={DPE_OPTIONS} cols={4} onSelect={(v) => onAnswer('dpe', v, v === 'nc' ? 'DPE non connu' : 'DPE ' + v)} />
+  if (question === 'equipements') return <MultiSelect options={EQUIPEMENTS} onValidate={(sel) => onAnswer('equipements', sel, sel.length ? sel.join(', ') : 'Aucun équipement')} />
   if (question === 'delai') return <Cards options={DELAI} cols={2} onSelect={(v, l) => onAnswer('delai', v, l)} />
-  if (question === 'recapitulatif') return <RecapInput onConfirm={() => onAnswer('recapitulatif' as keyof VendreAnswers, true, "C'est correct \✅")} onRestart={onRestart} />
+  if (question === 'recapitulatif') return <RecapInput onConfirm={() => onAnswer('recapitulatif' as keyof VendreAnswers, true, "C'est correct ✅")} onRestart={onRestart} />
   if (question === 'coordonnees') return <Coordonnees answers={answers} onFinalSubmit={onFinalSubmit} />
   return null
 }
@@ -464,12 +464,12 @@ function AdresseInput({ onAnswer, onAlMessage }: {
     onAnswer('lng', selected.lng, '')
     onAnswer('adresse', selected.label, selected.label)
     if (currentInfos.dpe || currentInfos.parcelle) {
-      const lines = ["Voici ce que j'ai trouv\é pour cette adresse\ :"]
-      if (currentInfos.dpe) lines.push('\⚡ DPE\ : ' + currentInfos.dpe.lettre + ' (v\érifi\é ADEME)')
+      const lines = ["Voici ce que j'ai trouvé pour cette adresse :"]
+      if (currentInfos.dpe) lines.push('⚡ DPE : ' + currentInfos.dpe.lettre + ' (vérifié ADEME)')
       if (currentInfos.parcelle) {
-        let p = '\�\�\️ Parcelle\ : ' + currentInfos.parcelle.id
-        if (currentInfos.parcelle.commune) p += ' \· ' + currentInfos.parcelle.commune
-        if (currentInfos.parcelle.surface) p += ' \· ' + currentInfos.parcelle.surface + ' m\²'
+        let p = '🗺️ Parcelle : ' + currentInfos.parcelle.id
+        if (currentInfos.parcelle.commune) p += ' · ' + currentInfos.parcelle.commune
+        if (currentInfos.parcelle.surface) p += ' · ' + currentInfos.parcelle.surface + ' m²'
         lines.push(p)
       }
       setTimeout(() => onAlMessage(lines.join('\n')), 50)
@@ -487,7 +487,7 @@ function AdresseInput({ onAnswer, onAlMessage }: {
   return (
     <div>
       <div style={inputRow}>
-        <input style={inputSt} type="text" placeholder="Ex\ : 12 rue de la Paix, Cotignac" value={val} onChange={onChange} onKeyDown={(e) => e.key === 'Enter' && submit()} autoFocus autoComplete="off" />
+        <input style={inputSt} type="text" placeholder="Ex : 12 rue de la Paix, Cotignac" value={val} onChange={onChange} onKeyDown={(e) => e.key === 'Enter' && submit()} autoFocus autoComplete="off" />
         {!selected && <button style={sendBtnSt} onClick={submit}><Send size={16} color={white} /></button>}
       </div>
       {suggestions.length > 0 && (
@@ -500,16 +500,16 @@ function AdresseInput({ onAnswer, onAlMessage }: {
         </div>
       )}
       {loading && <p style={loadingSt}>Recherche en cours...</p>}
-      {fetching && <p style={loadingSt}>V\érification des donn\ées officielles...</p>}
+      {fetching && <p style={loadingSt}>Vérification des données officielles...</p>}
       {selected && !fetching && (
         <div>
           {infos.dpe && (
-            <div style={infoCardGray}><Zap size={15} color={brand} /><span style={infoTxt}>DPE\ : <strong>{infos.dpe.lettre}</strong></span><span style={dpeBadgeSt}>V\érifi\é ADEME</span></div>
+            <div style={infoCardGray}><Zap size={15} color={brand} /><span style={infoTxt}>DPE : <strong>{infos.dpe.lettre}</strong></span><span style={dpeBadgeSt}>Vérifié ADEME</span></div>
           )}
           {infos.parcelle && (
             <div style={infoCardYellow}>
               <Map size={15} color="#ca8a04" />
-              <span style={infoTxt}>Parcelle <strong>{infos.parcelle.id}</strong>{infos.parcelle.commune ? ' \· ' + infos.parcelle.commune : ''}{infos.parcelle.surface ? ' \· ' + infos.parcelle.surface + ' m\²' : ''}</span>
+              <span style={infoTxt}>Parcelle <strong>{infos.parcelle.id}</strong>{infos.parcelle.commune ? ' · ' + infos.parcelle.commune : ''}{infos.parcelle.surface ? ' · ' + infos.parcelle.surface + ' m²' : ''}</span>
               <span style={ignBadgeSt}>IGN</span>
             </div>
           )}
@@ -558,7 +558,7 @@ function MultiSelect({ options, onValidate }: { options: string[]; onValidate: (
         })}
       </div>
       <button style={validateBtn} onClick={() => onValidate(sel)}>
-        {sel.length === 0 ? 'Aucun \équipement' : `Valider (${sel.length} s\électionn\é${sel.length > 1 ? 's' : ''})`} <Send size={14} />
+        {sel.length === 0 ? 'Aucun équipement' : `Valider (${sel.length} sélectionné${sel.length > 1 ? 's' : ''})`} <Send size={14} />
       </button>
     </div>
   )
@@ -567,7 +567,7 @@ function MultiSelect({ options, onValidate }: { options: string[]; onValidate: (
 function RecapInput({ onConfirm, onRestart }: { onConfirm: () => void; onRestart: () => void }) {
   return (
     <div style={recapGrid}>
-      <button style={recapBtnOk} onClick={onConfirm}><span style={emojiSt}>\✅</span><span>C\'est correct</span></button>
+      <button style={recapBtnOk} onClick={onConfirm}><span style={emojiSt}>✅</span><span>C'est correct</span></button>
       <button style={recapBtnEdit} onClick={onRestart}><Edit3 size={20} color={muted} /><span>Je veux modifier</span></button>
     </div>
   )
@@ -592,23 +592,23 @@ function Coordonnees({ answers, onFinalSubmit }: { answers: VendreAnswers; onFin
   return (
     <div style={coordWrap}>
       <div style={coordHdr}>
-        <div style={coordBadge}>\✨</div>
-        <div><div style={coordTitle}>Derni\ère \étape\ !</div><div style={coordSub}>Recevez votre estimation personnalis\ée</div></div>
+        <div style={coordBadge}>✨</div>
+        <div><div style={coordTitle}>Dernière étape !</div><div style={coordSub}>Recevez votre estimation personnalisée</div></div>
       </div>
       <div style={civilRow}>
         <button style={civilBtnSt(civilite === 'monsieur')} onClick={() => setCiv('monsieur')}>Monsieur</button>
         <button style={civilBtnSt(civilite === 'madame')} onClick={() => setCiv('madame')}>Madame</button>
       </div>
       <div style={coordGrid}>
-        <input style={inputFull} placeholder="Pr\énom *" value={prenom} onChange={(e) => setPrenom(e.target.value)} />
+        <input style={inputFull} placeholder="Prénom *" value={prenom} onChange={(e) => setPrenom(e.target.value)} />
         <input style={inputFull} placeholder="Nom *" value={nom} onChange={(e) => setNom(e.target.value)} />
       </div>
       <input style={inputFull} type="email" placeholder="Email *" value={email} onChange={(e) => setEmail(e.target.value)} />
-      <input style={inputFull} type="tel" placeholder="T\él\éphone *" value={tel} onChange={(e) => setTel(e.target.value)} />
+      <input style={inputFull} type="tel" placeholder="Téléphone *" value={tel} onChange={(e) => setTel(e.target.value)} />
       <div style={rgpdRowSt(rgpd, showErr && !rgpd)} onClick={() => { setRgpd(!rgpd); setShowErr(false) }}>
         <div style={rgpdBoxSt(rgpd)}>{rgpd && <Check size={11} color={white} strokeWidth={3} />}</div>
         <div>
-          <span style={rgpdTxt}><strong>J\'accepte</strong>{' que mes donn\ées soient transmises \à Alex Lopez pour \être recontact\é(e). '}<span style={rgpdLinkSt}>Politique de confidentialit\é</span></span>
+          <span style={rgpdTxt}><strong>J'accepte</strong>{' que mes données soient transmises à Alex Lopez pour être recontacté(e). '}<span style={rgpdLinkSt}>Politique de confidentialité</span></span>
           {showErr && !rgpd && <div style={rgpdErrTxt}>Requis pour continuer</div>}
         </div>
       </div>
@@ -617,7 +617,7 @@ function Coordonnees({ answers, onFinalSubmit }: { answers: VendreAnswers; onFin
   )
 }
 
-const CALCUL_STEPS = ['Recherche des ventes r\écentes...', 'Analyse du march\é local', 'Calcul de votre estimation']
+const CALCUL_STEPS = ['Recherche des ventes récentes...', 'Analyse du marché local', 'Calcul de votre estimation']
 
 function CalculLoading({ onComplete }: { onComplete: () => void }) {
   const [activeStep, setActiveStep] = useState(0)
@@ -632,9 +632,9 @@ function CalculLoading({ onComplete }: { onComplete: () => void }) {
   }, [])
   return (
     <div style={calculPage}>
-      <div style={calculIcon}>\�\�</div>
+      <div style={calculIcon}>📊</div>
       <div style={calculTitle}>Calcul de votre estimation</div>
-      <div style={calculSub}>Analyse des ventes r\écentes dans votre secteur</div>
+      <div style={calculSub}>Analyse des ventes récentes dans votre secteur</div>
       <div style={calculSteps}>
         {CALCUL_STEPS.map((step, i) => {
           const done = i < activeStep; const active = i === activeStep
@@ -657,22 +657,22 @@ function VerificationDonnees({ userSurface, cadastreSurface, onComplete }: { use
     <div style={verifPage}>
       <header style={verifNav}><div style={avatarSt}>AL</div><div style={navNameSt}>Alex Lopez</div></header>
       <div style={verifWrap}>
-        <div style={verifIconSt}>\�\�\️</div>
-        <div style={verifTitle}>V\érification des informations</div>
-        <div style={verifSub}>Nous avons r\écup\ér\é des donn\ées officielles qui diff\èrent de vos informations.</div>
+        <div style={verifIconSt}>🗺️</div>
+        <div style={verifTitle}>Vérification des informations</div>
+        <div style={verifSub}>Nous avons récupéré des données officielles qui diffèrent de vos informations.</div>
         <div style={verifCard}>
           <div style={verifCardTitle}>Surface terrain</div>
           <div style={chosen === 'user' ? verifRadioOn : verifRadioOff} onClick={() => setChosen('user')}>
             <div style={chosen === 'user' ? verifDotOn : verifDot} />
-            <span style={verifTxtSt}>Vos informations\ : {userSurface} m\²</span>
+            <span style={verifTxtSt}>Vos informations : {userSurface} m²</span>
           </div>
           <div style={chosen === 'cadastre' ? verifRadioOn : verifRadioOff} onClick={() => setChosen('cadastre')}>
             <div style={chosen === 'cadastre' ? verifDotOn : verifDot} />
-            <span style={verifTxtSt}>Cadastre IGN\ : {cadastreSurface} m\²</span>
-            <div style={verifBadge}>Recommand\é</div>
+            <span style={verifTxtSt}>Cadastre IGN : {cadastreSurface} m²</span>
+            <div style={verifBadge}>Recommandé</div>
           </div>
         </div>
-        <div style={verifNote}>Les donn\ées officielles sont g\én\éralement plus pr\écises.</div>
+        <div style={verifNote}>Les données officielles sont généralement plus précises.</div>
         <button style={validateBtn} onClick={() => onComplete(chosen === 'cadastre' ? cadastreSurface : userSurface)}>
           Valider et voir mon estimation <Send size={14} />
         </button>
