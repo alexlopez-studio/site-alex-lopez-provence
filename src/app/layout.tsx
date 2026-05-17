@@ -31,16 +31,16 @@ const buffalo = Allura({
 export const metadata: Metadata = {
   title: {
     template: '%s | Alexandre Lopez — Conseiller en immobilier iad',
-    default: 'Alexandre Lopez — Conseiller en immobilier iad · Provence Verte & Haut-Var',
+    default: 'Alexandre Lopez — Conseiller en immobilier iad · Provence Verte & Verdon',
   },
   description:
-    'Conseiller en immobilier iad en Provence Verte et Haut-Var. Avis de valeur de votre bien offert, vente et achat dans le Var. Contactez-moi au 06 13 18 01 68.',
+    'Conseiller en immobilier iad en Provence Verte et Verdon. Avis de valeur de votre bien offert, vente et achat dans le Var. Contactez-moi au 06 13 18 01 68.',
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? 'https://alexlopez-provence.fr'
   ),
   openGraph: {
     type: 'website',
-    siteName: 'Alexandre Lopez — Conseiller en immobilier iad · Provence Verte & Haut-Var',
+    siteName: 'Alexandre Lopez — Conseiller en immobilier iad · Provence Verte & Verdon',
   },
   robots: { index: true, follow: true },
 }

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { Phone, Mail } from 'lucide-react'
+import { alignTerritory } from '@/lib/territory'
 
 const PHONE_RAW = '+33613180168'
 const EMAIL = 'alex@alexlopez-provence.fr'
@@ -23,7 +24,7 @@ export async function Footer() {
               </span>
             </div>
             <p className="text-sm text-white/75 leading-relaxed max-w-xs">
-              {t('tagline')}
+              {alignTerritory(t('tagline'))}
             </p>
           </div>
 
