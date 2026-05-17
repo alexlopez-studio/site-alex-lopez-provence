@@ -7,12 +7,12 @@ import BlogPageClient from '@/components/blog/BlogPageClient'
 export const revalidate = 3600
 
 export const metadata: Metadata = {
-  title: 'Conseils Immobiliers — Alex Lopez Provence Verte & Haut-Var',
+  title: 'Conseils Immobiliers — Alex Lopez Provence Verte & Verdon',
   description:
-    'Conseils vendeurs, acheteurs, droits et données marché : des ressources concrètes rédigées par Alex Lopez, mandataire IAD en Provence Verte et Haut-Var.',
+    'Conseils vendeurs, acheteurs, droits et données marché : des ressources concrètes rédigées par Alex Lopez, mandataire IAD en Provence Verte et Verdon.',
   openGraph: {
-    title: 'Blog Immobilier — Alex Lopez Provence Verte',
-    description: 'Tout ce que vous devez savoir pour vendre ou acheter en Provence Verte et Haut-Var.',
+    title: 'Blog Immobilier — Alex Lopez Provence Verte & Verdon',
+    description: 'Tout ce que vous devez savoir pour vendre ou acheter en Provence Verte et Verdon.',
   },
 }
 

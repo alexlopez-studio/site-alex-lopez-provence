@@ -1,19 +1,20 @@
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import EditorialPage from '@/components/editorial/EditorialPage'
+import { alignTerritory } from '@/lib/territory'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('audit')
   return {
-    title: t('metaTitle'),
-    description: t('metaDescription'),
+    title: alignTerritory(t('metaTitle')),
+    description: alignTerritory(t('metaDescription')),
   }
 }
 
 export default async function AuditPage() {
   const t = await getTranslations('audit')
   const faq = [1, 2, 3, 4].map(function (n) {
-    return { q: t('q' + n + 'q'), a: t('q' + n + 'a') }
+    return { q: alignTerritory(t('q' + n + 'q')), a: alignTerritory(t('q' + n + 'a')) }
   })
   const jsonLd = {
     '@context': 'https://schema.org',
