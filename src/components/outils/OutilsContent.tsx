@@ -50,7 +50,7 @@ const tools = [
 const reassurance = [
   { icon: BadgeCheck, label: 'Gratuit' },
   { icon: ShieldCheck, label: 'Sans engagement' },
-  { icon: MapPin, label: 'Provence Verte & Haut-Var' },
+  { icon: MapPin, label: 'Provence Verte & Verdon' },
 ]
 
 export default function OutilsContent() {
@@ -67,7 +67,7 @@ export default function OutilsContent() {
             AL
           </Link>
           <p className="text-sm font-semibold text-foreground">Alexandre Lopez</p>
-          <p className="mt-1 text-sm text-muted">Conseiller immobilier · Provence Verte & Haut-Var</p>
+          <p className="mt-1 text-sm text-muted">Conseiller immobilier · Provence Verte & Verdon</p>
         </motion.div>
 
         <motion.div variants={fadeInUp} className="mb-8 max-w-2xl text-center">

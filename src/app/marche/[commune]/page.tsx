@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const label = formatCommune(commune)
   return {
     title: 'Immobilier à ' + label + ' — Alexandre Lopez',
-    description: 'Préparez votre projet immobilier à ' + label + ' avec Alexandre Lopez, conseiller immobilier iad en Provence Verte et Haut-Var.',
+    description: 'Préparez votre projet immobilier à ' + label + ' avec Alexandre Lopez, conseiller immobilier iad en Provence Verte et Verdon.',
     alternates: { canonical: (env.app.siteUrl || 'https://alexlopez-provence.fr') + '/marche/' + commune },
   }
 }

@@ -1,14 +1,10 @@
 import type { Metadata } from 'next'
-import { getTranslations } from 'next-intl/server'
 import OutilsContent from '@/components/outils/OutilsContent'
 
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('outils')
-  return {
-    title: t('metaTitle'),
-    description: t('metaDescription'),
-    alternates: { canonical: '/outils' },
-  }
+export const metadata: Metadata = {
+  title: 'Outils immobiliers gratuits — Alex Lopez Provence Verte & Verdon',
+  description: "Estimation, projet d'achat, audit immobilier — 3 outils gratuits pour préparer votre projet en Provence Verte et Verdon.",
+  alternates: { canonical: '/outils' },
 }
 
 export default function OutilsPage() {
