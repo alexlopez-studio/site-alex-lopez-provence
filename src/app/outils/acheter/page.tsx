@@ -19,7 +19,6 @@ const navL: CSSProperties = { display: 'flex', alignItems: 'center', gap: 10 }
 const navR: CSSProperties = { display: 'flex', alignItems: 'center', gap: 12 }
 const avSt: CSSProperties = { width: 36, height: 36, borderRadius: 999, background: B, color: WH, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, flexShrink: 0 }
 const nnSt: CSSProperties = { fontSize: 14, fontWeight: 700, color: FG }
-const nsSt: CSSProperties = { fontSize: 11, color: M }
 const toolPillSt: CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, color: B, background: BL, padding: '2px 8px', borderRadius: 999, letterSpacing: '0.06em', textTransform: 'uppercase', marginTop: 2 }
 const bkSt: CSSProperties = { display: 'flex', alignItems: 'center', fontSize: 12, fontWeight: 600, color: M, textDecoration: 'none' }
 const phSt: CSSProperties = { display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: FG, textDecoration: 'none' }
@@ -111,7 +110,7 @@ function buildRecap(a: AcheterAnswers): string {
 
 function getMsg(q: AcheterQuestionId, a: AcheterAnswers): string {
   switch (q) {
-    case 'communes': return 'Dans quelle(s) commune(s) de Provence Verte & Haut-Var souhaitez-vous acheter\ ?'
+    case 'communes': return 'Dans quelle(s) commune(s) de Provence Verte & Verdon souhaitez-vous acheter\ ?'
     case 'budget_max': return 'Quel est votre budget maximum\ ?'
     case 'surface_min': return 'Quelle surface minimum recherchez-vous\ ?'
     case 'nb_pieces_min': return 'Combien de pi\èces minimum\ ?'
@@ -220,7 +219,7 @@ function InputZone({ q, a, onAnswer, onSubmit }: {
   onSubmit: (p: string, n: string, t: string, e: string, c: 'monsieur' | 'madame') => void
 }) {
   if (q === 'type_bien') return <Cards opts={TYPE_BIEN} cols={2} onPick={(v, l) => onAnswer('type_bien', v, l)} />
-  if (q === 'communes') return <TextInput placeholder="Ex\ : Brignoles, Cotignac, Barjols..." onSend={v => onAnswer('communes', v, v)} />
+  if (q === 'communes') return <TextInput placeholder="Ex\ : Barjols, Cotignac, Aups..." onSend={v => onAnswer('communes', v, v)} />
   if (q === 'budget_max') return <SliderInput unit="\€" min={50000} max={2000000} def={300000} step={10000} format={fmt} onOk={v => onAnswer('budget_max', v, fmt(v) + ' \€')} />
   if (q === 'surface_min') return <SliderInput unit="m\²" min={20} max={500} def={80} step={5} onOk={v => onAnswer('surface_min', v, v + ' m\²')} />
   if (q === 'nb_pieces_min') return <Cards opts={['1','2','3','4','5','6+'].map(n => ({ value: n, label: n, emoji: '' }))} cols={3} onPick={(v, l) => onAnswer('nb_pieces_min', parseInt(v) || 6, l + ' pi\èce' + (parseInt(v) !== 1 ? 's' : ''))} />
