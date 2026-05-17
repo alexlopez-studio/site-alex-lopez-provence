@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Phone, Mail, MapPin, Clock, Calendar } from 'lucide-react'
+import { Calendar, Clock, Mail, MapPin, Phone } from 'lucide-react'
 import { env } from '@/lib/env'
 import { ContactFormClient } from '@/components/forms/ContactFormClient'
 
@@ -41,96 +41,53 @@ export default function ContactPage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={buildInnerHtml(contactJsonLd)} />
 
-      {/* ===== HERO ===== */}
-      <section className="py-16 px-6 bg-surface">
-        <div className="max-w-[75rem] mx-auto text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand mb-4">Contact</p>
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-foreground mb-4 leading-tight">
-            Parlons de <span className="text-brand">votre projet.</span>
+      <section className="relative overflow-hidden bg-paper px-6 py-20 lg:py-24">
+        <div className="absolute left-0 top-0 h-80 w-80 -translate-x-1/2 rounded-full bg-brand-light/70 blur-3xl" />
+        <div className="relative mx-auto max-w-[75rem] text-center">
+          <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-brand">Contact</p>
+          <h1 className="font-serif text-4xl font-medium leading-[1.03] tracking-[-0.045em] text-foreground sm:text-5xl lg:text-6xl">
+            Parlons de votre projet immobilier.
           </h1>
-          <p className="text-muted leading-relaxed max-w-xl mx-auto">
-            Estimation gratuite, vente, achat ou simple question.
-            Je vous réponds sous 24h, sans engagement.
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted">
+            Estimation, vente, achat ou simple question sur le marché local en Provence Verte & Verdon. Je vous réponds personnellement, sans engagement.
           </p>
         </div>
       </section>
 
-      {/* ===== CONTENU PRINCIPAL ===== */}
-      <section className="py-16 px-6 bg-white">
-        <div className="max-w-[75rem] mx-auto grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-12 items-start">
-
-          {/* Formulaire */}
-          <div>
-            <h2 className="text-2xl font-extrabold text-foreground mb-2">Envoyez-moi un message</h2>
-            <p className="text-sm text-muted mb-8">Je vous réponds personnellement sous 24h.</p>
+      <section className="bg-white px-6 py-20">
+        <div className="mx-auto grid max-w-[75rem] items-start gap-10 lg:grid-cols-[1fr_25rem]">
+          <div className="rounded-[2rem] border border-border bg-paper p-6 shadow-sm md:p-8">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-brand">Message</p>
+            <h2 className="mb-2 text-2xl font-bold tracking-[-0.035em] text-foreground">Envoyez-moi les grandes lignes.</h2>
+            <p className="mb-8 text-sm leading-relaxed text-muted">Je vous réponds sous 24h avec un premier retour clair.</p>
             <ContactFormClient />
           </div>
 
-          {/* Infos de contact */}
-          <div className="space-y-6">
-
-            {/* RDV Cal.com */}
-            <div className="rounded-2xl border border-border bg-surface p-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand mb-3">Consultation gratuite</p>
-              <p className="text-base font-bold text-foreground mb-2">Prenez rendez-vous directement</p>
-              <p className="text-sm text-muted mb-5 leading-relaxed">
-                30 minutes par visio ou téléphone pour discuter de votre projet.
-                Sans engagement.
-              </p>
-              <a
-                href={calUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full rounded-full bg-brand py-3 text-sm font-semibold text-white hover:bg-brand-hover transition-colors"
-              >
-                <Calendar size={15} />
-                Réserver un créneau
+          <aside className="space-y-5">
+            <div className="rounded-[1.7rem] border border-border bg-foreground p-6 text-white shadow-xl">
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-light">Rendez-vous</p>
+              <h3 className="text-xl font-bold tracking-[-0.025em]">Choisir un créneau</h3>
+              <p className="mt-3 text-sm leading-relaxed text-white/70">30 minutes par téléphone ou visio pour cadrer votre besoin.</p>
+              <a href={calUrl} target="_blank" rel="noopener noreferrer" className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-hover">
+                <Calendar size={15} /> Réserver un créneau
               </a>
             </div>
 
-            {/* Coordonnées */}
-            <div className="rounded-2xl border border-border bg-white p-6 space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground mb-4">Coordonnées</p>
-
-              <a href={'tel:' + PHONE_RAW}
-                className="flex items-center gap-3 text-sm font-semibold text-foreground hover:text-brand transition-colors">
-                <div className="w-9 h-9 rounded-full bg-brand-light flex items-center justify-center shrink-0">
-                  <Phone size={15} className="text-brand" />
-                </div>
-                {PHONE_DISPLAY}
-              </a>
-
-              <a href={'mailto:' + EMAIL}
-                className="flex items-center gap-3 text-sm text-foreground hover:text-brand transition-colors">
-                <div className="w-9 h-9 rounded-full bg-brand-light flex items-center justify-center shrink-0">
-                  <Mail size={15} className="text-brand" />
-                </div>
-                {EMAIL}
-              </a>
-
-              <div className="flex items-center gap-3 text-sm text-muted">
-                <div className="w-9 h-9 rounded-full bg-brand-light flex items-center justify-center shrink-0">
-                  <MapPin size={15} className="text-brand" />
-                </div>
-                Provence Verte &amp; Verdon (Var, 83)
-              </div>
-
-              <div className="flex items-center gap-3 text-sm text-muted">
-                <div className="w-9 h-9 rounded-full bg-brand-light flex items-center justify-center shrink-0">
-                  <Clock size={15} className="text-brand" />
-                </div>
-                Disponible 7j/7 — Réponse sous 24h
+            <div className="rounded-[1.7rem] border border-border bg-white p-6 shadow-sm">
+              <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground">Coordonnées</p>
+              <div className="space-y-4">
+                <a href={'tel:' + PHONE_RAW} className="flex items-center gap-3 text-sm font-semibold text-foreground transition-colors hover:text-brand"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-light text-brand"><Phone size={16} /></span>{PHONE_DISPLAY}</a>
+                <a href={'mailto:' + EMAIL} className="flex items-center gap-3 text-sm text-foreground transition-colors hover:text-brand"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-light text-brand"><Mail size={16} /></span>{EMAIL}</a>
+                <div className="flex items-center gap-3 text-sm text-muted"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-light text-brand"><MapPin size={16} /></span>Provence Verte & Verdon (Var, 83)</div>
+                <div className="flex items-center gap-3 text-sm text-muted"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-light text-brand"><Clock size={16} /></span>Réponse sous 24h</div>
               </div>
             </div>
 
-            {/* Lien a-propos */}
-            <div className="rounded-2xl border border-border bg-surface p-6 text-center">
-              <p className="text-sm text-muted mb-3">Vous ne me connaissez pas encore ?</p>
-              <Link href="/a-propos" className="text-sm font-semibold text-brand hover:underline">
-                Découvrir mon approche →
-              </Link>
+            <div className="rounded-[1.7rem] border border-border bg-paper p-6 text-center">
+              <p className="text-sm text-muted">Vous ne me connaissez pas encore ?</p>
+              <Link href="/a-propos" className="mt-2 inline-flex text-sm font-semibold text-brand hover:underline">Découvrir mon approche →</Link>
             </div>
-          </div>
+          </aside>
         </div>
       </section>
     </>

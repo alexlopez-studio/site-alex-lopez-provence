@@ -6,11 +6,7 @@ import { env } from '@/lib/env'
 type PageProps = { params: Promise<{ commune: string }> }
 
 function formatCommune(slug: string) {
-  return slug
-    .split('-')
-    .filter(Boolean)
-    .map(function (part) { return part.charAt(0).toUpperCase() + part.slice(1) })
-    .join('-')
+  return slug.split('-').filter(Boolean).map(function (part) { return part.charAt(0).toUpperCase() + part.slice(1) }).join('-')
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -28,23 +24,19 @@ export default async function CommunePage({ params }: PageProps) {
   const label = formatCommune(commune)
 
   return (
-    <main className="bg-white px-6 py-20">
-      <div className="mx-auto max-w-3xl text-center">
-        <div className="mb-4 flex items-center justify-center gap-2 text-brand">
-          <MapPin size={18} />
-          <p className="text-xs font-semibold uppercase tracking-[0.18em]">Marché local</p>
+    <main>
+      <section className="relative overflow-hidden bg-paper px-6 py-20 lg:py-24">
+        <div className="absolute left-0 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-brand-light/70 blur-3xl" />
+        <div className="relative mx-auto max-w-3xl text-center">
+          <div className="mb-4 flex items-center justify-center gap-2 text-brand"><MapPin size={18} /><p className="text-xs font-semibold uppercase tracking-[0.22em]">Marché local</p></div>
+          <h1 className="font-serif text-4xl font-medium leading-tight tracking-[-0.045em] text-foreground md:text-6xl">Immobilier à {label}</h1>
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted">Cette page locale sera enrichie progressivement. En attendant, vous pouvez préparer votre projet ou demander un premier avis sur le marché de {label}.</p>
+          <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
+            <Link href="/outils" className="inline-flex items-center justify-center gap-2 rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-hover">Utiliser les outils <ArrowRight size={16} /></Link>
+            <Link href="/contact" className="inline-flex items-center justify-center rounded-full border border-border bg-white px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:border-brand hover:text-brand">Me contacter</Link>
+          </div>
         </div>
-        <h1 className="mb-5 text-3xl font-extrabold tracking-[-0.03em] text-foreground md:text-5xl">Immobilier à {label}</h1>
-        <p className="mx-auto mb-8 max-w-2xl text-muted leading-relaxed">Cette page locale sera enrichie progressivement. En attendant, vous pouvez préparer votre projet, demander un avis de valeur ou me contacter directement pour obtenir un premier retour sur le marché de {label}.</p>
-        <div className="flex flex-col justify-center gap-3 sm:flex-row">
-          <Link href="/outils" className="inline-flex items-center justify-center gap-2 rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white hover:bg-brand-hover transition-colors">
-            Utiliser les outils <ArrowRight size={16} />
-          </Link>
-          <Link href="/contact" className="inline-flex items-center justify-center rounded-full border border-border bg-white px-6 py-3 text-sm font-semibold text-foreground hover:border-brand hover:text-brand transition-colors">
-            Me contacter
-          </Link>
-        </div>
-      </div>
+      </section>
     </main>
   )
 }
