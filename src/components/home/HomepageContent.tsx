@@ -56,7 +56,7 @@ const entryPoints = [
 ]
 
 const trustItems = [
-  'Provence Verte & Haut-Var',
+  'Provence Verte & Verdon',
   'Avis de valeur offert',
   'Réponse personnalisée',
 ]
@@ -86,13 +86,13 @@ export default function HomepageContent({ posts }: { posts: BlogPost[] }) {
         >
           <div>
             <motion.p variants={fadeInUp} className="mb-5 text-[11px] font-semibold uppercase tracking-[0.22em] text-brand">
-              Conseiller immobilier iad — Provence Verte & Haut-Var
+              Conseiller immobilier iad — Provence Verte & Verdon
             </motion.p>
             <motion.h1 variants={fadeInUp} className="max-w-3xl font-serif text-4xl font-medium leading-[1.05] tracking-[-0.03em] text-foreground sm:text-5xl lg:text-6xl">
               Vendre, acheter ou estimer un bien avec un accompagnement local et clair.
             </motion.h1>
             <motion.p variants={fadeInUp} className="mt-6 max-w-2xl text-lg leading-relaxed text-muted">
-              Je vous aide à prendre les bonnes décisions immobilières en Provence Verte et dans le Haut-Var : avis de valeur, projet d’achat, bilan d’un bien et conseils de terrain.
+              Je vous aide à prendre les bonnes décisions immobilières en Provence Verte et dans le Verdon : avis de valeur, projet d’achat, bilan d’un bien et conseils de terrain.
             </motion.p>
 
             <motion.div variants={fadeInUp} className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -181,7 +181,7 @@ export default function HomepageContent({ posts }: { posts: BlogPost[] }) {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.22em]">Zone d’intervention</p>
               </div>
               <h2 className="font-serif text-3xl font-medium leading-tight tracking-[-0.03em] text-foreground md:text-4xl">
-                Une présence locale en Provence Verte et Haut-Var.
+                Une présence locale en Provence Verte et Verdon.
               </h2>
               <p className="mt-4 text-muted leading-relaxed">
                 Un projet immobilier dépend beaucoup du secteur, du type de bien et du niveau de demande. Mon rôle est de vous aider à lire ces éléments simplement.
