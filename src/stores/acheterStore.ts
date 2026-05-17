@@ -15,7 +15,7 @@ export type AcheterQuestionId =
   | 'recapitulatif' | 'coordonnees' | 'done'
 
 interface AcheterState {
-  messages: ChatMessage[]; currentQuestion: AcheterQuestionId; answers: AcheterAnswers
+  messages: ChatMessage[]; currentQuestion: AcheterQuestionId; answers: AcheterAnswers; updatedAt: number
   addMessage: (msg: Omit<ChatMessage, 'id'>) => void
   setAnswer: (key: keyof AcheterAnswers, value: AcheterAnswers[keyof AcheterAnswers]) => void
   setQuestion: (q: AcheterQuestionId) => void
@@ -30,12 +30,12 @@ const INIT: ChatMessage[] = [{
   timestamp: now(),
 }]
 
-const initial = { messages: INIT, currentQuestion: 'type_bien' as AcheterQuestionId, answers: {} as AcheterAnswers }
+const initial = { messages: INIT, currentQuestion: 'type_bien' as AcheterQuestionId, answers: {} as AcheterAnswers, updatedAt: 0 }
 
 export const useAcheterStore = create<AcheterState>()(persist((set) => ({
   ...initial,
-  addMessage: (msg) => set((s) => ({ messages: [...s.messages, { ...msg, id: Date.now().toString() }] })),
-  setAnswer: (key, value) => set((s) => ({ answers: { ...s.answers, [key]: value } })),
-  setQuestion: (q) => set({ currentQuestion: q }),
-  reset: () => set(initial),
+  addMessage: (msg) => set((s) => ({ messages: [...s.messages, { ...msg, id: Date.now().toString() }], updatedAt: Date.now() })),
+  setAnswer: (key, value) => set((s) => ({ answers: { ...s.answers, [key]: value }, updatedAt: Date.now() })),
+  setQuestion: (q) => set({ currentQuestion: q, updatedAt: Date.now() }),
+  reset: () => set({ ...initial, updatedAt: Date.now() }),
 }), { name: 'acheter-store' }))

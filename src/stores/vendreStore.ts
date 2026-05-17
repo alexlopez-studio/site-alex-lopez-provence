@@ -49,6 +49,7 @@ interface VendreState {
   messages: ChatMessage[]
   currentQuestion: QuestionId
   answers: VendreAnswers
+  updatedAt: number
   addMessage: (msg: Omit<ChatMessage, 'id'>) => void
   setAnswer: (key: keyof VendreAnswers, value: VendreAnswers[keyof VendreAnswers]) => void
   setQuestion: (q: QuestionId) => void
@@ -72,6 +73,7 @@ const initial = {
   messages: INITIAL_MESSAGES,
   currentQuestion: 'adresse' as QuestionId,
   answers: {} as VendreAnswers,
+  updatedAt: 0,
 }
 
 export const useVendreStore = create<VendreState>()(
@@ -79,11 +81,11 @@ export const useVendreStore = create<VendreState>()(
     (set) => ({
       ...initial,
       addMessage: (msg) =>
-        set((s) => ({ messages: [...s.messages, { ...msg, id: Date.now().toString() }] })),
+        set((s) => ({ messages: [...s.messages, { ...msg, id: Date.now().toString() }], updatedAt: Date.now() })),
       setAnswer: (key, value) =>
-        set((s) => ({ answers: { ...s.answers, [key]: value } })),
-      setQuestion: (q) => set({ currentQuestion: q }),
-      reset: () => set(initial),
+        set((s) => ({ answers: { ...s.answers, [key]: value }, updatedAt: Date.now() })),
+      setQuestion: (q) => set({ currentQuestion: q, updatedAt: Date.now() }),
+      reset: () => set({ ...initial, updatedAt: Date.now() }),
     }),
     { name: 'vendre-store' }
   )
