@@ -19,7 +19,7 @@ export type AuditQuestionId =
   | 'recapitulatif' | 'coordonnees' | 'done'
 
 interface AuditState {
-  messages: ChatMessage[]; currentQuestion: AuditQuestionId; answers: AuditAnswers
+  messages: ChatMessage[]; currentQuestion: AuditQuestionId; answers: AuditAnswers; updatedAt: number
   addMessage: (msg: Omit<ChatMessage, 'id'>) => void
   setAnswer: (key: keyof AuditAnswers, value: AuditAnswers[keyof AuditAnswers]) => void
   setQuestion: (q: AuditQuestionId) => void
@@ -34,12 +34,12 @@ const INIT: ChatMessage[] = [{
   timestamp: now(),
 }]
 
-const initial = { messages: INIT, currentQuestion: 'adresse' as AuditQuestionId, answers: {} as AuditAnswers }
+const initial = { messages: INIT, currentQuestion: 'adresse' as AuditQuestionId, answers: {} as AuditAnswers, updatedAt: 0 }
 
 export const useAuditStore = create<AuditState>()(persist((set) => ({
   ...initial,
-  addMessage: (msg) => set((s) => ({ messages: [...s.messages, { ...msg, id: Date.now().toString() }] })),
-  setAnswer: (key, value) => set((s) => ({ answers: { ...s.answers, [key]: value } })),
-  setQuestion: (q) => set({ currentQuestion: q }),
-  reset: () => set(initial),
+  addMessage: (msg) => set((s) => ({ messages: [...s.messages, { ...msg, id: Date.now().toString() }], updatedAt: Date.now() })),
+  setAnswer: (key, value) => set((s) => ({ answers: { ...s.answers, [key]: value }, updatedAt: Date.now() })),
+  setQuestion: (q) => set({ currentQuestion: q, updatedAt: Date.now() }),
+  reset: () => set({ ...initial, updatedAt: Date.now() }),
 }), { name: 'audit-store' }))
