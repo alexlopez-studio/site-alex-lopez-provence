@@ -4,22 +4,22 @@ import { getFeaturedArticles } from '@/lib/sanity.queries'
 import HomepageContent from '@/components/home/HomepageContent'
 
 export const metadata: Metadata = {
-  title: 'Aide à la décision immobilière — Alex Lopez IAD Provence Verte & Verdon',
+  title: 'Conseiller immobilier iad France — Provence Verte & Verdon',
   description:
-    'Des outils immobiliers gratuits et une analyse humaine pour estimer, vendre, acheter ou analyser un bien en Provence Verte et Verdon.',
+    'Alexandre Lopez, conseiller immobilier iad France en Provence Verte et Verdon. Estimation gratuite, vente, achat et accompagnement local.',
   openGraph: {
-    title: 'Alex Lopez — Outils & accompagnement immobilier en Provence Verte & Verdon',
+    title: 'Alexandre Lopez — Conseiller immobilier iad France en Provence Verte & Verdon',
     description:
-      'Commencez par un premier repère, puis affinez votre projet avec une lecture locale du marché immobilier en Provence Verte & Verdon.',
+      'Estimez votre bien gratuitement et avancez avec un conseiller immobilier local en Provence Verte & Verdon.',
     url: env.app.siteUrl,
   },
 }
 
 const FAQ_ITEMS = [
-  { question: 'À quoi servent les outils immobiliers ?', answer: "Les outils permettent d’obtenir un premier repère : estimation d’un bien, préparation d’un achat ou analyse des points de vigilance. Ils ne remplacent pas l’analyse humaine, mais aident à cadrer le projet." },
-  { question: 'Combien coûte une estimation immobilière en Provence Verte et Verdon ?', answer: "L’estimation est gratuite et sans engagement. Elle s’appuie sur les informations du bien, le marché local et une relecture humaine si vous souhaitez aller plus loin." },
-  { question: 'Pourquoi une analyse humaine reste importante ?', answer: "Un outil ne voit pas tout : état réel, exposition, environnement, potentiel, qualité de la demande, marge de négociation. L’accompagnement sert à donner du sens au premier résultat." },
-  { question: 'Quelles communes couvrez-vous en Provence Verte et Verdon ?', answer: "J’interviens sur l’ensemble de la Provence Verte et du Verdon : Barjols, Montmeyan, Quinson, Fox-Amphoux, Tavernes, Rians, Aups, Salernes, Ginasservis, Varages et les communes limitrophes." },
+  { question: 'Combien coûte une estimation immobilière en Provence Verte et Verdon ?', answer: "L’estimation est gratuite et sans engagement. Elle sert à obtenir un premier repère avant une analyse plus complète du bien et de son secteur." },
+  { question: 'Quelles communes couvrez-vous ?', answer: "J’interviens sur l’ensemble de la Provence Verte et du Verdon : Brignoles, Saint-Maximin, Barjols, Cotignac, Aups, Salernes, Montmeyan, Rians, Tavernes, Vinon-sur-Verdon et les communes limitrophes." },
+  { question: 'Puis-je préparer un achat avec vous ?', answer: "Oui. Vous pouvez clarifier votre budget, vos critères et vos secteurs prioritaires grâce à l’outil achat, puis échanger avec moi pour affiner votre recherche." },
+  { question: 'Pourquoi passer par un conseiller local ?', answer: "Un prix immobilier dépend fortement du village, de l’accès, du terrain, de l’état du bien, du DPE, de la demande locale et du potentiel. Une lecture locale permet de mieux décider." },
 ]
 
 const PHONE_RAW = '+33613180168'
@@ -35,11 +35,11 @@ function buildJsonLd(siteUrl: string) {
       {
         '@type': ['RealEstateAgent', 'LocalBusiness'],
         '@id': siteUrl + '/#business',
-        name: 'Alex Lopez — Mandataire Immobilier IAD',
-        description: 'Mandataire immobilier IAD en Provence Verte et Verdon. Outils immobiliers, estimation gratuite, vente et achat immobilier.',
+        name: 'Alexandre Lopez — Conseiller immobilier iad France',
+        description: 'Conseiller immobilier iad France en Provence Verte et Verdon. Estimation gratuite, vente et achat immobilier.',
         url: siteUrl,
         telephone: PHONE_RAW,
-        areaServed: ['Provence Verte', 'Verdon', 'Provence Verdon', 'Barjols', 'Montmeyan', 'Quinson', 'Fox-Amphoux', 'Tavernes', 'Rians', 'Aups', 'Salernes', 'Ginasservis', 'Varages'],
+        areaServed: ['Provence Verte', 'Verdon', 'Provence Verdon', 'Brignoles', 'Saint-Maximin-la-Sainte-Baume', 'Barjols', 'Cotignac', 'Aups', 'Salernes', 'Montmeyan', 'Rians', 'Tavernes', 'Vinon-sur-Verdon'],
         address: { '@type': 'PostalAddress', addressRegion: 'Var', addressCountry: 'FR' },
       },
       {
