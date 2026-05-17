@@ -6,7 +6,7 @@ import HomepageContent from '@/components/home/HomepageContent'
 export const metadata: Metadata = {
   title: 'Conseiller immobilier iad France — Provence Verte & Verdon',
   description:
-    'Alexandre Lopez, conseiller immobilier iad France en Provence Verte et Verdon. Estimation gratuite, vente, achat et accompagnement local.',
+    'Alexandre Lopez, conseiller immobilier iad France en Provence Verte & Verdon. Estimation gratuite, vente, achat et accompagnement local.',
   openGraph: {
     title: 'Alexandre Lopez — Conseiller immobilier iad France en Provence Verte & Verdon',
     description:
@@ -16,8 +16,8 @@ export const metadata: Metadata = {
 }
 
 const FAQ_ITEMS = [
-  { question: 'Combien coûte une estimation immobilière en Provence Verte et Verdon ?', answer: "L’estimation est gratuite et sans engagement. Elle sert à obtenir un premier repère avant une analyse plus complète du bien et de son secteur." },
-  { question: 'Quelles communes couvrez-vous ?', answer: "J’interviens sur l’ensemble de la Provence Verte et du Verdon : Brignoles, Saint-Maximin, Barjols, Cotignac, Aups, Salernes, Montmeyan, Rians, Tavernes, Vinon-sur-Verdon et les communes limitrophes." },
+  { question: 'Combien coûte une estimation immobilière en Provence Verte & Verdon ?', answer: "L’estimation est gratuite et sans engagement. Elle sert à obtenir un premier repère avant une analyse plus complète du bien et de son secteur." },
+  { question: 'Quelles communes couvrez-vous ?', answer: "J’interviens sur l’ensemble de la Provence Verte & Verdon : Brignoles, Saint-Maximin, Barjols, Cotignac, Aups, Salernes, Montmeyan, Rians, Tavernes, Vinon-sur-Verdon et les communes limitrophes." },
   { question: 'Puis-je préparer un achat avec vous ?', answer: "Oui. Vous pouvez clarifier votre budget, vos critères et vos secteurs prioritaires grâce à l’outil achat, puis échanger avec moi pour affiner votre recherche." },
   { question: 'Pourquoi passer par un conseiller local ?', answer: "Un prix immobilier dépend fortement du village, de l’accès, du terrain, de l’état du bien, du DPE, de la demande locale et du potentiel. Une lecture locale permet de mieux décider." },
 ]
@@ -36,10 +36,10 @@ function buildJsonLd(siteUrl: string) {
         '@type': ['RealEstateAgent', 'LocalBusiness'],
         '@id': siteUrl + '/#business',
         name: 'Alexandre Lopez — Conseiller immobilier iad France',
-        description: 'Conseiller immobilier iad France en Provence Verte et Verdon. Estimation gratuite, vente et achat immobilier.',
+        description: 'Conseiller immobilier iad France en Provence Verte & Verdon. Estimation gratuite, vente et achat immobilier.',
         url: siteUrl,
         telephone: PHONE_RAW,
-        areaServed: ['Provence Verte', 'Verdon', 'Provence Verdon', 'Brignoles', 'Saint-Maximin-la-Sainte-Baume', 'Barjols', 'Cotignac', 'Aups', 'Salernes', 'Montmeyan', 'Rians', 'Tavernes', 'Vinon-sur-Verdon'],
+        areaServed: ['Provence Verte & Verdon', 'Provence Verte', 'Verdon', 'Brignoles', 'Saint-Maximin-la-Sainte-Baume', 'Barjols', 'Cotignac', 'Aups', 'Salernes', 'Montmeyan', 'Rians', 'Tavernes', 'Vinon-sur-Verdon'],
         address: { '@type': 'PostalAddress', addressRegion: 'Var', addressCountry: 'FR' },
       },
       {
