@@ -12,7 +12,7 @@ import { editorialVisuals } from '@/lib/site-visuals'
 const PHONE_RAW = '+33613180168'
 export type EditorialNamespace = 'vendre' | 'acheter' | 'audit'
 function PrimaryLink({ href, children }: { href: string; children: React.ReactNode }) { return <Link href={href} className="inline-flex items-center justify-center gap-2 rounded-full bg-brand px-7 py-4 text-sm font-bold text-white shadow-[0_14px_30px_rgba(0,180,236,0.24)] transition-all hover:-translate-y-0.5 hover:bg-brand-hover hover:shadow-[0_18px_40px_rgba(0,180,236,0.32)]">{children}</Link> }
-function OutlinePhone({ children }: { children: React.ReactNode }) { return <a href={'tel:' + PHONE_RAW} className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-brand px-7 py-4 text-sm font-bold text-brand transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white">{children}</a> }
+function OutlinePhone({ children }: { children: React.ReactNode }) { return <a href={'tel:' + PHONE_RAW} className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-white/80 px-7 py-4 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-white hover:text-foreground">{children}</a> }
 
 export default function EditorialPage({ namespace, simulatorHref }: { namespace: EditorialNamespace; simulatorHref: string }) {
   const t = useTranslations(namespace)
@@ -25,15 +25,18 @@ export default function EditorialPage({ namespace, simulatorHref }: { namespace:
   const faqs = ([1, 2, 3, 4] as const).map((n) => ({ q: copy('q' + n + 'q'), a: copy('q' + n + 'a') }))
   return (
     <>
-      <section className="relative overflow-hidden bg-[#f4f7f8] px-6 pb-16 pt-28 lg:pb-24 lg:pt-36">
-        <div className="absolute right-0 top-0 h-[34rem] w-[34rem] translate-x-1/3 rounded-full bg-brand-light/70 blur-3xl" /><div className="absolute bottom-0 left-0 h-[24rem] w-[24rem] -translate-x-1/2 rounded-full bg-white blur-3xl" />
-        <motion.div variants={stagger} initial="initial" animate="animate" className="relative mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1fr_0.9fr]">
-          <div><motion.div variants={fadeInUp} className="mb-6 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-foreground shadow-sm"><Sparkles size={15} className="text-brand" /> {copy('heroEyebrow')}</motion.div><motion.h1 variants={fadeInUp} className="max-w-3xl text-4xl font-bold leading-[1.04] tracking-[-0.05em] text-foreground md:text-6xl lg:text-7xl">{copy('heroTitleLine1')} <span className="text-brand">{copy('heroTitleAccent')}</span></motion.h1><motion.p variants={fadeInUp} className="mt-7 max-w-2xl text-lg leading-relaxed text-muted md:text-xl">{copy('heroSubtitle')}</motion.p><motion.div variants={fadeInUp} className="mt-9 flex flex-col gap-4 sm:flex-row"><PrimaryLink href={simulatorHref}>{copy('heroCtaSimulator')} <ArrowRight size={18} /></PrimaryLink><OutlinePhone><Phone size={16} /> {copy('heroCtaPhone')}</OutlinePhone></motion.div><motion.div variants={staggerFast} className="mt-8 flex flex-wrap gap-2">{[visual.focus, 'Provence Verte & Verdon', 'Réponse personnalisée'].map((item) => <motion.span key={item} variants={fadeInUp} className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-foreground shadow-sm"><CheckCircle2 size={14} className="text-brand" /> {item}</motion.span>)}</motion.div></div>
-          <motion.div variants={scaleIn} className="relative mx-auto min-h-[30rem] w-full max-w-[34rem] overflow-hidden rounded-[2rem] shadow-2xl lg:ml-auto">
-            <Image src={visual.heroImage} alt={visual.heroAlt} fill priority sizes="(min-width: 1024px) 42vw, 100vw" className="object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#101828]/74 via-[#101828]/14 to-transparent" />
-            <div className="absolute bottom-6 left-6 right-6 rounded-2xl bg-white/92 px-5 py-4 shadow-xl backdrop-blur"><p className="text-sm font-bold text-foreground">{visual.label}</p><p className="text-xs text-muted">Provence Verte & Verdon</p></div>
-          </motion.div>
+      <section className="relative min-h-[44rem] overflow-hidden px-6 pb-16 pt-28 text-white lg:min-h-screen lg:pb-24 lg:pt-36">
+        <Image src={visual.heroImage} alt={visual.heroAlt} fill priority sizes="100vw" className="object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#101828]/88 via-[#101828]/58 to-[#101828]/18" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#101828]/54 via-transparent to-[#101828]/20" />
+        <motion.div variants={stagger} initial="initial" animate="animate" className="relative mx-auto flex min-h-[32rem] max-w-7xl items-end lg:min-h-[42rem]">
+          <div className="max-w-3xl">
+            <motion.div variants={fadeInUp} className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/12 px-4 py-2 text-sm font-semibold text-white shadow-sm backdrop-blur"><Sparkles size={15} className="text-brand-light" /> {copy('heroEyebrow')}</motion.div>
+            <motion.h1 variants={fadeInUp} className="max-w-3xl text-4xl font-bold leading-[1.04] tracking-[-0.05em] text-white md:text-6xl lg:text-7xl">{copy('heroTitleLine1')} <span className="text-brand-light">{copy('heroTitleAccent')}</span></motion.h1>
+            <motion.p variants={fadeInUp} className="mt-7 max-w-2xl text-lg leading-relaxed text-white/84 md:text-xl">{copy('heroSubtitle')}</motion.p>
+            <motion.div variants={fadeInUp} className="mt-9 flex flex-col gap-4 sm:flex-row"><PrimaryLink href={simulatorHref}>{copy('heroCtaSimulator')} <ArrowRight size={18} /></PrimaryLink><OutlinePhone><Phone size={16} /> {copy('heroCtaPhone')}</OutlinePhone></motion.div>
+            <motion.div variants={staggerFast} className="mt-8 flex flex-wrap gap-2">{[visual.focus, 'Provence Verte & Verdon', 'Réponse personnalisée'].map((item) => <motion.span key={item} variants={fadeInUp} className="inline-flex items-center gap-2 rounded-full border border-white/18 bg-white/12 px-4 py-2 text-sm font-medium text-white shadow-sm backdrop-blur"><CheckCircle2 size={14} className="text-brand-light" /> {item}</motion.span>)}</motion.div>
+          </div>
         </motion.div>
       </section>
 

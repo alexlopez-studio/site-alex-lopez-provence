@@ -43,32 +43,24 @@ export default function ContactPage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={buildInnerHtml(contactJsonLd)} />
 
-      <section className="relative overflow-hidden bg-[#f4f7f8] px-6 pb-16 pt-28 lg:pb-24 lg:pt-36">
-        <div className="absolute right-0 top-0 h-[34rem] w-[34rem] translate-x-1/3 rounded-full bg-brand-light/70 blur-3xl" />
-        <div className="absolute bottom-0 left-0 h-[24rem] w-[24rem] -translate-x-1/2 rounded-full bg-white blur-3xl" />
-        <div className="relative mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1fr_0.9fr]">
-          <div>
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-foreground shadow-sm">
-              <MapPin size={15} className="text-brand" /> Provence Verte & Verdon
+      <section className="relative min-h-[44rem] overflow-hidden px-6 pb-16 pt-28 text-white lg:min-h-screen lg:pb-24 lg:pt-36">
+        <Image src={siteVisuals.contactVillage.src} alt={siteVisuals.contactVillage.alt} fill priority sizes="100vw" className="object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#101828]/88 via-[#101828]/58 to-[#101828]/18" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#101828]/54 via-transparent to-[#101828]/20" />
+        <div className="relative mx-auto flex min-h-[32rem] max-w-7xl items-end lg:min-h-[42rem]">
+          <div className="max-w-3xl">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/12 px-4 py-2 text-sm font-semibold text-white shadow-sm backdrop-blur">
+              <MapPin size={15} className="text-brand-light" /> Provence Verte & Verdon
             </div>
-            <h1 className="max-w-3xl text-4xl font-bold leading-[1.04] tracking-[-0.05em] text-foreground md:text-6xl lg:text-7xl">
-              Parlons de votre <span className="text-brand">projet immobilier</span>.
+            <h1 className="max-w-3xl text-4xl font-bold leading-[1.04] tracking-[-0.05em] text-white md:text-6xl lg:text-7xl">
+              Parlons de votre <span className="text-brand-light">projet immobilier</span>.
             </h1>
-            <p className="mt-7 max-w-2xl text-lg leading-relaxed text-muted md:text-xl">
+            <p className="mt-7 max-w-2xl text-lg leading-relaxed text-white/84 md:text-xl">
               Estimation, vente, achat ou simple question sur le marché local. Je vous réponds personnellement avec une première lecture claire, sans engagement.
             </p>
             <div className="mt-9 flex flex-col gap-4 sm:flex-row">
               <Link href="#message" className="inline-flex items-center justify-center gap-2 rounded-full bg-brand px-7 py-4 text-sm font-bold text-white shadow-[0_14px_30px_rgba(0,180,236,0.24)] transition-all hover:-translate-y-0.5 hover:bg-brand-hover hover:shadow-[0_18px_40px_rgba(0,180,236,0.32)]">Envoyer un message <ArrowRight size={18} /></Link>
-              <a href={'tel:' + PHONE_RAW} className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-brand px-7 py-4 text-sm font-bold text-brand transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white"><Phone size={16} /> {PHONE_DISPLAY}</a>
-            </div>
-          </div>
-
-          <div className="relative mx-auto min-h-[30rem] w-full max-w-[34rem] overflow-hidden rounded-[2rem] shadow-2xl lg:ml-auto">
-            <Image src={siteVisuals.contactVillage.src} alt={siteVisuals.contactVillage.alt} fill priority sizes="(min-width: 1024px) 42vw, 100vw" className="object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#101828]/72 via-[#101828]/12 to-transparent" />
-            <div className="absolute bottom-6 left-6 right-6 rounded-2xl bg-white/92 px-5 py-4 shadow-xl backdrop-blur">
-              <p className="text-sm font-bold text-foreground">Réponse personnalisée</p>
-              <p className="text-xs text-muted">Par téléphone, email ou rendez-vous</p>
+              <a href={'tel:' + PHONE_RAW} className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-white/80 px-7 py-4 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-white hover:text-foreground"><Phone size={16} /> {PHONE_DISPLAY}</a>
             </div>
           </div>
         </div>

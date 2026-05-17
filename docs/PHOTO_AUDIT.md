@@ -15,6 +15,7 @@ Renforcer la cohérence visuelle du site autour d’un univers plus local, immob
 - Ne pas surutiliser les mêmes images d’une page à l’autre.
 - Optimiser les images lourdes avant usage intensif.
 - Limiter fortement le portrait d’Alexandre : il doit créer de la confiance, pas devenir une répétition sur chaque page.
+- Les visuels de hero secondaires doivent être **full bleed** : la photo recouvre toute la section, avec un overlay sombre et le contenu posé dessus. Pas d’image en encadré.
 
 ## Inventaire initial
 
@@ -49,6 +50,7 @@ Renforcer la cohérence visuelle du site autour d’un univers plus local, immob
   - `/audit` : façade / maison à observer, source Pexels.
   - `/a-propos` : rue / bâtiments provençaux, source Pexels + maison de Cotignac en section parcours.
   - `/contact` : ambiance village / proximité, source Pexels.
+- Les visuels de hero recouvrent maintenant toute la section : suppression de l’image en encadré, ajout d’overlays pour garder la lisibilité du texte.
 - Les visuels éditoriaux distinguent maintenant image de hero et image de section, pour éviter le même rendu répété dans une page.
 - Les choix sont centralisés dans `src/lib/site-visuals.ts` avec source, crédit et usage recommandé.
 
