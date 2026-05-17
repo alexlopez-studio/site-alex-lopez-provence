@@ -84,6 +84,16 @@ body {
   margin: 1rem 0;
 }
 
+/* ─── Photo de profil dans les bulles conversationnelles des outils ─── */
+div[style*="width: 36px"][style*="height: 36px"][style*="border-radius: 999px"][style*="background-color: rgb(0, 119, 182)"] {
+  background-image: url('/alexandre-lopez-face.jpg') !important;
+  background-position: center !important;
+  background-size: cover !important;
+  color: transparent !important;
+  border: 2px solid #FFFFFF !important;
+  box-shadow: 0 1px 6px rgba(15, 23, 42, 0.12) !important;
+}
+
 /* ─── Gélule corail iad — CTA principal (1× par page, inclinée -10° charte) ─── */
 .iad-pill-cta {
   display: inline-flex;

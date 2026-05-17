@@ -74,6 +74,7 @@ export async function computeLeadResults(
   }
 
   if (type === 'audit') {
+    const isolation = arr(data.isolation) ?? []
     const output = auditor({
       etat_toiture: str(data.etat_toiture),
       etat_facade: str(data.etat_facade),
@@ -81,9 +82,9 @@ export async function computeLeadResults(
       etat_plomberie: str(data.etat_plomberie),
       etat_electricite: str(data.etat_electricite),
       humidite: bool(data.humidite),
-      isolation_murs: str(data.isolation_murs),
-      isolation_combles: str(data.isolation_combles),
-      isolation_fenetres: str(data.isolation_fenetres),
+      isolation_murs: str(data.isolation_murs) ?? (hasLabel(isolation, 'Murs isolés') ? 'bonne' : undefined),
+      isolation_combles: str(data.isolation_combles) ?? (hasLabel(isolation, 'Combles isolés') ? 'bonne' : undefined),
+      isolation_fenetres: str(data.isolation_fenetres) ?? (hasLabel(isolation, 'Double vitrage') ? 'double_vitrage' : undefined),
       type_chauffage: str(data.type_chauffage),
       age_chauffage: num(data.age_chauffage),
       dpe: str(data.dpe),
@@ -110,11 +111,21 @@ function str(v: unknown): string | undefined {
 }
 
 function bool(v: unknown): boolean | undefined {
-  return typeof v === 'boolean' ? v : undefined
+  if (typeof v === 'boolean') return v
+  if (typeof v === 'string') {
+    const normalized = v.trim().toLowerCase()
+    if (['oui', 'true', '1'].includes(normalized)) return true
+    if (['non', 'false', '0'].includes(normalized)) return false
+  }
+  return undefined
 }
 
 function arr(v: unknown): string[] | undefined {
   if (!Array.isArray(v)) return undefined
   const onlyStrings = v.filter((x): x is string => typeof x === 'string')
   return onlyStrings.length > 0 ? onlyStrings : undefined
+}
+
+function hasLabel(values: string[], label: string): boolean {
+  return values.some((value) => value.toLowerCase() === label.toLowerCase())
 }
