@@ -30,7 +30,7 @@ function now() { return new Date().toLocaleTimeString('fr-FR', { hour: '2-digit'
 
 const INIT: ChatMessage[] = [{
   id: '1', from: 'al',
-  text: "Bonjour\ ! Je suis Alex Lopez, votre conseiller immobilier.\n\nJe vais r\éaliser un audit express de votre bien en quelques minutes.\n\nCommen\çons par l'adresse du bien\ !",
+  text: "Bonjour, je suis Alex Lopez.\n\nJe vais vous aider à faire un point rapide sur un bien : état général, énergie, humidité, isolation, chauffage et objectif du projet.\n\nCe bilan ne remplace pas un diagnostic professionnel, mais il permet d’identifier les premiers points de vigilance. Commençons par l’adresse du bien.",
   timestamp: now(),
 }]
 
