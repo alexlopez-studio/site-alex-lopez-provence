@@ -13,7 +13,7 @@ export type EditorialNamespace = 'vendre' | 'acheter' | 'audit'
 const visualByNamespace: Record<EditorialNamespace, { image: string; label: string; note: string; focus: string }> = {
   vendre: { image: '/village-cotignac.jpg', label: 'Vente immobilière', note: 'Positionner, valoriser, négocier avec méthode.', focus: 'Vendre au bon prix, avec une stratégie claire.' },
   acheter: { image: '/maison-bleue-cotignac.jpg', label: 'Projet d’achat', note: 'Cadrer la recherche et sécuriser chaque étape.', focus: 'Acheter avec des critères solides et un budget cohérent.' },
-  audit: { image: '/vignobles-var.jpg', label: 'Point sur le bien', note: 'Identifier les points utiles avant de décider.', focus: 'Repérer les points de vigilance avant de vous engager.' },
+  audit: { image: '/maison-bleue-cotignac.jpg', label: 'Audit immobilier', note: 'Observer le bâti, repérer les points utiles et décider avec recul.', focus: 'Repérer les points de vigilance avant de vous engager.' },
 }
 function PrimaryLink({ href, children }: { href: string; children: React.ReactNode }) { return <Link href={href} className="inline-flex items-center justify-center gap-2 rounded-full bg-brand px-7 py-4 text-sm font-bold text-white shadow-[0_14px_30px_rgba(0,180,236,0.24)] transition-all hover:-translate-y-0.5 hover:bg-brand-hover hover:shadow-[0_18px_40px_rgba(0,180,236,0.32)]">{children}</Link> }
 function OutlinePhone({ children }: { children: React.ReactNode }) { return <a href={'tel:' + PHONE_RAW} className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-brand px-7 py-4 text-sm font-bold text-brand transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white">{children}</a> }
