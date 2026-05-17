@@ -1,15 +1,9 @@
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
-import { Phone, Mail, Instagram, Linkedin, Facebook } from 'lucide-react'
+import { Phone, Mail } from 'lucide-react'
 
 const PHONE_RAW = '+33613180168'
 const EMAIL = 'alex@alexlopez-provence.fr'
-
-const SOCIAL_LINKS = [
-  { icon: Instagram, label: 'Instagram', href: '#' },
-  { icon: Linkedin, label: 'LinkedIn', href: '#' },
-  { icon: Facebook, label: 'Facebook', href: '#' },
-]
 
 export async function Footer() {
   const t = await getTranslations('footer')
@@ -20,9 +14,7 @@ export async function Footer() {
   return (
     <footer className="bg-brand-dark text-white">
       <div className="max-w-[75rem] mx-auto px-6 py-14">
-
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 mb-10">
-
           <div>
             <div className="mb-4 leading-tight">
               <span className="font-script text-[36px] text-white block leading-none">Alexandre Lopez</span>
@@ -54,18 +46,15 @@ export async function Footer() {
           <div className="flex flex-col justify-between gap-8">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-white mb-5">
-                {t('socialTitle')}
+                Navigation
               </p>
-              <div className="flex items-center gap-3">
-                {SOCIAL_LINKS.map(function (s) {
-                  const Icon = s.icon
-                  return (
-                    <a key={s.label} href={s.href} aria-label={s.label} target="_blank" rel="noopener noreferrer"
-                      className="w-9 h-9 rounded-full border border-white/30 flex items-center justify-center text-white/85 hover:text-white hover:border-white transition-colors">
-                      <Icon size={16} />
-                    </a>
-                  )
-                })}
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <Link href="/vendre" className="text-white/75 hover:text-white transition-colors">Vendre</Link>
+                <Link href="/acheter" className="text-white/75 hover:text-white transition-colors">Acheter</Link>
+                <Link href="/audit" className="text-white/75 hover:text-white transition-colors">Audit</Link>
+                <Link href="/blog" className="text-white/75 hover:text-white transition-colors">Blog</Link>
+                <Link href="/outils" className="text-white/75 hover:text-white transition-colors">Outils</Link>
+                <Link href="/contact" className="text-white/75 hover:text-white transition-colors">Contact</Link>
               </div>
             </div>
             <div className="flex items-end justify-start sm:justify-end">
@@ -75,7 +64,6 @@ export async function Footer() {
               </div>
             </div>
           </div>
-
         </div>
 
         <div className="border-t border-white/20 pt-6 mb-6">
@@ -97,7 +85,6 @@ export async function Footer() {
             </Link>
           </div>
         </div>
-
       </div>
     </footer>
   )

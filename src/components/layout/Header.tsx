@@ -13,11 +13,11 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const assistantUrl = '/outils'
 
-  // Navigation simplifiée - uniquement l'essentiel
   const NAV_LINKS = [
     { label: t('navSell'), href: '/vendre' },
     { label: t('navBuy'), href: '/acheter' },
     { label: t('navAudit'), href: '/audit' },
+    { label: t('navBlog'), href: '/blog' },
     { label: t('navApproach'), href: '/a-propos' },
   ]
 
@@ -44,15 +44,12 @@ export function Header() {
       }
     >
       <div className="max-w-[75rem] mx-auto px-6 flex items-center justify-between">
-
-        {/* Logo simplifié - uniquement le nom */}
         <Link href="/" className="shrink-0">
           <span className="font-script text-2xl md:text-3xl text-foreground font-medium">
             Alexandre Lopez
           </span>
         </Link>
 
-        {/* Navigation desktop - 4 liens maximum */}
         <nav className="hidden lg:flex items-center gap-8" aria-label="Navigation">
           {NAV_LINKS.map(function (link) {
             return (
@@ -64,11 +61,8 @@ export function Header() {
           })}
         </nav>
 
-        {/* Actions droite : Langue + CTA */}
         <div className="hidden lg:flex items-center gap-4 shrink-0">
-          {/* Selecteur de langue - drapeaux uniquement */}
           <LocaleSwitcher />
-          
           <Button asChild size="sm" variant="primary">
             <Link href={assistantUrl}>
               {t('ctaEstimate')}
@@ -76,7 +70,6 @@ export function Header() {
           </Button>
         </div>
 
-        {/* Menu burger mobile */}
         <button
           className="lg:hidden p-2 -mr-2 rounded-lg text-foreground hover:bg-surface transition-colors"
           onClick={function () { setMenuOpen(function (v) { return !v }) }}
@@ -84,18 +77,14 @@ export function Header() {
           aria-expanded={menuOpen}>
           {menuOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
-
       </div>
 
-      {/* Menu mobile overlay */}
       {menuOpen && (
         <div className="lg:hidden absolute top-full left-0 right-0 bg-white border-b border-border shadow-lg">
           <div className="max-w-[75rem] mx-auto px-6 py-6 space-y-2">
-            {/* Selecteur de langue mobile */}
             <div className="flex items-center gap-2 pb-4 border-b border-border mb-2">
               <LocaleSwitcher />
             </div>
-            
             {NAV_LINKS.map(function (link) {
               return (
                 <Link key={link.href} href={link.href}
