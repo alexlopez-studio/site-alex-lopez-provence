@@ -26,7 +26,7 @@ function now() { return new Date().toLocaleTimeString('fr-FR', { hour: '2-digit'
 
 const INIT: ChatMessage[] = [{
   id: '1', from: 'al',
-  text: "Bonjour\ ! Je suis Alex Lopez, votre conseiller immobilier en Provence Verte & Haut-Var.\n\nJe vais vous aider \à d\éfinir votre projet d'achat pour trouver le bien id\éal.\n\nQuel type de bien recherchez-vous\ ?",
+  text: "Bonjour, je suis Alex Lopez.\n\nJe vais vous aider à cadrer votre projet d’achat en Provence Verte & Verdon : type de bien, communes ciblées, budget, critères importants et financement.\n\nL’objectif est simple : clarifier votre recherche avant de visiter. Quel type de bien recherchez-vous ?",
   timestamp: now(),
 }]
 

@@ -63,7 +63,7 @@ const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: '1',
     from: 'al',
-    text: "Bonjour\ ! Je suis Alex Lopez, votre conseiller immobilier. Je vais vous aider \à estimer la valeur de votre bien en quelques minutes.\n\nCommen\çons par l'adresse de votre bien s'il vous pla\ît\ !",
+    text: "Bonjour, je suis Alex Lopez.\n\nJe vais vous aider à obtenir un premier repère de valeur pour votre bien. L’objectif n’est pas de remplacer une visite ou une analyse humaine, mais de cadrer le sujet : adresse, type de bien, surface, état, DPE et projet de vente.\n\nCommençons par l’adresse du bien.",
     timestamp: now(),
   },
 ]
