@@ -9,6 +9,7 @@ import type { AcheterAnswers, AcheterQuestionId } from '@/stores/acheterStore'
 
 const PHONE_RAW = '+33613180168'
 const BRAND = '#0077B6'
+const PROFILE_IMAGE = '/alexandre-lopez-face.jpg'
 
 const STEPS = [
   { n: 1, label: 'Projet', qs: ['type_bien', 'communes', 'budget_max', 'surface_min', 'nb_pieces_min'] },
@@ -58,6 +59,12 @@ function ts() {
   return new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
 }
 
+async function warnIfApiFailed(response: Response, context: string) {
+  if (response.ok) return
+  const body = await response.text().catch(() => '')
+  console.warn('[outils/acheter] ' + context + ' erreur', response.status, body)
+}
+
 function buildRecap(a: AcheterAnswers): string {
   const lines = ['Très bien, voici le récapitulatif de votre projet d’achat :', '']
   lines.push('🏠 ' + (BIEN_LBL[a.type_bien ?? ''] ?? 'Bien à préciser'))
@@ -90,7 +97,7 @@ function getMsg(q: AcheterQuestionId, a: AcheterAnswers): string {
 }
 
 function Avatar() {
-  return <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">AL</div>
+  return <img src={PROFILE_IMAGE} alt="Alexandre Lopez" className="h-9 w-9 shrink-0 rounded-full border-2 border-white object-cover shadow-sm ring-1 ring-brand-light" />
 }
 
 function Stepper({ q }: { q: AcheterQuestionId }) {
@@ -147,7 +154,7 @@ export default function AcheterPage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...answers, prenom, nom, telephone, email, civilite, token, type: 'acheter', opt_in: true }),
-    }).catch(() => null)
+    }).then((response) => warnIfApiFailed(response, '/api/leads')).catch((error) => console.warn('[outils/acheter] /api/leads indisponible', error))
     router.push('/resultats/' + token)
   }
 

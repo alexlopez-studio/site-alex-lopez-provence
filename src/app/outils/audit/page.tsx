@@ -9,6 +9,7 @@ import type { AuditAnswers, AuditQuestionId } from '@/stores/auditStore'
 
 const PHONE_RAW = '+33613180168'
 const BRAND = '#0077B6'
+const PROFILE_IMAGE = '/alexandre-lopez-face.jpg'
 
 const STEPS = [
   { n: 1, label: 'Bien', qs: ['adresse', 'type_bien', 'surface'] },
@@ -86,6 +87,12 @@ function ts() {
   return new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
 }
 
+async function warnIfApiFailed(response: Response, context: string) {
+  if (response.ok) return
+  const body = await response.text().catch(() => '')
+  console.warn('[outils/audit] ' + context + ' erreur', response.status, body)
+}
+
 function buildRecap(a: AuditAnswers): string {
   const lines = ['Voici le récapitulatif de votre audit :', '']
   lines.push('🏠 ' + (BIEN_LBL[a.type_bien ?? ''] ?? 'Bien'))
@@ -131,7 +138,7 @@ function getMsg(q: AuditQuestionId, a: AuditAnswers): string {
 }
 
 function Avatar() {
-  return <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">AL</div>
+  return <img src={PROFILE_IMAGE} alt="Alexandre Lopez" className="h-9 w-9 shrink-0 rounded-full border-2 border-white object-cover shadow-sm ring-1 ring-brand-light" />
 }
 
 function Stepper({ q }: { q: AuditQuestionId }) {
@@ -188,7 +195,7 @@ export default function AuditPage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...answers, prenom, nom, telephone, email, civilite, token, type: 'audit', opt_in: true }),
-    }).catch(() => null)
+    }).then((response) => warnIfApiFailed(response, '/api/leads')).catch((error) => console.warn('[outils/audit] /api/leads indisponible', error))
     router.push('/resultats/' + token)
   }
 
