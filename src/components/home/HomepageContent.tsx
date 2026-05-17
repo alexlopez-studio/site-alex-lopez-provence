@@ -130,17 +130,13 @@ export default function HomepageContent({ posts }: { posts: BlogPost[] }) {
             </motion.div>
           </div>
 
-          <motion.div variants={scaleIn} className="relative mx-auto w-full max-w-[31rem] lg:ml-auto">
+          <motion.div variants={scaleIn} className="relative mx-auto flex min-h-[32rem] w-full max-w-[34rem] items-end justify-center lg:ml-auto">
             <div className="absolute inset-x-8 bottom-0 h-40 rounded-full bg-brand/20 blur-3xl" />
-            <div className="relative overflow-hidden rounded-[2.4rem] border border-white bg-white shadow-2xl">
-              <div className="absolute inset-0 bg-gradient-to-br from-brand-light via-white to-[#eaeef1]" />
-              <div className="relative flex min-h-[34rem] items-end justify-center px-8 pt-8">
-                <Image src="/alexandre-lopez-no-background.png" alt="Alexandre Lopez, conseiller immobilier iad France en Provence Verte et Verdon" width={720} height={900} priority className="h-auto max-h-[33rem] w-auto object-contain" />
-              </div>
-              <div className="relative border-t border-border bg-white/92 p-5 backdrop-blur">
-                <p className="text-sm font-bold text-foreground">Alexandre Lopez</p>
-                <p className="text-sm text-muted">Conseiller immobilier iad France · Provence Verte & Verdon</p>
-              </div>
+            <div className="absolute bottom-0 h-[82%] w-[82%] rounded-t-full bg-gradient-to-br from-brand-light via-white to-[#eaeef1]" />
+            <Image src="/alexandre-lopez-no-background.png" alt="Alexandre Lopez, conseiller immobilier iad France en Provence Verte et Verdon" width={760} height={920} priority className="relative z-10 h-auto max-h-[35rem] w-auto object-contain drop-shadow-2xl" />
+            <div className="absolute bottom-6 left-0 z-20 rounded-2xl bg-white/90 px-5 py-4 shadow-xl backdrop-blur">
+              <p className="text-sm font-bold text-foreground">Alexandre Lopez</p>
+              <p className="text-xs text-muted">Conseiller immobilier iad France</p>
             </div>
           </motion.div>
         </motion.div>

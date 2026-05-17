@@ -1,14 +1,14 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, Calendar, CheckCircle2, MapPin, Phone } from 'lucide-react'
+import { ArrowRight, Calendar, CheckCircle2, MapPin, Phone, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { env } from '@/lib/env'
 
 export const metadata: Metadata = {
-  title: 'Mon approche — Alex Lopez, Mandataire IAD Provence Verte & Verdon',
+  title: 'Mon approche — Alexandre Lopez, conseiller immobilier iad Provence Verte & Verdon',
   description:
-    'Mandataire immobilier IAD en Provence Verte et Verdon. Découvrez mon parcours, mes valeurs et ma méthode pour vous accompagner dans votre projet immobilier.',
+    'Alexandre Lopez, conseiller immobilier iad France en Provence Verte et Verdon. Une approche locale, claire et structurée pour vendre, acheter ou estimer un bien.',
   alternates: { canonical: (env.app.siteUrl || 'https://alexlopez-provence.fr') + '/a-propos' },
 }
 
@@ -18,24 +18,24 @@ const PHONE_DISPLAY = '06 13 18 01 68'
 const personJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Person',
-  name: 'Alex Lopez',
-  jobTitle: 'Mandataire immobilier IAD',
+  name: 'Alexandre Lopez',
+  jobTitle: 'Conseiller immobilier iad France',
   description:
-    'Mandataire immobilier IAD en Provence Verte et Verdon, spécialisé dans la vente et l\'achat de biens immobiliers.',
+    'Conseiller immobilier iad France en Provence Verte et Verdon, spécialisé dans la vente, l\'achat et l\'estimation de biens immobiliers.',
   telephone: PHONE_RAW,
-  areaServed: ['Provence Verte', 'Verdon', 'Provence Verdon', 'Barjols', 'Rians', 'Aups', 'Salernes', 'Montmeyan', 'Quinson'],
+  areaServed: ['Provence Verte', 'Verdon', 'Provence Verdon', 'Brignoles', 'Saint-Maximin-la-Sainte-Baume', 'Barjols', 'Cotignac', 'Rians', 'Aups', 'Salernes', 'Montmeyan'],
   address: { '@type': 'PostalAddress', addressRegion: 'Var', addressCountry: 'FR' },
-  worksFor: { '@type': 'Organization', name: 'IAD France', url: 'https://www.iadfrance.fr' },
+  worksFor: { '@type': 'Organization', name: 'iad France', url: 'https://www.iadfrance.fr' },
 }
 
 const VALEURS = [
-  { titre: 'Transparence', texte: 'Un avis clair, argumenté, sans prix gonflé pour obtenir un mandat.' },
-  { titre: 'Méthode', texte: 'Une lecture des données, du terrain et des contraintes réelles de chaque bien.' },
-  { titre: 'Ancrage local', texte: 'Une présence en Provence Verte & Verdon, avec une attention portée aux micro-marchés.' },
-  { titre: 'Suivi', texte: 'Un accompagnement humain, de la première question jusqu’à la signature.' },
+  { titre: 'Transparence', texte: 'Un avis clair et argumenté, sans prix gonflé pour séduire artificiellement.' },
+  { titre: 'Méthode', texte: 'Une lecture structurée du bien, du marché, du délai et de votre objectif.' },
+  { titre: 'Ancrage local', texte: 'Une connaissance de la Provence Verte & Verdon et des écarts entre micro-marchés.' },
+  { titre: 'Suivi', texte: 'Un contact direct, des étapes claires et un accompagnement jusqu’à la décision.' },
 ]
 
-const COMMUNES = ['Barjols', 'Montmeyan', 'Quinson', 'Fox-Amphoux', 'Tavernes', 'Rians', 'Aups', 'Salernes', 'Varages', 'Esparron-de-Verdon']
+const COMMUNES = ['Brignoles', 'Saint-Maximin', 'Barjols', 'Cotignac', 'Montmeyan', 'Rians', 'Aups', 'Salernes', 'Tavernes', 'Vinon-sur-Verdon']
 
 function buildInnerHtml(data: object) {
   return { __html: JSON.stringify(data) }
@@ -46,58 +46,52 @@ export default function AProposPage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={buildInnerHtml(personJsonLd)} />
 
-      <section className="relative overflow-hidden bg-paper px-6 py-20 lg:py-24">
-        <div className="absolute right-0 top-0 h-80 w-80 translate-x-1/3 rounded-full bg-brand-light/70 blur-3xl" />
-        <div className="relative mx-auto grid max-w-[75rem] items-center gap-12 lg:grid-cols-[0.94fr_1.06fr]">
-          <div className="order-2 lg:order-1">
-            <div className="relative min-h-[32rem] overflow-hidden rounded-[2.2rem] border border-white/70 bg-foreground shadow-2xl">
-              <Image src="/alexandre-lopez.jpg" alt="Alexandre Lopez, conseiller immobilier iad" fill sizes="(min-width: 1024px) 44vw, 100vw" className="object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
-              <div className="absolute bottom-7 left-7 right-7 text-white">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/70">Alexandre Lopez</p>
-                <p className="mt-2 font-serif text-3xl font-medium tracking-[-0.035em]">Conseiller immobilier iad</p>
-              </div>
+      <section className="relative overflow-hidden bg-[#f4f7f8] px-6 pb-16 pt-28 lg:pb-24 lg:pt-36">
+        <div className="absolute right-0 top-0 h-[34rem] w-[34rem] translate-x-1/3 rounded-full bg-brand-light/70 blur-3xl" />
+        <div className="absolute bottom-0 left-0 h-[24rem] w-[24rem] -translate-x-1/2 rounded-full bg-white blur-3xl" />
+        <div className="relative mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1fr_0.9fr]">
+          <div>
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-foreground shadow-sm">
+              <MapPin size={15} className="text-brand" /> Provence Verte & Verdon
+            </div>
+            <h1 className="max-w-3xl text-4xl font-bold leading-[1.04] tracking-[-0.05em] text-foreground md:text-6xl lg:text-7xl">
+              Une approche locale, claire et <span className="text-brand">exigeante</span>.
+            </h1>
+            <div className="mt-7 max-w-2xl space-y-4 text-lg leading-relaxed text-muted md:text-xl">
+              <p>Je suis Alexandre Lopez, conseiller immobilier iad France en Provence Verte & Verdon.</p>
+              <p>Mon rôle est de vous aider à vendre, acheter ou estimer avec les bonnes informations : le bien, le secteur, le timing, les objectifs et les vrais leviers de décision.</p>
+            </div>
+            <div className="mt-9 flex flex-col gap-4 sm:flex-row">
+              <Button asChild variant="primary" size="lg"><Link href="/outils">Commencer avec les outils <ArrowRight size={16} /></Link></Button>
+              <Button asChild variant="outline" size="lg"><a href={'tel:' + PHONE_RAW}><Phone size={16} /> {PHONE_DISPLAY}</a></Button>
             </div>
           </div>
 
-          <div className="order-1 lg:order-2">
-            <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.22em] text-brand">Mon approche</p>
-            <h1 className="font-serif text-4xl font-medium leading-[1.03] tracking-[-0.045em] text-foreground sm:text-5xl lg:text-6xl">
-              Une approche locale, claire et exigeante.
-            </h1>
-            <div className="mt-7 space-y-4 text-lg leading-relaxed text-muted">
-              <p>
-                Je suis Alex Lopez, mandataire immobilier iad en Provence Verte & Verdon. Mon rôle est simple : vous aider à décider avec les bonnes informations, au bon moment.
-              </p>
-              <p>
-                Ici, pas de discours artificiel. Un projet immobilier demande une lecture précise du bien, du marché local, du délai et de vos objectifs.
-              </p>
-            </div>
-            <div className="mt-8 grid grid-cols-3 gap-3 text-center">
-              <div className="rounded-2xl border border-border bg-white p-4"><p className="text-2xl font-bold text-brand">100%</p><p className="mt-1 text-xs text-muted">Accompagnement</p></div>
-              <div className="rounded-2xl border border-border bg-white p-4"><p className="text-2xl font-bold text-brand">0 €</p><p className="mt-1 text-xs text-muted">Avis initial</p></div>
-              <div className="rounded-2xl border border-border bg-white p-4"><p className="text-2xl font-bold text-brand">24h</p><p className="mt-1 text-xs text-muted">Réponse</p></div>
-            </div>
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <Button asChild variant="primary" size="lg"><Link href="/contact">Me contacter <ArrowRight size={16} /></Link></Button>
-              <Button asChild variant="outline" size="lg"><a href={'tel:' + PHONE_RAW}><Phone size={16} /> {PHONE_DISPLAY}</a></Button>
+          <div className="relative mx-auto flex min-h-[32rem] w-full max-w-[34rem] items-end justify-center lg:ml-auto">
+            <div className="absolute inset-x-8 bottom-0 h-40 rounded-full bg-brand/20 blur-3xl" />
+            <div className="absolute bottom-0 h-[82%] w-[82%] rounded-t-full bg-gradient-to-br from-brand-light via-white to-[#eaeef1]" />
+            <Image src="/alexandre-lopez-no-background.png" alt="Alexandre Lopez, conseiller immobilier iad France" width={760} height={920} priority className="relative z-10 h-auto max-h-[35rem] w-auto object-contain drop-shadow-2xl" />
+            <div className="absolute bottom-6 left-0 z-20 rounded-2xl bg-white/90 px-5 py-4 shadow-xl backdrop-blur">
+              <p className="text-sm font-bold text-foreground">Alexandre Lopez</p>
+              <p className="text-xs text-muted">Conseiller immobilier iad France</p>
             </div>
           </div>
         </div>
       </section>
 
       <section className="bg-white px-6 py-20">
-        <div className="mx-auto grid max-w-[75rem] gap-12 lg:grid-cols-[0.8fr_1.2fr]">
+        <div className="mx-auto grid max-w-7xl items-start gap-12 lg:grid-cols-[0.8fr_1.2fr]">
           <div>
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-brand">Ce qui me guide</p>
-            <h2 className="font-serif text-3xl font-medium tracking-[-0.04em] text-foreground md:text-5xl">Des repères simples pour avancer.</h2>
+            <p className="mb-4 text-sm font-bold uppercase tracking-[0.22em] text-brand">Ce qui me guide</p>
+            <h2 className="text-3xl font-bold leading-tight tracking-[-0.04em] text-foreground md:text-5xl">Des repères solides pour avancer.</h2>
+            <p className="mt-5 text-lg leading-relaxed text-muted">Le bon accompagnement ne consiste pas à pousser une décision. Il consiste à rendre le projet plus lisible.</p>
           </div>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             {VALEURS.map(function (v) {
               return (
-                <div key={v.titre} className="rounded-[1.6rem] border border-border bg-paper p-7">
-                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-white text-brand shadow-sm"><CheckCircle2 size={18} /></div>
-                  <h3 className="text-xl font-bold tracking-[-0.02em] text-foreground">{v.titre}</h3>
+                <div key={v.titre} className="rounded-2xl bg-[#f4f7f8] p-7 shadow-sm transition-all hover:-translate-y-2 hover:shadow-xl">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-white text-brand shadow-sm"><CheckCircle2 size={20} /></div>
+                  <h3 className="text-xl font-bold text-foreground">{v.titre}</h3>
                   <p className="mt-3 text-sm leading-relaxed text-muted">{v.texte}</p>
                 </div>
               )
@@ -106,42 +100,41 @@ export default function AProposPage() {
         </div>
       </section>
 
-      <section className="bg-brand-dark px-6 py-24 text-white">
-        <div className="mx-auto grid max-w-[75rem] items-center gap-12 lg:grid-cols-[0.95fr_1.05fr]">
+      <section className="bg-[#f4f7f8] px-6 py-20">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[0.95fr_1.05fr]">
+          <div className="relative overflow-hidden rounded-[2rem] shadow-2xl">
+            <Image src="/gorges-du-verdon.jpg" alt="Provence Verte et Gorges du Verdon" width={900} height={650} className="h-[24rem] w-full object-cover md:h-[32rem]" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-[#101828]/65 via-[#101828]/15 to-transparent" />
+            <div className="absolute bottom-6 left-6 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-foreground backdrop-blur">Provence Verte & Gorges du Verdon</div>
+          </div>
           <div>
-            <p className="mb-3 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-light"><Calendar size={14} /> Parcours</p>
-            <h2 className="font-serif text-4xl font-medium leading-tight tracking-[-0.04em] md:text-6xl">De la stratégie à l’immobilier de proximité.</h2>
-            <p className="mt-6 max-w-xl leading-relaxed text-white/75">
-              Mon parcours en stratégie et organisation m’a donné une méthode : structurer, comparer, décider. Je l’applique aujourd’hui à l’immobilier, avec une approche humaine et ancrée localement.
-            </p>
-          </div>
-          <div className="space-y-4">
-            <div className="rounded-[1.5rem] border border-white/15 bg-white/10 p-6 backdrop-blur"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-light">Avant</p><p className="mt-2 text-xl font-bold">Stratégie & organisation</p><p className="mt-2 text-sm text-white/70">Analyse, accompagnement, structuration de projets complexes.</p></div>
-            <div className="rounded-[1.5rem] border border-white/15 bg-white/10 p-6 backdrop-blur"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-light">Aujourd’hui</p><p className="mt-2 text-xl font-bold">iad — Provence Verte & Verdon</p><p className="mt-2 text-sm text-white/70">Estimation, vente, achat et accompagnement immobilier local.</p></div>
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-paper px-6 py-20">
-        <div className="mx-auto max-w-4xl text-center">
-          <div className="mb-4 flex items-center justify-center gap-2 text-brand"><MapPin size={18} /><p className="text-xs font-semibold uppercase tracking-[0.18em]">Zone d’intervention</p></div>
-          <h2 className="font-serif text-3xl font-medium tracking-[-0.04em] text-foreground md:text-5xl">Provence Verte & Verdon</h2>
-          <p className="mx-auto mt-5 max-w-2xl leading-relaxed text-muted">J’interviens sur les communes de Provence Verte et du Verdon, avec une lecture locale des biens, des prix et des attentes des acquéreurs.</p>
-          <div className="mt-9 flex flex-wrap justify-center gap-2">
-            {COMMUNES.map(function (c) {
-              const slug = c.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-')
-              return <Link key={c} href={'/marche/' + slug} className="rounded-full border border-border bg-white px-4 py-2 text-sm text-foreground transition-colors hover:border-brand hover:text-brand">{c}</Link>
-            })}
+            <p className="mb-4 text-sm font-bold uppercase tracking-[0.22em] text-brand">Parcours</p>
+            <h2 className="text-4xl font-bold leading-tight tracking-[-0.045em] text-foreground md:text-6xl">De la stratégie à l’immobilier de proximité.</h2>
+            <p className="mt-6 text-lg leading-relaxed text-muted">Mon parcours en stratégie et organisation m’a donné une méthode : structurer, comparer, décider. Je l’applique aujourd’hui à l’immobilier local, avec une approche humaine et concrète.</p>
           </div>
         </div>
       </section>
 
       <section className="bg-white px-6 py-20">
-        <div className="mx-auto max-w-4xl overflow-hidden rounded-[2.2rem] border border-border bg-foreground p-10 text-center text-white shadow-2xl md:p-14">
-          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-light">Travaillons ensemble</p>
-          <h2 className="font-serif text-3xl font-medium tracking-[-0.04em] md:text-5xl">Un projet immobilier ?</h2>
-          <p className="mx-auto mt-5 max-w-xl text-white/70">Estimation, vente, achat ou simple question sur le marché en Provence Verte & Verdon. Réponse personnalisée, sans engagement.</p>
-          <div className="mt-8"><Button asChild variant="primary" size="lg"><Link href="/outils">Commencer avec les outils <ArrowRight size={16} /></Link></Button></div>
+        <div className="mx-auto max-w-4xl text-center">
+          <div className="mb-4 flex items-center justify-center gap-2 text-brand"><MapPin size={18} /><p className="text-sm font-bold uppercase tracking-[0.22em]">Zone d’intervention</p></div>
+          <h2 className="text-3xl font-bold tracking-[-0.04em] text-foreground md:text-5xl">Provence Verte & Verdon</h2>
+          <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-muted">J’interviens sur les communes de Provence Verte et du Verdon, avec une lecture locale des biens, des prix et des attentes des acquéreurs.</p>
+          <div className="mt-9 flex flex-wrap justify-center gap-2">
+            {COMMUNES.map(function (c) {
+              const slug = c.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-')
+              return <Link key={c} href={'/marche/' + slug} className="rounded-full bg-[#f4f7f8] px-4 py-2 text-sm font-semibold text-muted transition-colors hover:bg-brand hover:text-white">{c}</Link>
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-gradient-to-br from-brand to-brand-hover px-6 py-20">
+        <div className="mx-auto max-w-4xl text-center">
+          <p className="mb-3 text-sm font-bold uppercase tracking-[0.22em] text-white/80">Travaillons ensemble</p>
+          <h2 className="text-3xl font-bold tracking-[-0.04em] text-white md:text-5xl">Un projet immobilier ?</h2>
+          <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-white/90">Estimation, vente, achat ou simple question sur le marché en Provence Verte & Verdon. Réponse personnalisée, sans engagement.</p>
+          <div className="mt-8"><Link href="/outils" className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-4 text-sm font-bold text-brand transition-colors hover:bg-[#f4f7f8]">Commencer avec les outils <ArrowRight size={16} /></Link></div>
         </div>
       </section>
     </>
