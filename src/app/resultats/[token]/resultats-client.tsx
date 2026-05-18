@@ -34,6 +34,8 @@ import {
   AlertTriangle,
   Euro,
   Wallet,
+  SlidersHorizontal,
+  RefreshCw,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { VP as vpOnce, fadeInUp, scaleIn, stagger, staggerFast } from '@/lib/animations'
@@ -53,12 +55,19 @@ function fmt0(n: number): string {
 interface LeadData {
   prenom?: string
   adresse?: string
+  lat?: number
+  lng?: number
   type_bien?: string
+  sous_type?: string
   surface?: number
+  surface_terrain?: number | null
+  cadastre_surface?: number | null
   nb_pieces?: number
   etat?: string
   delai?: string
   dpe?: string
+  dpe_verifie?: boolean
+  numero_dpe?: string
   equipements?: string[]
   annee_construction?: number
 }
@@ -96,7 +105,7 @@ interface StrategiePrix { probabilite_vente_rapide_pct: number; delai_estime: st
 interface EstimResult {
   fourchette_basse: number; fourchette_haute: number; valeur_mediane: number
   prix_m2_median: number; prix_m2_brut_dvf: number; nb_transactions: number
-  rayon_km: number; source: 'dvf' | 'fallback'; confiance: number
+  rayon_km: number; source: 'dvf' | 'fallback'; confiance: number; score_comparables?: number
   prix_de_base: number; ajustements: AjustementBreakdown[]
   total_ajustement_pct: number; total_ajustement_eur: number
   prix_calcule: number; strategie: StrategiePrix; points_forts: string[]
@@ -113,7 +122,9 @@ interface AuditResult {
 }
 
 const BIEN_LBL: Record<string, string> = { appartement: 'Appartement', maison: 'Maison', terrain: 'Terrain', commerce: 'Commerce', immeuble: 'Immeuble', autre: 'Autre' }
+const SOUS_TYPE_LBL: Record<string, string> = { individuelle: 'Maison individuelle / villa', maison_village: 'Maison de village', mitoyenne: 'Maison mitoyenne', maison_compacte: 'Maison compacte / de bourg' }
 const ETAT_LBL: Record<string, string> = { neuf: 'Neuf / récent', tres_bon_etat: 'Très bon état', bon_etat: 'Bon état', rafraichir: 'À rafraîchir', travaux: 'Travaux importants' }
+const DELAI_LBL: Record<string, string> = { immediat: 'Très rapidement', '1_3_mois': 'Sous 1 à 3 mois', '3_6_mois': 'Sous 3 à 6 mois', '6_mois': 'Pas pressé', pas_decide: 'Pas encore décidé' }
 const OBJECTIF_LBL: Record<string, string> = { vente: 'Vente', achat: 'Achat', renovation: 'Rénovation', energie: 'Énergie' }
 
 export interface ResultatsClientInitialData {
@@ -152,16 +163,7 @@ export default function ResultatsClient({ initialData }: ResultatsClientProps = 
             const res = await fetch('/api/estimation', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                lat,
-                lng,
-                surface: leadData.surface,
-                type_bien: leadData.type_bien ?? 'maison',
-                etat: leadData.etat ?? 'bon_etat',
-                dpe: leadData.dpe ?? 'D',
-                equipements: leadData.equipements ?? [],
-                delai: leadData.delai ?? '3_6_mois',
-              }),
+              body: JSON.stringify(buildEstimationPayload(leadData)),
             })
             if (res.ok) {
               const estData = await res.json()
@@ -196,6 +198,25 @@ export default function ResultatsClient({ initialData }: ResultatsClientProps = 
   }
 
   return <VendreResults data={data as LeadData} est={est} />
+}
+
+function buildEstimationPayload(data: LeadData) {
+  return {
+    lat: data.lat,
+    lng: data.lng,
+    surface: data.surface,
+    type_bien: data.type_bien ?? 'maison',
+    sous_type: data.sous_type,
+    etat: data.etat ?? 'bon_etat',
+    dpe: data.dpe ?? 'D',
+    equipements: data.equipements ?? [],
+    delai: data.delai ?? '3_6_mois',
+    surface_terrain: data.surface_terrain,
+    cadastre_surface: data.cadastre_surface,
+    annee_construction: data.annee_construction,
+    dpe_verifie: data.dpe_verifie,
+    numero_dpe: data.numero_dpe,
+  }
 }
 
 function resolveLatestToolResult(): { type: ToolType; answers: Record<string, unknown>; updatedAt: number } {
@@ -240,14 +261,18 @@ function completionScore(answers: Record<string, unknown>): number {
 }
 
 function VendreResults({ data, est }: { data: LeadData; est: EstimResult }) {
+  const [currentData, setCurrentData] = useState<LeadData>(data)
+  const [currentEst, setCurrentEst] = useState<EstimResult>(est)
+
   return (
     <div className="min-h-screen bg-surface">
       <ResultHeader label="Résultat estimation" />
       <main className="mx-auto max-w-3xl space-y-6 px-6 py-10">
-        <CardEstimation est={est} prenom={data.prenom} />
-        <CardCalcul est={est} data={data} />
-        <CardDetail est={est} />
-        <CardStrategie est={est} />
+        <CardEstimation est={currentEst} prenom={currentData.prenom} />
+        <CardAdjustEstimate data={currentData} setData={setCurrentData} setEst={setCurrentEst} />
+        <CardCalcul est={currentEst} data={currentData} />
+        <CardDetail est={currentEst} />
+        <CardStrategie est={currentEst} />
         <CardEnvironnement />
         <CardCtaFinale />
         <div className="pt-2 text-center">
@@ -525,13 +550,119 @@ function CardEstimation({ est, prenom }: { est: EstimResult; prenom?: string }) 
   )
 }
 
+function CardAdjustEstimate({
+  data,
+  setData,
+  setEst,
+}: {
+  data: LeadData
+  setData: (data: LeadData) => void
+  setEst: (est: EstimResult) => void
+}) {
+  const [draft, setDraft] = useState<LeadData>(data)
+  const [recalculating, setRecalculating] = useState(false)
+  const [message, setMessage] = useState<string | null>(null)
+
+  async function recalculate() {
+    if (!draft.lat || !draft.lng || !draft.surface) {
+      setMessage('Certaines données techniques manquent pour recalculer automatiquement. Relancez une estimation complète si besoin.')
+      return
+    }
+
+    setRecalculating(true)
+    setMessage(null)
+    try {
+      const res = await fetch('/api/estimation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildEstimationPayload(draft)),
+      })
+      if (!res.ok) throw new Error('recalc failed')
+      const next = await res.json()
+      setData(draft)
+      setEst(next)
+      setMessage('Estimation recalculée avec ces variables.')
+    } catch {
+      setMessage('Le recalcul n’a pas abouti. Vous pouvez refaire une estimation complète.')
+    } finally {
+      setRecalculating(false)
+    }
+  }
+
+  function update<K extends keyof LeadData>(key: K, value: LeadData[K]) {
+    setDraft({ ...draft, [key]: value })
+  }
+
+  return (
+    <motion.section initial="initial" whileInView="animate" viewport={vpOnce} variants={stagger}
+      className="rounded-2xl border border-brand/20 bg-white p-7 lg:p-9">
+      <motion.h2 variants={fadeInUp} className="mb-3 flex items-center gap-2.5 text-xl font-semibold text-foreground">
+        <SlidersHorizontal size={20} className="text-brand" /> Ajuster l’estimation
+      </motion.h2>
+      <motion.p variants={fadeInUp} className="mb-5 text-sm leading-relaxed text-muted">
+        Oui : après le résultat, certaines variables peuvent être modifiées pour tester un scénario plus réaliste sans recommencer tout le formulaire.
+      </motion.p>
+      <motion.div variants={staggerFast} className="grid gap-3 sm:grid-cols-2">
+        <AdjustField label="Surface habitable">
+          <input className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand" type="number" min={1} value={draft.surface ?? ''} onChange={(e) => update('surface', Number(e.target.value) || undefined)} />
+        </AdjustField>
+        <AdjustField label="Terrain / extérieur">
+          <input className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand" type="number" min={0} value={draft.surface_terrain ?? ''} onChange={(e) => update('surface_terrain', e.target.value === '' ? null : Number(e.target.value))} />
+        </AdjustField>
+        <AdjustField label="Typologie">
+          <select className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand" value={draft.sous_type ?? ''} onChange={(e) => update('sous_type', e.target.value || undefined)}>
+            <option value="">Non précisée</option>
+            <option value="individuelle">Maison individuelle / villa</option>
+            <option value="maison_village">Maison de village</option>
+            <option value="mitoyenne">Maison mitoyenne</option>
+            <option value="maison_compacte">Maison compacte / de bourg</option>
+          </select>
+        </AdjustField>
+        <AdjustField label="État général">
+          <select className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand" value={draft.etat ?? 'bon_etat'} onChange={(e) => update('etat', e.target.value)}>
+            {Object.entries(ETAT_LBL).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          </select>
+        </AdjustField>
+        <AdjustField label="DPE">
+          <select className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand" value={draft.dpe ?? 'D'} onChange={(e) => update('dpe', e.target.value)}>
+            {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'NC'].map((value) => <option key={value} value={value}>{value}</option>)}
+          </select>
+        </AdjustField>
+        <AdjustField label="Délai de vente">
+          <select className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand" value={draft.delai ?? '3_6_mois'} onChange={(e) => update('delai', e.target.value)}>
+            {Object.entries(DELAI_LBL).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          </select>
+        </AdjustField>
+      </motion.div>
+      <motion.div variants={fadeInUp} className="mt-5 rounded-xl bg-brand-light p-4 text-xs leading-relaxed text-muted">
+        Pour le 571 Chemin du Petit Ruisseau, si le résultat paraît trop haut, les variables qui changent le plus l’estimation sont généralement : état réel, surface retenue, terrain réellement exploitable, stationnement/garage, et typologie exacte du bien.
+      </motion.div>
+      {message && <p className="mt-3 text-sm text-muted">{message}</p>}
+      <motion.div variants={fadeInUp} className="mt-5">
+        <Button type="button" variant="primary" className="w-full" onClick={recalculate} disabled={recalculating}>
+          <RefreshCw size={14} className={recalculating ? 'animate-spin' : ''} /> {recalculating ? 'Recalcul en cours...' : 'Recalculer avec ces variables'}
+        </Button>
+      </motion.div>
+    </motion.section>
+  )
+}
+
+function AdjustField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <motion.label variants={scaleIn} className="block">
+      <span className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.12em] text-muted">{label}</span>
+      {children}
+    </motion.label>
+  )
+}
+
 function CardCalcul({ est, data }: { est: EstimResult; data: LeadData }) {
   const equipPct = est.ajustements.filter(function (a) { return a.key.startsWith('eq:') }).reduce(function (s, a) { return s + a.pct }, 0)
   const dpeAdj = est.ajustements.find(function (a) { return a.key === 'dpe' })
   const sources = [
-    { icon: Zap, label: data.dpe ? 'DPE ' + data.dpe : 'DPE NC', sub: 'Votre saisie' },
+    { icon: Zap, label: data.dpe ? 'DPE ' + data.dpe : 'DPE NC', sub: data.dpe_verifie ? 'ADEME vérifié' : 'Votre saisie' },
     { icon: Ruler, label: data.surface ? data.surface + ' m²' : '—', sub: 'Votre saisie' },
-    { icon: Building2, label: data.type_bien ? BIEN_LBL[data.type_bien] : 'Type bien', sub: 'Votre saisie' },
+    { icon: Building2, label: data.sous_type ? SOUS_TYPE_LBL[data.sous_type] ?? data.sous_type : data.type_bien ? BIEN_LBL[data.type_bien] : 'Type bien', sub: 'Votre saisie' },
     { icon: Database, label: fmt0(est.prix_m2_brut_dvf) + ' €/m²', sub: est.source === 'dvf' ? 'DVF Cerema' : 'Référence indicative' },
   ]
   return (
@@ -543,7 +674,7 @@ function CardCalcul({ est, data }: { est: EstimResult; data: LeadData }) {
       <motion.div variants={fadeInUp} className="mb-6 rounded-xl bg-brand-light p-4">
         <p className="mb-1 text-sm font-semibold text-brand">Analyse locale automatisée</p>
         <p className="text-xs text-muted">
-          Analyse de {est.nb_transactions} biens dans un rayon de {est.rayon_km} km — source : {est.source === 'dvf' ? 'DVF Cerema' : 'référence indicative'}
+          Analyse de {est.nb_transactions} biens dans un rayon de {est.rayon_km} km — source : {est.source === 'dvf' ? 'DVF Cerema' : 'référence indicative'}{typeof est.score_comparables === 'number' && est.score_comparables > 0 ? ' · qualité comparables ' + est.score_comparables + '/100' : ''}
         </p>
       </motion.div>
       <div className="mb-3 flex items-center justify-between">
