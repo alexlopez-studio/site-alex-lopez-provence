@@ -133,8 +133,8 @@ function removeOutliers(items: Array<{ prixM2: number; weight: number }>) {
   const q3 = percentile(prices, 0.75)
   const iqr = q3 - q1
   if (iqr <= 0) return items
-  const min = q1 - iqr * 1.5
-  const max = q3 + iqr * 1.5
+  const min = q1 - iqr * 1.35
+  const max = q3 + iqr * 1.35
   const filtered = items.filter((item) => item.prixM2 >= min && item.prixM2 <= max)
   return filtered.length >= 2 ? filtered : items
 }
@@ -161,7 +161,7 @@ function monthsSince(date: string): number | null {
 
 function scoreComparable(m: DvfMutation, surface: number, rayon: number): number {
   const surfaceDelta = Math.abs(m.surface_reelle_bati - surface) / Math.max(surface, 1)
-  const surfaceScore = Math.max(0.15, 1 - Math.min(surfaceDelta, 0.85) / 0.85)
+  const surfaceScore = Math.max(0.15, 1 - Math.min(surfaceDelta, 0.75) / 0.75)
 
   const distance = typeof m.distance_m === 'number' ? m.distance_m : rayon * 0.55
   const distanceScore = Math.max(0.25, 1 - Math.min(distance, rayon) / Math.max(rayon, 1))
@@ -169,12 +169,12 @@ function scoreComparable(m: DvfMutation, surface: number, rayon: number): number
   const ageMonths = monthsSince(m.date_mutation)
   const recencyScore = ageMonths == null ? 0.75 : Math.max(0.45, 1 - Math.min(ageMonths, 36) / 36 * 0.55)
 
-  return Math.max(0.1, surfaceScore * 0.5 + distanceScore * 0.3 + recencyScore * 0.2)
+  return Math.max(0.1, surfaceScore * 0.6 + distanceScore * 0.25 + recencyScore * 0.15)
 }
 
 function computeComparableStat(mutations: DvfMutation[], surface: number, rayon: number): ComparableStat {
   const raw = mutations
-    .filter((m) => m.surface_reelle_bati >= surface * 0.55 && m.surface_reelle_bati <= surface * 1.65 && m.valeur_fonciere > 0)
+    .filter((m) => m.surface_reelle_bati >= surface * 0.65 && m.surface_reelle_bati <= surface * 1.45 && m.valeur_fonciere > 0)
     .map((m) => ({
       prixM2: m.valeur_fonciere / m.surface_reelle_bati,
       weight: scoreComparable(m, surface, rayon),
@@ -184,9 +184,13 @@ function computeComparableStat(mutations: DvfMutation[], surface: number, rayon:
   const comparables = removeOutliers(raw)
   if (comparables.length === 0) return { prixM2: 0, count: 0, score: 0 }
 
+  const plainMedian = median(comparables.map((item) => item.prixM2))
+  const weighted = weightedMedian(comparables)
+  const blended = plainMedian * 0.65 + weighted * 0.35
+  const conservativePrice = Math.min(blended, plainMedian * 1.06)
   const score = Math.round((comparables.reduce((sum, item) => sum + item.weight, 0) / comparables.length) * 100)
   return {
-    prixM2: weightedMedian(comparables),
+    prixM2: conservativePrice,
     count: comparables.length,
     score,
   }
