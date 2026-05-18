@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
         id: 'adresse-autocomplete',
         label: 'Recherche adresse',
         status: count > 0 ? 'ok' : 'warning',
-        detail: count > 0 ? 'API Adresse disponible.' : 'API Adresse joignable, mais aucun résultat de test.',
+        detail: count > 0 ? 'Recherche d’adresse opérationnelle.' : 'Recherche d’adresse joignable, mais aucun résultat de test.',
       }
     }, { id: 'adresse-autocomplete', label: 'Recherche adresse' }),
 
@@ -67,12 +67,14 @@ export async function GET(req: NextRequest) {
       const response = await fetch(url, { cache: 'no-store' })
       if (!response.ok) throw new Error('/api/adresse-infos HTTP ' + response.status)
       const data = await response.json()
-      const found = [data?.dpe ? 'DPE' : null, data?.parcelle ? 'cadastre' : null].filter(Boolean).join(' + ')
+      const dpeFound = data?.dpeStatus === 'found'
+      const parcelFound = data?.parcelleStatus === 'found'
+      const found = [dpeFound ? 'DPE' : null, parcelFound ? 'cadastre' : null].filter(Boolean).join(' + ')
       return {
         id: 'adresse-infos',
         label: 'DPE / cadastre',
-        status: 'ok',
-        detail: found ? 'Route disponible, données trouvées : ' + found + '.' : 'Route disponible. Aucune donnée trouvée sur le point de test, ce qui reste acceptable.',
+        status: dpeFound || parcelFound ? 'ok' : 'warning',
+        detail: found ? 'Route disponible, données trouvées : ' + found + '.' : 'Route disponible, mais le point de test ne remonte ni DPE ni parcelle.',
       }
     }, { id: 'adresse-infos', label: 'DPE / cadastre' }),
 
@@ -99,7 +101,7 @@ export async function GET(req: NextRequest) {
         id: 'estimation',
         label: 'Calcul estimation',
         status: hasEstimate ? 'ok' : 'warning',
-        detail: hasEstimate ? 'Route estimation disponible.' : 'Route estimation répond, mais sans résultat exploitable.',
+        detail: hasEstimate ? 'Calcul estimation opérationnel.' : 'Route estimation répond, mais sans résultat exploitable.',
       }
     }, { id: 'estimation', label: 'Calcul estimation' }),
 
@@ -137,7 +139,7 @@ export async function GET(req: NextRequest) {
         id: 'leads',
         label: 'Création lead',
         status: data?.success && data?.dryRun ? 'ok' : 'warning',
-        detail: data?.success && data?.dryRun ? 'Route leads validée en mode test, sans email ni sauvegarde réelle.' : 'Route leads répond, mais le mode test n’a pas été confirmé.',
+        detail: data?.success && data?.dryRun ? 'Création lead validée en mode test, sans email ni sauvegarde réelle.' : 'Route leads répond, mais le mode test n’a pas été confirmé.',
       }
     }, { id: 'leads', label: 'Création lead' }),
   ])
