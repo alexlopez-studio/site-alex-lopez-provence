@@ -1,4 +1,4 @@
-import { fetchDvfMutations, median } from './dvf'
+import { fetchDvfMutations, median, type DvfMutation } from './dvf'
 
 const COEF_ETAT: Record<string, number> = {
   neuf: 1.2, tres_bon_etat: 1.08, bon_etat: 1.0, rafraichir: 0.93, travaux: 0.82,
@@ -24,6 +24,12 @@ const EQUIPEMENT_LABEL: Record<string, string> = {
   Stationnement: 'Stationnement privatif',
   Cheminée: 'Cheminée fonctionnelle ou décorative',
   'Vue exceptionnelle': 'Vue remarquable déclarée (panorama dégagé, rareté à confirmer sur place)',
+}
+
+type ComparableStat = {
+  prixM2: number
+  count: number
+  score: number
 }
 
 function coefEquipementsTotal(equipements: string[]): number {
@@ -111,6 +117,81 @@ function resolveMaisonProfile(
   return { key: null, label: null, coef: 1.0 }
 }
 
+function percentile(sorted: number[], p: number): number {
+  if (sorted.length === 0) return 0
+  const idx = (sorted.length - 1) * p
+  const lo = Math.floor(idx)
+  const hi = Math.ceil(idx)
+  if (lo === hi) return sorted[lo]
+  return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo)
+}
+
+function removeOutliers(items: Array<{ prixM2: number; weight: number }>) {
+  if (items.length < 6) return items
+  const prices = items.map((item) => item.prixM2).sort((a, b) => a - b)
+  const q1 = percentile(prices, 0.25)
+  const q3 = percentile(prices, 0.75)
+  const iqr = q3 - q1
+  if (iqr <= 0) return items
+  const min = q1 - iqr * 1.5
+  const max = q3 + iqr * 1.5
+  const filtered = items.filter((item) => item.prixM2 >= min && item.prixM2 <= max)
+  return filtered.length >= 2 ? filtered : items
+}
+
+function weightedMedian(items: Array<{ prixM2: number; weight: number }>): number {
+  if (items.length === 0) return 0
+  const sorted = [...items].sort((a, b) => a.prixM2 - b.prixM2)
+  const totalWeight = sorted.reduce((sum, item) => sum + item.weight, 0)
+  let acc = 0
+  for (const item of sorted) {
+    acc += item.weight
+    if (acc >= totalWeight / 2) return item.prixM2
+  }
+  return sorted[sorted.length - 1].prixM2
+}
+
+function monthsSince(date: string): number | null {
+  const t = new Date(date).getTime()
+  if (!Number.isFinite(t)) return null
+  const diff = Date.now() - t
+  if (diff < 0) return 0
+  return diff / (1000 * 60 * 60 * 24 * 30.44)
+}
+
+function scoreComparable(m: DvfMutation, surface: number, rayon: number): number {
+  const surfaceDelta = Math.abs(m.surface_reelle_bati - surface) / Math.max(surface, 1)
+  const surfaceScore = Math.max(0.15, 1 - Math.min(surfaceDelta, 0.85) / 0.85)
+
+  const distance = typeof m.distance_m === 'number' ? m.distance_m : rayon * 0.55
+  const distanceScore = Math.max(0.25, 1 - Math.min(distance, rayon) / Math.max(rayon, 1))
+
+  const ageMonths = monthsSince(m.date_mutation)
+  const recencyScore = ageMonths == null ? 0.75 : Math.max(0.45, 1 - Math.min(ageMonths, 36) / 36 * 0.55)
+
+  return Math.max(0.1, surfaceScore * 0.5 + distanceScore * 0.3 + recencyScore * 0.2)
+}
+
+function computeComparableStat(mutations: DvfMutation[], surface: number, rayon: number): ComparableStat {
+  const raw = mutations
+    .filter((m) => m.surface_reelle_bati >= surface * 0.55 && m.surface_reelle_bati <= surface * 1.65 && m.valeur_fonciere > 0)
+    .map((m) => ({
+      prixM2: m.valeur_fonciere / m.surface_reelle_bati,
+      weight: scoreComparable(m, surface, rayon),
+    }))
+    .filter((item) => item.prixM2 > 500 && item.prixM2 < 20000)
+
+  const comparables = removeOutliers(raw)
+  if (comparables.length === 0) return { prixM2: 0, count: 0, score: 0 }
+
+  const score = Math.round((comparables.reduce((sum, item) => sum + item.weight, 0) / comparables.length) * 100)
+  return {
+    prixM2: weightedMedian(comparables),
+    count: comparables.length,
+    score,
+  }
+}
+
 export interface EstimationInput {
   lat: number; lng: number; surface: number
   type_bien?: string; sous_type?: string; etat?: string; dpe?: string
@@ -147,6 +228,7 @@ export interface EstimationOutput {
   rayon_km: number
   source: 'dvf' | 'fallback'
   confiance: number
+  score_comparables: number
   generated_at: string
   prix_de_base: number
   ajustements: AjustementBreakdown[]
@@ -174,18 +256,15 @@ export async function calculerEstimation(input: EstimationInput): Promise<Estima
   const BASE_M2: Record<string, number> = { maison: 3200, appartement: 2800, terrain: 120, autre: 2500 }
 
   if (mutations.length < 3) {
-    return build(surface, BASE_M2[type_bien] ?? 2800, type_bien, sous_type, etat, dpe, equipements, delai, 0, 'fallback', rayon, surface_terrain, cadastre_surface, annee_construction, dpe_verifie, numero_dpe)
+    return build(surface, BASE_M2[type_bien] ?? 2800, type_bien, sous_type, etat, dpe, equipements, delai, 0, 'fallback', rayon, 0, surface_terrain, cadastre_surface, annee_construction, dpe_verifie, numero_dpe)
   }
 
-  const prixM2List = mutations
-    .filter((m) => m.surface_reelle_bati >= surface * 0.65 && m.surface_reelle_bati <= surface * 1.45 && m.valeur_fonciere > 0)
-    .map((m) => m.valeur_fonciere / m.surface_reelle_bati)
-    .filter((p) => p > 500 && p < 20000)
+  const comparableStat = computeComparableStat(mutations, surface, rayon)
 
-  if (prixM2List.length < 2) {
-    return build(surface, BASE_M2[type_bien] ?? 2800, type_bien, sous_type, etat, dpe, equipements, delai, 0, 'fallback', rayon, surface_terrain, cadastre_surface, annee_construction, dpe_verifie, numero_dpe)
+  if (comparableStat.count < 2) {
+    return build(surface, BASE_M2[type_bien] ?? 2800, type_bien, sous_type, etat, dpe, equipements, delai, 0, 'fallback', rayon, 0, surface_terrain, cadastre_surface, annee_construction, dpe_verifie, numero_dpe)
   }
-  return build(surface, median(prixM2List), type_bien, sous_type, etat, dpe, equipements, delai, prixM2List.length, 'dvf', rayon, surface_terrain, cadastre_surface, annee_construction, dpe_verifie, numero_dpe)
+  return build(surface, comparableStat.prixM2, type_bien, sous_type, etat, dpe, equipements, delai, comparableStat.count, 'dvf', rayon, comparableStat.score, surface_terrain, cadastre_surface, annee_construction, dpe_verifie, numero_dpe)
 }
 
 function computeAjustements(
@@ -302,10 +381,25 @@ function computePointsForts(equipements: string[], dpe: string, anneeConstructio
   return arr
 }
 
+function computeConfidence(source: 'dvf' | 'fallback', nbTx: number, comparableScore: number): number {
+  if (source === 'fallback') return 40
+
+  let confiance = 55
+  if (nbTx >= 20) confiance = 82
+  else if (nbTx >= 10) confiance = 74
+  else if (nbTx >= 5) confiance = 64
+
+  if (comparableScore >= 82) confiance += 6
+  else if (comparableScore >= 70) confiance += 3
+  else if (comparableScore > 0 && comparableScore < 52) confiance -= 8
+
+  return Math.max(35, Math.min(90, confiance))
+}
+
 function build(
   surface: number, prixM2Brut: number, typeBien: string, sousType: string | undefined,
   etat: string, dpe: string, equipements: string[], delai: string, nbTx: number,
-  source: 'dvf' | 'fallback', rayon: number, surfaceTerrain?: number | null,
+  source: 'dvf' | 'fallback', rayon: number, comparableScore: number, surfaceTerrain?: number | null,
   cadastreSurface?: number | null, anneeConstruction?: number,
   dpeVerifie?: boolean, numeroDpe?: string,
 ): EstimationOutput {
@@ -313,13 +407,7 @@ function build(
   const coef = profile.coef * (COEF_ETAT[etat] ?? 1.0) * coefAnneeConstruction(anneeConstruction) * (COEF_DPE[dpe] ?? 1.0) * coefEquipementsTotal(equipements) * coefDelai(delai)
   const prixM2 = prixM2Brut * coef
   const med = Math.round((prixM2 * surface) / 1000) * 1000
-  let confiance = 40
-  if (source === 'dvf') {
-    if (nbTx >= 20) confiance = 85
-    else if (nbTx >= 10) confiance = 75
-    else if (nbTx >= 5) confiance = 65
-    else confiance = 55
-  }
+  let confiance = computeConfidence(source, nbTx, comparableScore)
   if (dpeVerifie) confiance = Math.min(95, confiance + 5)
   if (anneeConstruction && Number.isFinite(anneeConstruction)) confiance = Math.min(95, confiance + 3)
   if (profile.key && cadastreSurface && cadastreSurface > 0) confiance = Math.min(95, confiance + 4)
@@ -341,6 +429,7 @@ function build(
     nb_transactions: nbTx,
     rayon_km: rayon / 1000,
     source, confiance,
+    score_comparables: comparableScore,
     generated_at: new Date().toISOString(),
     prix_de_base,
     ajustements,
