@@ -101,22 +101,39 @@ export async function GET() {
     }, { id: 'adresse-infos', label: 'DPE / cadastre' }),
 
     safeCheck(async () => {
-      const data = await calculerEstimation({
-        lat: TEST_COORDS.lat,
-        lng: TEST_COORDS.lng,
-        surface: 90,
-        type_bien: 'maison',
-        etat: 'bon_etat',
-        dpe: 'D',
-        equipements: ['Terrasse'],
-        delai: '3_6_mois',
-      })
-      const hasEstimate = Number.isFinite(data?.valeur_mediane) && data.valeur_mediane > 0
+      const [standard, village] = await Promise.all([
+        calculerEstimation({
+          lat: TEST_COORDS.lat,
+          lng: TEST_COORDS.lng,
+          surface: 90,
+          type_bien: 'maison',
+          etat: 'bon_etat',
+          dpe: 'D',
+          equipements: ['Terrasse'],
+          delai: '3_6_mois',
+        }),
+        calculerEstimation({
+          lat: KNOWN_CADASTRE_TEST.lat,
+          lng: KNOWN_CADASTRE_TEST.lng,
+          surface: 100,
+          type_bien: 'maison',
+          sous_type: 'individuelle',
+          cadastre_surface: 60,
+          etat: 'bon_etat',
+          dpe: 'D',
+          equipements: [],
+          delai: '3_6_mois',
+        }),
+      ])
+      const hasEstimate = Number.isFinite(standard?.valeur_mediane) && standard.valeur_mediane > 0
+      const villageAdjusted = Number.isFinite(village?.valeur_mediane) && village.valeur_mediane > 0 && village.valeur_mediane <= 240000
       return {
         id: 'estimation',
         label: 'Calcul estimation',
-        status: hasEstimate ? 'ok' : 'warning',
-        detail: hasEstimate ? 'Calcul estimation opérationnel : ' + new Intl.NumberFormat('fr-FR').format(data.valeur_mediane) + ' €.' : 'Calcul estimation joignable, mais sans résultat exploitable.',
+        status: hasEstimate && villageAdjusted ? 'ok' : hasEstimate ? 'warning' : 'error',
+        detail: hasEstimate
+          ? 'Calcul opérationnel : ' + new Intl.NumberFormat('fr-FR').format(standard.valeur_mediane) + ' €. Maison de village test Pontevès : ' + new Intl.NumberFormat('fr-FR').format(village.valeur_mediane) + ' €.'
+          : 'Calcul estimation sans résultat exploitable.',
       }
     }, { id: 'estimation', label: 'Calcul estimation' }),
 

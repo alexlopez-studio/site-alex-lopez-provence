@@ -101,11 +101,17 @@ function patchToolsFetch() {
         const annee = answers?.annee_construction
         const numeroDpe = answers?.numero_dpe
         const dpeVerifie = Boolean(numeroDpe)
+        const sousType = answers?.sous_type
+        const surfaceTerrain = answers?.surface_terrain
+        const cadastreSurface = answers?.cadastre_surface
 
         nextInit = {
           ...init,
           body: JSON.stringify({
             ...body,
+            ...(typeof sousType === 'string' ? { sous_type: sousType } : {}),
+            ...(typeof surfaceTerrain === 'number' ? { surface_terrain: surfaceTerrain } : {}),
+            ...(typeof cadastreSurface === 'number' ? { cadastre_surface: cadastreSurface } : {}),
             ...(typeof annee === 'number' ? { annee_construction: annee } : {}),
             ...(dpeVerifie ? { dpe_verifie: true, numero_dpe: numeroDpe } : {}),
           }),
