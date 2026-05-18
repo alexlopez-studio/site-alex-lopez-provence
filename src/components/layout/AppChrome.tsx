@@ -29,6 +29,95 @@ function normalizeAdvisorName(root: ParentNode) {
   }
 }
 
+function readVendreAnswers(): Record<string, unknown> | null {
+  try {
+    const raw = localStorage.getItem('vendre-store')
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    const state = parsed?.state ?? parsed
+    const answers = state?.answers
+    return answers && typeof answers === 'object' ? answers : null
+  } catch {
+    return null
+  }
+}
+
+function updateVendreAnswers(updates: Record<string, unknown>) {
+  try {
+    const raw = localStorage.getItem('vendre-store')
+    if (!raw) return
+    const parsed = JSON.parse(raw)
+    if (parsed?.state?.answers && typeof parsed.state.answers === 'object') {
+      parsed.state.answers = { ...parsed.state.answers, ...updates }
+      parsed.state.updatedAt = Date.now()
+    } else if (parsed?.answers && typeof parsed.answers === 'object') {
+      parsed.answers = { ...parsed.answers, ...updates }
+      parsed.updatedAt = Date.now()
+    } else {
+      return
+    }
+    localStorage.setItem('vendre-store', JSON.stringify(parsed))
+  } catch {
+    // Ne bloque jamais le parcours outil.
+  }
+}
+
+function patchToolsFetch() {
+  const win = window as typeof window & { __alexToolsFetchPatched?: boolean }
+  if (win.__alexToolsFetchPatched) return
+  win.__alexToolsFetchPatched = true
+
+  const originalFetch = window.fetch.bind(window)
+
+  window.fetch = async function patchedFetch(input: RequestInfo | URL, init?: RequestInit) {
+    let nextInit = init
+    const url = typeof input === 'string'
+      ? input
+      : input instanceof URL
+        ? input.toString()
+        : input.url
+
+    if (url.includes('/api/estimation') && init?.body && typeof init.body === 'string') {
+      try {
+        const body = JSON.parse(init.body) as Record<string, unknown>
+        const answers = readVendreAnswers()
+        const annee = answers?.annee_construction
+        const numeroDpe = answers?.numero_dpe
+        const dpeVerifie = Boolean(numeroDpe)
+
+        nextInit = {
+          ...init,
+          body: JSON.stringify({
+            ...body,
+            ...(typeof annee === 'number' ? { annee_construction: annee } : {}),
+            ...(dpeVerifie ? { dpe_verifie: true, numero_dpe: numeroDpe } : {}),
+          }),
+        }
+      } catch {
+        nextInit = init
+      }
+    }
+
+    const response = await originalFetch(input, nextInit)
+
+    if (url.includes('/api/adresse-infos')) {
+      response.clone().json().then((data) => {
+        const dpe = data?.dpe
+        if (!dpe || typeof dpe !== 'object') return
+
+        const updates: Record<string, unknown> = {}
+        if (typeof dpe.annee_construction === 'number') updates.annee_construction = dpe.annee_construction
+        if (typeof dpe.numero === 'string' && dpe.numero.length > 0) updates.numero_dpe = dpe.numero
+        if (typeof dpe.lettre === 'string' && /^[A-G]$/.test(dpe.lettre)) updates.dpe_verifie = true
+
+        if (Object.keys(updates).length > 0) updateVendreAnswers(updates)
+      }).catch(() => null)
+    }
+
+    return response
+  }
+}
+
 export function AppChrome({
   children,
   header,
@@ -43,6 +132,7 @@ export function AppChrome({
 
   useEffect(function () {
     normalizeAdvisorName(document.body)
+    patchToolsFetch()
 
     const observer = new MutationObserver(function (mutations) {
       for (const mutation of mutations) {

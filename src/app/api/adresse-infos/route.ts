@@ -42,6 +42,7 @@ export async function GET(req: NextRequest) {
       confidence: 'exact' | 'approximatif' | 'non_trouve'
       numero?: string
       adresse?: string | null
+      annee_construction?: number | null
     }
     dpeStatus: 'found' | 'not_found'
     parcelle?: {
@@ -70,6 +71,7 @@ export async function GET(req: NextRequest) {
       confidence: dpeLookup.confidence,
       numero: dpeLookup.dpe.numero_dpe,
       adresse: dpeLookup.dpe.adresse_ban,
+      annee_construction: dpeLookup.dpe.annee_construction,
     }
   } else {
     result.dpe = {

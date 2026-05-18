@@ -20,6 +20,9 @@ export interface VendreAnswers {
   nb_pieces?: number
   etat?: string
   dpe?: string
+  dpe_verifie?: boolean
+  numero_dpe?: string
+  annee_construction?: number
   equipements?: string[]
   delai?: string
   civilite?: 'monsieur' | 'madame'
@@ -64,7 +67,7 @@ const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: '1',
     from: 'al',
-    text: "Bonjour, je suis Alex Lopez.\n\nJe vais vous aider à obtenir un premier repère de valeur pour votre bien. L’objectif n’est pas de remplacer une visite ou une analyse humaine, mais de cadrer le sujet : adresse, type de bien, surface, état, DPE et projet de vente.\n\nCommençons par l’adresse du bien.",
+    text: "Bonjour, je suis Alexandre Lopez.\n\nJe vais vous aider à obtenir un premier repère de valeur pour votre bien. L’objectif n’est pas de remplacer une visite ou une analyse humaine, mais de cadrer le sujet : adresse, type de bien, surface, état, DPE et projet de vente.\n\nCommençons par l’adresse du bien.",
     timestamp: now(),
   },
 ]

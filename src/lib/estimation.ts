@@ -33,10 +33,31 @@ function coefDelai(delai: string): number {
   }
 }
 
+function coefAnneeConstruction(annee?: number): number {
+  if (!annee || !Number.isFinite(annee)) return 1.0
+  if (annee >= 2013) return 1.035
+  if (annee >= 2006) return 1.02
+  if (annee >= 1975) return 1.0
+  if (annee >= 1948) return 0.98
+  return 0.965
+}
+
+function constructionLabel(annee?: number): string | null {
+  if (!annee || !Number.isFinite(annee)) return null
+  if (annee >= 2013) return 'construction récente (' + annee + ')'
+  if (annee >= 2006) return 'construction après 2006 (' + annee + ')'
+  if (annee >= 1975) return 'construction après 1975 (' + annee + ')'
+  if (annee >= 1948) return 'construction ancienne (' + annee + ')'
+  return 'bâti ancien (' + annee + ')'
+}
+
 export interface EstimationInput {
   lat: number; lng: number; surface: number
   type_bien?: string; etat?: string; dpe?: string
   equipements?: string[]; delai?: string
+  annee_construction?: number
+  dpe_verifie?: boolean
+  numero_dpe?: string
 }
 
 export interface AjustementBreakdown {
@@ -77,7 +98,8 @@ export interface EstimationOutput {
 export async function calculerEstimation(input: EstimationInput): Promise<EstimationOutput> {
   const {
     lat, lng, surface, type_bien = 'maison', etat = 'bon_etat',
-    dpe = 'D', equipements = [], delai = '3_6_mois',
+    dpe = 'D', equipements = [], delai = '3_6_mois', annee_construction,
+    dpe_verifie = false, numero_dpe,
   } = input
 
   let mutations = await fetchDvfMutations(lat, lng, type_bien, 1500)
@@ -90,7 +112,7 @@ export async function calculerEstimation(input: EstimationInput): Promise<Estima
   const BASE_M2: Record<string, number> = { maison: 3200, appartement: 2800, terrain: 120, autre: 2500 }
 
   if (mutations.length < 3) {
-    return build(surface, BASE_M2[type_bien] ?? 2800, etat, dpe, equipements, delai, 0, 'fallback', rayon)
+    return build(surface, BASE_M2[type_bien] ?? 2800, etat, dpe, equipements, delai, 0, 'fallback', rayon, annee_construction, dpe_verifie, numero_dpe)
   }
 
   const prixM2List = mutations
@@ -99,14 +121,14 @@ export async function calculerEstimation(input: EstimationInput): Promise<Estima
     .filter((p) => p > 500 && p < 20000)
 
   if (prixM2List.length < 2) {
-    return build(surface, BASE_M2[type_bien] ?? 2800, etat, dpe, equipements, delai, 0, 'fallback', rayon)
+    return build(surface, BASE_M2[type_bien] ?? 2800, etat, dpe, equipements, delai, 0, 'fallback', rayon, annee_construction, dpe_verifie, numero_dpe)
   }
-  return build(surface, median(prixM2List), etat, dpe, equipements, delai, prixM2List.length, 'dvf', rayon)
+  return build(surface, median(prixM2List), etat, dpe, equipements, delai, prixM2List.length, 'dvf', rayon, annee_construction, dpe_verifie, numero_dpe)
 }
 
 function computeAjustements(
   prixDeBase: number, etat: string, dpe: string,
-  equipements: string[], delai: string,
+  equipements: string[], delai: string, anneeConstruction?: number,
 ): AjustementBreakdown[] {
   const list: AjustementBreakdown[] = []
   const ce = COEF_ETAT[etat] ?? 1.0
@@ -114,7 +136,19 @@ function computeAjustements(
     const pct = ce - 1
     list.push({
       key: 'etat',
-      label: 'État général (' + (ETAT_LABEL[etat] ?? etat) + ')',
+      label: 'État déclaré (' + (ETAT_LABEL[etat] ?? etat) + ')',
+      pct: Math.round(pct * 1000) / 10,
+      montant_eur: Math.round(prixDeBase * pct),
+      sign: pct > 0 ? 'positive' : 'negative',
+    })
+  }
+  const ca = coefAnneeConstruction(anneeConstruction)
+  const caLabel = constructionLabel(anneeConstruction)
+  if (ca !== 1.0 && caLabel) {
+    const pct = ca - 1
+    list.push({
+      key: 'annee_construction',
+      label: 'Âge du bâti (' + caLabel + ')',
       pct: Math.round(pct * 1000) / 10,
       montant_eur: Math.round(prixDeBase * pct),
       sign: pct > 0 ? 'positive' : 'negative',
@@ -178,7 +212,7 @@ function computeStrategie(confiance: number, delai: string): StrategiePrix {
   return { probabilite_vente_rapide_pct: p, delai_estime, frequence_visites, negociation }
 }
 
-function computePointsForts(equipements: string[], dpe: string): string[] {
+function computePointsForts(equipements: string[], dpe: string, anneeConstruction?: number, dpeVerifie?: boolean, numeroDpe?: string): string[] {
   const arr: string[] = []
   const eq = equipements ?? []
   if (eq.includes('Balcon')) arr.push('Balcon disponible')
@@ -188,6 +222,8 @@ function computePointsForts(equipements: string[], dpe: string): string[] {
   if (eq.includes('Terrasse')) arr.push('Terrasse')
   if (eq.includes('Vue exceptionnelle')) arr.push('Vue exceptionnelle')
   if (eq.includes('Cave')) arr.push('Cave')
+  if (dpeVerifie) arr.push('DPE vérifié dans la base ADEME' + (numeroDpe ? ' (' + numeroDpe + ')' : ''))
+  if (anneeConstruction && Number.isFinite(anneeConstruction)) arr.push('Année de construction documentée : ' + anneeConstruction)
   if (['A', 'B', 'C'].includes(dpe)) arr.push('Bonne performance énergétique')
   return arr
 }
@@ -195,9 +231,10 @@ function computePointsForts(equipements: string[], dpe: string): string[] {
 function build(
   surface: number, prixM2Brut: number, etat: string, dpe: string,
   equipements: string[], delai: string, nbTx: number,
-  source: 'dvf' | 'fallback', rayon: number,
+  source: 'dvf' | 'fallback', rayon: number, anneeConstruction?: number,
+  dpeVerifie?: boolean, numeroDpe?: string,
 ): EstimationOutput {
-  const coef = (COEF_ETAT[etat] ?? 1.0) * (COEF_DPE[dpe] ?? 1.0) * coefEquipementsTotal(equipements) * coefDelai(delai)
+  const coef = (COEF_ETAT[etat] ?? 1.0) * coefAnneeConstruction(anneeConstruction) * (COEF_DPE[dpe] ?? 1.0) * coefEquipementsTotal(equipements) * coefDelai(delai)
   const prixM2 = prixM2Brut * coef
   const med = Math.round((prixM2 * surface) / 1000) * 1000
   let confiance = 40
@@ -207,15 +244,17 @@ function build(
     else if (nbTx >= 5) confiance = 65
     else confiance = 55
   }
+  if (dpeVerifie) confiance = Math.min(95, confiance + 5)
+  if (anneeConstruction && Number.isFinite(anneeConstruction)) confiance = Math.min(95, confiance + 3)
   const prix_de_base = Math.round(prixM2Brut * surface)
-  const ajustements = computeAjustements(prix_de_base, etat, dpe, equipements, delai)
+  const ajustements = computeAjustements(prix_de_base, etat, dpe, equipements, delai, anneeConstruction)
   const total_ajustement_eur = ajustements.reduce(function (s, a) { return s + a.montant_eur }, 0)
   const total_ajustement_pct = prix_de_base > 0
     ? Math.round((total_ajustement_eur / prix_de_base) * 1000) / 10
     : 0
   const prix_calcule = prix_de_base + total_ajustement_eur
   const strategie = computeStrategie(confiance, delai)
-  const points_forts = computePointsForts(equipements, dpe)
+  const points_forts = computePointsForts(equipements, dpe, anneeConstruction, dpeVerifie, numeroDpe)
   return {
     fourchette_basse: Math.round((med * 0.93) / 1000) * 1000,
     fourchette_haute: Math.round((med * 1.07) / 1000) * 1000,
