@@ -36,6 +36,7 @@ import {
   Wallet,
   SlidersHorizontal,
   RefreshCw,
+  CalendarDays,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { VP as vpOnce, fadeInUp, scaleIn, stagger, staggerFast } from '@/lib/animations'
@@ -609,6 +610,9 @@ function CardAdjustEstimate({
         <AdjustField label="Terrain / extérieur">
           <input className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand" type="number" min={0} value={draft.surface_terrain ?? ''} onChange={(e) => update('surface_terrain', e.target.value === '' ? null : Number(e.target.value))} />
         </AdjustField>
+        <AdjustField label="Année de construction">
+          <input className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand" type="number" min={1600} max={new Date().getFullYear()} value={draft.annee_construction ?? ''} onChange={(e) => update('annee_construction', e.target.value === '' ? undefined : Number(e.target.value))} />
+        </AdjustField>
         <AdjustField label="Typologie">
           <select className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand" value={draft.sous_type ?? ''} onChange={(e) => update('sous_type', e.target.value || undefined)}>
             <option value="">Non précisée</option>
@@ -635,7 +639,7 @@ function CardAdjustEstimate({
         </AdjustField>
       </motion.div>
       <motion.div variants={fadeInUp} className="mt-5 rounded-xl bg-brand-light p-4 text-xs leading-relaxed text-muted">
-        Pour le 571 Chemin du Petit Ruisseau, si le résultat paraît trop haut, les variables qui changent le plus l’estimation sont généralement : état réel, surface retenue, terrain réellement exploitable, stationnement/garage, et typologie exacte du bien.
+        L’année de construction est importante : elle aide à interpréter la structure, les normes, l’isolation probable et le niveau de rénovation attendu. Quand elle est retrouvée dans la base DPE ADEME, elle renforce aussi la confiance de l’estimation.
       </motion.div>
       {message && <p className="mt-3 text-sm text-muted">{message}</p>}
       <motion.div variants={fadeInUp} className="mt-5">
@@ -661,6 +665,7 @@ function CardCalcul({ est, data }: { est: EstimResult; data: LeadData }) {
   const dpeAdj = est.ajustements.find(function (a) { return a.key === 'dpe' })
   const sources = [
     { icon: Zap, label: data.dpe ? 'DPE ' + data.dpe : 'DPE NC', sub: data.dpe_verifie ? 'ADEME vérifié' : 'Votre saisie' },
+    { icon: CalendarDays, label: data.annee_construction ? 'Construction ' + data.annee_construction : 'Année inconnue', sub: data.annee_construction ? 'ADEME ou saisie' : 'À préciser' },
     { icon: Ruler, label: data.surface ? data.surface + ' m²' : '—', sub: 'Votre saisie' },
     { icon: Building2, label: data.sous_type ? SOUS_TYPE_LBL[data.sous_type] ?? data.sous_type : data.type_bien ? BIEN_LBL[data.type_bien] : 'Type bien', sub: 'Votre saisie' },
     { icon: Database, label: fmt0(est.prix_m2_brut_dvf) + ' €/m²', sub: est.source === 'dvf' ? 'DVF Cerema' : 'Référence indicative' },
@@ -697,10 +702,11 @@ function CardCalcul({ est, data }: { est: EstimResult; data: LeadData }) {
           )
         })}
       </motion.div>
-      {(data.adresse || data.type_bien || data.surface) && (
+      {(data.adresse || data.type_bien || data.surface || data.annee_construction) && (
         <div className="mb-5 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl bg-surface px-4 py-3 text-sm">
           {data.type_bien && <span className="inline-flex items-center gap-1.5 text-foreground"><HomeIcon size={14} className="text-brand" />{BIEN_LBL[data.type_bien] ?? data.type_bien}{data.nb_pieces ? ' T' + data.nb_pieces : ''}</span>}
           {data.surface && <span className="inline-flex items-center gap-1.5 text-foreground"><Ruler size={14} className="text-brand" />{data.surface} m²</span>}
+          {data.annee_construction && <span className="inline-flex items-center gap-1.5 text-foreground"><CalendarDays size={14} className="text-brand" />Construction {data.annee_construction}</span>}
           {data.adresse && <span className="inline-flex items-center gap-1.5 text-foreground"><MapPin size={14} className="text-brand" />{data.adresse}</span>}
         </div>
       )}
