@@ -25,6 +25,13 @@ const KNOWN_DPE_TEST = {
   expected: 'B',
 }
 
+const KNOWN_CADASTRE_TEST = {
+  address: '56 Chemin des Aires 83670 Pontevès',
+  lat: 43.553985,
+  lng: 6.029528,
+  expectedIdu: '830950000N0044',
+}
+
 function statusFromChecks(checks: Check[]): Status {
   if (checks.some((check) => check.status === 'error')) return 'error'
   if (checks.some((check) => check.status === 'warning')) return 'warning'
@@ -70,8 +77,8 @@ export async function GET() {
           radius: 500,
         }),
         findParcelByPoint({
-          lat: KNOWN_DPE_TEST.lat,
-          lng: KNOWN_DPE_TEST.lng,
+          lat: KNOWN_CADASTRE_TEST.lat,
+          lng: KNOWN_CADASTRE_TEST.lng,
         }),
       ])
 
@@ -79,13 +86,17 @@ export async function GET() {
       const parcelFound = Boolean(parcel)
       const dpeLetter = dpeLookup.dpe?.etiquette_dpe
       const dpeMatchesExpected = dpeLetter === KNOWN_DPE_TEST.expected
+      const parcelMatchesExpected = parcel?.idu === KNOWN_CADASTRE_TEST.expectedIdu
+      const isOk = dpeFound && dpeMatchesExpected && parcelMatchesExpected
       return {
         id: 'adresse-infos',
         label: 'DPE / cadastre',
-        status: dpeFound && dpeMatchesExpected ? 'ok' : dpeFound || parcelFound ? 'warning' : 'error',
-        detail: dpeFound
-          ? 'DPE retrouvé sur adresse test : classe ' + dpeLetter + (parcelFound ? ' + parcelle.' : '.') + (dpeMatchesExpected ? '' : ' À vérifier : attendu ' + KNOWN_DPE_TEST.expected + '.')
-          : 'DPE non retrouvé sur l’adresse test connue.',
+        status: isOk ? 'ok' : dpeFound || parcelFound ? 'warning' : 'error',
+        detail: isOk
+          ? 'DPE test retrouvé : classe ' + dpeLetter + '. Parcelle Pontevès retrouvée : ' + parcel?.idu + '.'
+          : dpeFound || parcelFound
+            ? 'DPE : ' + (dpeLetter ?? 'non trouvé') + '. Parcelle : ' + (parcel?.idu ?? 'non trouvée') + '. À vérifier.'
+            : 'DPE et parcelle non retrouvés sur les adresses test connues.',
       }
     }, { id: 'adresse-infos', label: 'DPE / cadastre' }),
 
