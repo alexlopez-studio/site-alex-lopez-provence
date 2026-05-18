@@ -52,6 +52,32 @@ function patchAppointmentLinks(root: ParentNode) {
   })
 }
 
+function patchResultsWaitingStep() {
+  const text = document.body.textContent ?? ''
+  if (!text.includes('Recherche des ventes récentes...')) return
+  if (!text.includes('Analyse du marché local')) return
+  if (document.querySelector('[data-results-prep-step="true"]')) return
+
+  const rows = Array.from(document.querySelectorAll<HTMLElement>('div')).filter(function (element) {
+    return element.textContent?.trim() === 'Calcul de votre estimation' && element.style.display === 'flex'
+  })
+  const lastRow = rows[rows.length - 1]
+  if (!lastRow?.parentElement) return
+
+  const newRow = lastRow.cloneNode(true) as HTMLElement
+  newRow.dataset.resultsPrepStep = 'true'
+  const label = newRow.querySelector('span')
+  if (label) label.textContent = 'Préparation de vos résultats'
+
+  const icon = newRow.firstElementChild as HTMLElement | null
+  if (icon) {
+    icon.style.backgroundColor = '#E2E8F0'
+    icon.innerHTML = ''
+  }
+
+  lastRow.parentElement.insertBefore(newRow, lastRow.nextSibling)
+}
+
 function readVendreAnswers(): Record<string, unknown> | null {
   try {
     const raw = localStorage.getItem('vendre-store')
@@ -176,6 +202,7 @@ export function AppChrome({
   useEffect(function () {
     normalizeAdvisorName(document.body)
     patchAppointmentLinks(document.body)
+    patchResultsWaitingStep()
     patchToolsFetch()
 
     function handleToolStartClick(event: MouseEvent) {
@@ -213,6 +240,7 @@ export function AppChrome({
           }
         }
       }
+      patchResultsWaitingStep()
     })
 
     observer.observe(document.body, { childList: true, subtree: true })
