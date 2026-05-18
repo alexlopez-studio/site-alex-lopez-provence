@@ -3,6 +3,9 @@
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { useVendreStore } from '@/stores/vendreStore'
+import { useAcheterStore } from '@/stores/acheterStore'
+import { useAuditStore } from '@/stores/auditStore'
 
 function normalizeAdvisorName(root: ParentNode) {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
@@ -60,6 +63,20 @@ function updateVendreAnswers(updates: Record<string, unknown>) {
   } catch {
     // Ne bloque jamais le parcours outil.
   }
+}
+
+function resetToolStoreForPath(pathname: string) {
+  if (pathname === '/outils/vendre') {
+    useVendreStore.getState().reset()
+  } else if (pathname === '/outils/acheter') {
+    useAcheterStore.getState().reset()
+  } else if (pathname === '/outils/audit') {
+    useAuditStore.getState().reset()
+  }
+}
+
+function isToolStartPath(pathname: string) {
+  return pathname === '/outils/vendre' || pathname === '/outils/acheter' || pathname === '/outils/audit'
 }
 
 function patchToolsFetch() {
@@ -134,6 +151,26 @@ export function AppChrome({
     normalizeAdvisorName(document.body)
     patchToolsFetch()
 
+    function handleToolStartClick(event: MouseEvent) {
+      const target = event.target instanceof Element ? event.target.closest('a') : null
+      const href = target?.getAttribute('href')
+      if (!href) return
+
+      try {
+        const url = new URL(href, window.location.origin)
+        if (url.origin !== window.location.origin) return
+        if (!isToolStartPath(url.pathname)) return
+
+        // Quand un visiteur relance un outil depuis la page outils ou depuis une page résultat,
+        // on repart d’un formulaire vierge au lieu de rouvrir l’ancienne conversation persistée.
+        resetToolStoreForPath(url.pathname)
+      } catch {
+        // Ignore les href non standards.
+      }
+    }
+
+    document.addEventListener('click', handleToolStartClick, true)
+
     const observer = new MutationObserver(function (mutations) {
       for (const mutation of mutations) {
         for (const node of Array.from(mutation.addedNodes)) {
@@ -156,7 +193,10 @@ export function AppChrome({
     })
 
     observer.observe(document.body, { childList: true, subtree: true })
-    return function () { observer.disconnect() }
+    return function () {
+      document.removeEventListener('click', handleToolStartClick, true)
+      observer.disconnect()
+    }
   }, [pathname])
 
   if (isToolsMiniApp) {
