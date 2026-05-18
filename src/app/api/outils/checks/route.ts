@@ -1,4 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
+import { findDpeNearby } from '@/lib/ademe'
+import { findParcelByPoint } from '@/lib/cadastre'
+import { calculerEstimation } from '@/lib/estimation'
+import { computeLeadResults } from '@/lib/leads/compute-results'
 
 type Status = 'ok' | 'warning' | 'error'
 
@@ -21,14 +25,6 @@ const KNOWN_DPE_TEST = {
   expected: 'B',
 }
 
-function originFromRequest(req: NextRequest) {
-  try {
-    return new URL(req.url).origin
-  } catch {
-    return process.env.NEXT_PUBLIC_SITE_URL ?? 'https://alexlopez-provence.fr'
-  }
-}
-
 function statusFromChecks(checks: Check[]): Status {
   if (checks.some((check) => check.status === 'error')) return 'error'
   if (checks.some((check) => check.status === 'warning')) return 'warning'
@@ -47,9 +43,7 @@ async function safeCheck(check: () => Promise<Check>, fallback: Omit<Check, 'sta
   }
 }
 
-export async function GET(req: NextRequest) {
-  const origin = originFromRequest(req)
-
+export async function GET() {
   const checks = await Promise.all([
     safeCheck(async () => {
       const url = new URL('https://api-adresse.data.gouv.fr/search/')
@@ -68,16 +62,22 @@ export async function GET(req: NextRequest) {
     }, { id: 'adresse-autocomplete', label: 'Recherche adresse' }),
 
     safeCheck(async () => {
-      const url = new URL('/api/adresse-infos', origin)
-      url.searchParams.set('lat', String(KNOWN_DPE_TEST.lat))
-      url.searchParams.set('lng', String(KNOWN_DPE_TEST.lng))
-      url.searchParams.set('q', KNOWN_DPE_TEST.address)
-      const response = await fetch(url, { cache: 'no-store' })
-      if (!response.ok) throw new Error('/api/adresse-infos HTTP ' + response.status)
-      const data = await response.json()
-      const dpeFound = data?.dpeStatus === 'found'
-      const parcelFound = data?.parcelleStatus === 'found'
-      const dpeLetter = data?.dpe?.lettre
+      const [dpeLookup, parcel] = await Promise.all([
+        findDpeNearby({
+          lat: KNOWN_DPE_TEST.lat,
+          lng: KNOWN_DPE_TEST.lng,
+          address: KNOWN_DPE_TEST.address,
+          radius: 500,
+        }),
+        findParcelByPoint({
+          lat: KNOWN_DPE_TEST.lat,
+          lng: KNOWN_DPE_TEST.lng,
+        }),
+      ])
+
+      const dpeFound = Boolean(dpeLookup.dpe?.etiquette_dpe)
+      const parcelFound = Boolean(parcel)
+      const dpeLetter = dpeLookup.dpe?.etiquette_dpe
       return {
         id: 'adresse-infos',
         label: 'DPE / cadastre',
@@ -87,46 +87,29 @@ export async function GET(req: NextRequest) {
     }, { id: 'adresse-infos', label: 'DPE / cadastre' }),
 
     safeCheck(async () => {
-      const response = await fetch(new URL('/api/estimation', origin), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        cache: 'no-store',
-        body: JSON.stringify({
-          lat: TEST_COORDS.lat,
-          lng: TEST_COORDS.lng,
-          surface: 90,
-          type_bien: 'maison',
-          etat: 'bon_etat',
-          dpe: 'D',
-          equipements: ['Terrasse'],
-          delai: '3_6_mois',
-        }),
+      const data = await calculerEstimation({
+        lat: TEST_COORDS.lat,
+        lng: TEST_COORDS.lng,
+        surface: 90,
+        type_bien: 'maison',
+        etat: 'bon_etat',
+        dpe: 'D',
+        equipements: ['Terrasse'],
+        delai: '3_6_mois',
       })
-      if (!response.ok) throw new Error('/api/estimation HTTP ' + response.status)
-      const data = await response.json()
-      const hasEstimate = data && typeof data === 'object'
+      const hasEstimate = Number.isFinite(data?.valeur_mediane) && data.valeur_mediane > 0
       return {
         id: 'estimation',
         label: 'Calcul estimation',
         status: hasEstimate ? 'ok' : 'warning',
-        detail: hasEstimate ? 'Calcul estimation opérationnel.' : 'Route estimation répond, mais sans résultat exploitable.',
+        detail: hasEstimate ? 'Calcul estimation opérationnel : ' + new Intl.NumberFormat('fr-FR').format(data.valeur_mediane) + ' €.' : 'Calcul estimation joignable, mais sans résultat exploitable.',
       }
     }, { id: 'estimation', label: 'Calcul estimation' }),
 
     safeCheck(async () => {
-      const response = await fetch(new URL('/api/leads', origin), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        cache: 'no-store',
-        body: JSON.stringify({
-          dry_run: true,
-          type: 'audit',
-          token: 'api-check-' + Date.now(),
-          email: 'test@example.com',
-          prenom: 'Test',
-          nom: 'API',
-          telephone: '0600000000',
-          opt_in: true,
+      const results = await computeLeadResults({
+        type: 'audit',
+        formData: {
           etat_toiture: 'bon',
           etat_facade: 'bon',
           etat_menuiseries: 'bon',
@@ -139,15 +122,14 @@ export async function GET(req: NextRequest) {
           type_chauffage: 'pac',
           dpe: 'C',
           objectif: 'vente',
-        }),
+        },
       })
-      if (!response.ok) throw new Error('/api/leads HTTP ' + response.status)
-      const data = await response.json()
+      const score = typeof results?.score_global === 'number' ? results.score_global : null
       return {
         id: 'leads',
         label: 'Création lead',
-        status: data?.success && data?.dryRun ? 'ok' : 'warning',
-        detail: data?.success && data?.dryRun ? 'Création lead validée en mode test, sans email ni sauvegarde réelle.' : 'Route leads répond, mais le mode test n’a pas été confirmé.',
+        status: score != null ? 'ok' : 'warning',
+        detail: score != null ? 'Calcul lead validé en mode test, sans email ni sauvegarde réelle. Score audit : ' + score + '/100.' : 'Moteur lead joignable, mais résultat de test incomplet.',
       }
     }, { id: 'leads', label: 'Création lead' }),
   ])
