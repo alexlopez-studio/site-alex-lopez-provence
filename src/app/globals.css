@@ -101,6 +101,29 @@ img[src="/alexandre-lopez-face.jpg"] {
   background: #FFFFFF;
 }
 
+/* ─── Bulles de conversation outils : meilleure lisibilité des réponses courtes ─── */
+div[style*="border-radius: 16px 16px 4px 16px"],
+div[class*="rounded-br-md"][class*="bg-brand"] {
+  min-width: min(10.5rem, 72vw) !important;
+  max-width: min(28rem, 86vw) !important;
+  padding: 0.78rem 1rem !important;
+  border-radius: 1rem 1rem 0.35rem 1rem !important;
+  line-height: 1.45 !important;
+  text-align: left !important;
+  white-space: pre-wrap !important;
+  word-break: normal !important;
+  overflow-wrap: anywhere !important;
+}
+
+div[style*="border-radius: 16px 16px 16px 4px"],
+div[class*="rounded-bl-md"][class*="bg-white"] {
+  max-width: min(34rem, 86vw) !important;
+  padding: 0.9rem 1rem !important;
+  border-radius: 1rem 1rem 1rem 0.35rem !important;
+  line-height: 1.55 !important;
+  overflow-wrap: anywhere !important;
+}
+
 /* ─── Gélule corail iad — CTA principal (1× par page, inclinée -10° charte) ─── */
 .iad-pill-cta {
   display: inline-flex;

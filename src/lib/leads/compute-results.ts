@@ -69,6 +69,9 @@ export async function computeLeadResults(
       dpe: str(data.dpe),
       equipements: arr(data.equipements),
       delai: str(data.delai),
+      annee_construction: num(data.annee_construction),
+      dpe_verifie: bool(data.dpe_verifie),
+      numero_dpe: str(data.numero_dpe),
     })
     return { ...output } as LeadResults
   }
