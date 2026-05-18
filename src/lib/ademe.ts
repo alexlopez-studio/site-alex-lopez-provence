@@ -3,20 +3,19 @@
  *
  * Cherche un DPE officiel via l'API open data ADEME (data-fair / Koumoul).
  * Deux datasets sources :
- *   - dpe-v2-logements-existants  (logements depuis juillet 2021)
- *   - dpe-v2-logements-neufs       (logements neufs depuis juillet 2021)
+ *   - dpe03existant  (logements existants depuis juillet 2021)
+ *   - dpe02neuf      (logements neufs depuis juillet 2021)
  *
- * Stratégie : recherche par proximité géographique (geo_distance), tri par
- * date de DPE descendante, scoring de confiance basé sur distance + surface.
- *
- * Documentation API : https://data.ademe.fr/datasets/dpe-v2-logements-existants
+ * Stratégie : recherche par adresse BAN quand elle est disponible, puis
+ * recherche par proximité géographique en repli.
  */
 
 const ADEME_BASE = 'https://data.ademe.fr/data-fair/api/v1/datasets'
-const DATASET_EXISTING = 'dpe-v2-logements-existants'
-const DATASET_NEW = 'dpe-v2-logements-neufs'
+const DATASET_EXISTING = 'dpe03existant'
+const DATASET_NEW = 'dpe02neuf'
 const DEFAULT_TIMEOUT_MS = 5000
 const MAX_RADIUS_M = 500
+const ADDRESS_SEARCH_RADIUS_M = 1000
 
 export type DpeClass = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G'
 export type DpeDataset = 'existing' | 'new'
@@ -52,6 +51,8 @@ export interface DpeLookupResult {
 export interface DpeSearchOptions {
   lat: number
   lng: number
+  /** Full BAN label selected by the user, used for exact text fallback. */
+  address?: string
   /** Search radius in meters (default 150m, capped at 500m) */
   radius?: number
   /** Optional surface (m²) to disambiguate close candidates (±10% match boost) */
@@ -82,7 +83,7 @@ interface AdemeRawResults {
 
 async function ademeFetch(
   dataset: string,
-  params: Record<string, string | number>,
+  params: Record<string, string | number | boolean>,
   timeoutMs: number,
 ): Promise<AdemeRawResults> {
   const controller = new AbortController()
@@ -121,7 +122,6 @@ function dpeClassOrNull(v: unknown): DpeClass | null {
 }
 
 function parseGeopoint(raw: unknown): [number, number] | null {
-  // ADEME data-fair returns "lat,lng" as a string
   if (typeof raw !== 'string') return null
   const [latStr, lngStr] = raw.split(',')
   const latNum = Number(latStr)
@@ -168,6 +168,22 @@ export function haversineMeters(
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)))
 }
 
+function enrichAndSortByDistance(
+  rows: Array<Record<string, unknown>>,
+  dataset: DpeDataset,
+  opts: DpeSearchOptions,
+): AdemeDpeRecord[] {
+  const enriched = rows.map((r) => {
+    const rec = normalizeRecord(r, dataset)
+    if (rec.geopoint) {
+      rec.distance_m = haversineMeters([opts.lng, opts.lat], rec.geopoint)
+    }
+    return rec
+  })
+  enriched.sort((a, b) => (a.distance_m ?? Infinity) - (b.distance_m ?? Infinity))
+  return enriched
+}
+
 function scoreConfidence(
   rec: AdemeDpeRecord,
   opts: DpeSearchOptions,
@@ -188,7 +204,30 @@ function scoreConfidence(
   return 'non_trouve'
 }
 
-async function searchDataset(
+async function searchDatasetByAddress(
+  dataset: DpeDataset,
+  opts: DpeSearchOptions,
+): Promise<AdemeDpeRecord[]> {
+  const address = opts.address?.trim()
+  if (!address) return []
+  const slug = dataset === 'existing' ? DATASET_EXISTING : DATASET_NEW
+  const data = await ademeFetch(
+    slug,
+    {
+      q: address,
+      select: SELECT_FIELDS,
+      size: 25,
+      count: false,
+      sort: '-date_etablissement_dpe',
+    },
+    opts.timeoutMs ?? DEFAULT_TIMEOUT_MS,
+  )
+  return enrichAndSortByDistance(data.results ?? [], dataset, opts).filter(
+    (rec) => rec.distance_m == null || rec.distance_m <= ADDRESS_SEARCH_RADIUS_M,
+  )
+}
+
+async function searchDatasetByGeo(
   dataset: DpeDataset,
   opts: DpeSearchOptions,
 ): Promise<AdemeDpeRecord[]> {
@@ -197,34 +236,29 @@ async function searchDataset(
   const data = await ademeFetch(
     slug,
     {
-      // data-fair geo_distance syntax: comma-separated lat,lng,distance_m
       geo_distance: `${opts.lat},${opts.lng},${radius}`,
       select: SELECT_FIELDS,
       size: 25,
+      count: false,
       sort: '-date_etablissement_dpe',
     },
     opts.timeoutMs ?? DEFAULT_TIMEOUT_MS,
   )
-  const rows = data.results ?? []
-  const enriched = rows.map((r) => {
-    const rec = normalizeRecord(r, dataset)
-    if (rec.geopoint) {
-      rec.distance_m = haversineMeters(
-        [opts.lng, opts.lat],
-        rec.geopoint,
-      )
-    }
-    return rec
-  })
-  enriched.sort(
-    (a, b) => (a.distance_m ?? Infinity) - (b.distance_m ?? Infinity),
-  )
-  return enriched
+  return enrichAndSortByDistance(data.results ?? [], dataset, opts)
+}
+
+async function searchDataset(
+  dataset: DpeDataset,
+  opts: DpeSearchOptions,
+): Promise<AdemeDpeRecord[]> {
+  const byAddress = await searchDatasetByAddress(dataset, opts)
+  if (byAddress.length > 0) return byAddress
+  return searchDatasetByGeo(dataset, opts)
 }
 
 /**
  * Find the most relevant DPE near a given lat/lng. Searches the existing
- * dataset first, falls back to the neufs dataset if nothing is found.
+ * dataset first, falls back to the new-build dataset if nothing is found.
  * Resilient: returns { dpe: null, confidence: 'non_trouve' } on errors.
  */
 export async function findDpeNearby(
@@ -264,14 +298,14 @@ export async function getDpeByNumber(
   if (!trimmed) return null
   for (const dataset of ['existing', 'new'] as const) {
     try {
-      const slug =
-        dataset === 'existing' ? DATASET_EXISTING : DATASET_NEW
+      const slug = dataset === 'existing' ? DATASET_EXISTING : DATASET_NEW
       const data = await ademeFetch(
         slug,
         {
-          qs: `numero_dpe:"${trimmed}"`,
+          q: trimmed,
           select: SELECT_FIELDS,
           size: 1,
+          count: false,
         },
         timeoutMs,
       )
