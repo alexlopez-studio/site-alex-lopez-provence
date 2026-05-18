@@ -51,10 +51,61 @@ function constructionLabel(annee?: number): string | null {
   return 'bâti ancien (' + annee + ')'
 }
 
+type MaisonProfile = {
+  key: 'maison_village' | 'maison_compacte' | 'mitoyenne' | null
+  label: string | null
+  coef: number
+}
+
+function normalizeKey(value?: string): string {
+  return (value ?? '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[\s-]+/g, '_')
+}
+
+function resolveMaisonProfile(
+  typeBien: string,
+  sousType?: string,
+  surfaceTerrain?: number | null,
+  cadastreSurface?: number | null,
+): MaisonProfile {
+  if (typeBien !== 'maison') return { key: null, label: null, coef: 1.0 }
+
+  const normalizedSousType = normalizeKey(sousType)
+  const terrainRef = [cadastreSurface, surfaceTerrain]
+    .find((value) => typeof value === 'number' && Number.isFinite(value) && value > 0)
+
+  if (['maison_village', 'maison_de_village', 'village'].includes(normalizedSousType)) {
+    return { key: 'maison_village', label: 'Maison de village', coef: 0.56 }
+  }
+
+  if (terrainRef && terrainRef <= 120) {
+    return {
+      key: 'maison_village',
+      label: 'Maison de village probable · parcelle très compacte (' + Math.round(terrainRef) + ' m²)',
+      coef: 0.56,
+    }
+  }
+
+  if (terrainRef && terrainRef <= 250) {
+    return {
+      key: 'maison_compacte',
+      label: 'Maison de bourg / parcelle compacte (' + Math.round(terrainRef) + ' m²)',
+      coef: 0.74,
+    }
+  }
+
+  if (normalizedSousType === 'mitoyenne') {
+    return { key: 'mitoyenne', label: 'Maison mitoyenne', coef: 0.88 }
+  }
+
+  return { key: null, label: null, coef: 1.0 }
+}
+
 export interface EstimationInput {
   lat: number; lng: number; surface: number
-  type_bien?: string; etat?: string; dpe?: string
+  type_bien?: string; sous_type?: string; etat?: string; dpe?: string
   equipements?: string[]; delai?: string
+  surface_terrain?: number | null
+  cadastre_surface?: number | null
   annee_construction?: number
   dpe_verifie?: boolean
   numero_dpe?: string
@@ -97,9 +148,9 @@ export interface EstimationOutput {
 
 export async function calculerEstimation(input: EstimationInput): Promise<EstimationOutput> {
   const {
-    lat, lng, surface, type_bien = 'maison', etat = 'bon_etat',
-    dpe = 'D', equipements = [], delai = '3_6_mois', annee_construction,
-    dpe_verifie = false, numero_dpe,
+    lat, lng, surface, type_bien = 'maison', sous_type, etat = 'bon_etat',
+    dpe = 'D', equipements = [], delai = '3_6_mois', surface_terrain, cadastre_surface,
+    annee_construction, dpe_verifie = false, numero_dpe,
   } = input
 
   let mutations = await fetchDvfMutations(lat, lng, type_bien, 1500)
@@ -112,7 +163,7 @@ export async function calculerEstimation(input: EstimationInput): Promise<Estima
   const BASE_M2: Record<string, number> = { maison: 3200, appartement: 2800, terrain: 120, autre: 2500 }
 
   if (mutations.length < 3) {
-    return build(surface, BASE_M2[type_bien] ?? 2800, etat, dpe, equipements, delai, 0, 'fallback', rayon, annee_construction, dpe_verifie, numero_dpe)
+    return build(surface, BASE_M2[type_bien] ?? 2800, type_bien, sous_type, etat, dpe, equipements, delai, 0, 'fallback', rayon, surface_terrain, cadastre_surface, annee_construction, dpe_verifie, numero_dpe)
   }
 
   const prixM2List = mutations
@@ -121,16 +172,28 @@ export async function calculerEstimation(input: EstimationInput): Promise<Estima
     .filter((p) => p > 500 && p < 20000)
 
   if (prixM2List.length < 2) {
-    return build(surface, BASE_M2[type_bien] ?? 2800, etat, dpe, equipements, delai, 0, 'fallback', rayon, annee_construction, dpe_verifie, numero_dpe)
+    return build(surface, BASE_M2[type_bien] ?? 2800, type_bien, sous_type, etat, dpe, equipements, delai, 0, 'fallback', rayon, surface_terrain, cadastre_surface, annee_construction, dpe_verifie, numero_dpe)
   }
-  return build(surface, median(prixM2List), etat, dpe, equipements, delai, prixM2List.length, 'dvf', rayon, annee_construction, dpe_verifie, numero_dpe)
+  return build(surface, median(prixM2List), type_bien, sous_type, etat, dpe, equipements, delai, prixM2List.length, 'dvf', rayon, surface_terrain, cadastre_surface, annee_construction, dpe_verifie, numero_dpe)
 }
 
 function computeAjustements(
-  prixDeBase: number, etat: string, dpe: string,
-  equipements: string[], delai: string, anneeConstruction?: number,
+  prixDeBase: number, typeBien: string, sousType: string | undefined, etat: string, dpe: string,
+  equipements: string[], delai: string, surfaceTerrain?: number | null, cadastreSurface?: number | null,
+  anneeConstruction?: number,
 ): AjustementBreakdown[] {
   const list: AjustementBreakdown[] = []
+  const profile = resolveMaisonProfile(typeBien, sousType, surfaceTerrain, cadastreSurface)
+  if (profile.key && profile.label && profile.coef !== 1.0) {
+    const pct = profile.coef - 1
+    list.push({
+      key: profile.key,
+      label: 'Typologie du bien (' + profile.label + ')',
+      pct: Math.round(pct * 1000) / 10,
+      montant_eur: Math.round(prixDeBase * pct),
+      sign: pct > 0 ? 'positive' : 'negative',
+    })
+  }
   const ce = COEF_ETAT[etat] ?? 1.0
   if (ce !== 1.0) {
     const pct = ce - 1
@@ -229,12 +292,14 @@ function computePointsForts(equipements: string[], dpe: string, anneeConstructio
 }
 
 function build(
-  surface: number, prixM2Brut: number, etat: string, dpe: string,
-  equipements: string[], delai: string, nbTx: number,
-  source: 'dvf' | 'fallback', rayon: number, anneeConstruction?: number,
+  surface: number, prixM2Brut: number, typeBien: string, sousType: string | undefined,
+  etat: string, dpe: string, equipements: string[], delai: string, nbTx: number,
+  source: 'dvf' | 'fallback', rayon: number, surfaceTerrain?: number | null,
+  cadastreSurface?: number | null, anneeConstruction?: number,
   dpeVerifie?: boolean, numeroDpe?: string,
 ): EstimationOutput {
-  const coef = (COEF_ETAT[etat] ?? 1.0) * coefAnneeConstruction(anneeConstruction) * (COEF_DPE[dpe] ?? 1.0) * coefEquipementsTotal(equipements) * coefDelai(delai)
+  const profile = resolveMaisonProfile(typeBien, sousType, surfaceTerrain, cadastreSurface)
+  const coef = profile.coef * (COEF_ETAT[etat] ?? 1.0) * coefAnneeConstruction(anneeConstruction) * (COEF_DPE[dpe] ?? 1.0) * coefEquipementsTotal(equipements) * coefDelai(delai)
   const prixM2 = prixM2Brut * coef
   const med = Math.round((prixM2 * surface) / 1000) * 1000
   let confiance = 40
@@ -246,8 +311,9 @@ function build(
   }
   if (dpeVerifie) confiance = Math.min(95, confiance + 5)
   if (anneeConstruction && Number.isFinite(anneeConstruction)) confiance = Math.min(95, confiance + 3)
+  if (profile.key && cadastreSurface && cadastreSurface > 0) confiance = Math.min(95, confiance + 4)
   const prix_de_base = Math.round(prixM2Brut * surface)
-  const ajustements = computeAjustements(prix_de_base, etat, dpe, equipements, delai, anneeConstruction)
+  const ajustements = computeAjustements(prix_de_base, typeBien, sousType, etat, dpe, equipements, delai, surfaceTerrain, cadastreSurface, anneeConstruction)
   const total_ajustement_eur = ajustements.reduce(function (s, a) { return s + a.montant_eur }, 0)
   const total_ajustement_pct = prix_de_base > 0
     ? Math.round((total_ajustement_eur / prix_de_base) * 1000) / 10
