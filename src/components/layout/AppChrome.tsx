@@ -7,6 +7,19 @@ import { useVendreStore } from '@/stores/vendreStore'
 import { useAcheterStore } from '@/stores/acheterStore'
 import { useAuditStore } from '@/stores/auditStore'
 
+const CAL_BOOKING_URL = 'https://cal.com/alexandre-lopez-iad/30min'
+
+function normalizePublicCopy(value: string): string {
+  return value
+    .replaceAll('Alex Lopez', 'Alexandre Lopez')
+    .replaceAll('Alex se déplace', 'Alexandre Lopez se déplace')
+    .replaceAll('Alex peut', 'Alexandre Lopez peut')
+    .replaceAll('par Alex concernant', 'par Alexandre Lopez concernant')
+    .replaceAll('par Alex ', 'par Alexandre Lopez ')
+    .replaceAll('Profil environnement calculé automatiquement — enrichissement Overpass à venir', 'Profil environnement indicatif — calme, accès et services à confirmer avec l’avis terrain')
+    .replaceAll('Vue exceptionnelle', 'Vue remarquable — panorama dégagé')
+}
+
 function normalizeAdvisorName(root: ParentNode) {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
   const nodes: Text[] = []
@@ -21,15 +34,22 @@ function normalizeAdvisorName(root: ParentNode) {
     const value = node.nodeValue
     if (!value) continue
 
-    const next = value
-      .replaceAll('Alex Lopez', 'Alexandre Lopez')
-      .replaceAll('Alex se déplace', 'Alexandre Lopez se déplace')
-      .replaceAll('Alex peut', 'Alexandre Lopez peut')
-      .replaceAll('par Alex concernant', 'par Alexandre Lopez concernant')
-      .replaceAll('par Alex ', 'par Alexandre Lopez ')
-
+    const next = normalizePublicCopy(value)
     if (next !== value) node.nodeValue = next
   }
+}
+
+function patchAppointmentLinks(root: ParentNode) {
+  root.querySelectorAll<HTMLAnchorElement>('a[href^="tel:"]').forEach(function (link) {
+    const label = (link.textContent ?? '').toLowerCase()
+    const isAppointmentCta = label.includes('rappel') || label.includes('06 13 18 01 68') || label.includes('06 13')
+    if (!isAppointmentCta) return
+
+    link.href = CAL_BOOKING_URL
+    link.target = '_blank'
+    link.rel = 'noopener noreferrer'
+    link.textContent = 'Prendre rendez-vous'
+  })
 }
 
 function readVendreAnswers(): Record<string, unknown> | null {
@@ -155,6 +175,7 @@ export function AppChrome({
 
   useEffect(function () {
     normalizeAdvisorName(document.body)
+    patchAppointmentLinks(document.body)
     patchToolsFetch()
 
     function handleToolStartClick(event: MouseEvent) {
@@ -184,15 +205,11 @@ export function AppChrome({
             const textNode = node as Text
             const value = textNode.nodeValue
             if (!value) continue
-            const next = value
-              .replaceAll('Alex Lopez', 'Alexandre Lopez')
-              .replaceAll('Alex se déplace', 'Alexandre Lopez se déplace')
-              .replaceAll('Alex peut', 'Alexandre Lopez peut')
-              .replaceAll('par Alex concernant', 'par Alexandre Lopez concernant')
-              .replaceAll('par Alex ', 'par Alexandre Lopez ')
+            const next = normalizePublicCopy(value)
             if (next !== value) textNode.nodeValue = next
           } else if (node.nodeType === Node.ELEMENT_NODE) {
             normalizeAdvisorName(node as Element)
+            patchAppointmentLinks(node as Element)
           }
         }
       }

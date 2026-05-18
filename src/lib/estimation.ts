@@ -14,6 +14,17 @@ const EQUIPEMENT_COEF: Record<string, number> = {
   Piscine: 1.06, 'Vue exceptionnelle': 1.07, Jardin: 1.03, Garage: 1.02,
   Terrasse: 1.01, Balcon: 1.01, Cave: 1.005, Stationnement: 1.02, Cheminée: 1.005,
 }
+const EQUIPEMENT_LABEL: Record<string, string> = {
+  Piscine: 'Piscine exploitable',
+  Jardin: 'Jardin privatif exploitable',
+  Garage: 'Garage fermé',
+  Terrasse: 'Terrasse utilisable',
+  Balcon: 'Balcon utilisable',
+  Cave: 'Cave / stockage',
+  Stationnement: 'Stationnement privatif',
+  Cheminée: 'Cheminée fonctionnelle ou décorative',
+  'Vue exceptionnelle': 'Vue remarquable déclarée (panorama dégagé, rareté à confirmer sur place)',
+}
 
 function coefEquipementsTotal(equipements: string[]): number {
   let c = 1.0
@@ -234,7 +245,7 @@ function computeAjustements(
       const pct = c - 1
       list.push({
         key: 'eq:' + eq,
-        label: eq,
+        label: EQUIPEMENT_LABEL[eq] ?? eq,
         pct: Math.round(pct * 1000) / 10,
         montant_eur: Math.round(prixDeBase * pct),
         sign: pct > 0 ? 'positive' : 'negative',
@@ -283,7 +294,7 @@ function computePointsForts(equipements: string[], dpe: string, anneeConstructio
   if (eq.includes('Piscine')) arr.push('Piscine')
   if (eq.includes('Jardin')) arr.push('Jardin')
   if (eq.includes('Terrasse')) arr.push('Terrasse')
-  if (eq.includes('Vue exceptionnelle')) arr.push('Vue exceptionnelle')
+  if (eq.includes('Vue exceptionnelle')) arr.push('Vue remarquable à confirmer : panorama dégagé / absence de vis-à-vis direct')
   if (eq.includes('Cave')) arr.push('Cave')
   if (dpeVerifie) arr.push('DPE vérifié dans la base ADEME' + (numeroDpe ? ' (' + numeroDpe + ')' : ''))
   if (anneeConstruction && Number.isFinite(anneeConstruction)) arr.push('Année de construction documentée : ' + anneeConstruction)
