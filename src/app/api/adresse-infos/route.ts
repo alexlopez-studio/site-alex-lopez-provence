@@ -3,10 +3,11 @@ import { findDpeNearby } from '@/lib/ademe'
 import { findParcelByPoint } from '@/lib/cadastre'
 
 /**
- * GET /api/adresse-infos?lat=...&lng=...
+ * GET /api/adresse-infos?lat=...&lng=...&q=...
  *
  * Phase B v2 — câblé sur les libs typées :
- *  - DPE : recherche géographique sur l'API open data ADEME
+ *  - DPE : recherche par adresse BAN sur l'API open data ADEME,
+ *    puis recherche géographique en repli
  *  - Parcelle : APICarto IGN
  *
  * La réponse reste volontairement explicite : même si une donnée n'est pas
@@ -17,6 +18,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const latStr = searchParams.get('lat')
   const lngStr = searchParams.get('lng')
+  const address = searchParams.get('q') ?? undefined
 
   if (!latStr || !lngStr) {
     return NextResponse.json(
@@ -35,7 +37,12 @@ export async function GET(req: NextRequest) {
   }
 
   const result: {
-    dpe?: { lettre: string; confidence: 'exact' | 'approximatif' | 'non_trouve' }
+    dpe?: {
+      lettre: string
+      confidence: 'exact' | 'approximatif' | 'non_trouve'
+      numero?: string
+      adresse?: string | null
+    }
     dpeStatus: 'found' | 'not_found'
     parcelle?: {
       id: string
@@ -52,7 +59,7 @@ export async function GET(req: NextRequest) {
   }
 
   const [dpeLookup, parcel] = await Promise.all([
-    findDpeNearby({ lat, lng, radius: 500 }),
+    findDpeNearby({ lat, lng, address, radius: 500 }),
     findParcelByPoint({ lat, lng }),
   ])
 
@@ -61,6 +68,8 @@ export async function GET(req: NextRequest) {
     result.dpe = {
       lettre: dpeLookup.dpe.etiquette_dpe,
       confidence: dpeLookup.confidence,
+      numero: dpeLookup.dpe.numero_dpe,
+      adresse: dpeLookup.dpe.adresse_ban,
     }
   } else {
     result.dpe = {
