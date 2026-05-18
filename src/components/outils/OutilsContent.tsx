@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
@@ -21,7 +21,7 @@ import {
 } from 'lucide-react'
 import { VP as vpOnce, fadeInUp, scaleIn, stagger, staggerFast } from '@/lib/animations'
 
-const PROFILE_IMAGE = '/alexandre-lopez-face.jpg'
+const PROFILE_IMAGE = '/alexandre-lopez-no-background.png'
 const hoverCard = { y: -3 }
 const springFast = { type: 'spring' as const, stiffness: 420, damping: 28 }
 
@@ -103,7 +103,7 @@ export default function OutilsContent() {
         <motion.div variants={stagger} initial="initial" animate="animate" className="relative mx-auto max-w-6xl">
           <motion.div variants={fadeInUp} className="mx-auto mb-10 max-w-3xl text-center">
             <Link href="/" className="mx-auto mb-6 block h-16 w-16 overflow-hidden rounded-full border-2 border-white bg-white shadow-sm ring-4 ring-brand-light">
-              <img src={PROFILE_IMAGE} alt="Alexandre Lopez" className="h-full w-full object-cover" />
+              <img src={PROFILE_IMAGE} alt="Alexandre Lopez" className="h-full w-full object-cover object-[50%_16%]" />
             </Link>
             <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-brand shadow-sm">
               <Sparkles size={13} /> Outils immobiliers gratuits
@@ -116,7 +116,9 @@ export default function OutilsContent() {
             </p>
           </motion.div>
 
-          <motion.div variants={staggerFast} className="mb-8 flex flex-wrap justify-center gap-2">
+          <ApiChecksPanel compact />
+
+          <motion.div variants={staggerFast} className="mb-8 mt-8 flex flex-wrap justify-center gap-2">
             {reassurance.map(function (item) {
               const Icon = item.icon
               return (
@@ -201,16 +203,19 @@ export default function OutilsContent() {
           Vos réponses servent uniquement à mieux comprendre votre situation et à générer une première synthèse. Si vous souhaitez aller plus loin, je peux ensuite relire le résultat avec vous.
         </motion.p>
       </section>
-
-      <ApiChecksPanel />
     </main>
   )
 }
 
-function ApiChecksPanel() {
+function ApiChecksPanel({ compact = false }: { compact?: boolean }) {
   const [result, setResult] = useState<ApiCheckResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    runChecks()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function runChecks() {
     setLoading(true)
@@ -227,38 +232,50 @@ function ApiChecksPanel() {
     }
   }
 
+  const overall = result?.overallStatus
+  const statusLabel = loading ? 'Test en cours' : overall === 'ok' ? 'APIs opérationnelles' : overall === 'warning' ? 'APIs partiellement vérifiées' : overall === 'error' ? 'Action requise' : 'Vérification à lancer'
+  const statusColor = overall === 'ok' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : overall === 'warning' ? 'bg-amber-50 text-amber-700 border-amber-200' : overall === 'error' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-white text-muted border-border'
+
   return (
-    <section className="px-4 pb-16 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-6xl rounded-[2rem] border border-border bg-white p-5 shadow-sm sm:p-6">
+    <section className={compact ? '' : 'px-4 pb-16 sm:px-6 lg:px-8'}>
+      <div className="mx-auto max-w-6xl rounded-[2rem] border border-brand/20 bg-white p-5 shadow-[0_18px_45px_rgba(15,23,42,0.08)] sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="mb-2 inline-flex items-center gap-2 rounded-full bg-brand-light px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-brand">
-              <Wifi size={13} /> Vérification technique
+              <Wifi size={13} /> Statut des connexions outils
             </p>
-            <h2 className="text-xl font-bold tracking-[-0.04em] text-foreground">Contrôler les APIs des outils</h2>
+            <h2 className="text-xl font-bold tracking-[-0.04em] text-foreground">Vérification automatique des APIs</h2>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
-              Ce contrôle teste les services utilisés par les parcours : adresse, cadastre / DPE, estimation et création de lead en mode test, sans envoyer d’email ni créer de dossier réel.
+              Le test se lance automatiquement à l’ouverture de cette page. Il contrôle l’adresse, le DPE / cadastre, l’estimation et la création de lead en mode test.
             </p>
           </div>
-          <button onClick={runChecks} disabled={loading} className="inline-flex items-center justify-center gap-2 rounded-full bg-brand px-5 py-3 text-sm font-semibold text-white disabled:opacity-60">
-            {loading ? <Loader2 size={16} className="animate-spin" /> : <Wifi size={16} />}
-            {loading ? 'Vérification...' : 'Tester les APIs'}
-          </button>
+          <div className="flex flex-col items-start gap-2 sm:items-end">
+            <span className={'inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold ' + statusColor}>
+              {loading && <Loader2 size={15} className="animate-spin" />}
+              {!loading && <CheckCircle2 size={15} />}
+              {statusLabel}
+            </span>
+            <button onClick={runChecks} disabled={loading} className="inline-flex items-center justify-center gap-2 rounded-full bg-brand px-4 py-2 text-xs font-semibold text-white disabled:opacity-60">
+              {loading ? <Loader2 size={14} className="animate-spin" /> : <Wifi size={14} />}
+              Relancer le test
+            </button>
+          </div>
         </div>
 
         {error && <p className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">{error}</p>}
 
         {result && (
-          <div className="mt-5 grid gap-3 md:grid-cols-2">
+          <div className="mt-5 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
             {result.checks.map(function (check) {
               const color = check.status === 'ok' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : check.status === 'warning' ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-red-200 bg-red-50 text-red-700'
+              const label = check.status === 'ok' ? 'OK' : check.status === 'warning' ? 'À vérifier' : 'Erreur'
               return (
-                <div key={check.id} className={'rounded-2xl border px-4 py-3 ' + color}>
+                <div key={check.id} className={'rounded-2xl border px-4 py-3 text-left ' + color}>
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-sm font-bold">{check.label}</p>
-                    <span className="text-xs font-black uppercase tracking-[0.12em]">{check.status}</span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.12em]">{label}</span>
                   </div>
-                  <p className="mt-1 text-xs leading-relaxed opacity-80">{check.detail}</p>
+                  <p className="mt-1 text-xs leading-relaxed opacity-85">{check.detail}</p>
                 </div>
               )
             })}
