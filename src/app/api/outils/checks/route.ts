@@ -78,11 +78,14 @@ export async function GET() {
       const dpeFound = Boolean(dpeLookup.dpe?.etiquette_dpe)
       const parcelFound = Boolean(parcel)
       const dpeLetter = dpeLookup.dpe?.etiquette_dpe
+      const dpeMatchesExpected = dpeLetter === KNOWN_DPE_TEST.expected
       return {
         id: 'adresse-infos',
         label: 'DPE / cadastre',
-        status: dpeFound && dpeLetter === KNOWN_DPE_TEST.expected ? 'ok' : dpeFound || parcelFound ? 'warning' : 'error',
-        detail: dpeFound ? 'DPE retrouvé sur adresse test : classe ' + dpeLetter + (parcelFound ? ' + parcelle.' : '.') : 'DPE non retrouvé sur l’adresse test connue.',
+        status: dpeFound && dpeMatchesExpected ? 'ok' : dpeFound || parcelFound ? 'warning' : 'error',
+        detail: dpeFound
+          ? 'DPE retrouvé sur adresse test : classe ' + dpeLetter + (parcelFound ? ' + parcelle.' : '.') + (dpeMatchesExpected ? '' : ' À vérifier : attendu ' + KNOWN_DPE_TEST.expected + '.')
+          : 'DPE non retrouvé sur l’adresse test connue.',
       }
     }, { id: 'adresse-infos', label: 'DPE / cadastre' }),
 

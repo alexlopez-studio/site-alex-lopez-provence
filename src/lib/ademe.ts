@@ -37,6 +37,8 @@ export interface AdemeDpeRecord {
   geopoint: [number, number] | null
   /** Source dataset */
   dataset: DpeDataset
+  /** ADEME full-text relevance score when available. */
+  score?: number
   /** Distance to query point in meters (only set when geo search) */
   distance_m?: number
 }
@@ -134,6 +136,7 @@ function normalizeRecord(
   raw: Record<string, unknown>,
   dataset: DpeDataset,
 ): AdemeDpeRecord {
+  const score = numOrNull(raw._score)
   return {
     numero_dpe: String(raw.numero_dpe ?? ''),
     etiquette_dpe: dpeClassOrNull(raw.etiquette_dpe),
@@ -148,6 +151,7 @@ function normalizeRecord(
     version_dpe: strOrNull(raw.version_dpe),
     geopoint: parseGeopoint(raw._geopoint),
     dataset,
+    ...(score != null ? { score } : {}),
   }
 }
 
@@ -168,20 +172,57 @@ export function haversineMeters(
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)))
 }
 
-function enrichAndSortByDistance(
+function enrichRecords(
   rows: Array<Record<string, unknown>>,
   dataset: DpeDataset,
   opts: DpeSearchOptions,
 ): AdemeDpeRecord[] {
-  const enriched = rows.map((r) => {
+  return rows.map((r) => {
     const rec = normalizeRecord(r, dataset)
     if (rec.geopoint) {
       rec.distance_m = haversineMeters([opts.lng, opts.lat], rec.geopoint)
     }
     return rec
   })
+}
+
+function enrichAndSortByDistance(
+  rows: Array<Record<string, unknown>>,
+  dataset: DpeDataset,
+  opts: DpeSearchOptions,
+): AdemeDpeRecord[] {
+  const enriched = enrichRecords(rows, dataset, opts)
   enriched.sort((a, b) => (a.distance_m ?? Infinity) - (b.distance_m ?? Infinity))
   return enriched
+}
+
+function normalizeAddress(value: string | null | undefined): string {
+  return (value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+}
+
+function sortAddressCandidates(candidates: AdemeDpeRecord[], searchedAddress: string): AdemeDpeRecord[] {
+  const normalizedSearch = normalizeAddress(searchedAddress)
+  return candidates.sort((a, b) => {
+    const aAddress = normalizeAddress(a.adresse_ban)
+    const bAddress = normalizeAddress(b.adresse_ban)
+    const aExact = aAddress === normalizedSearch ? 1 : 0
+    const bExact = bAddress === normalizedSearch ? 1 : 0
+    if (aExact !== bExact) return bExact - aExact
+
+    const aStarts = normalizedSearch && aAddress.startsWith(normalizedSearch) ? 1 : 0
+    const bStarts = normalizedSearch && bAddress.startsWith(normalizedSearch) ? 1 : 0
+    if (aStarts !== bStarts) return bStarts - aStarts
+
+    const byScore = (b.score ?? 0) - (a.score ?? 0)
+    if (byScore !== 0) return byScore
+
+    return (a.distance_m ?? Infinity) - (b.distance_m ?? Infinity)
+  })
 }
 
 function scoreConfidence(
@@ -218,13 +259,13 @@ async function searchDatasetByAddress(
       select: SELECT_FIELDS,
       size: 25,
       count: false,
-      sort: '-date_etablissement_dpe',
     },
     opts.timeoutMs ?? DEFAULT_TIMEOUT_MS,
   )
-  return enrichAndSortByDistance(data.results ?? [], dataset, opts).filter(
+  const candidates = enrichRecords(data.results ?? [], dataset, opts).filter(
     (rec) => rec.distance_m == null || rec.distance_m <= ADDRESS_SEARCH_RADIUS_M,
   )
+  return sortAddressCandidates(candidates, address)
 }
 
 async function searchDatasetByGeo(
