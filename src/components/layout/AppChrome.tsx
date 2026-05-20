@@ -93,18 +93,19 @@ function patchToolChatBubbles(root: ParentNode) {
     if (!text) continue
 
     if (looksLikeUserBubble(element)) {
+      const isShortAnswer = text.length <= 24 && !text.includes('\n')
       applyImportantStyle(element, {
         display: 'inline-block',
-        width: 'fit-content',
-        'min-width': text.length <= 16 ? '10rem' : '12rem',
-        'max-width': 'min(28rem, 86vw)',
+        width: 'max-content',
+        'min-width': '0',
+        'max-width': 'min(28rem, calc(100vw - 7rem))',
         padding: '0.78rem 1rem',
         'border-radius': '1rem 1rem 0.35rem 1rem',
         'line-height': '1.45',
         'text-align': 'left',
-        'white-space': 'pre-wrap',
+        'white-space': isShortAnswer ? 'nowrap' : 'pre-wrap',
         'word-break': 'keep-all',
-        'overflow-wrap': 'normal',
+        'overflow-wrap': isShortAnswer ? 'normal' : 'break-word',
       })
     }
 
