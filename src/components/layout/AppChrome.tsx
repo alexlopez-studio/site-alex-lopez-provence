@@ -50,6 +50,58 @@ function normalizeAdvisorName(root: ParentNode) {
   }
 }
 
+function patchToolChatBubbles(root: ParentNode) {
+  const elements = root instanceof HTMLElement
+    ? [root, ...Array.from(root.querySelectorAll<HTMLElement>('div'))]
+    : Array.from(root.querySelectorAll<HTMLElement>('div'))
+
+  for (const element of elements) {
+    const text = element.textContent?.trim()
+    if (!text) continue
+
+    const isUserBubble = (
+      element.style.borderRadius === '16px 16px 4px 16px' ||
+      element.style.borderRadius === '1rem 1rem 0.35rem 1rem'
+    ) && (
+      element.style.backgroundColor === 'rgb(0, 119, 182)' ||
+      element.style.backgroundColor === '#0077B6'
+    )
+
+    const isAdvisorBubble = (
+      element.style.borderRadius === '16px 16px 16px 4px' ||
+      element.style.borderRadius === '1rem 1rem 1rem 0.35rem'
+    ) && (
+      element.style.backgroundColor === 'white' ||
+      element.style.backgroundColor === 'rgb(255, 255, 255)' ||
+      element.style.backgroundColor === '#ffffff'
+    )
+
+    if (isUserBubble) {
+      element.style.display = 'inline-block'
+      element.style.width = 'fit-content'
+      element.style.minWidth = text.length <= 12 ? '9rem' : '10.5rem'
+      element.style.maxWidth = 'min(28rem, 86vw)'
+      element.style.padding = '0.78rem 1rem'
+      element.style.borderRadius = '1rem 1rem 0.35rem 1rem'
+      element.style.lineHeight = '1.45'
+      element.style.textAlign = 'left'
+      element.style.whiteSpace = 'pre-wrap'
+      element.style.wordBreak = 'normal'
+      element.style.overflowWrap = 'break-word'
+    }
+
+    if (isAdvisorBubble) {
+      element.style.maxWidth = 'min(34rem, 86vw)'
+      element.style.padding = '0.9rem 1rem'
+      element.style.borderRadius = '1rem 1rem 1rem 0.35rem'
+      element.style.lineHeight = '1.55'
+      element.style.whiteSpace = 'pre-wrap'
+      element.style.wordBreak = 'normal'
+      element.style.overflowWrap = 'break-word'
+    }
+  }
+}
+
 function patchAppointmentLinks(root: ParentNode) {
   root.querySelectorAll<HTMLAnchorElement>('a[href^="tel:"]').forEach(function (link) {
     const label = (link.textContent ?? '').toLowerCase()
@@ -213,6 +265,7 @@ export function AppChrome({
   useEffect(function () {
     normalizeAdvisorName(document.body)
     patchAppointmentLinks(document.body)
+    patchToolChatBubbles(document.body)
     patchResultsWaitingStep()
     patchToolsFetch()
 
@@ -248,9 +301,11 @@ export function AppChrome({
           } else if (node.nodeType === Node.ELEMENT_NODE) {
             normalizeAdvisorName(node as Element)
             patchAppointmentLinks(node as Element)
+            patchToolChatBubbles(node as Element)
           }
         }
       }
+      patchToolChatBubbles(document.body)
       patchResultsWaitingStep()
     })
 
