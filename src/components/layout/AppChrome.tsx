@@ -22,7 +22,7 @@ function normalizePublicCopy(value: string): string {
     .replaceAll('Prix optimal estimé', 'Première valeur estimée')
     .replaceAll('voici votre prix optimal estimé', 'voici votre première valeur estimée')
     .replaceAll('Ajuster l’estimation', 'Affiner votre scénario')
-    .replaceAll('Ajuster l\'estimation', 'Affiner votre scénario')
+    .replaceAll("Ajuster l'estimation", 'Affiner votre scénario')
     .replaceAll('Oui : après le résultat, certaines variables peuvent être modifiées pour tester un scénario plus réaliste sans recommencer tout le formulaire.', 'Vous pouvez tester quelques scénarios indicatifs sans recommencer tout le formulaire. La valeur finale reste à confirmer par une analyse locale et une visite du bien.')
     .replaceAll('Estimation recalculée avec ces variables.', 'Scénario recalculé avec ces variables.')
     .replaceAll('Recalculer avec ces variables', 'Actualiser ce scénario')
@@ -50,6 +50,39 @@ function normalizeAdvisorName(root: ParentNode) {
   }
 }
 
+function isTimestamp(value: string | null | undefined) {
+  return /^\d{2}:\d{2}$/.test((value ?? '').trim())
+}
+
+function looksLikeUserBubble(element: HTMLElement) {
+  const className = typeof element.className === 'string' ? element.className : ''
+  const style = window.getComputedStyle(element)
+  const parentStyle = element.parentElement?.parentElement ? window.getComputedStyle(element.parentElement.parentElement) : null
+  const hasTimestampSibling = isTimestamp(element.nextElementSibling?.textContent)
+  const isRightAlignedRow = parentStyle?.justifyContent === 'flex-end'
+  const isBrandBubble = style.backgroundColor === 'rgb(0, 119, 182)' || className.includes('bg-brand')
+  const isBubbleShape = style.borderTopLeftRadius !== '0px' && style.borderBottomRightRadius !== style.borderBottomLeftRadius
+
+  return hasTimestampSibling && (isRightAlignedRow || isBrandBubble || isBubbleShape)
+}
+
+function looksLikeAdvisorBubble(element: HTMLElement) {
+  const className = typeof element.className === 'string' ? element.className : ''
+  const style = window.getComputedStyle(element)
+  const parentStyle = element.parentElement?.parentElement ? window.getComputedStyle(element.parentElement.parentElement) : null
+  const hasTimestampSibling = isTimestamp(element.nextElementSibling?.textContent)
+  const isLeftRow = parentStyle?.justifyContent !== 'flex-end'
+  const isWhiteBubble = style.backgroundColor === 'rgb(255, 255, 255)' || className.includes('bg-white')
+
+  return hasTimestampSibling && isLeftRow && isWhiteBubble
+}
+
+function applyImportantStyle(element: HTMLElement, styles: Record<string, string>) {
+  for (const [property, value] of Object.entries(styles)) {
+    element.style.setProperty(property, value, 'important')
+  }
+}
+
 function patchToolChatBubbles(root: ParentNode) {
   const elements = root instanceof HTMLElement
     ? [root, ...Array.from(root.querySelectorAll<HTMLElement>('div'))]
@@ -59,45 +92,32 @@ function patchToolChatBubbles(root: ParentNode) {
     const text = element.textContent?.trim()
     if (!text) continue
 
-    const isUserBubble = (
-      element.style.borderRadius === '16px 16px 4px 16px' ||
-      element.style.borderRadius === '1rem 1rem 0.35rem 1rem'
-    ) && (
-      element.style.backgroundColor === 'rgb(0, 119, 182)' ||
-      element.style.backgroundColor === '#0077B6'
-    )
-
-    const isAdvisorBubble = (
-      element.style.borderRadius === '16px 16px 16px 4px' ||
-      element.style.borderRadius === '1rem 1rem 1rem 0.35rem'
-    ) && (
-      element.style.backgroundColor === 'white' ||
-      element.style.backgroundColor === 'rgb(255, 255, 255)' ||
-      element.style.backgroundColor === '#ffffff'
-    )
-
-    if (isUserBubble) {
-      element.style.display = 'inline-block'
-      element.style.width = 'fit-content'
-      element.style.minWidth = text.length <= 12 ? '9rem' : '10.5rem'
-      element.style.maxWidth = 'min(28rem, 86vw)'
-      element.style.padding = '0.78rem 1rem'
-      element.style.borderRadius = '1rem 1rem 0.35rem 1rem'
-      element.style.lineHeight = '1.45'
-      element.style.textAlign = 'left'
-      element.style.whiteSpace = 'pre-wrap'
-      element.style.wordBreak = 'normal'
-      element.style.overflowWrap = 'break-word'
+    if (looksLikeUserBubble(element)) {
+      applyImportantStyle(element, {
+        display: 'inline-block',
+        width: 'fit-content',
+        'min-width': text.length <= 16 ? '10rem' : '12rem',
+        'max-width': 'min(28rem, 86vw)',
+        padding: '0.78rem 1rem',
+        'border-radius': '1rem 1rem 0.35rem 1rem',
+        'line-height': '1.45',
+        'text-align': 'left',
+        'white-space': 'pre-wrap',
+        'word-break': 'keep-all',
+        'overflow-wrap': 'normal',
+      })
     }
 
-    if (isAdvisorBubble) {
-      element.style.maxWidth = 'min(34rem, 86vw)'
-      element.style.padding = '0.9rem 1rem'
-      element.style.borderRadius = '1rem 1rem 1rem 0.35rem'
-      element.style.lineHeight = '1.55'
-      element.style.whiteSpace = 'pre-wrap'
-      element.style.wordBreak = 'normal'
-      element.style.overflowWrap = 'break-word'
+    if (looksLikeAdvisorBubble(element)) {
+      applyImportantStyle(element, {
+        'max-width': 'min(34rem, 86vw)',
+        padding: '0.9rem 1rem',
+        'border-radius': '1rem 1rem 1rem 0.35rem',
+        'line-height': '1.55',
+        'white-space': 'pre-wrap',
+        'word-break': 'normal',
+        'overflow-wrap': 'break-word',
+      })
     }
   }
 }
