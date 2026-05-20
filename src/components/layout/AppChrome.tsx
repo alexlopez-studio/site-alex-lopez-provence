@@ -18,6 +18,17 @@ function normalizePublicCopy(value: string): string {
     .replaceAll('par Alex ', 'par Alexandre Lopez ')
     .replaceAll('Profil environnement calculé automatiquement — enrichissement Overpass à venir', 'Profil environnement indicatif — calme, accès et services à confirmer avec l’avis terrain')
     .replaceAll('Vue exceptionnelle', 'Vue remarquable — panorama dégagé')
+    .replaceAll('Votre estimation', 'Votre pré-estimation')
+    .replaceAll('Prix optimal estimé', 'Première valeur estimée')
+    .replaceAll('voici votre prix optimal estimé', 'voici votre première valeur estimée')
+    .replaceAll('Ajuster l’estimation', 'Affiner votre scénario')
+    .replaceAll('Ajuster l\'estimation', 'Affiner votre scénario')
+    .replaceAll('Oui : après le résultat, certaines variables peuvent être modifiées pour tester un scénario plus réaliste sans recommencer tout le formulaire.', 'Vous pouvez tester quelques scénarios indicatifs sans recommencer tout le formulaire. La valeur finale reste à confirmer par une analyse locale et une visite du bien.')
+    .replaceAll('Estimation recalculée avec ces variables.', 'Scénario recalculé avec ces variables.')
+    .replaceAll('Recalculer avec ces variables', 'Actualiser ce scénario')
+    .replaceAll('Prix calculé', 'Pré-estimation calculée')
+    .replaceAll('Affiner cette estimation ?', 'Confirmer cette pré-estimation ?')
+    .replaceAll('Chaque bien est unique. Alexandre Lopez peut adapter cette stratégie selon les spécificités locales et votre situation personnelle.', 'Chaque bien est unique. Alexandre Lopez peut confirmer cette pré-estimation avec les spécificités locales, l’état réel du bien et votre situation personnelle.')
 }
 
 function normalizeAdvisorName(root: ParentNode) {
