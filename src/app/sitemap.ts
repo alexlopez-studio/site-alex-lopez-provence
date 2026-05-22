@@ -7,6 +7,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date()
   const staticRoutes = [
     '',
+    '/avis-de-valeur-immobilier',
     '/vendre',
     '/acheter',
     '/audit',
@@ -39,7 +40,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         url: siteUrl + route,
         lastModified: now,
         changeFrequency: route === '' ? 'weekly' as const : 'monthly' as const,
-        priority: route === '' ? 1 : route.startsWith('/outils') ? 0.9 : 0.8,
+        priority: route === '' ? 1 : route === '/avis-de-valeur-immobilier' ? 0.95 : route.startsWith('/outils') ? 0.9 : 0.8,
       }
     }),
     ...articleRoutes,
