@@ -67,7 +67,7 @@ const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: '1',
     from: 'al',
-    text: "Bonjour, je suis Alexandre Lopez.\n\nJe vais vous aider à obtenir un premier repère de valeur pour votre bien. L’objectif n’est pas de remplacer une visite ou une analyse humaine, mais de cadrer le sujet : adresse, type de bien, surface, état, DPE et projet de vente.\n\nCommençons par l’adresse du bien.",
+    text: "Bonjour, je suis Alexandre Lopez.\n\nJe vais vous aider à générer une première estimation personnalisée de votre bien. Le résultat sera affiché immédiatement à la fin du parcours et envoyé par email pour que vous puissiez le conserver.\n\nL’objectif n’est pas de remplacer un avis de valeur complet sur place, mais de vous donner un repère clair : adresse, type de bien, surface, état, DPE, équipements et projet de vente.\n\nCommençons par l’adresse du bien.",
     timestamp: now(),
   },
 ]
