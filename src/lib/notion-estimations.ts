@@ -41,6 +41,7 @@ export type NotionEstimationRecord = {
 }
 
 const NOTION_VERSION = '2022-06-28'
+const NOTION_API_BASE_URL = 'https://api.notion.com/v1'
 
 /**
  * Best-effort Notion backup for estimation submissions.
@@ -322,7 +323,7 @@ function notionFetch(
   path: string,
   input: { method: 'GET' | 'POST'; apiKey: string; body?: unknown },
 ) {
-  return fetch(`https://api.notion.com/v1${path}`, {
+  return fetch(`${NOTION_API_BASE_URL}${path}`, {
     method: input.method,
     headers: {
       Authorization: `Bearer ${input.apiKey}`,
