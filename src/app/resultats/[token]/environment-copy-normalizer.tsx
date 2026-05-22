@@ -1,0 +1,81 @@
+'use client'
+
+import { useEffect } from 'react'
+
+const COPY_REPLACEMENTS = new Map<string, string>([
+  // Lot 1 — wording estimation vendeur
+  ['Votre estimation', 'Votre première estimation'],
+  ['Prix optimal estimé', 'Repère central indicatif'],
+  ['Haute précision', 'Fiabilité élevée'],
+  ['Précision moyenne', 'Fiabilité moyenne'],
+  ['Pourquoi une fourchette ? Le prix final se décide avec vous, sur place — pas par un algorithme.', 'Cette estimation donne un premier repère de marché. Le prix de mise en vente recommandé dépendra de l’état réel du bien, de son environnement immédiat, de la concurrence active et de votre objectif de délai.'],
+  ['Stratégie de prix', 'Simulation de positionnement'],
+  ['Le prix de vente influence directement votre délai de transaction. Un prix attractif génère plus de visites et d’offres, tandis qu’un prix élevé nécessite patience et négociation.', 'Cette simulation montre comment le positionnement prix peut influencer le délai, les visites et la négociation. Elle ne remplace pas une stratégie de vente construite après analyse du bien et du marché concurrentiel.'],
+  ['Affinez votre stratégie avec un expert', 'Transformer cette estimation en avis de valeur complet'],
+  ['Chaque bien est unique. Alex peut adapter cette stratégie selon les spécificités locales et votre situation personnelle.', 'Je vérifie les données, l’état réel du bien, la concurrence actuelle et la stratégie de prix la plus adaptée à votre situation.'],
+  ['Être rappelé', 'Demander un avis de valeur complet'],
+  ['Affiner cette estimation ?', 'Transformer cette estimation en avis de valeur complet'],
+  ['Alex se déplace gratuitement · Sans engagement · Sous 48h', 'Je vérifie les données, l’état réel du bien et la stratégie de prix adaptée à votre situation.'],
+
+  // Bug environnement — ne pas affirmer un cadre calme sans donnée terrain
+  ['Environnement Calme', 'Environnement à vérifier'],
+  ['Cadre résidentiel et naturel', 'Cadre, accès et nuisances à confirmer'],
+  ["Idéal pour les amateurs de tranquillité et d’espaces préservés", 'Analyse environnementale indicative : accès, services, bruit et cadre à confirmer avec l’avis terrain'],
+  ['Nature', 'Cadre'],
+  ['Environnement préservé', 'À confirmer selon le secteur exact'],
+  ['Calme', 'Nuisances'],
+  ["Loin de l’agitation urbaine", 'Routes, bruit et voisinage à vérifier'],
+  ['Résidentiel', 'Secteur'],
+  ['Quartier paisible', 'Contexte local à confirmer'],
+  ['Mobilité', 'Accès'],
+  ['Accès véhicule recommandé', 'Accès, stationnement et axes routiers à vérifier'],
+  ['Profil environnement calculé automatiquement — enrichissement Overpass à venir', 'Profil environnement indicatif — accès, services et nuisances à confirmer avec l’avis terrain'],
+])
+
+function normalizeResultCopy(root: ParentNode = document): void {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
+  const nodes: Text[] = []
+
+  while (walker.nextNode()) {
+    const node = walker.currentNode
+    if (node instanceof Text) nodes.push(node)
+  }
+
+  for (const node of nodes) {
+    const original = node.nodeValue ?? ''
+    const trimmed = original.trim()
+    const replacement = COPY_REPLACEMENTS.get(trimmed)
+    if (!replacement) continue
+
+    node.nodeValue = original.replace(trimmed, replacement)
+  }
+}
+
+export default function EnvironmentCopyNormalizer() {
+  useEffect(function () {
+    normalizeResultCopy()
+
+    const observer = new MutationObserver(function (mutations) {
+      for (const mutation of mutations) {
+        for (const node of Array.from(mutation.addedNodes)) {
+          if (node instanceof Text) {
+            const original = node.nodeValue ?? ''
+            const trimmed = original.trim()
+            const replacement = COPY_REPLACEMENTS.get(trimmed)
+            if (replacement) node.nodeValue = original.replace(trimmed, replacement)
+          } else if (node instanceof Element) {
+            normalizeResultCopy(node)
+          }
+        }
+      }
+    })
+
+    observer.observe(document.body, { childList: true, subtree: true })
+
+    return function cleanup() {
+      observer.disconnect()
+    }
+  }, [])
+
+  return null
+}

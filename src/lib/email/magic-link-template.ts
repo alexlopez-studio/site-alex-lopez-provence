@@ -20,10 +20,10 @@ type Copy = {
 
 const COPY: Record<MagicLinkType, Copy> = {
 	vendre: {
-		subject: 'Votre estimation est prête — Alex Lopez Provence',
+		subject: 'Votre estimation personnalisée est prête — Alex Lopez Provence',
 		intro:
-			'Votre estimation immobilière a bien été enregistrée. Retrouvez ci-dessous une première estimation gratuite et personnalisée de votre bien, basée sur les transactions récentes en Provence Verte.',
-		cta: 'Voir mon estimation',
+			'Votre estimation immobilière a bien été générée. Retrouvez ci-dessous votre première zone de valeur indicative, à conserver et à affiner avec un avis de valeur complet sur le terrain.',
+		cta: 'Consulter mon estimation',
 	},
 	acheter: {
 		subject: 'Votre recherche acheteur est enregistrée — Alex Lopez Provence',
@@ -95,7 +95,7 @@ export function buildMagicLinkEmail({
 </td></tr>
 <tr><td style="padding:0 32px 8px"><hr style="border:none;border-top:1px solid #E2E8F0;margin:0"></td></tr>
 <tr><td style="padding:24px 32px">
-<p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#0F172A">Une question ou besoin d'une visite gratuite${NBSP}?</p>
+<p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#0F172A">Une question ou besoin d'un avis de valeur complet${NBSP}?</p>
 <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#475569">Appelez-moi directement au <a href="tel:+33613180168" style="color:#0077B6;text-decoration:none;font-weight:600">06${NBSP}13${NBSP}18${NBSP}01${NBSP}68</a>.</p>
 <p style="margin:0;font-size:13px;line-height:1.5;color:#64748B"><strong style="color:#0F172A">Alex Lopez</strong><br>Conseiller iad${NBSP}+ RSAC<br><a href="https://alexlopez-provence.fr" style="color:#0077B6;text-decoration:none">alexlopez-provence.fr</a></p>
 </td></tr>
@@ -113,7 +113,7 @@ export function buildMagicLinkEmail({
 		'',
 		`${copy.cta} : ${magicLinkUrl}`,
 		'',
-		"Une question ou besoin d'une visite gratuite ?",
+		"Une question ou besoin d'un avis de valeur complet ?",
 		'Appelez-moi directement au 06 13 18 01 68.',
 		'',
 		'Alex Lopez',

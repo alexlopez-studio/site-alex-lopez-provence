@@ -1,4 +1,5 @@
 import ResultatsClient from './resultats-client'
+import EnvironmentCopyNormalizer from './environment-copy-normalizer'
 
 /**
  * /resultats/[token]
@@ -12,5 +13,10 @@ import ResultatsClient from './resultats-client'
  * preview sans Supabase, puis on branchera une lecture Notion si nécessaire.
  */
 export default async function ResultatsPage() {
-  return <ResultatsClient />
+  return (
+    <>
+      <EnvironmentCopyNormalizer />
+      <ResultatsClient />
+    </>
+  )
 }
