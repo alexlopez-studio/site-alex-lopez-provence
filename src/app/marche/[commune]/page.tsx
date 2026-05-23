@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowRight, BarChart3, CheckCircle2, Home, MapPin, ShieldCheck } from 'lucide-react'
+import { ArrowRight, BarChart3, CheckCircle2, Globe2, Home, Languages, MapPin, ShieldCheck } from 'lucide-react'
 import { env } from '@/lib/env'
 
 type PageProps = { params: Promise<{ commune: string }> }
@@ -16,6 +16,11 @@ type LocalPage = {
   propertyTypes: string[]
   estimationFactors: string[]
   nearbyLinks: Array<{ href: string; label: string }>
+  international?: {
+    title: string
+    text: string
+    bullets: string[]
+  }
   faq: Array<{ question: string; answer: string }>
 }
 
@@ -76,14 +81,14 @@ const LOCAL_PAGES: Record<string, LocalPage> = {
   cotignac: {
     slug: 'cotignac',
     name: 'Cotignac',
-    title: 'Immobilier à Cotignac : estimation maison et marché local',
+    title: 'Immobilier à Cotignac : estimation maison et marché international',
     description: 'Marché immobilier de Cotignac : biens de caractère, maisons avec vue, clientèle française et internationale, estimation locale avec Alexandre Lopez iad.',
     intro: 'Cotignac fait partie des villages les plus recherchés du Var intérieur. Le marché y est plus sélectif : le cachet, la vue, la qualité de rénovation, l’extérieur et la capacité à séduire une clientèle française ou internationale peuvent créer de grands écarts de prix.',
     priceSummary: 'Les portails de prix affichent souvent des repères élevés à Cotignac : les maisons ressortent fréquemment autour de 3 600 à 4 200 €/m² selon les sources, avec des fourchettes très larges. Le prix dépend fortement de la rareté, de l’état, de la vue, du terrain et du positionnement du bien.',
     marketBullets: [
-      'Village de caractère avec une demande soutenue sur les biens bien présentés et cohérents avec le marché.',
+      'Village classé parmi les Plus Beaux Villages de France, avec une image forte auprès des acheteurs en recherche d’art de vivre provençal.',
       'Écart important entre appartement, maison de village, maison avec extérieur, bastide, propriété avec vue ou bien à rénover.',
-      'La clientèle peut être locale, nationale ou internationale : la présentation et les informations disponibles comptent beaucoup.',
+      'La clientèle peut être locale, nationale ou internationale : la présentation, les informations techniques et la capacité à répondre en anglais comptent beaucoup.',
       'Le prix doit intégrer la rareté, mais rester lisible face aux comparables et aux biens concurrents.',
     ],
     propertyTypes: [
@@ -101,10 +106,20 @@ const LOCAL_PAGES: Record<string, LocalPage> = {
       'Capacité à présenter le bien clairement en français et en anglais si nécessaire',
     ],
     nearbyLinks: [
-      { href: '/marche/barjols', label: 'Barjols' },
       { href: '/marche/lorgues', label: 'Lorgues' },
+      { href: '/marche/barjols', label: 'Barjols' },
       { href: '/marche/salernes', label: 'Salernes' },
     ],
+    international: {
+      title: 'Un positionnement utile pour les biens de caractère et les acheteurs internationaux.',
+      text: 'Sur Cotignac, certains biens ne se vendent pas uniquement sur un prix au m². La qualité de présentation, les informations disponibles, la traduction des points clés et la capacité à rassurer une clientèle non locale peuvent faire la différence dès les premiers contacts.',
+      bullets: [
+        'Présentation claire du bien, de son état, de ses travaux et de son environnement.',
+        'Capacité à échanger en français et en anglais avec des acheteurs extérieurs.',
+        'Mise en avant du village, du cadre de vie, des accès, de la vue et du potentiel de résidence secondaire.',
+        'Discours vendeur structuré pour éviter la surexposition d’un bien mal positionné.',
+      ],
+    },
     faq: [
       {
         question: 'Quel est le prix immobilier à Cotignac ?',
@@ -121,6 +136,67 @@ const LOCAL_PAGES: Record<string, LocalPage> = {
       {
         question: 'Pourquoi demander un avis de valeur à Cotignac ?',
         answer: 'Parce qu’un prix trop haut peut bloquer une vente, même sur un marché recherché. L’avis de valeur aide à justifier la fourchette, à valoriser les points forts et à choisir une stratégie de mise en vente cohérente.',
+      },
+    ],
+  },
+  lorgues: {
+    slug: 'lorgues',
+    name: 'Lorgues',
+    title: 'Immobilier à Lorgues : estimation maison, bastide et propriété de caractère',
+    description: 'Vous vendez une maison à Lorgues ? Repères de marché, biens de caractère, clientèle internationale et avis de valeur avec Alexandre Lopez iad.',
+    intro: 'Lorgues attire une demande variée : familles locales, retraités, acheteurs de résidences secondaires et clientèle internationale en recherche de calme, de terrain, de piscine ou de propriété de caractère. Pour vendre une maison à Lorgues, la stratégie doit tenir compte du secteur, du niveau de prestations et de la concurrence premium.',
+    priceSummary: 'Les repères publics situent souvent les maisons de Lorgues autour de 3 300 à 3 800 €/m², avec de fortes variations selon les quartiers, l’état, la vue, le terrain et les prestations. Certaines propriétés de caractère ou villas avec dépendances, piscine ou grand terrain sortent largement de la logique du prix moyen.',
+    marketBullets: [
+      'Marché diversifié : centre ancien, villas, bastides, propriétés avec terrain, secteurs résidentiels et biens de prestige.',
+      'Les quartiers et l’environnement immédiat pèsent fortement dans l’estimation : accès, calme, vue, proximité du village ou isolement recherché.',
+      'La clientèle internationale s’intéresse davantage aux biens d’exception, aux dépendances, aux terrains, piscines et vues dégagées.',
+      'Le positionnement doit être précis pour éviter de confondre maison familiale classique et propriété patrimoniale.',
+    ],
+    propertyTypes: [
+      'Maisons de village ou maisons proches du centre avec accès aux commerces et au marché.',
+      'Villas familiales avec jardin, piscine ou garage dans les secteurs résidentiels.',
+      'Bastides, mas, propriétés bourgeoises ou domaines avec terrain, oliviers, vignes ou dépendances.',
+      'Biens de prestige recherchés par une clientèle française ou internationale.',
+    ],
+    estimationFactors: [
+      'Secteur exact : centre, campagne, quartier recherché, accès et environnement immédiat',
+      'Terrain, piscine, dépendances, vue, calme et potentiel de réception',
+      'Qualité des rénovations, matériaux, cohérence architecturale et état technique',
+      'DPE, chauffage, climatisation, assainissement et coûts d’entretien',
+      'Comparables réellement pertinents : maison classique, villa ou propriété de caractère',
+      'Présentation en français et en anglais pour toucher les acheteurs extérieurs quand le bien s’y prête',
+    ],
+    nearbyLinks: [
+      { href: '/marche/cotignac', label: 'Cotignac' },
+      { href: '/marche/salernes', label: 'Salernes' },
+      { href: '/marche/brignoles', label: 'Brignoles' },
+    ],
+    international: {
+      title: 'Un axe fort pour les propriétés, bastides et maisons de caractère.',
+      text: 'Lorgues fait partie des communes où l’acheteur peut chercher autant un bien qu’un mode de vie : calme, espace, extérieur, accès au village, authenticité provençale et proximité des grands axes du Var. Pour ces biens, la commercialisation doit être claire, qualitative et capable de parler à une clientèle non locale.',
+      bullets: [
+        'Mettre en avant l’art de vivre : marché, gastronomie, campagne, accès au village et au littoral varois.',
+        'Présenter les points techniques sans les masquer : assainissement, travaux, entretien, DPE, dépendances.',
+        'Préparer les éléments utiles pour des acheteurs à distance : plans, vidéos, informations de charges et contexte local.',
+        'Adapter le discours en français et en anglais pour sécuriser les premiers échanges.',
+      ],
+    },
+    faq: [
+      {
+        question: 'Quel est le prix immobilier à Lorgues ?',
+        answer: 'Les sources publiques placent souvent les maisons de Lorgues autour de 3 300 à 3 800 €/m², mais les écarts sont importants. Une maison de village, une villa familiale et une propriété avec terrain, piscine ou dépendances ne se comparent pas avec la même grille.',
+      },
+      {
+        question: 'Comment estimer une maison à Lorgues ?',
+        answer: 'Il faut qualifier le type de bien, le secteur exact, le terrain, les prestations, l’état technique, le DPE, les dépendances et les comparables réellement pertinents. Pour les biens de caractère, le prix moyen au m² est souvent insuffisant.',
+      },
+      {
+        question: 'Lorgues attire-t-il des acheteurs internationaux ?',
+        answer: 'Oui, notamment sur les bastides, villas avec piscine, propriétés avec terrain et biens de caractère. La qualité de présentation et la capacité à répondre en anglais peuvent aider à capter et rassurer ces acheteurs.',
+      },
+      {
+        question: 'Pourquoi demander un avis de valeur à Lorgues ?',
+        answer: 'Parce que le marché est segmenté. Un avis de valeur permet de distinguer une maison classique d’une propriété plus rare, d’expliquer la fourchette de prix et de choisir une stratégie adaptée au type d’acheteur visé.',
       },
     ],
   },
@@ -252,6 +328,8 @@ export default async function CommunePage({ params }: PageProps) {
           </div>
         </section>
 
+        {page.international ? <InternationalSection page={page} /> : null}
+
         <section className="bg-white px-6 py-20">
           <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.85fr_1fr]">
             <div>
@@ -299,6 +377,32 @@ export default async function CommunePage({ params }: PageProps) {
         </section>
       </main>
     </>
+  )
+}
+
+function InternationalSection({ page }: { page: LocalPage }) {
+  if (!page.international) return null
+
+  return (
+    <section className="bg-white px-6 py-20">
+      <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.85fr_1fr]">
+        <div>
+          <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand/10 text-brand">
+            <Globe2 size={28} />
+          </div>
+          <p className="mb-4 text-sm font-bold uppercase tracking-[0.22em] text-brand">Biens de caractère · FR/EN</p>
+          <h2 className="text-3xl font-bold leading-tight tracking-[-0.04em] text-foreground md:text-5xl">{page.international.title}</h2>
+          <p className="mt-6 text-lg leading-relaxed text-muted">{page.international.text}</p>
+        </div>
+        <div className="rounded-[2rem] bg-[#101828] p-8 text-white shadow-xl">
+          <Languages className="mb-6 text-brand-light" size={30} />
+          <h3 className="text-2xl font-bold tracking-[-0.03em]">Valorisation bilingue et approche internationale</h3>
+          <div className="mt-6 space-y-4">
+            {page.international.bullets.map((item) => <p key={item} className="flex gap-3 text-sm leading-relaxed text-white/78"><CheckCircle2 className="mt-0.5 shrink-0 text-brand-light" size={18} />{item}</p>)}
+          </div>
+        </div>
+      </div>
+    </section>
   )
 }
 
