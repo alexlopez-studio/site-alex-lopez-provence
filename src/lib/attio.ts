@@ -17,6 +17,7 @@ type AttioSyncResult = {
   skipped?: boolean
   reason?: string
   mode?: AttioSyncMode
+  entryMode?: AttioListEntryMode
   personRecordId?: string
   listEntryId?: string
   error?: string
@@ -24,6 +25,7 @@ type AttioSyncResult = {
 
 type AttioJson = Record<string, unknown>
 type AttioSyncMode = 'people_only' | 'people_and_lists'
+type AttioListEntryMode = 'minimal' | 'full'
 
 const ATTIO_API_BASE_URL = 'https://api.attio.com/v2'
 
@@ -50,14 +52,15 @@ const TYPE_BIEN_LABELS: Record<string, string> = {
 export async function syncLeadToAttio(input: AttioLeadInput): Promise<AttioSyncResult> {
   const apiKey = process.env.ATTIO_API_KEY
   const mode = resolveSyncMode()
-  if (!apiKey) return { ok: false, skipped: true, reason: 'missing_ATTIO_API_KEY', mode }
+  const entryMode = resolveListEntryMode()
+  if (!apiKey) return { ok: false, skipped: true, reason: 'missing_ATTIO_API_KEY', mode, entryMode }
 
   try {
     const person = await upsertPerson({ apiKey, input })
     const personRecordId = extractRecordId(person)
 
     if (!personRecordId) {
-      return { ok: false, error: 'Attio person record id introuvable', mode }
+      return { ok: false, error: 'Attio person record id introuvable', mode, entryMode }
     }
 
     if (mode === 'people_only') {
@@ -66,6 +69,7 @@ export async function syncLeadToAttio(input: AttioLeadInput): Promise<AttioSyncR
         skipped: true,
         reason: 'people_only_mode',
         mode,
+        entryMode,
         personRecordId,
       }
     }
@@ -77,14 +81,16 @@ export async function syncLeadToAttio(input: AttioLeadInput): Promise<AttioSyncR
         skipped: true,
         reason: 'missing_pipeline_list_env',
         mode,
+        entryMode,
         personRecordId,
       }
     }
 
-    const entry = await upsertListEntry({ apiKey, list, personRecordId, input })
+    const entry = await upsertListEntry({ apiKey, list, personRecordId, input, entryMode })
     return {
       ok: true,
       mode,
+      entryMode,
       personRecordId,
       listEntryId: extractEntryId(entry),
     }
@@ -92,6 +98,7 @@ export async function syncLeadToAttio(input: AttioLeadInput): Promise<AttioSyncR
     return {
       ok: false,
       mode,
+      entryMode,
       error: err instanceof Error ? err.message : 'Unknown Attio error',
     }
   }
@@ -130,11 +137,13 @@ async function upsertListEntry({
   list,
   personRecordId,
   input,
+  entryMode,
 }: {
   apiKey: string
   list: string
   personRecordId: string
   input: AttioLeadInput
+  entryMode: AttioListEntryMode
 }) {
   return attioFetch({
     apiKey,
@@ -144,7 +153,7 @@ async function upsertListEntry({
       data: {
         parent_record_id: personRecordId,
         parent_object: 'people',
-        entry_values: buildEntryValues(input),
+        entry_values: buildEntryValues(input, entryMode),
       },
     },
   })
@@ -183,6 +192,12 @@ function resolveSyncMode(): AttioSyncMode {
     : 'people_only'
 }
 
+function resolveListEntryMode(): AttioListEntryMode {
+  return process.env.ATTIO_LIST_ENTRY_MODE === 'full'
+    ? 'full'
+    : 'minimal'
+}
+
 function resolvePipelineList(type: LeadType): string | undefined {
   if (type === 'vendre') {
     return process.env.ATTIO_SELLER_LIST_ID || process.env.ATTIO_SELLER_LIST_SLUG
@@ -195,13 +210,18 @@ function resolvePipelineList(type: LeadType): string | undefined {
   return process.env.ATTIO_AUDIT_LIST_ID || process.env.ATTIO_AUDIT_LIST_SLUG
 }
 
-function buildEntryValues(input: AttioLeadInput): AttioJson {
-  const stageAttribute = input.type === 'acheter'
-    ? process.env.ATTIO_BUYER_STAGE_ATTRIBUTE || 'stage'
-    : process.env.ATTIO_SELLER_STAGE_ATTRIBUTE || 'stage'
+function buildEntryValues(input: AttioLeadInput, entryMode: AttioListEntryMode): AttioJson {
+  const stageAttribute = resolveStageAttribute(input.type)
+  const stageValue = resolveStageValue(input.type, stageAttribute)
+
+  if (entryMode === 'minimal') {
+    return {
+      [stageAttribute]: stageValue,
+    }
+  }
 
   const values: AttioJson = {
-    [stageAttribute]: input.type === 'acheter' ? 'Recherche reçue' : 'Estimation demandée',
+    [stageAttribute]: stageValue,
     nom_dossier: buildDossierName(input),
     source: 'Site web — ' + input.type,
     lead_type: input.type,
@@ -226,6 +246,30 @@ function buildEntryValues(input: AttioLeadInput): AttioJson {
   setIfNumber(values, 'budget_max', input.formData.budget_max)
 
   return values
+}
+
+function resolveStageAttribute(type: LeadType): string {
+  if (type === 'acheter') {
+    return process.env.ATTIO_BUYER_STAGE_ATTRIBUTE || 'stage'
+  }
+
+  if (type === 'audit') {
+    return process.env.ATTIO_AUDIT_STAGE_ATTRIBUTE || 'stage'
+  }
+
+  return process.env.ATTIO_SELLER_STAGE_ATTRIBUTE || 'stage'
+}
+
+function resolveStageValue(type: LeadType, stageAttribute: string): string {
+  if (type === 'acheter') {
+    return process.env.ATTIO_BUYER_STAGE_VALUE || 'Recherche reçue'
+  }
+
+  if (type === 'audit') {
+    return process.env.ATTIO_AUDIT_STAGE_VALUE || 'Audit reçu'
+  }
+
+  return process.env.ATTIO_SELLER_STAGE_VALUE || (stageAttribute === 'a_qualifier' ? 'à qualifier' : 'Estimation demandée')
 }
 
 function buildDossierName(input: AttioLeadInput): string {
