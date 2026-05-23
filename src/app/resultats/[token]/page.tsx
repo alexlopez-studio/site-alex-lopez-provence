@@ -2,14 +2,17 @@ import ResultatsClient from './resultats-client'
 import EnvironmentCopyNormalizer from './environment-copy-normalizer'
 import { loadEstimationFromNotionByToken } from '@/lib/notion-estimations'
 
+const NOTION_LOOKUP_RETRIES = 5
+const NOTION_LOOKUP_RETRY_DELAY_MS = 700
+
 /**
  * /resultats/[token]
  *
  * Mode estimation-first : Supabase est entièrement sorti du chemin critique.
  * La page tente d'abord de relire le dossier depuis le backup Notion via le
- * token du magic link. Si Notion n'est pas configuré ou ne retrouve pas le
- * dossier, le client conserve le fallback localStorage pour le parcours ouvert
- * dans le même navigateur.
+ * token du magic link. Si la soumission vient juste d'être envoyée, Notion peut
+ * avoir besoin de quelques secondes : on réessaie brièvement avant de laisser le
+ * client utiliser le fallback localStorage du navigateur.
  */
 export default async function ResultatsPage({
   params,
@@ -17,7 +20,7 @@ export default async function ResultatsPage({
   params: Promise<{ token: string }>
 }) {
   const { token } = await params
-  const record = await loadEstimationFromNotionByToken(token)
+  const record = await loadEstimationWithRetry(token)
 
   return (
     <>
@@ -34,4 +37,21 @@ export default async function ResultatsPage({
       />
     </>
   )
+}
+
+async function loadEstimationWithRetry(token: string) {
+  for (let attempt = 0; attempt < NOTION_LOOKUP_RETRIES; attempt += 1) {
+    const record = await loadEstimationFromNotionByToken(token)
+    if (record) return record
+
+    if (attempt < NOTION_LOOKUP_RETRIES - 1) {
+      await sleep(NOTION_LOOKUP_RETRY_DELAY_MS)
+    }
+  }
+
+  return null
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
