@@ -1,4 +1,4 @@
-import ResultatsClient from './resultats-client'
+import ResultatsLoaderClient from './resultats-loader-client'
 import EnvironmentCopyNormalizer from './environment-copy-normalizer'
 import { loadEstimationFromNotionByToken } from '@/lib/notion-estimations'
 
@@ -25,7 +25,8 @@ export default async function ResultatsPage({
   return (
     <>
       <EnvironmentCopyNormalizer />
-      <ResultatsClient
+      <ResultatsLoaderClient
+        token={token}
         initialData={
           record
             ? {
