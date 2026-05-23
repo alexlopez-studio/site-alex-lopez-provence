@@ -25,6 +25,16 @@ type AttioJson = Record<string, unknown>
 
 const ATTIO_API_BASE_URL = 'https://api.attio.com/v2'
 
+const TYPE_BIEN_LABELS: Record<string, string> = {
+  maison: 'Maison',
+  appartement: 'Appartement',
+  terrain: 'Terrain',
+  immeuble: 'Immeuble',
+  individuelle: 'Maison individuelle',
+  mitoyenne: 'Maison mitoyenne',
+  maison_village: 'Maison de village',
+}
+
 /**
  * Best-effort Attio CRM sync.
  *
@@ -79,7 +89,7 @@ export async function syncLeadToAttio(input: AttioLeadInput): Promise<AttioSyncR
 }
 
 async function upsertPerson({ apiKey, input }: { apiKey: string; input: AttioLeadInput }) {
-  const fullName = [input.prenom, input.nom].filter(Boolean).join(' ').trim()
+  const fullName = getContactName(input)
   const description = buildPersonDescription(input)
   const values: AttioJson = {
     email_addresses: [{ email_address: input.email }],
@@ -177,6 +187,7 @@ function buildEntryValues(input: AttioLeadInput): AttioJson {
 
   const values: AttioJson = {
     [stageAttribute]: input.type === 'acheter' ? 'Recherche reçue' : 'Estimation demandée',
+    nom_dossier: buildDossierName(input),
     source: 'Site web — ' + input.type,
     lead_type: input.type,
     token: input.token,
@@ -186,7 +197,10 @@ function buildEntryValues(input: AttioLeadInput): AttioJson {
   }
 
   setIfString(values, 'adresse', input.formData.adresse)
-  setIfString(values, 'type_bien', input.formData.type_bien)
+  setIfString(values, 'commune', getCommune(input))
+  setIfString(values, 'communes', getCommunes(input))
+  setIfString(values, 'type_bien', formatTypeBien(input.formData.type_bien))
+  setIfString(values, 'criteres', getCriteres(input))
   setIfNumber(values, 'surface', input.formData.surface)
   setIfNumber(values, 'surface_terrain', input.formData.surface_terrain)
   setIfString(values, 'dpe', input.formData.dpe)
@@ -199,9 +213,35 @@ function buildEntryValues(input: AttioLeadInput): AttioJson {
   return values
 }
 
+function buildDossierName(input: AttioLeadInput): string {
+  const contactName = getContactName(input) || input.email
+  const commune = getCommune(input)
+  const secteur = getCommunes(input)
+  const typeBien = formatTypeBien(input.formData.type_bien) || 'Bien'
+
+  if (input.type === 'acheter') {
+    const budget = formatBudget(input.formData.budget_max)
+    const location = secteur || commune || 'secteur à préciser'
+    return ['Recherche', typeBien, budget, location, contactName]
+      .filter(Boolean)
+      .join(' — ')
+  }
+
+  if (input.type === 'audit') {
+    return ['Audit', commune || 'secteur à préciser', contactName]
+      .filter(Boolean)
+      .join(' — ')
+  }
+
+  return ['Estimation', commune ? `${typeBien} à ${commune}` : typeBien, contactName]
+    .filter(Boolean)
+    .join(' — ')
+}
+
 function buildPersonDescription(input: AttioLeadInput): string {
   return [
     `Source : site web (${input.type})`,
+    `Dossier : ${buildDossierName(input)}`,
     `Token : ${input.token}`,
     `Résultat : ${input.magicLinkUrl}`,
     input.formData.adresse ? `Adresse : ${input.formData.adresse}` : null,
@@ -210,6 +250,7 @@ function buildPersonDescription(input: AttioLeadInput): string {
 
 function buildEntryNotes(input: AttioLeadInput): string {
   const summary = {
+    nom_dossier: buildDossierName(input),
     token: input.token,
     type: input.type,
     magicLinkUrl: input.magicLinkUrl,
@@ -224,6 +265,76 @@ function buildEntryNotes(input: AttioLeadInput): string {
   }
 
   return JSON.stringify(summary, null, 2).slice(0, 9000)
+}
+
+function getContactName(input: AttioLeadInput): string {
+  return [input.prenom, input.nom].filter(Boolean).join(' ').trim()
+}
+
+function getCommune(input: AttioLeadInput): string | undefined {
+  const explicitCommune = toCleanString(input.formData.commune)
+  if (explicitCommune) return explicitCommune
+
+  const adresse = toCleanString(input.formData.adresse)
+  if (!adresse) return undefined
+
+  const parts = adresse
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean)
+
+  const lastPart = parts.at(-1)
+  if (!lastPart) return undefined
+
+  return lastPart
+    .replace(/^\d{5}\s+/, '')
+    .trim() || undefined
+}
+
+function getCommunes(input: AttioLeadInput): string | undefined {
+  const direct = toCleanString(input.formData.communes)
+  if (direct) return direct
+
+  const rawList = input.formData.communes_recherchees ?? input.formData.secteurs ?? input.formData.localisations
+  if (Array.isArray(rawList)) {
+    const values = rawList.map(toCleanString).filter(Boolean)
+    return values.length > 0 ? values.join(', ') : undefined
+  }
+
+  return toCleanString(rawList)
+}
+
+function getCriteres(input: AttioLeadInput): string | undefined {
+  const direct = toCleanString(input.formData.criteres)
+  if (direct) return direct
+
+  const equipements = input.formData.equipements
+  if (Array.isArray(equipements)) {
+    const values = equipements.map(toCleanString).filter(Boolean)
+    if (values.length > 0) return values.join(', ')
+  }
+
+  return undefined
+}
+
+function formatTypeBien(value: unknown): string | undefined {
+  const raw = toCleanString(value)
+  if (!raw) return undefined
+  return TYPE_BIEN_LABELS[raw] ?? raw
+}
+
+function formatBudget(value: unknown): string | undefined {
+  const parsed = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN
+  if (!Number.isFinite(parsed) || parsed <= 0) return undefined
+  if (parsed >= 1_000_000) return `${Math.round(parsed / 100_000) / 10}M€`
+  if (parsed >= 1000) return `${Math.round(parsed / 1000)}k€`
+  return `${parsed}€`
+}
+
+function toCleanString(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : undefined
 }
 
 function setIfString(target: AttioJson, key: string, value: unknown) {
