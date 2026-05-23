@@ -22,8 +22,6 @@ ATTIO_API_KEY=
 ATTIO_SYNC_MODE=people_only
 ```
 
-Ne pas encore renseigner `ATTIO_SELLER_LIST_ID`, `ATTIO_BUYER_LIST_ID` ou leurs slugs tant que les attributs des listes ne sont pas prêts.
-
 Avec ce mode, `/api/leads` renvoie un objet `attioSync` du type :
 
 ```json
@@ -44,12 +42,23 @@ Dernier redéploiement demandé pour recharger les variables Attio Vercel : 2026
 
 ## Phase suivante : People + listes / pipelines
 
-Quand les colonnes Attio seront prêtes, passer en :
+Quand la liste pipeline est prête, passer en :
 
 ```plain text
 ATTIO_SYNC_MODE=people_and_lists
-ATTIO_SELLER_LIST_ID=
-ATTIO_BUYER_LIST_ID=
+ATTIO_LIST_ENTRY_MODE=minimal
+ATTIO_SELLER_LIST_ID=d670e0d0-e4bc-4af7-96b1-6b3cdb225290
+ATTIO_SELLER_LIST_SLUG=pipeline_vendeurs_people
+ATTIO_SELLER_STAGE_ATTRIBUTE=a_qualifier
+ATTIO_SELLER_STAGE_VALUE=à qualifier
+```
+
+Le mode `minimal` crée l’entrée dans la liste Attio en écrivant uniquement le statut. C’est le mode recommandé tant que les attributs CRM détaillés (`nom_dossier`, `adresse`, `token`, etc.) ne sont pas créés dans la liste.
+
+Quand les colonnes détaillées seront créées dans Attio, passer en :
+
+```plain text
+ATTIO_LIST_ENTRY_MODE=full
 ```
 
 Modèle cible complet :
@@ -78,17 +87,26 @@ Champs utilisés côté People :
 
 ### Lists / pipelines
 
-Les pipelines seront des **listes Attio parentées à People**.
+Les pipelines sont des **listes Attio parentées à People**.
 
-Prévoir au minimum :
+Liste vendeur actuelle :
 
-- une liste vendeur ;
+```plain text
+Nom : Pipeline vendeurs — People
+ID : d670e0d0-e4bc-4af7-96b1-6b3cdb225290
+Slug : pipeline_vendeurs_people
+Parent : people
+Statut actuel : a_qualifier = à qualifier
+```
+
+Prévoir ensuite :
+
 - une liste acheteur ;
 - éventuellement une liste audit plus tard.
 
 ## Nom du dossier CRM
 
-Le code alimente un champ `nom_dossier` pour rendre les pipelines lisibles quand `ATTIO_SYNC_MODE=people_and_lists` sera activé.
+Le code alimente un champ `nom_dossier` pour rendre les pipelines lisibles quand `ATTIO_LIST_ENTRY_MODE=full` sera activé.
 
 Format vendeur :
 
@@ -106,7 +124,7 @@ Le nom de la personne reste dans People. Le `nom_dossier` sert à identifier rap
 
 ## Pipeline vendeur recommandé
 
-Statuts recommandés :
+Statuts recommandés à créer dans Attio quand le pipeline sera enrichi :
 
 1. `Estimation demandée`
 2. `À qualifier`
@@ -116,7 +134,7 @@ Statuts recommandés :
 6. `Mandat signé`
 7. `Perdu / non prioritaire`
 
-Attributs de liste recommandés :
+Attributs de liste recommandés pour le mode `full` :
 
 | Slug suggéré | Type | Usage |
 | --- | --- | --- |
@@ -182,7 +200,8 @@ Attributs de liste recommandés :
 5. Faire une soumission vendeur depuis la Preview.
 6. Vérifier dans Attio qu’un contact People est créé ou mis à jour.
 7. Si OK, copier les mêmes variables en Production.
-8. Plus tard seulement : créer les attributs de listes, renseigner les IDs de listes, puis passer à `people_and_lists`.
+8. Pour créer une entrée pipeline simple, passer à `people_and_lists` + `minimal` avec la liste vendeur actuelle.
+9. Plus tard seulement : créer les attributs de listes détaillés, puis passer à `ATTIO_LIST_ENTRY_MODE=full`.
 
 ## Scopes Attio recommandés
 
@@ -206,5 +225,7 @@ La synchronisation Attio est volontairement **best-effort** :
 
 - si `ATTIO_API_KEY` manque, `/api/leads` continue et renvoie `attioSync.skipped` ;
 - en `people_only`, seul People est synchronisé ;
-- en `people_and_lists`, l’entrée pipeline est créée si la liste et les attributs existent ;
+- en `people_and_lists`, l’entrée pipeline est créée si la liste existe ;
+- en `minimal`, seule l’étape pipeline est écrite ;
+- en `full`, les attributs CRM détaillés sont écrits ;
 - si Attio renvoie une erreur, l’estimation, le résultat, l’email et le backup Notion ne sont pas bloqués.
