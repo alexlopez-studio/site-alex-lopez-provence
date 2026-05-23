@@ -88,6 +88,7 @@ export default function VendrePage() {
         throw new Error(typeof payload?.error === 'string' ? payload.error : 'soumission échouée')
       }
 
+      persistLeadResult(nextToken, finalAnswers, payload?.results)
       setState('success')
       window.setTimeout(() => router.push('/resultats/' + nextToken), 900)
     } catch (err) {
@@ -482,6 +483,24 @@ function SubmittingScreen({ done, token }: { done: boolean; token: string | null
       </div>
     </main>
   )
+}
+
+function persistLeadResult(token: string, answers: VendreAnswers, results: unknown) {
+  if (!results || typeof results !== 'object' || Array.isArray(results)) return
+
+  try {
+    localStorage.setItem(
+      'lead-result-' + token,
+      JSON.stringify({
+        type: 'vendre',
+        answers,
+        results,
+        updatedAt: Date.now(),
+      }),
+    )
+  } catch {
+    // Le résultat reste disponible via Notion ; le stockage local est un fallback.
+  }
 }
 
 async function safeJson(res: Response): Promise<Record<string, unknown> | null> {
