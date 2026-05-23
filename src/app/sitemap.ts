@@ -23,6 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/marche',
     '/marche/barjols',
     '/marche/cotignac',
+    '/marche/lorgues',
     '/avis',
   ]
 
