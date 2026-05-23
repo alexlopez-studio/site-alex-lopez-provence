@@ -36,6 +36,24 @@ Prévoir au minimum :
 - une liste acheteur ;
 - éventuellement une liste audit plus tard.
 
+## Nom du dossier CRM
+
+Le code alimente un champ `nom_dossier` pour rendre les pipelines lisibles.
+
+Format vendeur :
+
+```plain text
+Estimation — Maison à Barjols — Jean Dupont
+```
+
+Format acheteur :
+
+```plain text
+Recherche — Maison — 450k€ — Cotignac, Lorgues — Sarah Smith
+```
+
+Le nom de la personne reste dans People. Le `nom_dossier` sert à identifier rapidement l’opportunité immobilière dans le pipeline.
+
 ## Pipeline vendeur recommandé
 
 Statuts recommandés :
@@ -53,12 +71,14 @@ Attributs de liste recommandés :
 | Slug suggéré | Type | Usage |
 | --- | --- | --- |
 | `stage` | Status | Étape du pipeline |
+| `nom_dossier` | Text | Nom lisible du dossier CRM |
 | `source` | Text / Select | Source du lead |
 | `lead_type` | Select | `vendre`, `acheter`, `audit` |
 | `token` | Text | Token technique du dossier |
 | `magic_link` | Text / URL | Lien résultat |
 | `rgpd` | Checkbox | Consentement |
 | `adresse` | Text | Adresse du bien |
+| `commune` | Text | Commune du bien |
 | `type_bien` | Text / Select | Maison, appartement, terrain… |
 | `surface` | Number | Surface habitable |
 | `surface_terrain` | Number | Terrain / extérieur |
@@ -67,6 +87,7 @@ Attributs de liste recommandés :
 | `estimation_mediane` | Number / Currency | Estimation médiane |
 | `estimation_basse` | Number / Currency | Fourchette basse |
 | `estimation_haute` | Number / Currency | Fourchette haute |
+| `criteres` | Text | Équipements / critères utiles |
 | `notes` | Text | Snapshot JSON du dossier |
 
 ## Pipeline acheteur recommandé
@@ -82,13 +103,71 @@ Statuts recommandés :
 7. `Achat conclu`
 8. `Perdu / pause`
 
-Attributs complémentaires utiles :
+Attributs de liste recommandés :
 
 | Slug suggéré | Type | Usage |
 | --- | --- | --- |
+| `stage` | Status | Étape du pipeline |
+| `nom_dossier` | Text | Nom lisible du dossier CRM |
+| `source` | Text / Select | Source du lead |
+| `lead_type` | Select | `vendre`, `acheter`, `audit` |
+| `token` | Text | Token technique du dossier |
+| `magic_link` | Text / URL | Lien résultat |
+| `rgpd` | Checkbox | Consentement |
 | `budget_max` | Number / Currency | Budget maximum |
 | `communes` | Text | Communes ciblées |
+| `type_bien` | Text / Select | Type de bien recherché |
+| `surface` | Number | Surface souhaitée |
+| `surface_terrain` | Number | Terrain souhaité |
 | `criteres` | Text / Multi-select | Critères de recherche |
+| `delai` | Text / Select | Délai d’achat |
+| `notes` | Text | Snapshot JSON du dossier |
+
+## Colonnes minimum à créer maintenant
+
+### Liste vendeur
+
+```plain text
+stage
+nom_dossier
+source
+lead_type
+token
+magic_link
+rgpd
+adresse
+commune
+type_bien
+surface
+surface_terrain
+dpe
+delai
+estimation_mediane
+estimation_basse
+estimation_haute
+criteres
+notes
+```
+
+### Liste acheteur
+
+```plain text
+stage
+nom_dossier
+source
+lead_type
+token
+magic_link
+rgpd
+budget_max
+communes
+type_bien
+surface
+surface_terrain
+criteres
+delai
+notes
+```
 
 ## Variables d’environnement Vercel
 
