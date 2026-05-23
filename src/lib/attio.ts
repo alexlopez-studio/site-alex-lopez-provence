@@ -16,12 +16,14 @@ type AttioSyncResult = {
   ok: boolean
   skipped?: boolean
   reason?: string
+  mode?: AttioSyncMode
   personRecordId?: string
   listEntryId?: string
   error?: string
 }
 
 type AttioJson = Record<string, unknown>
+type AttioSyncMode = 'people_only' | 'people_and_lists'
 
 const ATTIO_API_BASE_URL = 'https://api.attio.com/v2'
 
@@ -38,30 +40,34 @@ const TYPE_BIEN_LABELS: Record<string, string> = {
 /**
  * Best-effort Attio CRM sync.
  *
- * Target model:
- * - People is the canonical contact object.
- * - Seller / buyer pipelines are Attio lists whose parent object is people.
- * - The exact list slugs and optional list attribute slugs are configured via env.
- *
- * Required env:
- * - ATTIO_API_KEY
- *
- * Optional env:
- * - ATTIO_SELLER_LIST_ID or ATTIO_SELLER_LIST_SLUG
- * - ATTIO_BUYER_LIST_ID or ATTIO_BUYER_LIST_SLUG
- * - ATTIO_SELLER_STAGE_ATTRIBUTE, default: stage
- * - ATTIO_BUYER_STAGE_ATTRIBUTE, default: stage
+ * Phase API/Vercel-first:
+ * - ATTIO_API_KEY suffit pour créer/mettre à jour le contact People.
+ * - Par défaut, aucune entrée de liste n'est créée pour éviter les erreurs tant
+ *   que les attributs de listes Attio ne sont pas prêts.
+ * - Pour activer les pipelines plus tard, définir ATTIO_SYNC_MODE=people_and_lists
+ *   puis renseigner les listes vendeur/acheteur.
  */
 export async function syncLeadToAttio(input: AttioLeadInput): Promise<AttioSyncResult> {
   const apiKey = process.env.ATTIO_API_KEY
-  if (!apiKey) return { ok: false, skipped: true, reason: 'missing_ATTIO_API_KEY' }
+  const mode = resolveSyncMode()
+  if (!apiKey) return { ok: false, skipped: true, reason: 'missing_ATTIO_API_KEY', mode }
 
   try {
     const person = await upsertPerson({ apiKey, input })
     const personRecordId = extractRecordId(person)
 
     if (!personRecordId) {
-      return { ok: false, error: 'Attio person record id introuvable' }
+      return { ok: false, error: 'Attio person record id introuvable', mode }
+    }
+
+    if (mode === 'people_only') {
+      return {
+        ok: true,
+        skipped: true,
+        reason: 'people_only_mode',
+        mode,
+        personRecordId,
+      }
     }
 
     const list = resolvePipelineList(input.type)
@@ -70,6 +76,7 @@ export async function syncLeadToAttio(input: AttioLeadInput): Promise<AttioSyncR
         ok: true,
         skipped: true,
         reason: 'missing_pipeline_list_env',
+        mode,
         personRecordId,
       }
     }
@@ -77,12 +84,14 @@ export async function syncLeadToAttio(input: AttioLeadInput): Promise<AttioSyncR
     const entry = await upsertListEntry({ apiKey, list, personRecordId, input })
     return {
       ok: true,
+      mode,
       personRecordId,
       listEntryId: extractEntryId(entry),
     }
   } catch (err) {
     return {
       ok: false,
+      mode,
       error: err instanceof Error ? err.message : 'Unknown Attio error',
     }
   }
@@ -166,6 +175,12 @@ async function attioFetch({
     throw new Error(`Attio ${res.status}: ${JSON.stringify(json).slice(0, 600)}`)
   }
   return json
+}
+
+function resolveSyncMode(): AttioSyncMode {
+  return process.env.ATTIO_SYNC_MODE === 'people_and_lists'
+    ? 'people_and_lists'
+    : 'people_only'
 }
 
 function resolvePipelineList(type: LeadType): string | undefined {
