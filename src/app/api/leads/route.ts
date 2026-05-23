@@ -3,8 +3,8 @@
  *
  * Priorité actuelle : l'outil d'estimation ne doit plus dépendre de Supabase.
  * La route calcule donc les résultats, renvoie un token utilisable côté front,
- * envoie le magic link en best-effort et sauvegarde une copie Notion si les
- * variables Notion sont configurées.
+ * envoie le magic link en best-effort, sauvegarde une copie Notion si les
+ * variables Notion sont configurées et synchronise Attio si le CRM est configuré.
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { sendMagicLinkEmail } from '@/lib/resend'
@@ -13,6 +13,7 @@ import {
   type LeadType,
 } from '@/lib/leads/compute-results'
 import { saveEstimationToNotion } from '@/lib/notion-estimations'
+import { syncLeadToAttio } from '@/lib/attio'
 
 function isLeadType(value: unknown): value is LeadType {
   return value === 'vendre' || value === 'acheter' || value === 'audit'
@@ -111,11 +112,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       magicLinkUrl,
       emailSent: false,
       notionBackup: { ok: false, skipped: true, reason: 'dry_run' },
+      attioSync: { ok: false, skipped: true, reason: 'dry_run' },
       results,
     })
   }
 
-  const [emailSent, notionBackup] = await Promise.all([
+  const [emailSent, notionBackup, attioSync] = await Promise.all([
     sendMagicLinkEmail({
       to: email,
       prenom: prenom ?? null,
@@ -134,10 +136,25 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       results,
       magicLinkUrl,
     }),
+    syncLeadToAttio({
+      token,
+      type: tool,
+      email,
+      prenom,
+      nom,
+      telephone,
+      formData,
+      results,
+      magicLinkUrl,
+    }),
   ])
 
   if (!notionBackup.ok && !notionBackup.skipped) {
     console.error('[API /leads] sauvegarde Notion échouée :', notionBackup.error)
+  }
+
+  if (!attioSync.ok && !attioSync.skipped) {
+    console.error('[API /leads] synchronisation Attio échouée :', attioSync.error)
   }
 
   return NextResponse.json({
@@ -147,6 +164,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     magicLinkUrl,
     emailSent,
     notionBackup,
+    attioSync,
     results,
   })
 }
