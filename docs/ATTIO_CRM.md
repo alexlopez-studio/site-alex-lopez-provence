@@ -2,7 +2,53 @@
 
 Attio est la destination CRM principale pour les leads vendeurs et acheteurs. Notion reste utilisé en backup et pour le pilotage projet.
 
-## Modèle cible
+## Phase actuelle : API + Vercel d’abord
+
+Pour l’instant, on active uniquement la connexion API Attio et la synchronisation **People**.
+
+Objectif : vérifier que le site peut créer / mettre à jour un contact Attio sans dépendre des colonnes de pipelines.
+
+```plain text
+/api/leads
+→ calcul résultat
+→ Attio People
+→ email + backup Notion
+```
+
+Variables Vercel à configurer maintenant :
+
+```plain text
+ATTIO_API_KEY=
+ATTIO_SYNC_MODE=people_only
+```
+
+Ne pas encore renseigner `ATTIO_SELLER_LIST_ID`, `ATTIO_BUYER_LIST_ID` ou leurs slugs tant que les attributs des listes ne sont pas prêts.
+
+Avec ce mode, `/api/leads` renvoie un objet `attioSync` du type :
+
+```json
+{
+  "ok": true,
+  "skipped": true,
+  "reason": "people_only_mode",
+  "mode": "people_only",
+  "personRecordId": "..."
+}
+```
+
+`skipped: true` signifie seulement que l’entrée de pipeline est volontairement ignorée. Le contact People, lui, a bien été créé ou mis à jour si `ok: true` et `personRecordId` est présent.
+
+## Phase suivante : People + listes / pipelines
+
+Quand les colonnes Attio seront prêtes, passer en :
+
+```plain text
+ATTIO_SYNC_MODE=people_and_lists
+ATTIO_SELLER_LIST_ID=
+ATTIO_BUYER_LIST_ID=
+```
+
+Modèle cible complet :
 
 ```plain text
 Formulaire vendeur / acheteur
@@ -28,7 +74,7 @@ Champs utilisés côté People :
 
 ### Lists / pipelines
 
-Les pipelines sont des **listes Attio parentées à People**.
+Les pipelines seront des **listes Attio parentées à People**.
 
 Prévoir au minimum :
 
@@ -38,7 +84,7 @@ Prévoir au minimum :
 
 ## Nom du dossier CRM
 
-Le code alimente un champ `nom_dossier` pour rendre les pipelines lisibles.
+Le code alimente un champ `nom_dossier` pour rendre les pipelines lisibles quand `ATTIO_SYNC_MODE=people_and_lists` sera activé.
 
 Format vendeur :
 
@@ -123,85 +169,29 @@ Attributs de liste recommandés :
 | `delai` | Text / Select | Délai d’achat |
 | `notes` | Text | Snapshot JSON du dossier |
 
-## Colonnes minimum à créer maintenant
+## Checklist de mise en service API/Vercel
 
-### Liste vendeur
-
-```plain text
-stage
-nom_dossier
-source
-lead_type
-token
-magic_link
-rgpd
-adresse
-commune
-type_bien
-surface
-surface_terrain
-dpe
-delai
-estimation_mediane
-estimation_basse
-estimation_haute
-criteres
-notes
-```
-
-### Liste acheteur
-
-```plain text
-stage
-nom_dossier
-source
-lead_type
-token
-magic_link
-rgpd
-budget_max
-communes
-type_bien
-surface
-surface_terrain
-criteres
-delai
-notes
-```
-
-## Variables d’environnement Vercel
-
-Variables obligatoires pour activer Attio :
-
-```plain text
-ATTIO_API_KEY=
-ATTIO_SELLER_LIST_ID=
-# ou ATTIO_SELLER_LIST_SLUG=
-```
-
-Variables pour le pipeline acheteur :
-
-```plain text
-ATTIO_BUYER_LIST_ID=
-# ou ATTIO_BUYER_LIST_SLUG=
-```
-
-Variables optionnelles :
-
-```plain text
-ATTIO_AUDIT_LIST_ID=
-ATTIO_AUDIT_LIST_SLUG=
-ATTIO_SELLER_STAGE_ATTRIBUTE=stage
-ATTIO_BUYER_STAGE_ATTRIBUTE=stage
-```
+1. Créer un token Attio.
+2. Ajouter `ATTIO_API_KEY` dans Vercel Preview.
+3. Ajouter `ATTIO_SYNC_MODE=people_only` dans Vercel Preview.
+4. Redéployer la Preview.
+5. Faire une soumission vendeur depuis la Preview.
+6. Vérifier dans Attio qu’un contact People est créé ou mis à jour.
+7. Si OK, copier les mêmes variables en Production.
+8. Plus tard seulement : créer les attributs de listes, renseigner les IDs de listes, puis passer à `people_and_lists`.
 
 ## Scopes Attio recommandés
 
-Le token Attio doit permettre :
+Pour la phase People-only, le token doit permettre :
 
 ```plain text
 record_permission:read-write
 object_configuration:read
+```
+
+Pour la phase People + pipelines, ajouter aussi :
+
+```plain text
 list_entry:read-write
 list_configuration:read
 ```
@@ -211,16 +201,6 @@ list_configuration:read
 La synchronisation Attio est volontairement **best-effort** :
 
 - si `ATTIO_API_KEY` manque, `/api/leads` continue et renvoie `attioSync.skipped` ;
-- si la liste vendeur / acheteur manque, le contact People peut être créé, puis l’entrée pipeline est ignorée ;
+- en `people_only`, seul People est synchronisé ;
+- en `people_and_lists`, l’entrée pipeline est créée si la liste et les attributs existent ;
 - si Attio renvoie une erreur, l’estimation, le résultat, l’email et le backup Notion ne sont pas bloqués.
-
-## Checklist de mise en service
-
-1. Créer les listes Attio vendeur et acheteur, parentées à People.
-2. Ajouter les statuts recommandés dans chaque liste.
-3. Ajouter les attributs de liste avec les slugs ci-dessus ou adapter les variables / le code.
-4. Créer un token Attio avec les scopes recommandés.
-5. Ajouter les variables dans Vercel Preview puis Production.
-6. Tester une soumission vendeur.
-7. Vérifier : People créé / mis à jour + entrée dans le pipeline vendeur.
-8. Tester une soumission acheteur lorsque le funnel acheteur sera branché.
