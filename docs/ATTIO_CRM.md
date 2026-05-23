@@ -38,6 +38,10 @@ Avec ce mode, `/api/leads` renvoie un objet `attioSync` du type :
 
 `skipped: true` signifie seulement que l’entrée de pipeline est volontairement ignorée. Le contact People, lui, a bien été créé ou mis à jour si `ok: true` et `personRecordId` est présent.
 
+## Redéploiement Preview
+
+Dernier redéploiement demandé pour recharger les variables Attio Vercel : 2026-05-23 18:23 Europe/Paris.
+
 ## Phase suivante : People + listes / pipelines
 
 Quand les colonnes Attio seront prêtes, passer en :
