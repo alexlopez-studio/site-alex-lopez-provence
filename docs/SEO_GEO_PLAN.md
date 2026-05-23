@@ -21,6 +21,7 @@ Le site ne doit pas seulement capter des recherches génériques comme `estimati
 3. **Conversion éditoriale** : la page `/avis-de-valeur-immobilier` est le hub de persuasion ; `/outils/vendre` est le formulaire.
 4. **Cluster avant volume** : une requête faible mais locale et transactionnelle vaut mieux qu’un mot-clé générique très concurrentiel.
 5. **Suivi par intention** : SE Ranking doit suivre des groupes de mots-clés par intention, pas seulement une liste brute.
+6. **Extension contrôlée** : le Pays d’Aubagne / Étoile / Marseille Est reste une extension opportuniste, pas un second positionnement principal.
 
 ## Pages cibles actuelles
 
@@ -55,10 +56,10 @@ Le site ne doit pas seulement capter des recherches génériques comme `estimati
 | --- | --- | --- | --- | --- |
 | Barjols | `/marche/barjols` | estimation maison Barjols, prix immobilier Barjols, vendre maison Barjols | P0 | Marché accessible, maisons de village, biens avec terrain, vendeurs locaux |
 | Cotignac | `/marche/cotignac` | estimation maison Cotignac, prix immobilier Cotignac, vendre maison Cotignac | P0 | Village recherché, biens de caractère, clientèle française/internationale |
+| Lorgues | `/marche/lorgues` | estimation maison Lorgues, prix immobilier Lorgues | P1 | Axe premium / clientèle internationale |
 | Brignoles | `/marche/brignoles` | estimation maison Brignoles, prix immobilier Brignoles, vendre maison Brignoles | P1 | Ville centre, marché plus large, maisons + appartements |
 | Saint-Maximin-la-Sainte-Baume | `/marche/saint-maximin` | estimation maison Saint-Maximin, prix immobilier Saint-Maximin | P1 | Bassin dynamique, accès Aix/Marseille, familles |
 | Pontevès | `/marche/ponteves` | estimation maison Pontevès, prix immobilier Pontevès | P1 | Ancrage local Alexandre, proximité Barjols |
-| Lorgues | `/marche/lorgues` | estimation maison Lorgues, prix immobilier Lorgues | P1 | Axe premium / clientèle internationale |
 
 ### 3. Conseils vendeurs
 
@@ -86,6 +87,20 @@ Chaque page locale doit contenir :
 - des données ou repères chiffrés sourcés quand disponibles ;
 - des formulations directes : “Pour estimer une maison à Barjols…” ;
 - un CTA clair vers l’avis de valeur.
+
+### 5. Extension opportuniste Aubagne / Étoile / Marseille Est
+
+**Objectif :** préparer l’extension, mais ne pas diluer le socle Provence Verte & Verdon.
+
+Document dédié : `docs/AUBAGNE_ETOILE_EXTENSION.md`.
+
+| Secteur | Page potentielle | Priorité | Condition |
+| --- | --- | --- | --- |
+| Aubagne | `/marche/aubagne` | P2 | seulement si signal Search Console, lead réel ou volonté commerciale explicite |
+| La Destrousse | `/marche/la-destrousse` | P2 | si opportunité Pays de l’Étoile confirmée |
+| Roquevaire | `/marche/roquevaire` | P2 | si logique maison / terrain confirmée |
+| Auriol | `/marche/auriol` | P2 | si signal local ou réseau activé |
+| Marseille Est micro-zones | à définir | P3 | uniquement micro-zone, éviter arrondissement générique |
 
 ## Premiers concurrents SERP observés
 
@@ -175,6 +190,7 @@ Ajouter progressivement des liens vers :
 
 - `/marche/barjols`
 - `/marche/cotignac`
+- `/marche/lorgues`
 - `/marche/brignoles`
 - `/marche/saint-maximin`
 - `/blog/vendre-sa-maison-sans-agence`
@@ -205,13 +221,15 @@ Chaque article vendeur doit renvoyer vers :
 1. `Avis de valeur / estimation`
 2. `Barjols`
 3. `Cotignac`
-4. `Brignoles`
-5. `Saint-Maximin`
-6. `Pontevès`
-7. `Conseils vendeurs`
-8. `DPE / travaux`
-9. `Mandats immobiliers`
-10. `Concurrents locaux`
+4. `Lorgues`
+5. `Brignoles`
+6. `Saint-Maximin`
+7. `Pontevès`
+8. `Conseils vendeurs`
+9. `DPE / travaux`
+10. `Mandats immobiliers`
+11. `Concurrents locaux`
+12. `Aubagne / Étoile opportuniste`
 
 ### Mots-clés de départ
 
@@ -226,6 +244,9 @@ vendre maison Barjols
 estimation maison Cotignac
 prix immobilier Cotignac
 vendre maison Cotignac
+estimation maison Lorgues
+prix immobilier Lorgues
+vendre maison Lorgues
 estimation maison Brignoles
 prix immobilier Brignoles
 vendre maison Brignoles
@@ -279,19 +300,16 @@ combien de temps pour vendre une maison
 2. Renforcer `/marche/cotignac` avec un bloc clientèle internationale.
 3. Ajouter un contenu “Vendre une maison de caractère dans le Var intérieur”.
 
-## Prochaine action concrète
+### Sprint SEO/GEO 5 — Extension opportuniste
 
-Créer les deux premières pages locales enrichies :
+1. Observer Search Console et les leads hors territoire principal.
+2. Si signal réel : produire `/marche/aubagne` ou un hub `/marche/pays-aubagne-etoile`.
+3. Ne pas élargir Marseille Est avant preuve de pertinence.
 
-1. `/marche/barjols`
-2. `/marche/cotignac`
+## Prochaine action concrète recommandée
 
-Critères d’acceptation :
+Après les pages Barjols, Cotignac et Lorgues, la priorité la plus cohérente est :
 
-- contenu réellement différencié par commune ;
-- title/meta uniques ;
-- JSON-LD FAQ + BreadcrumbList ;
-- CTA vers `/avis-de-valeur-immobilier` et `/outils/vendre` ;
-- maillage vers l’autre commune ;
-- pas de promesse de prix exact ;
-- ton clair, local, rassurant.
+1. **Enrichir Brignoles ou Pontevès** pour consolider Provence Verte ; ou
+2. **Créer un article vendeur fort** pour soutenir toutes les pages locales ; ou
+3. **Observer les premiers signaux de tracking** avant de produire l’extension Aubagne / Étoile.
