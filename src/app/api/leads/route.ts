@@ -14,6 +14,7 @@ import {
 } from '@/lib/leads/compute-results'
 import { saveEstimationToNotion } from '@/lib/notion-estimations'
 import { syncLeadToAttio } from '@/lib/attio'
+import { logServerConversionEvent } from '@/lib/server-analytics'
 
 function isLeadType(value: unknown): value is LeadType {
   return value === 'vendre' || value === 'acheter' || value === 'audit'
@@ -95,6 +96,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
   } catch (err) {
     console.error('[API /leads] computeLeadResults a échoué :', err)
+    logServerConversionEvent('lead_submit_error', {
+      lead_type: tool,
+      error_step: 'compute_results',
+    })
     return NextResponse.json(
       { success: false, error: 'calcul estimation échoué' },
       { status: 500 },
@@ -156,6 +161,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if (!attioSync.ok && !attioSync.skipped) {
     console.error('[API /leads] synchronisation Attio échouée :', attioSync.error)
   }
+
+  logServerConversionEvent('lead_submit', {
+    lead_type: tool,
+    email_sent: Boolean(emailSent),
+    notion_backup_ok: Boolean(notionBackup.ok),
+    notion_backup_skipped: Boolean(notionBackup.skipped),
+    attio_sync_ok: Boolean(attioSync.ok),
+    attio_sync_skipped: Boolean(attioSync.skipped),
+  })
 
   return NextResponse.json({
     success: true,

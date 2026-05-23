@@ -6,6 +6,8 @@ import './globals.css'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { AppChrome } from '@/components/layout/AppChrome'
+import { AnalyticsScripts } from '@/components/analytics/AnalyticsScripts'
+import { LinkClickTracker } from '@/components/analytics/LinkClickTracker'
 import { LOCALE_META, type Locale } from '@/i18n/config'
 
 const inter = Inter({
@@ -57,7 +59,9 @@ export default async function RootLayout({
   return (
     <html lang={htmlLang} className={inter.variable + ' ' + buffalo.variable}>
       <body className="font-sans antialiased">
+        <AnalyticsScripts />
         <NextIntlClientProvider locale={locale} messages={messages}>
+          <LinkClickTracker />
           <AppChrome header={<Header />} footer={<Footer />}>
             {children}
           </AppChrome>
