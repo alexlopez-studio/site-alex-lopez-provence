@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { Inter, Allura } from 'next/font/google'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages } from 'next-intl/server'
-import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
@@ -67,7 +66,6 @@ export default async function RootLayout({
             {children}
           </AppChrome>
         </NextIntlClientProvider>
-        <Analytics />
       </body>
     </html>
   )
