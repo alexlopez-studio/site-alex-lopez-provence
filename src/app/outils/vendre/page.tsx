@@ -7,7 +7,6 @@ import { ArrowLeft, Check, Loader2, MapPin, Phone, RefreshCw, Send } from 'lucid
 import { useVendreStore, type VendreAnswers } from '@/stores/vendreStore'
 
 const PHONE_RAW = '+33613180168'
-const brand = '#0077B6'
 
 type SubmitState = 'form' | 'submitting' | 'success'
 
@@ -111,7 +110,7 @@ export default function VendrePage() {
             <ArrowLeft size={16} /> Retour
           </Link>
           <a href={'tel:' + PHONE_RAW} className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 text-sm font-semibold text-foreground shadow-sm">
-            <Phone size={15} style= color: brand  /> 06 13 18 01 68
+            <Phone size={15} className="text-brand" /> 06 13 18 01 68
           </a>
         </header>
 
@@ -398,7 +397,7 @@ function AdresseField({ answers, setAnswer }: { answers: VendreAnswers; setAnswe
           <div className="absolute z-10 mt-2 w-full overflow-hidden rounded-2xl border border-border bg-white shadow-lg">
             {suggestions.map((item) => (
               <button key={item.label} type="button" onClick={() => pick(item)} className="flex w-full items-center gap-2 border-b border-border px-4 py-3 text-left text-sm last:border-b-0 hover:bg-surface">
-                <MapPin size={14} style= color: brand  /> {item.label}
+                <MapPin size={14} className="text-brand" /> {item.label}
               </button>
             ))}
           </div>
