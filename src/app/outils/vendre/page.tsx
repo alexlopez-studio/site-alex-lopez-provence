@@ -368,8 +368,8 @@ function AdresseField({ answers, setAnswer }: { answers: VendreAnswers; setAnswe
   function onChange(next: string) {
     setValue(next)
     setInfos(null)
-    if (timer.current) window.clearTimeout(timer.current)
-    timer.current = window.setTimeout(() => search(next), 300)
+    if (timer.current) clearTimeout(timer.current)
+    timer.current = setTimeout(() => search(next), 300)
   }
 
   function validateManualAddress() {
