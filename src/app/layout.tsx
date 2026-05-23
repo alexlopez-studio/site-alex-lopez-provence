@@ -71,10 +71,10 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
       <body className="font-sans antialiased">
         <noscript>
           <iframe
-            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+            src={'https://www.googletagmanager.com/ns.html?id=' + GTM_ID}
             height="0"
             width="0"
-            style= display: 'none', visibility: 'hidden' 
+            style={Object.assign({}, { display: 'none', visibility: 'hidden' })}
             title="Google Tag Manager"
           />
         </noscript>
