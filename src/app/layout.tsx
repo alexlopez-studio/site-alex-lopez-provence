@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter, Allura } from 'next/font/google'
+import Script from 'next/script'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages } from 'next-intl/server'
 import './globals.css'
@@ -66,6 +67,7 @@ export default async function RootLayout({
             {children}
           </AppChrome>
         </NextIntlClientProvider>
+        <Script src="/_vercel/insights/script.js" strategy="afterInteractive" />
       </body>
     </html>
   )
