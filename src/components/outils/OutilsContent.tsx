@@ -8,10 +8,8 @@ import {
   BarChart3,
   CheckCircle2,
   Clock3,
-  ClipboardCheck,
   Home,
   MapPin,
-  Search,
   ShieldCheck,
   Sparkles,
   Target,
@@ -32,29 +30,7 @@ const tools = [
     bestFor: 'Vous envisagez de vendre ou vous voulez connaître la valeur actuelle de votre bien.',
     deliverables: ['Fourchette de valeur', 'Prix médian estimé', 'Stratégie de prix'],
     cta: 'Lancer l’estimation',
-    badge: 'Le plus demandé',
-  },
-  {
-    href: '/outils/acheter',
-    icon: Search,
-    title: 'Préparer mon achat',
-    duration: '2 min',
-    desc: 'Cadrez votre recherche avant de visiter : budget, communes, critères et financement.',
-    bestFor: 'Vous cherchez un bien et vous voulez éviter les visites inutiles.',
-    deliverables: ['Budget cible', 'Critères essentiels', 'Secteurs prioritaires'],
-    cta: 'Préparer ma recherche',
-    badge: 'Projet achat',
-  },
-  {
-    href: '/outils/audit',
-    icon: ClipboardCheck,
-    title: 'Analyser un bien',
-    duration: '4 min',
-    desc: 'Repérez les points de vigilance avant une vente, un achat ou des travaux.',
-    bestFor: 'Vous avez un bien précis en tête et vous voulez prendre du recul avant de décider.',
-    deliverables: ['Score global', 'Points de vigilance', 'Recommandations travaux'],
-    cta: 'Faire un point sur un bien',
-    badge: 'Avant décision',
+    badge: 'Disponible maintenant',
   },
 ]
 
@@ -66,8 +42,8 @@ const reassurance = [
 
 const steps = [
   {
-    title: 'Choisissez le bon outil',
-    text: 'Vendre, acheter ou analyser un bien : chaque parcours a ses propres questions.',
+    title: 'Lancez l’estimation vendeur',
+    text: 'Le parcours disponible aujourd’hui est centré sur la valeur de votre bien.',
   },
   {
     title: 'Répondez simplement',
@@ -90,13 +66,13 @@ export default function OutilsContent() {
               <img src={PROFILE_IMAGE} alt="Alexandre Lopez" className="h-full w-full object-cover object-[50%_16%]" />
             </Link>
             <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-brand shadow-sm">
-              <Sparkles size={13} /> Outils immobiliers gratuits
+              <Sparkles size={13} /> Outil immobilier gratuit
             </p>
             <h1 className="font-serif text-4xl font-medium leading-tight tracking-[-0.05em] text-foreground sm:text-5xl lg:text-6xl">
-              Clarifiez votre projet avant de décider.
+              Clarifiez la valeur de votre bien avant de décider.
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted sm:text-lg">
-              Estimation, achat ou audit : ces outils vous donnent un premier repère concret en Provence Verte & Verdon. Ils ne remplacent pas un accompagnement humain, mais ils aident à poser les bonnes bases.
+              L’outil d’estimation vendeur vous donne un premier repère concret en Provence Verte & Verdon. Il ne remplace pas un accompagnement humain, mais il aide à poser les bonnes bases.
             </p>
           </motion.div>
 
@@ -112,7 +88,7 @@ export default function OutilsContent() {
             })}
           </motion.div>
 
-          <motion.div variants={staggerFast} className="grid gap-5 lg:grid-cols-3">
+          <motion.div variants={staggerFast} className="mx-auto grid max-w-md gap-5">
             {tools.map(function (tool) {
               const Icon = tool.icon
               return (
