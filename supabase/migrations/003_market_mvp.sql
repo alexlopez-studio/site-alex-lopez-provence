@@ -1,6 +1,7 @@
 -- =============================================================
 -- Market MVP — Base marché interne (27 mai 2026)
 -- Tables pour l'outil interne /admin/base-marche.
+-- Redeploy marker: 2026-05-27T21:22:36Z
 -- =============================================================
 
 create extension if not exists "pgcrypto";
