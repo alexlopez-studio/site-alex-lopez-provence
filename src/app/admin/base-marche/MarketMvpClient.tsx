@@ -54,7 +54,31 @@ type Opportunity = {
   next_action?: string | null
 }
 
+type UsageStats = {
+  unitCostEur: number
+  currency: 'EUR'
+  itemsToday: number
+  itemsMonth: number
+  costTodayEur: number
+  costMonthEur: number
+  successfulSyncsToday: number
+  successfulSyncsMonth: number
+  lastSyncAt: string | null
+}
+
 type ViewMode = 'data' | 'kanban' | 'rules'
+
+const emptyUsage: UsageStats = {
+  unitCostEur: 0.01,
+  currency: 'EUR',
+  itemsToday: 0,
+  itemsMonth: 0,
+  costTodayEur: 0,
+  costMonthEur: 0,
+  successfulSyncsToday: 0,
+  successfulSyncsMonth: 0,
+  lastSyncAt: null,
+}
 
 const sampleProperties: MarketProperty[] = [
   {
@@ -121,7 +145,7 @@ const stages = ['À qualifier', 'À surveiller', 'Action à faire', 'En suivi', 
 
 function currency(value?: number | null): string {
   if (typeof value !== 'number') return '—'
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value)
+  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 }).format(value)
 }
 
 function number(value?: number | null): string {
@@ -158,6 +182,11 @@ function priorityLabel(value?: string): string {
   return 'Moyenne'
 }
 
+function formatDateTime(value: string | null): string {
+  if (!value) return '—'
+  return new Date(value).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })
+}
+
 export function MarketMvpClient() {
   const [zipcode, setZipcode] = useState('83670')
   const [city, setCity] = useState('')
@@ -165,6 +194,7 @@ export function MarketMvpClient() {
   const [rules, setRules] = useState<Rule[]>(fallbackRules)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [opportunities, setOpportunities] = useState<Opportunity[]>([])
+  const [usage, setUsage] = useState<UsageStats>(emptyUsage)
   const [selected, setSelected] = useState<MarketProperty | null>(null)
   const [view, setView] = useState<ViewMode>('data')
   const [query, setQuery] = useState('')
@@ -180,17 +210,24 @@ export function MarketMvpClient() {
   const [loading, setLoading] = useState(true)
   const [status, setStatus] = useState('Données exemple — synchronisation non lancée')
 
+  async function loadUsage() {
+    const response = await fetch('/api/market/usage', { cache: 'no-store' })
+    const data = await response.json()
+    if (data.success && data.usage) setUsage(data.usage)
+  }
+
   async function loadPersistedData(currentZipcode = zipcode) {
     setLoading(true)
     try {
-      const [propertiesRes, rulesRes, notificationsRes, opportunitiesRes] = await Promise.all([
+      const [propertiesRes, rulesRes, notificationsRes, opportunitiesRes, usageRes] = await Promise.all([
         fetch('/api/market/properties?zipcode=' + encodeURIComponent(currentZipcode), { cache: 'no-store' }),
         fetch('/api/rules', { cache: 'no-store' }),
         fetch('/api/notifications', { cache: 'no-store' }),
         fetch('/api/opportunities', { cache: 'no-store' }),
+        fetch('/api/market/usage', { cache: 'no-store' }),
       ])
-      const [propertiesJson, rulesJson, notificationsJson, opportunitiesJson] = await Promise.all([
-        propertiesRes.json(), rulesRes.json(), notificationsRes.json(), opportunitiesRes.json(),
+      const [propertiesJson, rulesJson, notificationsJson, opportunitiesJson, usageJson] = await Promise.all([
+        propertiesRes.json(), rulesRes.json(), notificationsRes.json(), opportunitiesRes.json(), usageRes.json(),
       ])
 
       if (propertiesJson.success && Array.isArray(propertiesJson.properties) && propertiesJson.properties.length > 0) {
@@ -200,6 +237,7 @@ export function MarketMvpClient() {
       if (rulesJson.success && Array.isArray(rulesJson.rules)) setRules(rulesJson.rules)
       if (notificationsJson.success && Array.isArray(notificationsJson.notifications)) setNotifications(notificationsJson.notifications)
       if (opportunitiesJson.success && Array.isArray(opportunitiesJson.opportunities)) setOpportunities(opportunitiesJson.opportunities)
+      if (usageJson.success && usageJson.usage) setUsage(usageJson.usage)
     } catch (error) {
       setStatus(error instanceof Error ? error.message : 'Base persistée indisponible')
     } finally {
@@ -254,10 +292,12 @@ export function MarketMvpClient() {
       const data = await response.json()
       if (!response.ok || !data.success) throw new Error(data.error ?? 'Synchronisation impossible')
       if (Array.isArray(data.properties) && data.properties.length > 0) setProperties(data.properties)
+      if (data.usage) setUsage(data.usage)
       setStatus(`${data.fetched ?? 0} bien(s) synchronisé(s) · ${new Date().toLocaleString('fr-FR')}`)
       await loadPersistedData(zipcode)
     } catch (error) {
       setStatus(error instanceof Error ? error.message : 'Synchronisation non disponible')
+      await loadUsage().catch(() => undefined)
     } finally {
       setSyncing(false)
     }
@@ -340,7 +380,9 @@ export function MarketMvpClient() {
         <aside className="w-[330px] shrink-0 border-r border-slate-200 bg-white">
           <div className="flex h-[64px] items-center border-b border-slate-200 px-6 text-xl font-black text-[#00577c]">Market Data</div>
           <div className="h-[calc(100vh-64px)] overflow-y-auto px-4 py-5">
-            <div className="relative">
+            <UsagePanel usage={usage} />
+
+            <div className="relative mt-5">
               <span className="absolute left-3 top-2.5 text-slate-400">⌕</span>
               <input value={query} onChange={(event) => setQuery(event.target.value)} className="h-10 w-full border border-slate-300 pl-9 pr-3 text-sm outline-none focus:border-[#0b8ebd]" placeholder="Rechercher une commune, une adresse" />
             </div>
@@ -432,6 +474,12 @@ export function MarketMvpClient() {
                 </div>
               </div>
 
+              <div className="mb-4 grid gap-3 md:grid-cols-3">
+                <UsageCard label="Items consommés aujourd’hui" value={number(usage.itemsToday)} sub={`${usage.successfulSyncsToday} synchro(s) réussie(s)`} />
+                <UsageCard label="Items consommés ce mois-ci" value={number(usage.itemsMonth)} sub={`Dernière sync : ${formatDateTime(usage.lastSyncAt)}`} />
+                <UsageCard label="Coût estimé" value={currency(usage.costMonthEur)} sub={`Pay as you go estimé · ${currency(usage.unitCostEur)} / item`} accent />
+              </div>
+
               <div className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm">
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[860px] text-left text-sm">
@@ -491,6 +539,14 @@ export function MarketMvpClient() {
       {selected ? <PropertyDrawer property={selected} onClose={() => setSelected(null)} onCreateOpportunity={createOpportunity} /> : null}
     </div>
   )
+}
+
+function UsagePanel({ usage }: { usage: UsageStats }) {
+  return <div className="rounded-md border border-[#bce9f7] bg-[#e8f8fd] p-3"><div className="text-xs font-black uppercase tracking-wide text-[#006d92]">Suivi API Stream Estate</div><div className="mt-3 grid grid-cols-3 gap-2 text-center"><div className="rounded bg-white p-2"><div className="text-lg font-black text-slate-900">{number(usage.itemsToday)}</div><div className="text-[10px] font-bold text-slate-500">items jour</div></div><div className="rounded bg-white p-2"><div className="text-lg font-black text-slate-900">{number(usage.itemsMonth)}</div><div className="text-[10px] font-bold text-slate-500">items mois</div></div><div className="rounded bg-white p-2"><div className="text-lg font-black text-[#006d92]">{currency(usage.costMonthEur)}</div><div className="text-[10px] font-bold text-slate-500">estimé</div></div></div></div>
+}
+
+function UsageCard({ label, value, sub, accent = false }: { label: string; value: string; sub: string; accent?: boolean }) {
+  return <div className={(accent ? 'border-[#12b8e8] bg-[#e8f8fd]' : 'border-slate-200 bg-white') + ' rounded-md border p-4 shadow-sm'}><div className="text-xs font-black uppercase tracking-wide text-slate-500">{label}</div><div className="mt-2 text-2xl font-black tracking-[-0.04em] text-slate-950">{value}</div><div className="mt-1 text-xs font-semibold text-slate-500">{sub}</div></div>
 }
 
 function SidebarItem({ icon, label, active, onClick }: { icon: string; label: string; active: boolean; onClick: () => void }) {

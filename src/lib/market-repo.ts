@@ -4,6 +4,7 @@ import { searchStreamEstateProperties, type StreamEstatePropertySummary } from '
 type JsonRecord = Record<string, unknown>
 type DbClient = typeof supabaseAdmin & { from: (table: string) => any }
 const db = supabaseAdmin as DbClient
+const STREAM_ESTATE_PAYG_ITEM_COST_EUR = 0.01
 
 export type MarketPropertyRow = {
   id: string
@@ -87,6 +88,24 @@ export type OpportunityRow = {
   updated_at: string
 }
 
+export type StreamEstateUsageStats = {
+  unitCostEur: number
+  currency: 'EUR'
+  itemsToday: number
+  itemsMonth: number
+  costTodayEur: number
+  costMonthEur: number
+  successfulSyncsToday: number
+  successfulSyncsMonth: number
+  lastSyncAt: string | null
+}
+
+type SyncRunUsageRow = {
+  fetched_count: number | null
+  started_at: string
+  status: string
+}
+
 export type ListMarketPropertiesFilters = {
   zipcode?: string
   city?: string
@@ -130,7 +149,39 @@ export async function getMarketProperty(id: string): Promise<MarketPropertyRow |
   return enrichRow(data as MarketPropertyRow, tags[id] ?? [], variations[id] ?? null)
 }
 
-export async function syncMarketPropertiesByZipcode(zipcode: string): Promise<{ fetched: number; created: number; updated: number; properties: MarketPropertyRow[] }> {
+export async function getStreamEstateUsageStats(): Promise<StreamEstateUsageStats> {
+  const now = new Date()
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+  const todayKey = parisDateKey(now)
+
+  const { data, error } = await db
+    .from('sync_runs')
+    .select('fetched_count, started_at, status')
+    .eq('provider', 'stream_estate')
+    .gte('started_at', monthStart)
+    .order('started_at', { ascending: false })
+
+  if (error) throw new MarketRepoError('getStreamEstateUsageStats', error.message, error)
+
+  const rows = ((data ?? []) as SyncRunUsageRow[]).filter((row) => row.status === 'success')
+  const todayRows = rows.filter((row) => parisDateKey(new Date(row.started_at)) === todayKey)
+  const itemsToday = sumFetched(todayRows)
+  const itemsMonth = sumFetched(rows)
+
+  return {
+    unitCostEur: STREAM_ESTATE_PAYG_ITEM_COST_EUR,
+    currency: 'EUR',
+    itemsToday,
+    itemsMonth,
+    costTodayEur: roundMoney(itemsToday * STREAM_ESTATE_PAYG_ITEM_COST_EUR),
+    costMonthEur: roundMoney(itemsMonth * STREAM_ESTATE_PAYG_ITEM_COST_EUR),
+    successfulSyncsToday: todayRows.length,
+    successfulSyncsMonth: rows.length,
+    lastSyncAt: rows[0]?.started_at ?? null,
+  }
+}
+
+export async function syncMarketPropertiesByZipcode(zipcode: string): Promise<{ fetched: number; created: number; updated: number; properties: MarketPropertyRow[]; usage: StreamEstateUsageStats }> {
   const zone = await ensureZone(zipcode)
   const syncRunId = await createSyncRun(zone.id)
 
@@ -159,7 +210,8 @@ export async function syncMarketPropertiesByZipcode(zipcode: string): Promise<{ 
     await runRulesForZipcode(zipcode)
     await finishSyncRun(syncRunId, 'success', result.properties.length, created, updated)
     const properties = await listMarketProperties({ zipcode })
-    return { fetched: result.properties.length, created, updated, properties }
+    const usage = await getStreamEstateUsageStats()
+    return { fetched: result.properties.length, created, updated, properties, usage }
   } catch (error) {
     await finishSyncRun(syncRunId, 'error', 0, 0, 0, error instanceof Error ? error.message : 'Erreur inconnue')
     throw error
@@ -426,6 +478,23 @@ function daysOnline(value?: string | null): number | null {
 
 function formatPrice(value: number | null): string {
   return value == null ? 'prix non renseigné' : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value)
+}
+
+function sumFetched(rows: SyncRunUsageRow[]): number {
+  return rows.reduce((sum, row) => sum + Math.max(0, row.fetched_count ?? 0), 0)
+}
+
+function roundMoney(value: number): number {
+  return Math.round(value * 100) / 100
+}
+
+function parisDateKey(date: Date): string {
+  return new Intl.DateTimeFormat('fr-CA', {
+    timeZone: 'Europe/Paris',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date)
 }
 
 export class MarketRepoError extends Error {
