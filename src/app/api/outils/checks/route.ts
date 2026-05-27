@@ -3,6 +3,7 @@ import { findDpeNearby } from '@/lib/ademe'
 import { findParcelByPoint } from '@/lib/cadastre'
 import { calculerEstimation } from '@/lib/estimation'
 import { computeLeadResults } from '@/lib/leads/compute-results'
+import { searchStreamEstateProperties } from '@/lib/stream-estate'
 
 type Status = 'ok' | 'warning' | 'error'
 
@@ -136,6 +137,37 @@ export async function GET() {
           : 'Calcul estimation sans résultat exploitable.',
       }
     }, { id: 'estimation', label: 'Calcul estimation' }),
+
+    safeCheck(async () => {
+      const streamEstate = await searchStreamEstateProperties({
+        lat: KNOWN_CADASTRE_TEST.lat,
+        lon: KNOWN_CADASTRE_TEST.lng,
+        radiusKm: 10,
+        propertyTypes: ['house'],
+        transactionType: 'sell',
+        withCoherentPrice: true,
+        withLocation: true,
+        itemsPerPage: 1,
+      })
+
+      if (streamEstate.skipped) {
+        return {
+          id: 'stream-estate',
+          label: 'Stream Estate',
+          status: 'warning',
+          detail: 'Intégration prête, mais STREAMESTATE_API_KEY n’est pas encore configurée côté serveur.',
+        }
+      }
+
+      return {
+        id: 'stream-estate',
+        label: 'Stream Estate',
+        status: streamEstate.ok ? 'ok' : 'error',
+        detail: streamEstate.ok
+          ? 'API Stream Estate joignable. Résultats disponibles : ' + (streamEstate.totalItems ?? streamEstate.properties.length) + '.'
+          : 'API Stream Estate en erreur : ' + (streamEstate.error ?? 'erreur inconnue'),
+      }
+    }, { id: 'stream-estate', label: 'Stream Estate' }),
 
     safeCheck(async () => {
       const results = await computeLeadResults({
