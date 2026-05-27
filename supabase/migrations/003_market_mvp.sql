@@ -19,15 +19,14 @@ $$;
 create table if not exists public.monitored_zones (
   id              uuid primary key default gen_random_uuid(),
   name            text not null,
-  zipcode         text not null,
+  zipcode         text not null unique,
   city            text,
   radius_km       numeric,
   active          boolean not null default true,
   sync_frequency  text not null default 'manual',
   last_synced_at  timestamptz,
   created_at      timestamptz not null default now(),
-  updated_at      timestamptz not null default now(),
-  unique (zipcode, coalesce(city, ''))
+  updated_at      timestamptz not null default now()
 );
 
 create index if not exists monitored_zones_zipcode_idx on public.monitored_zones (zipcode);
@@ -163,6 +162,7 @@ create table if not exists public.opportunities (
 
 create index if not exists opportunities_stage_idx on public.opportunities (stage);
 create index if not exists opportunities_property_idx on public.opportunities (market_property_id);
+create unique index if not exists opportunities_market_property_unique on public.opportunities (market_property_id) where market_property_id is not null;
 
 drop trigger if exists opportunities_updated_at on public.opportunities;
 create trigger opportunities_updated_at
@@ -245,7 +245,7 @@ alter table public.sync_runs enable row level security;
 -- ============================================================
 insert into public.monitored_zones (name, zipcode, active)
 values ('Pontevès / Barjols', '83670', true)
-on conflict (zipcode, coalesce(city, '')) do nothing;
+on conflict (zipcode) do nothing;
 
 insert into public.management_rules (name, description, active, trigger_type, conditions_json, actions_json, priority)
 values

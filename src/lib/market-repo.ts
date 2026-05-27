@@ -2,6 +2,8 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { searchStreamEstateProperties, type StreamEstatePropertySummary } from '@/lib/stream-estate'
 
 type JsonRecord = Record<string, unknown>
+type DbClient = typeof supabaseAdmin & { from: (table: string) => any }
+const db = supabaseAdmin as DbClient
 
 export type MarketPropertyRow = {
   id: string
@@ -95,7 +97,7 @@ export type ListMarketPropertiesFilters = {
 }
 
 export async function listMarketProperties(filters: ListMarketPropertiesFilters = {}): Promise<MarketPropertyRow[]> {
-  let query = supabaseAdmin
+  let query = db
     .from('market_properties')
     .select('*')
     .order('last_seen_at', { ascending: false })
@@ -104,14 +106,12 @@ export async function listMarketProperties(filters: ListMarketPropertiesFilters 
   if (filters.zipcode) query = query.eq('zipcode', filters.zipcode)
   if (filters.city) query = query.ilike('city', `%${filters.city}%`)
   if (filters.status) query = query.eq('status', filters.status)
-  if (filters.q) {
-    query = query.or(`title.ilike.%${filters.q}%,city.ilike.%${filters.q}%,source.ilike.%${filters.q}%`)
-  }
+  if (filters.q) query = query.or(`title.ilike.%${filters.q}%,city.ilike.%${filters.q}%,source.ilike.%${filters.q}%`)
 
   const { data, error } = await query
   if (error) throw new MarketRepoError('listMarketProperties', error.message, error)
 
-  const rows = (data ?? []) as unknown as MarketPropertyRow[]
+  const rows = (data ?? []) as MarketPropertyRow[]
   const tagsByProperty = await loadTags(rows.map((row) => row.id))
   const variationsByProperty = await loadLastVariations(rows.map((row) => row.id))
 
@@ -121,18 +121,13 @@ export async function listMarketProperties(filters: ListMarketPropertiesFilters 
 }
 
 export async function getMarketProperty(id: string): Promise<MarketPropertyRow | null> {
-  const { data, error } = await supabaseAdmin
-    .from('market_properties')
-    .select('*')
-    .eq('id', id)
-    .maybeSingle()
-
+  const { data, error } = await db.from('market_properties').select('*').eq('id', id).maybeSingle()
   if (error) throw new MarketRepoError('getMarketProperty', error.message, error)
   if (!data) return null
 
   const tags = await loadTags([id])
   const variations = await loadLastVariations([id])
-  return enrichRow(data as unknown as MarketPropertyRow, tags[id] ?? [], variations[id] ?? null)
+  return enrichRow(data as MarketPropertyRow, tags[id] ?? [], variations[id] ?? null)
 }
 
 export async function syncMarketPropertiesByZipcode(zipcode: string): Promise<{ fetched: number; created: number; updated: number; properties: MarketPropertyRow[] }> {
@@ -150,9 +145,7 @@ export async function syncMarketPropertiesByZipcode(zipcode: string): Promise<{ 
       order: 'desc',
     })
 
-    if (!result.ok) {
-      throw new Error(result.skipped ? 'STREAMESTATE_API_KEY manquante' : result.error ?? 'Erreur Stream Estate')
-    }
+    if (!result.ok) throw new Error(result.skipped ? 'STREAMESTATE_API_KEY manquante' : result.error ?? 'Erreur Stream Estate')
 
     let created = 0
     let updated = 0
@@ -203,59 +196,42 @@ async function upsertMarketProperty(property: StreamEstatePropertySummary): Prom
     raw_json: property as unknown as JsonRecord,
   }
 
-  const { data, error } = await supabaseAdmin
-    .from('market_properties')
-    .upsert(payload as never, { onConflict: 'source,external_id' })
-    .select('*')
-    .single()
-
+  const { data, error } = await db.from('market_properties').upsert(payload, { onConflict: 'source,external_id' }).select('*').single()
   if (error) throw new MarketRepoError('upsertMarketProperty', error.message, error)
 
   if (existing && existing.price != null && nextPrice != null && existing.price !== nextPrice) {
-    await insertPriceHistory((data as unknown as MarketPropertyRow).id, existing.price, nextPrice)
+    await insertPriceHistory((data as MarketPropertyRow).id, existing.price, nextPrice)
   }
 
   return existing ? 'updated' : 'created'
 }
 
 async function findByExternalId(externalId: string): Promise<MarketPropertyRow | null> {
-  const { data, error } = await supabaseAdmin
-    .from('market_properties')
-    .select('*')
-    .eq('source', 'stream_estate')
-    .eq('external_id', externalId)
-    .maybeSingle()
-
+  const { data, error } = await db.from('market_properties').select('*').eq('source', 'stream_estate').eq('external_id', externalId).maybeSingle()
   if (error) throw new MarketRepoError('findByExternalId', error.message, error)
-  return (data as unknown as MarketPropertyRow | null) ?? null
+  return (data as MarketPropertyRow | null) ?? null
 }
 
 async function insertPriceHistory(propertyId: string, oldPrice: number, newPrice: number): Promise<void> {
   const variationAmount = newPrice - oldPrice
   const variationPercent = oldPrice > 0 ? Math.round((variationAmount / oldPrice) * 1000) / 10 : null
-  const { error } = await supabaseAdmin
-    .from('property_price_history')
-    .insert({
-      market_property_id: propertyId,
-      old_price: oldPrice,
-      new_price: newPrice,
-      variation_amount: variationAmount,
-      variation_percent: variationPercent,
-    } as never)
+  const { error } = await db.from('property_price_history').insert({
+    market_property_id: propertyId,
+    old_price: oldPrice,
+    new_price: newPrice,
+    variation_amount: variationAmount,
+    variation_percent: variationPercent,
+  })
 
   if (error) throw new MarketRepoError('insertPriceHistory', error.message, error)
 }
 
 async function loadTags(propertyIds: string[]): Promise<Record<string, string[]>> {
   if (propertyIds.length === 0) return {}
-  const { data, error } = await supabaseAdmin
-    .from('property_tags')
-    .select('market_property_id, tag')
-    .in('market_property_id', propertyIds)
-
+  const { data, error } = await db.from('property_tags').select('market_property_id, tag').in('market_property_id', propertyIds)
   if (error) throw new MarketRepoError('loadTags', error.message, error)
   const map: Record<string, string[]> = {}
-  for (const row of (data ?? []) as unknown as Array<{ market_property_id: string; tag: string }>) {
+  for (const row of (data ?? []) as Array<{ market_property_id: string; tag: string }>) {
     map[row.market_property_id] = [...(map[row.market_property_id] ?? []), row.tag]
   }
   return map
@@ -263,7 +239,7 @@ async function loadTags(propertyIds: string[]): Promise<Record<string, string[]>
 
 async function loadLastVariations(propertyIds: string[]): Promise<Record<string, number | null>> {
   if (propertyIds.length === 0) return {}
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await db
     .from('property_price_history')
     .select('market_property_id, variation_percent, detected_at')
     .in('market_property_id', propertyIds)
@@ -271,46 +247,33 @@ async function loadLastVariations(propertyIds: string[]): Promise<Record<string,
 
   if (error) throw new MarketRepoError('loadLastVariations', error.message, error)
   const map: Record<string, number | null> = {}
-  for (const row of (data ?? []) as unknown as Array<{ market_property_id: string; variation_percent: number | null }>) {
+  for (const row of (data ?? []) as Array<{ market_property_id: string; variation_percent: number | null }>) {
     if (!(row.market_property_id in map)) map[row.market_property_id] = row.variation_percent
   }
   return map
 }
 
 async function ensureZone(zipcode: string): Promise<{ id: string }> {
-  const { data, error } = await supabaseAdmin
-    .from('monitored_zones')
-    .upsert({ name: `Zone ${zipcode}`, zipcode, active: true } as never, { onConflict: 'zipcode' })
-    .select('id')
-    .single()
-
+  const { data, error } = await db.from('monitored_zones').upsert({ name: `Zone ${zipcode}`, zipcode, active: true }, { onConflict: 'zipcode' }).select('id').single()
   if (error) throw new MarketRepoError('ensureZone', error.message, error)
-  return data as unknown as { id: string }
+  return data as { id: string }
 }
 
 async function createSyncRun(zoneId: string): Promise<string> {
-  const { data, error } = await supabaseAdmin
-    .from('sync_runs')
-    .insert({ zone_id: zoneId, provider: 'stream_estate', status: 'running' } as never)
-    .select('id')
-    .single()
-
+  const { data, error } = await db.from('sync_runs').insert({ zone_id: zoneId, provider: 'stream_estate', status: 'running' }).select('id').single()
   if (error) throw new MarketRepoError('createSyncRun', error.message, error)
-  return (data as unknown as { id: string }).id
+  return (data as { id: string }).id
 }
 
 async function finishSyncRun(id: string, status: string, fetched: number, created: number, updated: number, errorMessage?: string): Promise<void> {
-  const { error } = await supabaseAdmin
-    .from('sync_runs')
-    .update({
-      status,
-      fetched_count: fetched,
-      created_count: created,
-      updated_count: updated,
-      error_message: errorMessage ?? null,
-      finished_at: new Date().toISOString(),
-    } as never)
-    .eq('id', id)
+  const { error } = await db.from('sync_runs').update({
+    status,
+    fetched_count: fetched,
+    created_count: created,
+    updated_count: updated,
+    error_message: errorMessage ?? null,
+    finished_at: new Date().toISOString(),
+  }).eq('id', id)
 
   if (error) throw new MarketRepoError('finishSyncRun', error.message, error)
 }
@@ -347,9 +310,7 @@ export async function runRulesForZipcode(zipcode: string): Promise<void> {
   const properties = await listMarketProperties({ zipcode })
   const rules = await listRules()
   for (const property of properties) {
-    for (const tag of property.tags ?? []) {
-      await addTag(property.id, tag)
-    }
+    for (const tag of property.tags ?? []) await addTag(property.id, tag)
 
     const shouldNotify = rules.some((rule) => rule.active && (
       (rule.trigger_type === 'days_online' && (property.days_online ?? 0) >= 90)
@@ -364,49 +325,40 @@ export async function runRulesForZipcode(zipcode: string): Promise<void> {
 }
 
 async function addTag(propertyId: string, tag: string): Promise<void> {
-  const { error } = await supabaseAdmin
-    .from('property_tags')
-    .upsert({ market_property_id: propertyId, tag, source: 'system' } as never, { onConflict: 'market_property_id,tag' })
+  const { error } = await db.from('property_tags').upsert({ market_property_id: propertyId, tag, source: 'system' }, { onConflict: 'market_property_id,tag' })
   if (error) throw new MarketRepoError('addTag', error.message, error)
 }
 
 async function createNotificationForProperty(property: MarketPropertyRow): Promise<void> {
   const title = (property.opportunity_score ?? 0) >= 70 ? 'Opportunité détectée' : 'Signal marché détecté'
-  const { error } = await supabaseAdmin
-    .from('notifications')
-    .insert({
-      type: 'market_signal',
-      title,
-      message: `${property.title ?? 'Bien'} · ${property.city ?? ''} · ${(property.tags ?? []).join(', ')}`,
-      priority: (property.opportunity_score ?? 0) >= 70 ? 'high' : 'medium',
-      market_property_id: property.id,
-      status: 'unread',
-      action_label: 'Ouvrir le bien',
-    } as never)
+  const { error } = await db.from('notifications').insert({
+    type: 'market_signal',
+    title,
+    message: `${property.title ?? 'Bien'} · ${property.city ?? ''} · ${(property.tags ?? []).join(', ')}`,
+    priority: (property.opportunity_score ?? 0) >= 70 ? 'high' : 'medium',
+    market_property_id: property.id,
+    status: 'unread',
+    action_label: 'Ouvrir le bien',
+  })
   if (error) throw new MarketRepoError('createNotificationForProperty', error.message, error)
 }
 
 export async function listRules(): Promise<ManagementRuleRow[]> {
-  const { data, error } = await supabaseAdmin.from('management_rules').select('*').order('created_at', { ascending: true })
+  const { data, error } = await db.from('management_rules').select('*').order('created_at', { ascending: true })
   if (error) throw new MarketRepoError('listRules', error.message, error)
-  return (data ?? []) as unknown as ManagementRuleRow[]
+  return (data ?? []) as ManagementRuleRow[]
 }
 
 export async function updateRule(id: string, patch: Partial<Pick<ManagementRuleRow, 'active' | 'name' | 'description' | 'priority'>>): Promise<ManagementRuleRow> {
-  const { data, error } = await supabaseAdmin
-    .from('management_rules')
-    .update(patch as never)
-    .eq('id', id)
-    .select('*')
-    .single()
+  const { data, error } = await db.from('management_rules').update(patch).eq('id', id).select('*').single()
   if (error) throw new MarketRepoError('updateRule', error.message, error)
-  return data as unknown as ManagementRuleRow
+  return data as ManagementRuleRow
 }
 
 export async function listNotifications(): Promise<NotificationRow[]> {
-  const { data, error } = await supabaseAdmin.from('notifications').select('*').order('created_at', { ascending: false }).limit(100)
+  const { data, error } = await db.from('notifications').select('*').order('created_at', { ascending: false }).limit(100)
   if (error) throw new MarketRepoError('listNotifications', error.message, error)
-  return (data ?? []) as unknown as NotificationRow[]
+  return (data ?? []) as NotificationRow[]
 }
 
 export async function updateNotification(id: string, status: string): Promise<NotificationRow> {
@@ -415,35 +367,37 @@ export async function updateNotification(id: string, status: string): Promise<No
     ...(status === 'read' ? { read_at: new Date().toISOString() } : {}),
     ...(status === 'resolved' ? { resolved_at: new Date().toISOString() } : {}),
   }
-  const { data, error } = await supabaseAdmin.from('notifications').update(patch as never).eq('id', id).select('*').single()
+  const { data, error } = await db.from('notifications').update(patch).eq('id', id).select('*').single()
   if (error) throw new MarketRepoError('updateNotification', error.message, error)
-  return data as unknown as NotificationRow
+  return data as NotificationRow
 }
 
 export async function listOpportunities(): Promise<OpportunityRow[]> {
-  const { data, error } = await supabaseAdmin.from('opportunities').select('*').order('created_at', { ascending: false }).limit(200)
+  const { data, error } = await db.from('opportunities').select('*').order('created_at', { ascending: false }).limit(200)
   if (error) throw new MarketRepoError('listOpportunities', error.message, error)
-  return (data ?? []) as unknown as OpportunityRow[]
+  return (data ?? []) as OpportunityRow[]
 }
 
 export async function createOpportunityFromProperty(property: MarketPropertyRow, createdFrom = 'manual'): Promise<OpportunityRow> {
-  const { data, error } = await supabaseAdmin
-    .from('opportunities')
-    .upsert({
-      market_property_id: property.id,
-      title: property.title ?? 'Bien à qualifier',
-      description: `${property.city ?? ''} · ${formatPrice(property.price)} · ${(property.tags ?? []).join(', ')}`,
-      stage: 'À qualifier',
-      priority: (property.opportunity_score ?? 0) >= 70 ? 'high' : 'medium',
-      signal_type: (property.tags ?? [])[0] ?? 'market_signal',
-      next_action: property.recommended_action ?? null,
-      created_from: createdFrom,
-    } as never, { onConflict: 'market_property_id' })
-    .select('*')
-    .single()
+  const payload = {
+    market_property_id: property.id,
+    title: property.title ?? 'Bien à qualifier',
+    description: `${property.city ?? ''} · ${formatPrice(property.price)} · ${(property.tags ?? []).join(', ')}`,
+    stage: 'À qualifier',
+    priority: (property.opportunity_score ?? 0) >= 70 ? 'high' : 'medium',
+    signal_type: (property.tags ?? [])[0] ?? 'market_signal',
+    next_action: property.recommended_action ?? null,
+    created_from: createdFrom,
+  }
 
+  const existing = await db.from('opportunities').select('id').eq('market_property_id', property.id).maybeSingle()
+  const builder = existing.data?.id
+    ? db.from('opportunities').update(payload).eq('id', existing.data.id)
+    : db.from('opportunities').insert(payload)
+
+  const { data, error } = await builder.select('*').single()
   if (error) throw new MarketRepoError('createOpportunityFromProperty', error.message, error)
-  return data as unknown as OpportunityRow
+  return data as OpportunityRow
 }
 
 export async function createOpportunity(propertyId: string): Promise<OpportunityRow> {
@@ -453,9 +407,9 @@ export async function createOpportunity(propertyId: string): Promise<Opportunity
 }
 
 export async function updateOpportunity(id: string, patch: Partial<Pick<OpportunityRow, 'stage' | 'priority' | 'next_action' | 'note'>>): Promise<OpportunityRow> {
-  const { data, error } = await supabaseAdmin.from('opportunities').update(patch as never).eq('id', id).select('*').single()
+  const { data, error } = await db.from('opportunities').update(patch).eq('id', id).select('*').single()
   if (error) throw new MarketRepoError('updateOpportunity', error.message, error)
-  return data as unknown as OpportunityRow
+  return data as OpportunityRow
 }
 
 function integer(value: unknown): number | null {
