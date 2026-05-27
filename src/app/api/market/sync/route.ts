@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { formatInternalApiError } from '@/lib/api-error'
 import { syncMarketPropertiesByZipcode } from '@/lib/market-repo'
 
 export async function POST(req: NextRequest) {
@@ -9,6 +10,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, ...result })
   } catch (error) {
     console.error('[api/market/sync]', error)
-    return NextResponse.json({ success: false, error: error instanceof Error ? error.message : 'Erreur serveur' }, { status: 500 })
+    return NextResponse.json({ success: false, error: formatInternalApiError(error) }, { status: 500 })
   }
 }

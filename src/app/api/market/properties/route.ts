@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { formatInternalApiError } from '@/lib/api-error'
 import { listMarketProperties } from '@/lib/market-repo'
 
 export async function GET(req: NextRequest) {
@@ -15,6 +16,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ success: true, properties })
   } catch (error) {
     console.error('[api/market/properties]', error)
-    return NextResponse.json({ success: false, error: error instanceof Error ? error.message : 'Erreur serveur' }, { status: 500 })
+    return NextResponse.json({ success: false, error: formatInternalApiError(error) }, { status: 500 })
   }
 }
