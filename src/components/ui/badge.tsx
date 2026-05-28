@@ -20,13 +20,25 @@ const badgeVariants = cva(
   }
 )
 
-export interface BadgeProps extends React.HTMLAttributes<HTMLElement>, VariantProps<typeof badgeVariants> {
+type BadgeBaseProps = React.HTMLAttributes<HTMLElement> & VariantProps<typeof badgeVariants>
+
+type BadgeProps = BadgeBaseProps & {
   as?: 'div' | 'span' | 'button'
 }
 
-function Badge({ as, className, variant, ...props }: BadgeProps) {
-  const Comp = as ?? 'div'
-  return <Comp className={cn(badgeVariants({ variant }), className)} {...props} />
+function Badge({ as = 'div', className, variant, ...props }: BadgeProps) {
+  const classes = cn(badgeVariants({ variant }), className)
+
+  if (as === 'button') {
+    return <button type="button" className={classes} {...props} />
+  }
+
+  if (as === 'span') {
+    return <span className={classes} {...props} />
+  }
+
+  return <div className={classes} {...props} />
 }
 
 export { Badge, badgeVariants }
+export type { BadgeProps }
