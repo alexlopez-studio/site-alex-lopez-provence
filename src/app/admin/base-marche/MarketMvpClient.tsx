@@ -1,6 +1,34 @@
 'use client'
 
+import type { ComponentType, ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
+import {
+  BarChart3,
+  Bell,
+  Building2,
+  ClipboardList,
+  Columns3,
+  Database,
+  FileText,
+  HelpCircle,
+  LayoutDashboard,
+  Loader2,
+  LogOut,
+  MoreHorizontal,
+  Plus,
+  Search,
+  Settings,
+  SlidersHorizontal,
+  TrendingDown,
+  UserCircle,
+} from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Select } from '@/components/ui/select'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { cn } from '@/lib/utils'
 
 type MarketProperty = {
   id: string
@@ -142,10 +170,11 @@ const fallbackRules: Rule[] = [
 ]
 
 const stages = ['À qualifier', 'À surveiller', 'Action à faire', 'En suivi', 'Converti', 'Écarté']
+const quickFilters = ['Nouveauté', 'Baisse de prix', 'Plus de 90 jours', 'DPE F/G', 'Opportunités', 'À relancer']
 
-function currency(value?: number | null): string {
+function currency(value?: number | null, maximumFractionDigits = 0): string {
   if (typeof value !== 'number') return '—'
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 }).format(value)
+  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits }).format(value)
 }
 
 function number(value?: number | null): string {
@@ -353,184 +382,45 @@ export function MarketMvpClient() {
   return (
     <div className="min-h-screen bg-[#f5f7f8] text-[#1f2933]">
       <div className="flex min-h-screen">
-        <aside className="flex w-[280px] shrink-0 flex-col bg-[#006d92] text-white">
-          <div className="px-8 py-8">
-            <div className="text-3xl font-black tracking-[-0.04em]">Mandat OS</div>
-            <div className="mt-2 text-sm text-sky-100">Base Marché</div>
-            <button onClick={() => setView('data')} className="mt-8 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#12b8e8] text-sm font-black text-[#00384f] shadow-sm transition hover:bg-[#28c7f3]">
-              <span className="text-xl">＋</span> New Mandate
-            </button>
-          </div>
+        <MarketSidebar view={view} setView={setView} />
 
-          <nav className="mt-4 space-y-1 px-4 text-base font-bold text-sky-100">
-            <SidebarItem icon="▦" label="Dashboard" active={false} onClick={() => setView('data')} />
-            <SidebarItem icon="▣" label="Portfolio" active={false} onClick={() => setView('data')} />
-            <SidebarItem icon="⌁" label="Market Data" active={view === 'data'} onClick={() => setView('data')} />
-            <SidebarItem icon="▤" label="Mandates" active={view === 'kanban'} onClick={() => setView('kanban')} />
-            <SidebarItem icon="☷" label="Tasks" active={view === 'rules'} onClick={() => setView('rules')} />
-            <SidebarItem icon="⚙" label="Settings" active={false} onClick={() => setView('rules')} />
-          </nav>
-
-          <div className="mt-auto border-t border-white/15 px-8 py-8 text-sm font-semibold text-sky-100">
-            <div className="mb-4 flex items-center gap-3">ⓘ Help</div>
-            <div className="flex items-center gap-3">↪ Logout</div>
-          </div>
-        </aside>
-
-        <aside className="w-[330px] shrink-0 border-r border-slate-200 bg-white">
-          <div className="flex h-[64px] items-center border-b border-slate-200 px-6 text-xl font-black text-[#00577c]">Market Data</div>
+        <aside className="w-[340px] shrink-0 border-r border-border bg-white">
+          <div className="flex h-16 items-center border-b border-border px-6 text-xl font-black text-[#00577c]">Market Data</div>
           <div className="h-[calc(100vh-64px)] overflow-y-auto px-4 py-5">
             <UsagePanel usage={usage} />
-
-            <div className="relative mt-5">
-              <span className="absolute left-3 top-2.5 text-slate-400">⌕</span>
-              <input value={query} onChange={(event) => setQuery(event.target.value)} className="h-10 w-full border border-slate-300 pl-9 pr-3 text-sm outline-none focus:border-[#0b8ebd]" placeholder="Rechercher une commune, une adresse" />
-            </div>
-
-            <FilterSection title="FILTRES RAPIDES">
-              <div className="flex flex-wrap gap-2">
-                {['Nouveauté', 'Baisse de prix', 'Plus de 90 jours', 'DPE F/G', 'Opportunités', 'À relancer'].map((filter) => (
-                  <button key={filter} onClick={() => setQuickFilter(quickFilter === filter ? 'Toutes' : filter)} className={(quickFilter === filter ? 'border-[#16a6d9] bg-[#e8f8fd] text-[#0078a6]' : filter === 'DPE F/G' || filter === 'À relancer' ? 'border-red-200 bg-red-50 text-red-600' : 'border-slate-300 bg-white text-slate-600') + ' rounded-full border px-3 py-1.5 text-xs font-bold'}>{filter}</button>
-                ))}
-              </div>
-            </FilterSection>
-
-            <FilterSection title="⌖ Localisation">
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="CP" value={zipcode} onChange={setZipcode} placeholder="Ex: 83670" />
-                <Field label="Commune" value={city} onChange={setCity} placeholder="Ex: Barjols" />
-              </div>
-            </FilterSection>
-
-            <FilterSection title="⌂ Critères principaux">
-              <label className="text-xs font-bold text-slate-600">Type de bien</label>
-              <select value={propertyType} onChange={(event) => setPropertyType(event.target.value)} className="mt-1 h-10 w-full border border-slate-300 px-3 text-sm text-slate-700 outline-none focus:border-[#0b8ebd]">
-                {['Tous les types', 'Maison', 'Villa', 'Appartement', 'Studio', 'Terrain', 'Loft'].map((value) => <option key={value}>{value}</option>)}
-              </select>
-              <div className="mt-3 grid grid-cols-2 gap-3">
-                <Field label="Prix Min (€)" value={minPrice} onChange={setMinPrice} placeholder="Min" />
-                <Field label="Prix Max (€)" value={maxPrice} onChange={setMaxPrice} placeholder="Max" />
-                <Field label="Surface (m²)" value={minSurface} onChange={setMinSurface} placeholder="Min" />
-                <Field label="" value={maxSurface} onChange={setMaxSurface} placeholder="Max" />
-              </div>
-              <div className="mt-3">
-                <div className="mb-1 text-xs font-bold text-slate-600">Pièces</div>
-                <div className="grid grid-cols-5 gap-2">
-                  {['1', '2', '3', '4', '5+'].map((value) => <button key={value} onClick={() => setRoom(room === value ? '' : value)} className={(room === value ? 'border-[#0b8ebd] bg-[#e8f8fd] text-[#006d92]' : 'border-slate-300 bg-white text-slate-700') + ' h-9 border text-sm font-bold'}>{value}</button>)}
-                </div>
-              </div>
-            </FilterSection>
-
-            <FilterSection title="☷ Critères avancés">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-bold text-slate-600">DPE</label>
-                  <select value={dpe} onChange={(event) => setDpe(event.target.value)} className="mt-1 h-10 w-full border border-slate-300 px-3 text-sm outline-none focus:border-[#0b8ebd]">
-                    {['Tous', 'A', 'B', 'C', 'D', 'E', 'F', 'G'].map((value) => <option key={value}>{value}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-slate-600">Statut</label>
-                  <select value={quickFilter} onChange={(event) => setQuickFilter(event.target.value)} className="mt-1 h-10 w-full border border-slate-300 px-3 text-sm outline-none focus:border-[#0b8ebd]">
-                    {['Toutes', 'Nouveauté', 'Baisse de prix', 'Plus de 90 jours', 'Opportunités'].map((value) => <option key={value}>{value}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-slate-600">Source</label>
-                  <select className="mt-1 h-10 w-full border border-slate-300 px-3 text-sm outline-none focus:border-[#0b8ebd]">
-                    <option>Toutes sources</option>
-                    <option>Stream Estate</option>
-                  </select>
-                </div>
-                <Field label="Score Mandat" value="" onChange={() => undefined} placeholder="Min %" />
-              </div>
-            </FilterSection>
-
-            <button onClick={() => void loadPersistedData(zipcode)} className="mt-4 flex h-12 w-full items-center justify-center gap-3 bg-[#006d92] px-4 text-base font-black text-white hover:bg-[#00577c]">
-              Appliquer les filtres <span className="rounded-full bg-white/20 px-2 py-1 text-xs">{filtered.length} résultats</span>
-            </button>
-            <button onClick={() => { setQuickFilter('Toutes'); setQuery(''); setMinPrice(''); setMaxPrice(''); setMinSurface(''); setMaxSurface(''); setRoom(''); setDpe('Tous'); setCity('') }} className="mt-3 w-full text-center text-xs font-black text-[#006d92]">Réinitialiser</button>
+            <FilterPanel
+              city={city}
+              dpe={dpe}
+              filteredCount={filtered.length}
+              maxPrice={maxPrice}
+              maxSurface={maxSurface}
+              minPrice={minPrice}
+              minSurface={minSurface}
+              propertyType={propertyType}
+              query={query}
+              quickFilter={quickFilter}
+              room={room}
+              zipcode={zipcode}
+              onApply={() => void loadPersistedData(zipcode)}
+              onReset={() => { setQuickFilter('Toutes'); setQuery(''); setMinPrice(''); setMaxPrice(''); setMinSurface(''); setMaxSurface(''); setRoom(''); setDpe('Tous'); setCity('') }}
+              setCity={setCity}
+              setDpe={setDpe}
+              setMaxPrice={setMaxPrice}
+              setMaxSurface={setMaxSurface}
+              setMinPrice={setMinPrice}
+              setMinSurface={setMinSurface}
+              setPropertyType={setPropertyType}
+              setQuery={setQuery}
+              setQuickFilter={setQuickFilter}
+              setRoom={setRoom}
+              setZipcode={setZipcode}
+            />
           </div>
         </aside>
 
         <main className="min-w-0 flex-1 bg-white">
-          <div className="flex h-[64px] items-center justify-end gap-6 border-b border-slate-200 px-8 text-xl text-slate-700">
-            <button title="Notifications">♧</button>
-            <button title="Applications">▦</button>
-            <button className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-50" title="Compte">☻</button>
-          </div>
-
-          {view === 'data' ? (
-            <section className="p-6">
-              <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-                <div>
-                  <h1 className="text-3xl font-black tracking-[-0.04em] text-slate-950">Base de données globale</h1>
-                  <p className="mt-1 text-sm text-slate-500">Vue filtrée des opportunités sur le marché actuel. {loading ? 'Chargement...' : status}</p>
-                </div>
-                <div className="flex gap-2">
-                  <button onClick={() => void syncStreamEstate()} disabled={syncing} className="border border-slate-300 bg-white px-4 py-2 text-xs font-black uppercase tracking-wide text-slate-700 hover:bg-slate-50 disabled:opacity-60">↧ {syncing ? 'Sync...' : 'Synchroniser'}</button>
-                  <button className="border border-slate-300 bg-white px-4 py-2 text-xs font-black uppercase tracking-wide text-slate-700 hover:bg-slate-50">↥ Exporter</button>
-                  <button className="border border-slate-300 bg-white px-4 py-2 text-xs font-black uppercase tracking-wide text-slate-700 hover:bg-slate-50">▥ Colonnes</button>
-                </div>
-              </div>
-
-              <div className="mb-4 grid gap-3 md:grid-cols-3">
-                <UsageCard label="Items consommés aujourd’hui" value={number(usage.itemsToday)} sub={`${usage.successfulSyncsToday} synchro(s) réussie(s)`} />
-                <UsageCard label="Items consommés ce mois-ci" value={number(usage.itemsMonth)} sub={`Dernière sync : ${formatDateTime(usage.lastSyncAt)}`} />
-                <UsageCard label="Coût estimé" value={currency(usage.costMonthEur)} sub={`Pay as you go estimé · ${currency(usage.unitCostEur)} / item`} accent />
-              </div>
-
-              <div className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm">
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[860px] text-left text-sm">
-                    <thead className="border-b border-slate-200 bg-[#f3f3ef] text-xs font-black uppercase tracking-wide text-slate-500">
-                      <tr>
-                        <th className="w-12 px-4 py-3"><input type="checkbox" className="h-4 w-4 rounded border-slate-300" /></th>
-                        <th className="px-4 py-3">Référence / Adresse</th>
-                        <th className="px-4 py-3">Type</th>
-                        <th className="px-4 py-3 text-right">Prix</th>
-                        <th className="px-4 py-3 text-right">Surface</th>
-                        <th className="px-4 py-3 text-right">Score</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {filtered.map((property) => (
-                        <tr key={property.id} className="hover:bg-slate-50">
-                          <td className="px-4 py-4"><input type="checkbox" className="h-4 w-4 rounded border-slate-300" /></td>
-                          <td className="px-4 py-4">
-                            <button onClick={() => setSelected(property)} className="font-black text-[#0075a3] hover:underline">{reference(property)}</button>
-                            <div className="mt-1 text-xs text-slate-500">{property.title ?? 'Bien sans titre'}, {property.city ?? '—'} {property.zipcode ?? ''}</div>
-                            <div className="mt-2 flex flex-wrap gap-1">
-                              {(property.tags ?? []).slice(0, 3).map((tag) => <span key={tag} className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">{tag}</span>)}
-                            </div>
-                          </td>
-                          <td className="px-4 py-4 font-semibold text-slate-700">{propertyTypeLabel(property)}</td>
-                          <td className="px-4 py-4 text-right font-black text-slate-900">
-                            {currency(property.price)}
-                            {property.price_variation_percent != null ? <div className="text-xs font-black text-red-500">↘ {property.price_variation_percent}%</div> : null}
-                          </td>
-                          <td className="px-4 py-4 text-right font-semibold text-slate-700">{number(property.surface)} m²</td>
-                          <td className="px-4 py-4 text-right"><span className="font-black text-[#006d92]">{property.opportunity_score ?? 0}</span><span className="text-slate-400">/100</span></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <div className="flex items-center justify-between border-t border-slate-200 px-4 py-4 text-sm text-slate-500">
-                  <span>Affichage 1-{filtered.length} sur {properties.length} résultats</span>
-                  <div className="flex items-center gap-2">
-                    <button className="h-9 w-9 rounded border border-slate-300 text-slate-400">‹</button>
-                    <button className="h-9 w-9 rounded bg-[#006d92] font-black text-white">1</button>
-                    <button className="h-9 w-9 rounded text-slate-600">2</button>
-                    <button className="h-9 w-9 rounded text-slate-600">3</button>
-                    <span>...</span>
-                    <button className="h-9 w-9 rounded border border-slate-300 text-slate-600">›</button>
-                  </div>
-                </div>
-              </div>
-            </section>
-          ) : null}
-
+          <Topbar />
+          {view === 'data' ? <MarketDataView filtered={filtered} loading={loading} properties={properties} status={status} syncing={syncing} usage={usage} onSelect={setSelected} onSync={() => void syncStreamEstate()} /> : null}
           {view === 'kanban' ? <Kanban opportunities={opportunities} onMove={updateOpportunityStage} /> : null}
           {view === 'rules' ? <Rules rules={rules} notifications={notifications} onToggle={toggleRule} /> : null}
         </main>
@@ -541,38 +431,274 @@ export function MarketMvpClient() {
   )
 }
 
-function UsagePanel({ usage }: { usage: UsageStats }) {
-  return <div className="rounded-md border border-[#bce9f7] bg-[#e8f8fd] p-3"><div className="text-xs font-black uppercase tracking-wide text-[#006d92]">Suivi API Stream Estate</div><div className="mt-3 grid grid-cols-3 gap-2 text-center"><div className="rounded bg-white p-2"><div className="text-lg font-black text-slate-900">{number(usage.itemsToday)}</div><div className="text-[10px] font-bold text-slate-500">items jour</div></div><div className="rounded bg-white p-2"><div className="text-lg font-black text-slate-900">{number(usage.itemsMonth)}</div><div className="text-[10px] font-bold text-slate-500">items mois</div></div><div className="rounded bg-white p-2"><div className="text-lg font-black text-[#006d92]">{currency(usage.costMonthEur)}</div><div className="text-[10px] font-bold text-slate-500">estimé</div></div></div></div>
+function MarketSidebar({ view, setView }: { view: ViewMode; setView: (view: ViewMode) => void }) {
+  return (
+    <aside className="flex w-[280px] shrink-0 flex-col bg-[#006d92] text-white">
+      <div className="px-8 py-8">
+        <div className="text-3xl font-black tracking-[-0.04em]">Mandat OS</div>
+        <div className="mt-2 text-sm text-sky-100">Base Marché</div>
+        <Button onClick={() => setView('data')} className="mt-8 h-12 w-full rounded-lg bg-[#12b8e8] text-sm font-black text-[#00384f] hover:bg-[#28c7f3]">
+          <Plus className="h-5 w-5" /> New Mandate
+        </Button>
+      </div>
+      <nav className="mt-4 space-y-1 px-4 text-base font-bold text-sky-100">
+        <SidebarItem icon={LayoutDashboard} label="Dashboard" active={false} onClick={() => setView('data')} />
+        <SidebarItem icon={Building2} label="Portfolio" active={false} onClick={() => setView('data')} />
+        <SidebarItem icon={BarChart3} label="Market Data" active={view === 'data'} onClick={() => setView('data')} />
+        <SidebarItem icon={FileText} label="Mandates" active={view === 'kanban'} onClick={() => setView('kanban')} />
+        <SidebarItem icon={ClipboardList} label="Tasks" active={view === 'rules'} onClick={() => setView('rules')} />
+        <SidebarItem icon={Settings} label="Settings" active={false} onClick={() => setView('rules')} />
+      </nav>
+      <div className="mt-auto border-t border-white/15 px-8 py-8 text-sm font-semibold text-sky-100">
+        <div className="mb-4 flex items-center gap-3"><HelpCircle className="h-4 w-4" /> Help</div>
+        <div className="flex items-center gap-3"><LogOut className="h-4 w-4" /> Logout</div>
+      </div>
+    </aside>
+  )
 }
 
-function UsageCard({ label, value, sub, accent = false }: { label: string; value: string; sub: string; accent?: boolean }) {
-  return <div className={(accent ? 'border-[#12b8e8] bg-[#e8f8fd]' : 'border-slate-200 bg-white') + ' rounded-md border p-4 shadow-sm'}><div className="text-xs font-black uppercase tracking-wide text-slate-500">{label}</div><div className="mt-2 text-2xl font-black tracking-[-0.04em] text-slate-950">{value}</div><div className="mt-1 text-xs font-semibold text-slate-500">{sub}</div></div>
+function SidebarItem({ icon: Icon, label, active, onClick }: { icon: ComponentType<{ className?: string }>; label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className={cn('flex w-full items-center gap-4 px-4 py-4 text-left transition hover:bg-white/10', active && 'bg-[#0a83ad] text-white shadow-[inset_4px_0_0_#15c8f5]')}>
+      <Icon className="h-5 w-5" />
+      <span>{label}</span>
+    </button>
+  )
 }
 
-function SidebarItem({ icon, label, active, onClick }: { icon: string; label: string; active: boolean; onClick: () => void }) {
-  return <button onClick={onClick} className={(active ? 'bg-[#0a83ad] text-white shadow-[inset_4px_0_0_#15c8f5]' : 'hover:bg-white/10') + ' flex w-full items-center gap-4 px-4 py-4 text-left transition'}><span className="w-5 text-center text-xl">{icon}</span><span>{label}</span></button>
+function Topbar() {
+  return (
+    <div className="flex h-16 items-center justify-end gap-6 border-b border-border px-8 text-slate-700">
+      <Button variant="ghost" size="sm" className="rounded-md px-2"><Bell className="h-5 w-5" /></Button>
+      <Button variant="ghost" size="sm" className="rounded-md px-2"><MoreHorizontal className="h-5 w-5" /></Button>
+      <Button variant="ghost" size="sm" className="h-9 w-9 rounded-full border border-border bg-surface p-0"><UserCircle className="h-5 w-5" /></Button>
+    </div>
+  )
 }
 
-function FilterSection({ title, children }: { title: string; children: React.ReactNode }) {
-  return <section className="mt-6 border-t border-slate-200 pt-5"><h2 className="mb-3 text-sm font-black text-slate-800">{title}</h2>{children}</section>
+function MarketDataView({ filtered, loading, properties, status, syncing, usage, onSelect, onSync }: { filtered: MarketProperty[]; loading: boolean; properties: MarketProperty[]; status: string; syncing: boolean; usage: UsageStats; onSelect: (property: MarketProperty) => void; onSync: () => void }) {
+  return (
+    <section className="p-6">
+      <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h1 className="text-3xl font-black tracking-[-0.04em] text-slate-950">Base de données globale</h1>
+          <p className="mt-1 text-sm text-muted">Vue filtrée des opportunités sur le marché actuel. {loading ? 'Chargement...' : status}</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={onSync} disabled={syncing} className="rounded-md border-slate-300 px-4 text-xs font-black uppercase tracking-wide text-slate-700">
+            {syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Database className="h-4 w-4" />}
+            {syncing ? 'Sync...' : 'Synchroniser'}
+          </Button>
+          <Button variant="outline" className="rounded-md border-slate-300 px-4 text-xs font-black uppercase tracking-wide text-slate-700"><FileText className="h-4 w-4" /> Exporter</Button>
+          <Button variant="outline" className="rounded-md border-slate-300 px-4 text-xs font-black uppercase tracking-wide text-slate-700"><Columns3 className="h-4 w-4" /> Colonnes</Button>
+        </div>
+      </div>
+      <div className="mb-4 grid gap-3 md:grid-cols-3">
+        <UsageCard label="Items consommés aujourd’hui" value={number(usage.itemsToday)} sub={`${usage.successfulSyncsToday} synchro(s) réussie(s)`} />
+        <UsageCard label="Items consommés ce mois-ci" value={number(usage.itemsMonth)} sub={`Dernière sync : ${formatDateTime(usage.lastSyncAt)}`} />
+        <UsageCard label="Coût estimé" value={currency(usage.costMonthEur, 2)} sub={`Pay as you go estimé · ${currency(usage.unitCostEur, 2)} / item`} accent />
+      </div>
+      <MarketTable properties={filtered} total={properties.length} onSelect={onSelect} />
+    </section>
+  )
+}
+
+function FilterPanel(props: {
+  city: string
+  dpe: string
+  filteredCount: number
+  maxPrice: string
+  maxSurface: string
+  minPrice: string
+  minSurface: string
+  propertyType: string
+  query: string
+  quickFilter: string
+  room: string
+  zipcode: string
+  onApply: () => void
+  onReset: () => void
+  setCity: (value: string) => void
+  setDpe: (value: string) => void
+  setMaxPrice: (value: string) => void
+  setMaxSurface: (value: string) => void
+  setMinPrice: (value: string) => void
+  setMinSurface: (value: string) => void
+  setPropertyType: (value: string) => void
+  setQuery: (value: string) => void
+  setQuickFilter: (value: string) => void
+  setRoom: (value: string) => void
+  setZipcode: (value: string) => void
+}) {
+  return (
+    <>
+      <div className="relative mt-5">
+        <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted" />
+        <Input value={props.query} onChange={(event) => props.setQuery(event.target.value)} className="rounded-none pl-9" placeholder="Rechercher une commune, une adresse" />
+      </div>
+      <FilterSection title="FILTRES RAPIDES">
+        <div className="flex flex-wrap gap-2">
+          {quickFilters.map((filter) => (
+            <Badge as="button" key={filter} onClick={() => props.setQuickFilter(props.quickFilter === filter ? 'Toutes' : filter)} variant={props.quickFilter === filter ? 'default' : filter === 'DPE F/G' || filter === 'À relancer' ? 'destructive' : 'outline'} className="cursor-pointer">
+              {filter === 'Baisse de prix' ? <TrendingDown className="mr-1 h-3 w-3" /> : null}{filter}
+            </Badge>
+          ))}
+        </div>
+      </FilterSection>
+      <FilterSection title="Localisation">
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="CP" value={props.zipcode} onChange={props.setZipcode} placeholder="Ex: 83670" />
+          <Field label="Commune" value={props.city} onChange={props.setCity} placeholder="Ex: Barjols" />
+        </div>
+      </FilterSection>
+      <FilterSection title="Critères principaux">
+        <label className="text-xs font-bold text-slate-600">Type de bien</label>
+        <Select value={props.propertyType} onChange={(event) => props.setPropertyType(event.target.value)} className="mt-1 rounded-none">
+          {['Tous les types', 'Maison', 'Villa', 'Appartement', 'Studio', 'Terrain', 'Loft'].map((value) => <option key={value}>{value}</option>)}
+        </Select>
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          <Field label="Prix Min (€)" value={props.minPrice} onChange={props.setMinPrice} placeholder="Min" />
+          <Field label="Prix Max (€)" value={props.maxPrice} onChange={props.setMaxPrice} placeholder="Max" />
+          <Field label="Surface (m²)" value={props.minSurface} onChange={props.setMinSurface} placeholder="Min" />
+          <Field label="" value={props.maxSurface} onChange={props.setMaxSurface} placeholder="Max" />
+        </div>
+        <div className="mt-3">
+          <div className="mb-1 text-xs font-bold text-slate-600">Pièces</div>
+          <div className="grid grid-cols-5 gap-2">
+            {['1', '2', '3', '4', '5+'].map((value) => (
+              <Button key={value} variant="outline" size="sm" onClick={() => props.setRoom(props.room === value ? '' : value)} className={cn('h-9 rounded-none border-slate-300 px-0 text-sm font-bold text-slate-700', props.room === value && 'border-[#0b8ebd] bg-[#e8f8fd] text-[#006d92]')}>
+                {value}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </FilterSection>
+      <FilterSection title="Critères avancés" icon={<SlidersHorizontal className="h-4 w-4" />}>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs font-bold text-slate-600">DPE</label>
+            <Select value={props.dpe} onChange={(event) => props.setDpe(event.target.value)} className="mt-1 rounded-none">
+              {['Tous', 'A', 'B', 'C', 'D', 'E', 'F', 'G'].map((value) => <option key={value}>{value}</option>)}
+            </Select>
+          </div>
+          <div>
+            <label className="text-xs font-bold text-slate-600">Statut</label>
+            <Select value={props.quickFilter} onChange={(event) => props.setQuickFilter(event.target.value)} className="mt-1 rounded-none">
+              {['Toutes', 'Nouveauté', 'Baisse de prix', 'Plus de 90 jours', 'Opportunités'].map((value) => <option key={value}>{value}</option>)}
+            </Select>
+          </div>
+          <div>
+            <label className="text-xs font-bold text-slate-600">Source</label>
+            <Select className="mt-1 rounded-none">
+              <option>Toutes sources</option>
+              <option>Stream Estate</option>
+            </Select>
+          </div>
+          <Field label="Score Mandat" value="" onChange={() => undefined} placeholder="Min %" />
+        </div>
+      </FilterSection>
+      <Button onClick={props.onApply} className="mt-4 h-12 w-full rounded-none bg-[#006d92] text-base font-black text-white hover:bg-[#00577c]">
+        Appliquer les filtres <Badge variant="secondary" className="bg-white/20 text-white">{props.filteredCount} résultats</Badge>
+      </Button>
+      <button onClick={props.onReset} className="mt-3 w-full text-center text-xs font-black text-[#006d92]">Réinitialiser</button>
+    </>
+  )
+}
+
+function FilterSection({ title, children, icon }: { title: string; children: ReactNode; icon?: ReactNode }) {
+  return <section className="mt-6 border-t border-border pt-5"><h2 className="mb-3 flex items-center gap-2 text-sm font-black text-slate-800">{icon}{title}</h2>{children}</section>
 }
 
 function Field({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (value: string) => void; placeholder: string }) {
-  return <div><label className="text-xs font-bold text-slate-600">{label || '\u00A0'}</label><input value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className="mt-1 h-10 w-full border border-slate-300 px-3 text-sm outline-none focus:border-[#0b8ebd]" /></div>
+  return <div><label className="text-xs font-bold text-slate-600">{label || '\u00A0'}</label><Input value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className="mt-1 rounded-none" /></div>
+}
+
+function UsagePanel({ usage }: { usage: UsageStats }) {
+  return (
+    <Card className="border-[#bce9f7] bg-[#e8f8fd] shadow-none">
+      <CardContent className="p-3">
+        <div className="text-xs font-black uppercase tracking-wide text-[#006d92]">Suivi API Stream Estate</div>
+        <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+          <MiniUsage value={number(usage.itemsToday)} label="items jour" />
+          <MiniUsage value={number(usage.itemsMonth)} label="items mois" />
+          <MiniUsage value={currency(usage.costMonthEur, 2)} label="estimé" accent />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function MiniUsage({ value, label, accent = false }: { value: string; label: string; accent?: boolean }) {
+  return <div className="rounded-md bg-white p-2"><div className={cn('text-lg font-black text-slate-900', accent && 'text-[#006d92]')}>{value}</div><div className="text-[10px] font-bold text-muted">{label}</div></div>
+}
+
+function UsageCard({ label, value, sub, accent = false }: { label: string; value: string; sub: string; accent?: boolean }) {
+  return <Card className={cn('shadow-sm', accent && 'border-[#12b8e8] bg-[#e8f8fd]')}><CardContent className="p-4"><div className="text-xs font-black uppercase tracking-wide text-muted">{label}</div><div className="mt-2 text-2xl font-black tracking-[-0.04em] text-slate-950">{value}</div><div className="mt-1 text-xs font-semibold text-muted">{sub}</div></CardContent></Card>
+}
+
+function MarketTable({ properties, total, onSelect }: { properties: MarketProperty[]; total: number; onSelect: (property: MarketProperty) => void }) {
+  return (
+    <Card className="overflow-hidden rounded-md">
+      <Table className="min-w-[860px]">
+        <TableHeader className="bg-[#f3f3ef]">
+          <TableRow>
+            <TableHead className="w-12"><input type="checkbox" className="h-4 w-4 rounded border-slate-300" /></TableHead>
+            <TableHead>Référence / Adresse</TableHead>
+            <TableHead>Type</TableHead>
+            <TableHead className="text-right">Prix</TableHead>
+            <TableHead className="text-right">Surface</TableHead>
+            <TableHead className="text-right">Score</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {properties.map((property) => (
+            <TableRow key={property.id}>
+              <TableCell><input type="checkbox" className="h-4 w-4 rounded border-slate-300" /></TableCell>
+              <TableCell>
+                <button onClick={() => onSelect(property)} className="font-black text-[#0075a3] hover:underline">{reference(property)}</button>
+                <div className="mt-1 text-xs text-muted">{property.title ?? 'Bien sans titre'}, {property.city ?? '—'} {property.zipcode ?? ''}</div>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {(property.tags ?? []).slice(0, 3).map((tag) => <Badge key={tag} variant="secondary" className="text-[10px] text-muted">{tag}</Badge>)}
+                </div>
+              </TableCell>
+              <TableCell className="font-semibold text-slate-700">{propertyTypeLabel(property)}</TableCell>
+              <TableCell className="text-right font-black text-slate-900">
+                {currency(property.price)}
+                {property.price_variation_percent != null ? <div className="text-xs font-black text-red-500">↘ {property.price_variation_percent}%</div> : null}
+              </TableCell>
+              <TableCell className="text-right font-semibold text-slate-700">{number(property.surface)} m²</TableCell>
+              <TableCell className="text-right"><span className="font-black text-[#006d92]">{property.opportunity_score ?? 0}</span><span className="text-slate-400">/100</span></TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <div className="flex items-center justify-between border-t border-border px-4 py-4 text-sm text-muted">
+        <span>Affichage 1-{properties.length} sur {total} résultats</span>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="h-9 w-9 rounded-md px-0 text-muted">‹</Button>
+          <Button size="sm" className="h-9 w-9 rounded-md bg-[#006d92] px-0 font-black text-white">1</Button>
+          <Button variant="ghost" size="sm" className="h-9 w-9 rounded-md px-0 text-slate-600">2</Button>
+          <Button variant="ghost" size="sm" className="h-9 w-9 rounded-md px-0 text-slate-600">3</Button>
+          <span>...</span>
+          <Button variant="outline" size="sm" className="h-9 w-9 rounded-md px-0 text-slate-600">›</Button>
+        </div>
+      </div>
+    </Card>
+  )
 }
 
 function Kanban({ opportunities, onMove }: { opportunities: Opportunity[]; onMove: (id: string, stage: string) => void }) {
-  return <section className="p-6"><h1 className="mb-5 text-3xl font-black tracking-[-0.04em] text-slate-950">Pipeline d’opportunités</h1><div className="grid gap-4 xl:grid-cols-6">{stages.map((stage) => <div key={stage} className="min-h-[28rem] rounded-md border border-slate-200 bg-[#f7fafc] p-4"><h2 className="text-sm font-black text-slate-900">{stage}</h2><div className="mt-4 space-y-3">{opportunities.filter((item) => item.stage === stage).map((item) => <div key={item.id} className="rounded-md border border-slate-200 bg-white p-3 shadow-sm"><div className="font-black text-slate-900">{item.title}</div><div className="mt-2 rounded bg-slate-50 p-2 text-xs text-slate-600">{item.signal_type ?? item.description}</div><select value={item.stage} onChange={(event) => void onMove(item.id, event.target.value)} className="mt-3 w-full border border-slate-300 bg-white p-2 text-xs font-bold">{stages.map((value) => <option key={value} value={value}>{value}</option>)}</select></div>)}{opportunities.filter((item) => item.stage === stage).length === 0 ? <div className="rounded border border-dashed border-slate-300 p-4 text-center text-xs text-slate-400">Aucune opportunité</div> : null}</div></div>)}</div></section>
+  return <section className="p-6"><h1 className="mb-5 text-3xl font-black tracking-[-0.04em] text-slate-950">Pipeline d’opportunités</h1><div className="grid gap-4 xl:grid-cols-6">{stages.map((stage) => <Card key={stage} className="min-h-[28rem] bg-[#f7fafc]"><CardContent className="p-4"><h2 className="text-sm font-black text-slate-900">{stage}</h2><div className="mt-4 space-y-3">{opportunities.filter((item) => item.stage === stage).map((item) => <Card key={item.id}><CardContent className="p-3"><div className="font-black text-slate-900">{item.title}</div><div className="mt-2 rounded bg-slate-50 p-2 text-xs text-slate-600">{item.signal_type ?? item.description}</div><Select value={item.stage} onChange={(event) => void onMove(item.id, event.target.value)} className="mt-3 text-xs font-bold">{stages.map((value) => <option key={value} value={value}>{value}</option>)}</Select></CardContent></Card>)}{opportunities.filter((item) => item.stage === stage).length === 0 ? <div className="rounded border border-dashed border-slate-300 p-4 text-center text-xs text-slate-400">Aucune opportunité</div> : null}</div></CardContent></Card>)}</div></section>
 }
 
 function Rules({ rules, notifications, onToggle }: { rules: Rule[]; notifications: Notification[]; onToggle: (rule: Rule) => void }) {
-  return <section className="p-6"><h1 className="mb-5 text-3xl font-black tracking-[-0.04em] text-slate-950">Règles de gestion</h1><div className="grid gap-4 lg:grid-cols-2">{rules.map((rule) => <article key={rule.id} className="rounded-md border border-slate-200 bg-white p-5 shadow-sm"><div className="flex items-start justify-between gap-4"><div><h2 className="text-lg font-black tracking-[-0.02em]">{rule.name}</h2><p className="mt-2 text-sm leading-6 text-slate-600">{rule.description}</p></div><button onClick={() => void onToggle(rule)} className={(rule.active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500') + ' rounded-full px-3 py-1 text-xs font-black'}>{rule.active ? 'Active' : 'Inactive'}</button></div><div className="mt-4 rounded bg-slate-50 p-4 text-sm text-slate-600"><div className="font-bold text-slate-900">Déclencheur</div><div className="mt-1">{rule.trigger_type ?? 'Règle métier'}</div></div><div className="mt-4 flex items-center justify-between text-xs text-slate-400"><span>Priorité {priorityLabel(rule.priority)}</span><span>{notifications.filter((item) => item.priority === rule.priority).length} alerte(s)</span></div></article>)}</div></section>
+  return <section className="p-6"><h1 className="mb-5 text-3xl font-black tracking-[-0.04em] text-slate-950">Règles de gestion</h1><div className="grid gap-4 lg:grid-cols-2">{rules.map((rule) => <Card key={rule.id}><CardContent className="p-5"><div className="flex items-start justify-between gap-4"><div><h2 className="text-lg font-black tracking-[-0.02em]">{rule.name}</h2><p className="mt-2 text-sm leading-6 text-slate-600">{rule.description}</p></div><Badge as="button" onClick={() => void onToggle(rule)} variant={rule.active ? 'success' : 'secondary'} className="cursor-pointer">{rule.active ? 'Active' : 'Inactive'}</Badge></div><div className="mt-4 rounded bg-slate-50 p-4 text-sm text-slate-600"><div className="font-bold text-slate-900">Déclencheur</div><div className="mt-1">{rule.trigger_type ?? 'Règle métier'}</div></div><div className="mt-4 flex items-center justify-between text-xs text-slate-400"><span>Priorité {priorityLabel(rule.priority)}</span><span>{notifications.filter((item) => item.priority === rule.priority).length} alerte(s)</span></div></CardContent></Card>)}</div></section>
 }
 
 function PropertyDrawer({ property, onClose, onCreateOpportunity }: { property: MarketProperty; onClose: () => void; onCreateOpportunity: (property: MarketProperty) => void }) {
-  return <div className="fixed inset-0 z-50 bg-slate-950/30 p-4 backdrop-blur-sm" onClick={onClose}><aside className="ml-auto h-full max-w-xl overflow-y-auto rounded-md bg-white p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}><div className="flex items-start justify-between gap-4"><div><div className="mb-2 inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">Vue détail</div><h2 className="text-2xl font-black tracking-[-0.03em]">{property.title}</h2><p className="mt-1 text-sm text-slate-500">{property.city} · {property.zipcode}</p></div><button onClick={onClose} className="rounded-full bg-slate-100 px-3 py-1 text-sm font-black">×</button></div><div className="mt-6 grid grid-cols-2 gap-3"><Detail label="Prix" value={currency(property.price)} /><Detail label="Prix/m²" value={number(property.price_per_m2) + ' €'} /><Detail label="Surface" value={number(property.surface) + ' m²'} /><Detail label="Terrain" value={number(property.land_surface) + ' m²'} /><Detail label="DPE" value={property.dpe ?? '—'} /><Detail label="Jours en ligne" value={property.days_online != null ? String(property.days_online) : '—'} /></div><div className="mt-6 rounded-md bg-[#e8f8fd] p-5"><h3 className="font-black text-[#006d92]">Lecture métier</h3><p className="mt-2 text-sm leading-6 text-slate-700">{property.recommended_action}</p><div className="mt-3 flex flex-wrap gap-2">{(property.tags ?? []).map((tag) => <span key={tag} className="rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-700">{tag}</span>)}</div></div><div className="mt-6 flex flex-wrap gap-2"><button onClick={() => void onCreateOpportunity(property)} className="rounded bg-[#006d92] px-4 py-3 text-sm font-black text-white">Créer une opportunité</button>{property.url && property.url !== '#' ? <a href={property.url} target="_blank" rel="noreferrer" className="rounded bg-slate-900 px-4 py-3 text-sm font-black text-white">Ouvrir l’annonce</a> : null}</div></aside></div>
+  return <div className="fixed inset-0 z-50 bg-slate-950/30 p-4 backdrop-blur-sm" onClick={onClose}><aside className="ml-auto h-full max-w-xl overflow-y-auto rounded-md bg-white p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}><div className="flex items-start justify-between gap-4"><div><Badge variant="secondary" className="mb-2">Vue détail</Badge><h2 className="text-2xl font-black tracking-[-0.03em]">{property.title}</h2><p className="mt-1 text-sm text-muted">{property.city} · {property.zipcode}</p></div><Button variant="ghost" onClick={onClose} className="h-8 w-8 rounded-full bg-slate-100 p-0">×</Button></div><div className="mt-6 grid grid-cols-2 gap-3"><Detail label="Prix" value={currency(property.price)} /><Detail label="Prix/m²" value={number(property.price_per_m2) + ' €'} /><Detail label="Surface" value={number(property.surface) + ' m²'} /><Detail label="Terrain" value={number(property.land_surface) + ' m²'} /><Detail label="DPE" value={property.dpe ?? '—'} /><Detail label="Jours en ligne" value={property.days_online != null ? String(property.days_online) : '—'} /></div><Card className="mt-6 border-[#bce9f7] bg-[#e8f8fd]"><CardContent className="p-5"><h3 className="font-black text-[#006d92]">Lecture métier</h3><p className="mt-2 text-sm leading-6 text-slate-700">{property.recommended_action}</p><div className="mt-3 flex flex-wrap gap-2">{(property.tags ?? []).map((tag) => <Badge key={tag} variant="secondary" className="bg-white text-slate-700">{tag}</Badge>)}</div></CardContent></Card><div className="mt-6 flex flex-wrap gap-2"><Button onClick={() => void onCreateOpportunity(property)} className="rounded-md bg-[#006d92] text-white hover:bg-[#00577c]">Créer une opportunité</Button>{property.url && property.url !== '#' ? <Button asChild variant="secondary" className="rounded-md bg-slate-900 text-white hover:opacity-90"><a href={property.url} target="_blank" rel="noreferrer">Ouvrir l’annonce</a></Button> : null}</div></aside></div>
 }
 
 function Detail({ label, value }: { label: string; value: string }) {
-  return <div className="rounded bg-slate-50 p-4"><div className="text-xs font-bold uppercase tracking-wide text-slate-400">{label}</div><div className="mt-1 text-lg font-black text-slate-900">{value}</div></div>
+  return <Card className="bg-slate-50 shadow-none"><CardContent className="p-4"><div className="text-xs font-bold uppercase tracking-wide text-slate-400">{label}</div><div className="mt-1 text-lg font-black text-slate-900">{value}</div></CardContent></Card>
 }
