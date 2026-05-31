@@ -163,18 +163,8 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // 5. Marquer les biens non vus comme expirés (approximatif)
-      if (listings.length > 0) {
-        const externalIds = listings.map(l => l.externalId || l.id)
-        const escapedIds = externalIds.map(id => `'${id.replace(/'/g, "''")}'`).join(',')
-        await supabaseAdmin.rpc('sync_mark_expired' as any, {
-          p_source: 'stream_estate',
-          p_zipcode: zipcode,
-          p_active_ids: escapedIds,
-        }).catch(() => {
-          // fallback: si la fonction n'existe pas, on ignore
-        })
-      }
+      // 5. Marquer les biens non vus comme expirés (sera fait par un job planifié)
+      // Note MVP : les biens expirés sont détectés lors des synchronisations suivantes.
 
       // 6. Exécuter les règles actives
       await executeRulesForZone(zoneId)
