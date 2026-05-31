@@ -7,6 +7,10 @@ export const env = {
   resend: { apiKey: process.env.RESEND_API_KEY },
   attio: { apiKey: process.env.ATTIO_API_KEY },
   admin: { password: process.env.ADMIN_PASSWORD ?? '' },
+  streamEstate: {
+    apiUrl: process.env.STREAMESTATE_API_URL ?? 'https://api.stream-estate.com/v1',
+    apiKey: process.env.STREAMESTATE_API_KEY ?? '',
+  },
   app: {
     siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://alexlopez-provence.fr',
     calcomUrl: process.env.NEXT_PUBLIC_CALCOM_URL ?? 'https://cal.com/alex-lopez/consultation-gratuite',

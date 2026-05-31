@@ -1,12 +1,9 @@
 /**
- * Types Supabase — Phase B MVP v1
+ * Types Supabase — Phase B MVP v1 + Mandat OS
  *
- * Aligné sur supabase/migrations/002_phase_b_schema.sql.
+ * Aligné sur supabase/migrations/002_phase_b_schema.sql
+ * + tables Mandat OS (market_properties, management_rules, etc.)
  * Format compatible avec @supabase/supabase-js 2.49+.
- *
- * NOTE: tant que le générique `Database` n'est pas pleinement câblé dans
- * `createClient()`, les INSERT/UPDATE doivent toujours être typés `as never`
- * dans les repositories (cf. lib/leads-repo.ts).
  */
 export type Json =
   | string
@@ -34,12 +31,36 @@ export type LeadEventKind =
   | 'rgpd_delete'
   | 'system'
 
+// ── Mandat OS types ────────────────────────────────────────
+
+export type PropertyStatus = 
+  | 'nouveau' | 'actif' | 'prix_en_baisse' | 'a_surveiller'
+  | 'opportunite' | 'stagne' | 'expire' | 'ignore'
+
+export type RuleTriggerType =
+  | 'new_listing' | 'price_changed' | 'price_drop' | 'big_price_drop'
+  | 'expired' | 'updated' | 'days_online_exceeded' | 'dpe_detected'
+  | 'price_per_m2_below' | 'price_per_m2_above' | 'land_surface_above'
+
+export type NotificationStatus = 'unread' | 'read' | 'processed' | 'ignored'
+export type NotificationPriority = 'low' | 'medium' | 'high' | 'critical'
+
+export type OpportunityStage =
+  | 'À qualifier' | 'À analyser' | 'À contacter' | 'Contacté'
+  | 'Rendez-vous à préparer' | 'En suivi' | 'Mandat potentiel'
+  | 'Converti' | 'Écarté'
+
+export type OpportunityPriority = 'low' | 'medium' | 'high' | 'critical'
+
+export type SyncStatus = 'running' | 'success' | 'error'
+
 export type Database = {
   __InternalSupabase: {
     PostgrestVersion: '12'
   }
   public: {
     Tables: {
+      // ── Tables existantes Phase B ──────────────────────────
       prospects: {
         Row: {
           id: string
@@ -181,6 +202,466 @@ export type Database = {
           created_at?: string
         }
         Relationships: []
+      }
+
+      // ── Tables Mandat OS ──────────────────────────────────
+      monitored_zones: {
+        Row: {
+          id: string
+          name: string
+          zipcode: string
+          city: string | null
+          radius_km: number | null
+          active: boolean
+          sync_frequency: string
+          last_synced_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          zipcode: string
+          city?: string | null
+          radius_km?: number | null
+          active?: boolean
+          sync_frequency?: string
+          last_synced_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          zipcode?: string
+          city?: string | null
+          radius_km?: number | null
+          active?: boolean
+          sync_frequency?: string
+          last_synced_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      market_properties: {
+        Row: {
+          id: string
+          external_id: string
+          source: string
+          title: string | null
+          description: string | null
+          city: string | null
+          zipcode: string | null
+          insee_code: string | null
+          lat: number | null
+          lon: number | null
+          property_type: string | null
+          price: number | null
+          surface: number | null
+          price_per_m2: number | null
+          land_surface: number | null
+          rooms: number | null
+          bedrooms: number | null
+          dpe: string | null
+          ges: string | null
+          url: string | null
+          status: string
+          first_seen_at: string
+          last_seen_at: string
+          published_at: string | null
+          expired_at: string | null
+          raw_json: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          external_id: string
+          source?: string
+          title?: string | null
+          description?: string | null
+          city?: string | null
+          zipcode?: string | null
+          insee_code?: string | null
+          lat?: number | null
+          lon?: number | null
+          property_type?: string | null
+          price?: number | null
+          surface?: number | null
+          price_per_m2?: number | null
+          land_surface?: number | null
+          rooms?: number | null
+          bedrooms?: number | null
+          dpe?: string | null
+          ges?: string | null
+          url?: string | null
+          status?: string
+          first_seen_at?: string
+          last_seen_at?: string
+          published_at?: string | null
+          expired_at?: string | null
+          raw_json?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          external_id?: string
+          source?: string
+          title?: string | null
+          description?: string | null
+          city?: string | null
+          zipcode?: string | null
+          insee_code?: string | null
+          lat?: number | null
+          lon?: number | null
+          property_type?: string | null
+          price?: number | null
+          surface?: number | null
+          price_per_m2?: number | null
+          land_surface?: number | null
+          rooms?: number | null
+          bedrooms?: number | null
+          dpe?: string | null
+          ges?: string | null
+          url?: string | null
+          status?: string
+          first_seen_at?: string
+          last_seen_at?: string
+          published_at?: string | null
+          expired_at?: string | null
+          raw_json?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      property_price_history: {
+        Row: {
+          id: string
+          market_property_id: string
+          old_price: number | null
+          new_price: number | null
+          variation_amount: number | null
+          variation_percent: number | null
+          detected_at: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          market_property_id: string
+          old_price?: number | null
+          new_price?: number | null
+          variation_amount?: number | null
+          variation_percent?: number | null
+          detected_at?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          market_property_id?: string
+          old_price?: number | null
+          new_price?: number | null
+          variation_amount?: number | null
+          variation_percent?: number | null
+          detected_at?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'property_price_history_market_property_id_fkey'
+            columns: ['market_property_id']
+            isOneToOne: false
+            referencedRelation: 'market_properties'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      property_tags: {
+        Row: {
+          id: string
+          market_property_id: string
+          tag: string
+          source: string
+          rule_id: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          market_property_id: string
+          tag: string
+          source?: string
+          rule_id?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          market_property_id?: string
+          tag?: string
+          source?: string
+          rule_id?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'property_tags_market_property_id_fkey'
+            columns: ['market_property_id']
+            isOneToOne: false
+            referencedRelation: 'market_properties'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      management_rules: {
+        Row: {
+          id: string
+          name: string
+          description: string
+          active: boolean
+          trigger_type: string
+          conditions_json: Json
+          actions_json: Json
+          priority: string
+          last_run_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string
+          active?: boolean
+          trigger_type: string
+          conditions_json?: Json
+          actions_json?: Json
+          priority?: string
+          last_run_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string
+          active?: boolean
+          trigger_type?: string
+          conditions_json?: Json
+          actions_json?: Json
+          priority?: string
+          last_run_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          id: string
+          type: string
+          title: string
+          message: string
+          priority: string
+          market_property_id: string | null
+          rule_id: string | null
+          opportunity_id: string | null
+          status: string
+          action_label: string | null
+          created_at: string
+          read_at: string | null
+          resolved_at: string | null
+        }
+        Insert: {
+          id?: string
+          type: string
+          title: string
+          message?: string
+          priority?: string
+          market_property_id?: string | null
+          rule_id?: string | null
+          opportunity_id?: string | null
+          status?: string
+          action_label?: string | null
+          created_at?: string
+          read_at?: string | null
+          resolved_at?: string | null
+        }
+        Update: {
+          id?: string
+          type?: string
+          title?: string
+          message?: string
+          priority?: string
+          market_property_id?: string | null
+          rule_id?: string | null
+          opportunity_id?: string | null
+          status?: string
+          action_label?: string | null
+          created_at?: string
+          read_at?: string | null
+          resolved_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'notifications_market_property_id_fkey'
+            columns: ['market_property_id']
+            isOneToOne: false
+            referencedRelation: 'market_properties'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'notifications_rule_id_fkey'
+            columns: ['rule_id']
+            isOneToOne: false
+            referencedRelation: 'management_rules'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      opportunities: {
+        Row: {
+          id: string
+          market_property_id: string | null
+          title: string
+          description: string
+          stage: string
+          priority: string
+          signal_type: string | null
+          next_action: string | null
+          due_date: string | null
+          note: string | null
+          created_from: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          market_property_id?: string | null
+          title: string
+          description?: string
+          stage?: string
+          priority?: string
+          signal_type?: string | null
+          next_action?: string | null
+          due_date?: string | null
+          note?: string | null
+          created_from?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          market_property_id?: string | null
+          title?: string
+          description?: string
+          stage?: string
+          priority?: string
+          signal_type?: string | null
+          next_action?: string | null
+          due_date?: string | null
+          note?: string | null
+          created_from?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'opportunities_market_property_id_fkey'
+            columns: ['market_property_id']
+            isOneToOne: false
+            referencedRelation: 'market_properties'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      property_notes: {
+        Row: {
+          id: string
+          market_property_id: string | null
+          opportunity_id: string | null
+          note: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          market_property_id?: string | null
+          opportunity_id?: string | null
+          note: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          market_property_id?: string | null
+          opportunity_id?: string | null
+          note?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'property_notes_market_property_id_fkey'
+            columns: ['market_property_id']
+            isOneToOne: false
+            referencedRelation: 'market_properties'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'property_notes_opportunity_id_fkey'
+            columns: ['opportunity_id']
+            isOneToOne: false
+            referencedRelation: 'opportunities'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      sync_runs: {
+        Row: {
+          id: string
+          zone_id: string | null
+          provider: string
+          status: string
+          started_at: string
+          finished_at: string | null
+          fetched_count: number
+          created_count: number
+          updated_count: number
+          error_message: string | null
+        }
+        Insert: {
+          id?: string
+          zone_id?: string | null
+          provider?: string
+          status: string
+          started_at?: string
+          finished_at?: string | null
+          fetched_count?: number
+          created_count?: number
+          updated_count?: number
+          error_message?: string | null
+        }
+        Update: {
+          id?: string
+          zone_id?: string | null
+          provider?: string
+          status?: string
+          started_at?: string
+          finished_at?: string | null
+          fetched_count?: number
+          created_count?: number
+          updated_count?: number
+          error_message?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'sync_runs_zone_id_fkey'
+            columns: ['zone_id']
+            isOneToOne: false
+            referencedRelation: 'monitored_zones'
+            referencedColumns: ['id']
+          },
+        ]
       }
     }
     Views: {
