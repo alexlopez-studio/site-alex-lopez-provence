@@ -12,7 +12,9 @@ export function middleware(req: NextRequest) {
   const session = req.cookies.get(ADMIN_COOKIE)?.value
   const adminPassword = process.env.ADMIN_PASSWORD
 
-  if (adminPassword && session === adminPassword) {
+  // Pas de mot de passe configuré => accès libre (dev)
+  // Sinon on vérifie le cookie de session
+  if (!adminPassword || session === adminPassword) {
     return NextResponse.next()
   }
 

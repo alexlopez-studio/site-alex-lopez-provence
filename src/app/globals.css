@@ -8,10 +8,10 @@
   --color-brand-light:   #CDF7FF;  /* Blue.100 */
   --color-brand-dark:    #006390;  /* Blue.950 — signature premium */
 
-  /* Accent — Corail iad PANTONE 2348 C */
-  --color-accent:        #ea584a;
-  --color-accent-hover:  #d94535;
-  --color-accent-light:  #fde9e6;
+  /* Corail iad PANTONE 2348 C — renommé pour éviter conflit avec shadcn */
+  --color-coral:         #ea584a;
+  --color-coral-hover:   #d94535;
+  --color-coral-light:   #fde9e6;
 
   /* Neutrals — Noir pur iad + gris sobres + papier chaleureux (liberté créative) */
   --color-foreground:    #000000;
@@ -26,12 +26,12 @@
   --color-success-hover: #15803d;
   --color-error:         #dc2626;
 
-  /* Fonts — Inter partout (sans + serif), Buffalo (Allura placeholder) pour signature uniquement */
+  /* Fonts */
   --font-sans:   var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-serif:  var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-script: var(--font-buffalo), "Brush Script MT", cursive;
 
-  /* Shadcn / UI semantic tokens — dashboards et backoffice */
+  /* ─── Shadcn / UI semantic tokens ───────────────────────── */
   --color-background:         #FFFFFF;
   --color-card:               #FFFFFF;
   --color-card-foreground:    #000000;
@@ -43,7 +43,7 @@
   --color-secondary-foreground:#000000;
   --color-muted:              #F7FAFC;
   --color-muted-foreground:   #595959;
-  --color-accent-color:       #F7FAFC;
+  --color-accent:             #F7FAFC;
   --color-accent-foreground:  #000000;
   --color-destructive:        #dc2626;
   --color-destructive-foreground: #FFFFFF;
@@ -69,79 +69,35 @@ body {
   line-height: 1.6;
 }
 
-/* ─── Script signature (nom Alexandre Lopez en Buffalo) ───────────── */
+/* ─── Classes utilitaires iad (sur fond blanc / papier) ─── */
 .font-script {
   font-family: var(--font-script);
   font-weight: 400;
   letter-spacing: 0;
 }
 
-/* ─── Italic refinement (titres éditoriaux — Inter italic medium) ─────────── */
 .serif-accent {
   font-family: var(--font-serif);
   font-style: italic;
   font-weight: 500;
 }
 
-/* ─── Baseline iad — capitales espacées ──────────────────── */
 .tracking-baseline {
   letter-spacing: 0.2em;
   text-transform: uppercase;
   font-weight: 600;
 }
 
-/* ─── Surface papier chaleureuse (ambiance carnet de route Provence) ─── */
 .paper-surface {
   background: var(--color-paper);
 }
 
-/* ─── Filet fin noir à l'ancienne (séparateur éditorial) ────────── */
 .hairline-divider {
   width: 3rem;
   height: 1px;
   background: var(--color-foreground);
   opacity: 0.3;
   margin: 1rem 0;
-}
-
-/* ─── Photo de profil dans les bulles conversationnelles des outils ─── */
-div[style*="width: 36px"][style*="height: 36px"][style*="border-radius: 999px"][style*="background-color: rgb(0, 119, 182)"] {
-  background-image: url('/alexandre-lopez-no-background.png') !important;
-  background-position: 50% 16% !important;
-  background-size: 245% auto !important;
-  color: transparent !important;
-  border: 2px solid #FFFFFF !important;
-  box-shadow: 0 1px 6px rgba(15, 23, 42, 0.12) !important;
-}
-
-img[src="/alexandre-lopez-face.jpg"] {
-  content: url('/alexandre-lopez-no-background.png');
-  object-fit: cover !important;
-  object-position: 50% 16% !important;
-  background: #FFFFFF;
-}
-
-/* ─── Bulles de conversation outils : meilleure lisibilité des réponses courtes ─── */
-div[style*="border-radius: 16px 16px 4px 16px"],
-div[class*="rounded-br-md"][class*="bg-brand"] {
-  min-width: min(10.5rem, 72vw) !important;
-  max-width: min(28rem, 86vw) !important;
-  padding: 0.78rem 1rem !important;
-  border-radius: 1rem 1rem 0.35rem 1rem !important;
-  line-height: 1.45 !important;
-  text-align: left !important;
-  white-space: pre-wrap !important;
-  word-break: normal !important;
-  overflow-wrap: anywhere !important;
-}
-
-div[style*="border-radius: 16px 16px 16px 4px"],
-div[class*="rounded-bl-md"][class*="bg-white"] {
-  max-width: min(34rem, 86vw) !important;
-  padding: 0.9rem 1rem !important;
-  border-radius: 1rem 1rem 1rem 0.35rem !important;
-  line-height: 1.55 !important;
-  overflow-wrap: anywhere !important;
 }
 
 /* ─── Gélule corail iad — CTA principal (1× par page, inclinée -10° charte) ─── */
@@ -151,7 +107,7 @@ div[class*="rounded-bl-md"][class*="bg-white"] {
   justify-content: center;
   gap: 0.5rem;
   padding: 0.875rem 1.875rem;
-  background: var(--color-accent);
+  background: var(--color-coral);
   color: #FFFFFF;
   font-family: var(--font-sans);
   font-weight: 800;
@@ -165,7 +121,7 @@ div[class*="rounded-bl-md"][class*="bg-white"] {
   box-shadow: 0 6px 16px -8px rgba(234, 88, 74, 0.4);
 }
 .iad-pill-cta:hover {
-  background: var(--color-accent-hover);
+  background: var(--color-coral-hover);
   transform: rotate(-10deg) translateY(-2px);
   box-shadow: 0 12px 24px -12px rgba(234, 88, 74, 0.55);
 }
