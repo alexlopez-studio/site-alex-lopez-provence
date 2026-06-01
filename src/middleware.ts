@@ -5,7 +5,8 @@ const ADMIN_LOGIN_PATH = '/admin/login'
 
 export function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname
-  if (!path.startsWith('/admin')) return NextResponse.next()
+  const isProtected = path.startsWith('/admin') || path.startsWith('/dashboard')
+  if (!isProtected) return NextResponse.next()
   if (path === ADMIN_LOGIN_PATH) return NextResponse.next()
 
   const session = req.cookies.get(ADMIN_COOKIE)?.value
@@ -16,10 +17,10 @@ export function middleware(req: NextRequest) {
   }
 
   const loginUrl = new URL(ADMIN_LOGIN_PATH, req.url)
-  loginUrl.searchParams.set('redirect', path)
+  loginUrl.searchParams.set('redirect', path.startsWith('/dashboard') ? '/admin/market' : path)
   return NextResponse.redirect(loginUrl)
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/dashboard/:path*'],
 }
