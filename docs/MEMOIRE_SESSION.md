@@ -74,7 +74,7 @@ Le **Spec Kit** est installé et initialisé dans le projet. Il permet de décri
 | `src/app/api/market/zones/route.ts` | `GET`, `POST` | Liste + création zones surveillées |
 | `src/app/api/market/zones/[id]/route.ts` | `GET`, `PATCH`, `DELETE` | Détail, modification, suppression zone |
 
-## 5. Ce qu'il reste à faire (TODO)
+## 5. Ce qui a été fait
 
 ### Lot 3 — Pages UI (interface utilisateur) ✅
 - [x] **Dashboard** : page d'accueil Mandat OS (KPIs, alertes, actions récentes, tendances prix par zone)
@@ -83,10 +83,48 @@ Le **Spec Kit** est installé et initialisé dans le projet. Il permet de décri
 - [x] **Kanban opportunités** : pipeline 7 colonnes (À qualifier → Mandat potentiel), cartes type/signal/priorité
 - [x] **Règles** : liste avec toggle activation, badges déclencheurs, exécution manuelle
 - [x] **Notifications** : Sheet latéral accessible depuis topbar, badges de priorité
-- [ ] **Vendeurs** : pipeline vendeur / prospects
-- [ ] **Estimation** : gestion des demandes estimation
 
-### Fichiers créés (Lot 3)
+### Lot 4 — Moteur de règles ✅
+- [x] Assistant création règle UI (4 étapes : déclencheur → conditions → actions → activation)
+- [x] Route API exécution manuelle `POST /api/market/rules/[id]/execute`
+- [x] Règles préconfigurées en seed SQL (6 règles)
+- [x] Bouton exécuter avec spinner + toast dans RulesList
+
+### Autres corrections
+- [x] Header/footer supprimés de la zone admin
+- [x] Route /dashboard avec redirection vers /admin/market
+- [x] Middleware protège /dashboard + /admin
+- [x] Variables CSS shadcn dans @theme
+- [x] Spec Kit reconfiguré pour Claude (était Copilot)
+- [x] Button.tsx : variant primary rétabli
+
+### Fichiers créés
+
+#### Lot 1 — Infrastructure & synchronisation
+
+| Fichier | Description |
+|---|---|
+| `src/types/supabase.ts` | Types TypeScript pour toutes les tables (Phase B + Mandat OS) |
+| `src/lib/env.ts` | Ajout de `streamEstate` (apiUrl, apiKey) |
+| `src/lib/stream-estate.ts` | Client Stream Estate : `fetchListings()`, `fetchListingById()` + normalisation |
+| `src/app/api/market/properties/route.ts` | `GET /api/market/properties` — liste filtrée |
+| `src/app/api/market/properties/[id]/route.ts` | `GET/PATCH /api/market/properties/[id]` — détail + signal métier |
+| `src/app/api/market/sync/route.ts` | `POST /api/market/sync` — sync par code postal + moteur de règles |
+
+#### Lot 2 — API routes CRUD
+
+| Fichier | Méthodes | Description |
+|---|---|---|
+| `src/app/api/market/rules/route.ts` | `GET`, `POST` | Liste + création règles de gestion |
+| `src/app/api/market/rules/[id]/route.ts` | `GET`, `PATCH`, `DELETE` | Détail, modification, suppression règle |
+| `src/app/api/market/notifications/route.ts` | `GET`, `PATCH` | Liste + mise à jour groupée notifications |
+| `src/app/api/market/notifications/[id]/route.ts` | `PATCH` | Mise à jour status notification individuelle |
+| `src/app/api/market/opportunities/route.ts` | `GET`, `POST` | Liste + création opportunités |
+| `src/app/api/market/opportunities/[id]/route.ts` | `GET`, `PATCH`, `DELETE` | Détail, modification, suppression opportunité |
+| `src/app/api/market/zones/route.ts` | `GET`, `POST` | Liste + création zones surveillées |
+| `src/app/api/market/zones/[id]/route.ts` | `GET`, `PATCH`, `DELETE` | Détail, modification, suppression zone |
+
+#### Lot 3 — Pages UI
 
 | Fichier | Description |
 |---|---|
@@ -100,16 +138,39 @@ Le **Spec Kit** est installé et initialisé dans le projet. Il permet de décri
 | `src/app/admin/market/opportunities/page.tsx` | Kanban — page pipeline |
 | `src/app/admin/market/opportunities/KanbanBoard.tsx` | Kanban 7 colonnes, cartes avec type/signal/priorité/propriété liée |
 | `src/app/admin/market/rules/page.tsx` | Règles — page liste |
-| `src/app/admin/market/rules/RulesList.tsx` | Liste en grille avec toggle, badges déclencheur, exécution/modifier/dupliquer/supprimer |
+| `src/app/admin/market/rules/RulesList.tsx` | Liste en grille avec toggle, badges déclencheur, exécution manuelle via API |
 | `src/components/admin/NotificationsSheet.tsx` | Sheet latéral notifications avec badges priorité, actions marquer/archiver |
+| `src/app/dashboard/page.tsx` | Route /dashboard → redirection vers /admin/market |
 
-### Lot 4 — Moteur de règles (déjà partiellement fait dans sync)
-- [ ] Assistant création règle UI (4 étapes : déclencheur → conditions → actions → activation)
-- [ ] Exécution manuelle d'une règle
-- [ ] Règles préconfigurées à insérer en seed
+#### Lot 4 — Moteur de règles
+
+| Fichier | Description |
+|---|---|
+| `src/app/api/market/rules/[id]/execute/route.ts` | `POST /api/market/rules/[id]/execute` — exécution manuelle |
+| `src/components/admin/RuleWizard.tsx` | Assistant création 4 étapes (déclencheur → conditions → actions → activation) |
+| `src/app/admin/market/rules/new/page.tsx` | Route `/admin/market/rules/new` |
+| `supabase/migrations/003_seed_rules.sql` | 6 règles préconfigurées (baisse >5%, nouveau bien, sous-évalué, stagnation, baisse modérée, expiration) |
+
+### Routes disponibles
+
+| URL | Description |
+|---|---|
+| `/dashboard` | Redirige vers `/admin/market` |
+| `/admin/market` | Dashboard Mandat OS |
+| `/admin/market/properties` | Tableau du marché |
+| `/admin/market/properties/[id]` | Détail d'un bien |
+| `/admin/market/opportunities` | Kanban pipeline |
+| `/admin/market/rules` | Liste des règles |
+| `/admin/market/rules/new` | Assistant création de règle |
+
+## 6. Ce qu'il reste à faire (TODO)
 
 ### Lot 5 — Suivi conso API
 - [ ] Dashboard consommation Stream Estate (items/jour, coût estimé)
+
+### Pages restantes
+- [ ] Pipeline vendeurs / prospects
+- [ ] Gestion des demandes d'estimation
 
 ## 6. Déploiement
 
