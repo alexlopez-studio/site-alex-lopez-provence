@@ -30,6 +30,26 @@
   --font-sans:   var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-serif:  var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-script: var(--font-buffalo), "Brush Script MT", cursive;
+
+  /* Shadcn / UI semantic tokens — dashboards et backoffice */
+  --color-background:         #FFFFFF;
+  --color-card:               #FFFFFF;
+  --color-card-foreground:    #000000;
+  --color-popover:            #FFFFFF;
+  --color-popover-foreground: #000000;
+  --color-primary:            #00b4ec;
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary:          #F7FAFC;
+  --color-secondary-foreground:#000000;
+  --color-muted:              #F7FAFC;
+  --color-muted-foreground:   #595959;
+  --color-accent-color:       #F7FAFC;
+  --color-accent-foreground:  #000000;
+  --color-destructive:        #dc2626;
+  --color-destructive-foreground: #FFFFFF;
+  --color-input:              #E5E7EB;
+  --color-ring:               #00b4ec;
+  --radius:                   0.5rem;
 }
 
 /* ─── Base Reset ────────────────────────────── */
@@ -45,7 +65,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: var(--color-foreground);
-  background: #FFFFFF;
+  background: var(--color-background);
   line-height: 1.6;
 }
 
