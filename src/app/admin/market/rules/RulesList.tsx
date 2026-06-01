@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
+import { toast } from 'sonner'
 import {
   Plus,
   ScrollText,
@@ -16,6 +18,7 @@ import {
   Clock,
   Zap,
   ArrowUpRight,
+  Loader2,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -127,9 +130,28 @@ function formatDate(dateStr: string | null) {
 
 export function RulesList() {
   const [rules, setRules] = useState(MOCK_RULES)
+  const [executingId, setExecutingId] = useState<string | null>(null)
 
   const toggleRule = (ruleId: string) => {
     setRules(rules.map(r => r.id === ruleId ? { ...r, active: !r.active } : r))
+  }
+
+  const executeRule = async (ruleId: string) => {
+    setExecutingId(ruleId)
+    try {
+      const res = await fetch(`/api/market/rules/${ruleId}/execute`, { method: 'POST' })
+      const data = await res.json()
+      if (res.ok) {
+        toast.success(`${data.matched} bien(s) concerné(s), ${data.actions_executed} action(s) exécutée(s)`)
+        setRules(rules.map(r => r.id === ruleId ? { ...r, last_run_at: new Date().toISOString(), runCount: r.runCount + 1 } : r))
+      } else {
+        toast.error(data.error || 'Erreur exécution')
+      }
+    } catch {
+      toast.error('Erreur réseau')
+    } finally {
+      setExecutingId(null)
+    }
   }
 
   return (
@@ -142,10 +164,12 @@ export function RulesList() {
             {rules.filter(r => r.active).length} règles actives sur {rules.length}
           </p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Nouvelle règle
-        </Button>
+        <Link href="/admin/market/rules/new">
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Nouvelle règle
+          </Button>
+        </Link>
       </div>
 
       {/* Rules grid */}
@@ -208,8 +232,19 @@ export function RulesList() {
                     </Button>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" title="Exécuter">
-                      <Play className="h-4 w-4" />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      title="Exécuter"
+                      onClick={() => executeRule(rule.id)}
+                      disabled={executingId === rule.id}
+                    >
+                      {executingId === rule.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Play className="h-4 w-4" />
+                      )}
                     </Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8" title="Modifier">
                       <Pencil className="h-4 w-4" />
