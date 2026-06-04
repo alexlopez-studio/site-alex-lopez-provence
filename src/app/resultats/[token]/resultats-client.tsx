@@ -37,6 +37,8 @@ import {
   SlidersHorizontal,
   RefreshCw,
   CalendarDays,
+  Maximize2,
+  DoorOpen,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { VP as vpOnce, fadeInUp, scaleIn, stagger, staggerFast } from '@/lib/animations'
@@ -291,6 +293,34 @@ function AcheterResults({ data }: { data: AcheterData }) {
   const apport = data.apport ?? 0
   const apportPct = budget > 0 ? Math.round((apport / budget) * 100) : 0
   const priority = buildBuyerPriorities(data)
+
+  // Charger les matchs
+  const [matches, setMatches] = useState<any[]>([])
+  const [loadingMatches, setLoadingMatches] = useState(false)
+
+  // On utilise un token stocké dans le state (récupéré depuis URL ou localStorage)
+  // Pour l'affichage public, on récupère le lead_id depuis l'URL
+  const [leadId, setLeadId] = useState<string | null>(null)
+
+  useEffect(() => {
+    // Essayer de récupérer l'ID du lead depuis l'URL
+    const pathParts = window.location.pathname.split('/')
+    const tokenFromUrl = pathParts[pathParts.length - 1]
+    if (tokenFromUrl && tokenFromUrl.length > 10) {
+      setLeadId(tokenFromUrl)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!leadId) return
+    setLoadingMatches(true)
+    fetch(`/api/market/matching?buyer_lead_id=${leadId}&limit=6&min_score=40`)
+      .then((res) => res.ok ? res.json() : { matches: [] })
+      .then((data) => setMatches(data.matches ?? []))
+      .catch(() => setMatches([]))
+      .finally(() => setLoadingMatches(false))
+  }, [leadId])
+
   return (
     <div className="min-h-screen bg-surface">
       <ResultHeader label="Résultat achat" />
@@ -320,6 +350,65 @@ function AcheterResults({ data }: { data: AcheterData }) {
             <InfoTile icon={Users} label="Primo-accédant" value={data.primo_accedant ?? 'À préciser'} />
           </div>
         </motion.section>
+
+        {/* Matching — Biens qui pourraient vous intéresser */}
+        {(matches.length > 0 || loadingMatches) && (
+          <motion.section initial="initial" whileInView="animate" viewport={vpOnce} variants={stagger} className="rounded-2xl border border-border bg-white p-7 lg:p-9">
+            <motion.h2 variants={fadeInUp} className="mb-5 flex items-center gap-2.5 text-xl font-semibold text-foreground">
+              <Target size={20} className="text-brand" /> Biens qui pourraient vous intéresser
+            </motion.h2>
+            <motion.p variants={fadeInUp} className="mb-6 text-sm leading-relaxed text-muted">
+              Basé sur vos critères, voici une sélection de biens disponibles sur le marché.
+            </motion.p>
+            {loadingMatches ? (
+              <div className="flex items-center justify-center py-8 text-sm text-muted">
+                <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                Analyse des biens disponibles...
+              </div>
+            ) : (
+              <motion.div variants={staggerFast} className="space-y-3">
+                {matches.map((match: any) => {
+                  const prop = match.property
+                  if (!prop) return null
+                  return (
+                    <motion.div key={match.id} variants={scaleIn} className="rounded-xl border border-border p-4 hover:border-brand/30 transition-colors">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">
+                            {prop.title ?? prop.property_type ?? prop.type_bien ?? 'Bien'}
+                          </p>
+                          {prop.city && (
+                            <p className="text-xs text-muted flex items-center gap-1 mt-0.5">
+                              <MapPin className="h-3 w-3" />
+                              {prop.city}
+                            </p>
+                          )}
+                        </div>
+                        <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
+                          match.score >= 80 ? 'text-green-600 bg-green-50 border-green-200' :
+                          match.score >= 60 ? 'text-emerald-600 bg-emerald-50 border-emerald-200' :
+                          'text-amber-600 bg-amber-50 border-amber-200'
+                        }`}>
+                          {match.score}% pertinent
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                        {prop.price && <span className="flex items-center gap-1"><Euro className="h-3 w-3" />{fmt(prop.price)}</span>}
+                        {prop.surface && <span className="flex items-center gap-1"><Maximize2 className="h-3 w-3" />{prop.surface} m²</span>}
+                        {(prop.rooms ?? prop.nb_pieces) ? <span className="flex items-center gap-1"><DoorOpen className="h-3 w-3" />{prop.rooms ?? prop.nb_pieces} pièces</span> : null}
+                        {prop.price_per_m2 && <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3" />{fmt(prop.price_per_m2)}/m²</span>}
+                      </div>
+                    </motion.div>
+                  )
+                })}
+              </motion.div>
+            )}
+            <motion.p variants={fadeInUp} className="mt-5 text-xs text-muted text-center">
+              Ces biens sont identifiés automatiquement. Contactez Alex pour une analyse personnalisée.
+            </motion.p>
+          </motion.section>
+        )}
+
         <motion.section initial="initial" whileInView="animate" viewport={vpOnce} variants={stagger} className="rounded-2xl border border-border bg-white p-7 lg:p-9">
           <motion.h2 variants={fadeInUp} className="mb-5 flex items-center gap-2.5 text-xl font-semibold text-foreground"><Lightbulb size={20} className="text-brand" /> Prochaines actions</motion.h2>
           <ActionList items={priority} />

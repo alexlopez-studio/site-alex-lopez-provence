@@ -616,6 +616,177 @@ export type Database = {
           },
         ]
       }
+      buyer_criteria: {
+        Row: {
+          id: string
+          lead_id: string
+          prospect_id: string | null
+          type_bien: string | null
+          communes: string[] | null
+          budget_max: number | null
+          surface_min: number | null
+          pieces_min: number | null
+          criteres: string[] | null
+          active: boolean
+          matched_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          lead_id: string
+          prospect_id?: string | null
+          type_bien?: string | null
+          communes?: string[] | null
+          budget_max?: number | null
+          surface_min?: number | null
+          pieces_min?: number | null
+          criteres?: string[] | null
+          active?: boolean
+          matched_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          lead_id?: string
+          prospect_id?: string | null
+          type_bien?: string | null
+          communes?: string[] | null
+          budget_max?: number | null
+          surface_min?: number | null
+          pieces_min?: number | null
+          criteres?: string[] | null
+          active?: boolean
+          matched_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      seller_properties: {
+        Row: {
+          id: string
+          lead_id: string
+          prospect_id: string | null
+          adresse: string | null
+          lat: number | null
+          lon: number | null
+          type_bien: string | null
+          sous_type: string | null
+          surface: number | null
+          surface_terrain: number | null
+          nb_pieces: number | null
+          etat: string | null
+          dpe: string | null
+          annee_construction: number | null
+          equipements: string[] | null
+          delai: string | null
+          prix_estime: number | null
+          actif: boolean
+          matched_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          lead_id: string
+          prospect_id?: string | null
+          adresse?: string | null
+          lat?: number | null
+          lon?: number | null
+          type_bien?: string | null
+          sous_type?: string | null
+          surface?: number | null
+          surface_terrain?: number | null
+          nb_pieces?: number | null
+          etat?: string | null
+          dpe?: string | null
+          annee_construction?: number | null
+          equipements?: string[] | null
+          delai?: string | null
+          prix_estime?: number | null
+          actif?: boolean
+          matched_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          lead_id?: string
+          prospect_id?: string | null
+          adresse?: string | null
+          lat?: number | null
+          lon?: number | null
+          type_bien?: string | null
+          sous_type?: string | null
+          surface?: number | null
+          surface_terrain?: number | null
+          nb_pieces?: number | null
+          etat?: string | null
+          dpe?: string | null
+          annee_construction?: number | null
+          equipements?: string[] | null
+          delai?: string | null
+          prix_estime?: number | null
+          actif?: boolean
+          matched_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      match_results: {
+        Row: {
+          id: string
+          buyer_lead_id: string
+          property_id: string | null
+          seller_lead_id: string | null
+          property_type: string
+          score: number
+          score_details: Json
+          matched_commune: boolean
+          matched_type: boolean
+          matched_budget: boolean
+          matched_surface: boolean
+          matched_pieces: boolean
+          notified_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          buyer_lead_id: string
+          property_id?: string | null
+          seller_lead_id?: string | null
+          property_type?: string
+          score?: number
+          score_details?: Json
+          matched_commune?: boolean
+          matched_type?: boolean
+          matched_budget?: boolean
+          matched_surface?: boolean
+          matched_pieces?: boolean
+          notified_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          buyer_lead_id?: string
+          property_id?: string | null
+          seller_lead_id?: string | null
+          property_type?: string
+          score?: number
+          score_details?: Json
+          matched_commune?: boolean
+          matched_type?: boolean
+          matched_budget?: boolean
+          matched_surface?: boolean
+          matched_pieces?: boolean
+          notified_at?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       sync_runs: {
         Row: {
           id: string

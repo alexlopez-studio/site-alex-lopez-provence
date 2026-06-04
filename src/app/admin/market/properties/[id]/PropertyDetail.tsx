@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useState, useEffect } from 'react'
 import {
   ArrowLeft,
   Home,
@@ -23,6 +24,7 @@ import {
   Building2,
   ExternalLink,
   Tag,
+  Users,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -83,10 +85,42 @@ function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
+interface BuyerMatch {
+  buyer_lead_id: string
+  score: number
+  score_details: {
+    commune: number
+    type: number
+    budget: number
+    surface: number
+    pieces: number
+  }
+  matched_commune: boolean
+  matched_type: boolean
+  matched_budget: boolean
+  matched_surface: boolean
+  matched_pieces: boolean
+}
+
 export function PropertyDetail() {
   const params = useParams()
   const router = useRouter()
   const property = MOCK_PROPERTY
+  const propertyId = params.id as string
+
+  // Charger les acheteurs potentiels pour ce bien
+  const [potentialBuyers, setPotentialBuyers] = useState<BuyerMatch[]>([])
+  const [loadingMatches, setLoadingMatches] = useState(false)
+
+  useEffect(() => {
+    if (!propertyId) return
+    setLoadingMatches(true)
+    fetch(`/api/market/matching?property_id=${propertyId}&limit=10&min_score=40`)
+      .then((res) => res.ok ? res.json() : { matches: [] })
+      .then((data) => setPotentialBuyers(data.matches ?? []))
+      .catch(() => setPotentialBuyers([]))
+      .finally(() => setLoadingMatches(false))
+  }, [propertyId])
 
   return (
     <div className="space-y-6">
@@ -329,6 +363,51 @@ export function PropertyDetail() {
                   </Button>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Acquéreurs potentiels — cross-reference matching */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Acquéreurs potentiels
+              </CardTitle>
+              <CardDescription className="text-[11px]">
+                Leads acheteurs dont les critères matchent ce bien
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loadingMatches ? (
+                <p className="text-xs text-muted-foreground">Chargement...</p>
+              ) : potentialBuyers.length === 0 ? (
+                <p className="text-xs text-muted-foreground">Aucun acquéreur potentiel trouvé</p>
+              ) : (
+                <div className="space-y-2">
+                  {potentialBuyers.map((match) => (
+                    <div
+                      key={match.buyer_lead_id}
+                      className="rounded-lg border p-3 hover:bg-accent/50 transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-medium">Acquéreur #{match.buyer_lead_id.slice(0, 8)}</span>
+                        <span className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-semibold ${
+                          match.score >= 80 ? 'text-green-600 bg-green-50 border-green-200' : 'text-amber-600 bg-amber-50 border-amber-200'
+                        }`}>
+                          {match.score}%
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {match.matched_commune && <span className="text-[10px] text-muted-foreground">📍 Commune</span>}
+                        {match.matched_type && <span className="text-[10px] text-muted-foreground">🏠 Type</span>}
+                        {match.matched_budget && <span className="text-[10px] text-muted-foreground">💰 Budget</span>}
+                        {match.matched_surface && <span className="text-[10px] text-muted-foreground">📐 Surface</span>}
+                        {match.matched_pieces && <span className="text-[10px] text-muted-foreground">🚪 Pièces</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 

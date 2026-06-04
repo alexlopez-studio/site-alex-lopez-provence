@@ -15,6 +15,8 @@ import {
 import { saveEstimationToNotion } from '@/lib/notion-estimations'
 import { syncLeadToAttio } from '@/lib/attio'
 import { logServerConversionEvent } from '@/lib/server-analytics'
+import { supabaseAdmin } from '@/lib/supabase'
+import { runMatchingForBuyer } from '@/lib/market/matching-engine'
 
 function isLeadType(value: unknown): value is LeadType {
   return value === 'vendre' || value === 'acheter' || value === 'audit'
@@ -107,6 +109,61 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const magicLinkUrl = `${siteUrl}/resultats/${token}`
+
+  // ── Matching : stocker les critères acheteur/vendeur ────────
+  if (tool === 'acheter') {
+    const buyerData = {
+      lead_id: token,
+      type_bien: typeof formData.type_bien === 'string' ? formData.type_bien : null,
+      communes: Array.isArray(formData.communes) ? formData.communes
+        : typeof formData.communes === 'string' ? formData.communes.split(',').map((s: string) => s.trim())
+        : null,
+      budget_max: typeof formData.budget_max === 'number' ? formData.budget_max : null,
+      surface_min: typeof formData.surface_min === 'number' ? formData.surface_min : null,
+      pieces_min: typeof formData.nb_pieces_min === 'number' ? formData.nb_pieces_min : null,
+      criteres: Array.isArray(formData.criteres) ? formData.criteres : null,
+    }
+
+    const { error: bcError } = await supabaseAdmin
+      .from('buyer_criteria')
+      .upsert(buyerData, { onConflict: 'lead_id', ignoreDuplicates: false })
+
+    if (bcError) {
+      console.error('[API /leads] Erreur sauvegarde buyer_criteria:', bcError)
+    } else {
+      // Lancer le matching en arrière-plan (non bloquant)
+      runMatchingForBuyer(buyerData).catch((err) =>
+        console.error('[API /leads] Erreur matching acheteur:', err)
+      )
+    }
+  }
+
+  if (tool === 'vendre') {
+    const sellerData = {
+      lead_id: token,
+      adresse: typeof formData.adresse === 'string' ? formData.adresse : null,
+      lat: typeof formData.lat === 'number' ? formData.lat : null,
+      lon: typeof formData.lng === 'number' ? formData.lng : null,
+      type_bien: typeof formData.type_bien === 'string' ? formData.type_bien : null,
+      sous_type: typeof formData.sous_type === 'string' ? formData.sous_type : null,
+      surface: typeof formData.surface === 'number' ? formData.surface : null,
+      surface_terrain: typeof formData.surface_terrain === 'number' ? formData.surface_terrain : null,
+      nb_pieces: typeof formData.nb_pieces === 'number' ? formData.nb_pieces : null,
+      etat: typeof formData.etat === 'string' ? formData.etat : null,
+      dpe: typeof formData.dpe === 'string' ? formData.dpe : null,
+      annee_construction: typeof formData.annee_construction === 'number' ? formData.annee_construction : null,
+      equipements: Array.isArray(formData.equipements) ? formData.equipements : null,
+      delai: typeof formData.delai === 'string' ? formData.delai : null,
+    }
+
+    const { error: spError } = await supabaseAdmin
+      .from('seller_properties')
+      .upsert(sellerData, { onConflict: 'lead_id', ignoreDuplicates: false })
+
+    if (spError) {
+      console.error('[API /leads] Erreur sauvegarde seller_properties:', spError)
+    }
+  }
 
   if (dryRun) {
     return NextResponse.json({

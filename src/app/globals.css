@@ -1,25 +1,29 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
 
 /* ─── Design Tokens — Charte iad avec liberté créative Alex Lopez ─── */
 @theme {
   /* Brand — Bleu officiel iad PANTONE 2995 C */
   --color-brand:         #00b4ec;
-  --color-brand-hover:   #008EC3;  /* Blue.700 */
-  --color-brand-light:   #CDF7FF;  /* Blue.100 */
-  --color-brand-dark:    #006390;  /* Blue.950 — signature premium */
+  --color-brand-hover:   #008EC3;
+  --color-brand-light:   #CDF7FF;
+  --color-brand-dark:    #006390;
 
-  /* Corail iad PANTONE 2348 C — renommé pour éviter conflit avec shadcn */
+  /* Corail iad PANTONE 2348 C */
   --color-coral:         #ea584a;
   --color-coral-hover:   #d94535;
   --color-coral-light:   #fde9e6;
 
-  /* Neutrals — Noir pur iad + gris sobres + papier chaleureux (liberté créative) */
+  /* Neutrals */
   --color-foreground:    #000000;
   --color-muted:         #595959;
   --color-border:        #E5E7EB;
   --color-surface:       #F7FAFC;
-  --color-surface-alt:   #E9FCFF;  /* Blue.50 */
-  --color-paper:         #FAFAF7;  /* Blanc cassé chaleureux — ambiance magazine Provence */
+  --color-surface-alt:   #E9FCFF;
+  --color-paper:         #FAFAF7;
 
   /* Feedback */
   --color-success:       #16a34a;
@@ -50,6 +54,58 @@
   --color-input:              #E5E7EB;
   --color-ring:               #00b4ec;
   --radius:                   0.5rem;
+
+  /* ─── Sidebar tokens ───────────────────────────────────── */
+  --color-sidebar:               #fafafa;
+  --color-sidebar-foreground:    #3f3f46;
+  --color-sidebar-primary:       #18181b;
+  --color-sidebar-primary-foreground: #fafafa;
+  --color-sidebar-accent:        #f4f4f5;
+  --color-sidebar-accent-foreground: #18181b;
+  --color-sidebar-border:        #e4e4e7;
+  --color-sidebar-ring:          #00b4ec;
+}
+
+.dark {
+  --color-sidebar:               #18181b;
+  --color-sidebar-foreground:    #f4f4f5;
+  --color-sidebar-primary:       #3b82f6;
+  --color-sidebar-primary-foreground: #ffffff;
+  --color-sidebar-accent:        #27272a;
+  --color-sidebar-accent-foreground: #f4f4f5;
+  --color-sidebar-border:        #27272a;
+  --color-sidebar-ring:          #3b82f6;
+  --background:         oklch(0.145 0 0);
+  --foreground:         oklch(0.985 0 0);
+  --card:         oklch(0.205 0 0);
+  --card-foreground:         oklch(0.985 0 0);
+  --popover:         oklch(0.205 0 0);
+  --popover-foreground:         oklch(0.985 0 0);
+  --primary:         oklch(0.922 0 0);
+  --primary-foreground:         oklch(0.205 0 0);
+  --secondary:         oklch(0.269 0 0);
+  --secondary-foreground:         oklch(0.985 0 0);
+  --muted:         oklch(0.269 0 0);
+  --muted-foreground:         oklch(0.708 0 0);
+  --accent:         oklch(0.269 0 0);
+  --accent-foreground:         oklch(0.985 0 0);
+  --destructive:         oklch(0.704 0.191 22.216);
+  --border:         oklch(1 0 0 / 10%);
+  --input:         oklch(1 0 0 / 15%);
+  --ring:         oklch(0.556 0 0);
+  --chart-1:         oklch(0.87 0 0);
+  --chart-2:         oklch(0.556 0 0);
+  --chart-3:         oklch(0.439 0 0);
+  --chart-4:         oklch(0.371 0 0);
+  --chart-5:         oklch(0.269 0 0);
+  --sidebar:         oklch(0.205 0 0);
+  --sidebar-foreground:         oklch(0.985 0 0);
+  --sidebar-primary:         oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground:         oklch(0.985 0 0);
+  --sidebar-accent:         oklch(0.269 0 0);
+  --sidebar-accent-foreground:         oklch(0.985 0 0);
+  --sidebar-border:         oklch(1 0 0 / 10%);
+  --sidebar-ring:         oklch(0.556 0 0);
 }
 
 /* ─── Base Reset ────────────────────────────── */
@@ -69,7 +125,7 @@ body {
   line-height: 1.6;
 }
 
-/* ─── Classes utilitaires iad (sur fond blanc / papier) ─── */
+/* ─── Classes utilitaires iad ─── */
 .font-script {
   font-family: var(--font-script);
   font-weight: 400;
@@ -100,7 +156,6 @@ body {
   margin: 1rem 0;
 }
 
-/* ─── Gélule corail iad — CTA principal (1× par page, inclinée -10° charte) ─── */
 .iad-pill-cta {
   display: inline-flex;
   align-items: center;
@@ -124,4 +179,96 @@ body {
   background: var(--color-coral-hover);
   transform: rotate(-10deg) translateY(-2px);
   box-shadow: 0 12px 24px -12px rgba(234, 88, 74, 0.55);
+}
+
+/* ─── Sidebar width CSS variable (must be a root-level var for peer selectors) ─── */
+:root {
+  --sidebar-width: 18rem;
+  --sidebar-width-icon: 3rem;
+  --header-height: 3rem;
+  --card:         oklch(1 0 0);
+  --card-foreground:         oklch(0.145 0 0);
+  --popover:         oklch(1 0 0);
+  --popover-foreground:         oklch(0.145 0 0);
+  --primary:         oklch(0.205 0 0);
+  --primary-foreground:         oklch(0.985 0 0);
+  --secondary:         oklch(0.97 0 0);
+  --secondary-foreground:         oklch(0.205 0 0);
+  --muted:         oklch(0.97 0 0);
+  --muted-foreground:         oklch(0.556 0 0);
+  --accent:         oklch(0.97 0 0);
+  --accent-foreground:         oklch(0.205 0 0);
+  --destructive:         oklch(0.577 0.245 27.325);
+  --border:         oklch(0.922 0 0);
+  --input:         oklch(0.922 0 0);
+  --ring:         oklch(0.708 0 0);
+  --chart-1:         oklch(0.87 0 0);
+  --chart-2:         oklch(0.556 0 0);
+  --chart-3:         oklch(0.439 0 0);
+  --chart-4:         oklch(0.371 0 0);
+  --chart-5:         oklch(0.269 0 0);
+  --radius:         0.625rem;
+  --sidebar:         oklch(0.985 0 0);
+  --sidebar-foreground:         oklch(0.145 0 0);
+  --sidebar-primary:         oklch(0.205 0 0);
+  --sidebar-primary-foreground:         oklch(0.985 0 0);
+  --sidebar-accent:         oklch(0.97 0 0);
+  --sidebar-accent-foreground:         oklch(0.205 0 0);
+  --sidebar-border:         oklch(0.922 0 0);
+  --sidebar-ring:         oklch(0.708 0 0);
+  --background:         oklch(1 0 0);
+  --foreground:         oklch(0.145 0 0);
+}
+
+@theme inline {
+  --color-sidebar-ring:         var(--sidebar-ring);
+  --color-sidebar-border:         var(--sidebar-border);
+  --color-sidebar-accent-foreground:         var(--sidebar-accent-foreground);
+  --color-sidebar-accent:         var(--sidebar-accent);
+  --color-sidebar-primary-foreground:         var(--sidebar-primary-foreground);
+  --color-sidebar-primary:         var(--sidebar-primary);
+  --color-sidebar-foreground:         var(--sidebar-foreground);
+  --color-sidebar:         var(--sidebar);
+  --color-chart-5:         var(--chart-5);
+  --color-chart-4:         var(--chart-4);
+  --color-chart-3:         var(--chart-3);
+  --color-chart-2:         var(--chart-2);
+  --color-chart-1:         var(--chart-1);
+  --color-ring:         var(--ring);
+  --color-input:         var(--input);
+  --color-border:         var(--border);
+  --color-destructive:         var(--destructive);
+  --color-accent-foreground:         var(--accent-foreground);
+  --color-accent:         var(--accent);
+  --color-muted-foreground:         var(--muted-foreground);
+  --color-muted:         var(--muted);
+  --color-secondary-foreground:         var(--secondary-foreground);
+  --color-secondary:         var(--secondary);
+  --color-primary-foreground:         var(--primary-foreground);
+  --color-primary:         var(--primary);
+  --color-popover-foreground:         var(--popover-foreground);
+  --color-popover:         var(--popover);
+  --color-card-foreground:         var(--card-foreground);
+  --color-card:         var(--card);
+  --color-foreground:         var(--foreground);
+  --color-background:         var(--background);
+  --radius-sm:         calc(var(--radius) * 0.6);
+  --radius-md:         calc(var(--radius) * 0.8);
+  --radius-lg:         var(--radius);
+  --radius-xl:         calc(var(--radius) * 1.4);
+  --radius-2xl:         calc(var(--radius) * 1.8);
+  --radius-3xl:         calc(var(--radius) * 2.2);
+  --radius-4xl:         calc(var(--radius) * 2.6);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
 }

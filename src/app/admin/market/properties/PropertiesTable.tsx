@@ -38,135 +38,82 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 
-// Mock data
-const PROPERTIES = [
+interface PropertyData {
+  id: string
+  title: string
+  city: string
+  zipcode: string
+  price: number
+  surface: number
+  rooms: number
+  bedrooms: number
+  propertyType: string
+  dpe: string | null
+  status: string
+  daysOnline: number
+  pricePerM2: number
+  tags: string[]
+  lat: number
+  lng: number
+}
+
+// Coordonnées approximatives des communes du Var
+const CITY_COORDS: Record<string, [number, number]> = {
+  'Cotignac': [43.5283, 6.1525],
+  'Brignoles': [43.4067, 6.0617],
+  'Saint-Maximin': [43.4533, 5.8667],
+  'Barjols': [43.5583, 6.0075],
+  'Carcès': [43.4750, 6.1833],
+}
+
+const PROPERTIES: PropertyData[] = [
   {
-    id: '1',
-    title: 'Maison de village 4 pièces',
-    city: 'Cotignac',
-    zipcode: '83570',
-    price: 295000,
-    surface: 110,
-    rooms: 4,
-    bedrooms: 3,
-    propertyType: 'Maison',
-    dpe: 'D',
-    status: 'actif' as const,
-    daysOnline: 15,
-    pricePerM2: 2682,
-    tags: ['Jardin', 'Vue'],
+    id: '1', title: 'Maison de village 4 pièces', city: 'Cotignac', zipcode: '83570',
+    price: 295000, surface: 110, rooms: 4, bedrooms: 3, propertyType: 'Maison',
+    dpe: 'D', status: 'actif', daysOnline: 15, pricePerM2: 2682, tags: ['Jardin', 'Vue'],
+    lat: 43.5283, lng: 6.1525,
   },
   {
-    id: '2',
-    title: 'Villa contemporaine 5 pièces',
-    city: 'Brignoles',
-    zipcode: '83170',
-    price: 459000,
-    surface: 160,
-    rooms: 5,
-    bedrooms: 4,
-    propertyType: 'Villa',
-    dpe: 'B',
-    status: 'prix_en_baisse' as const,
-    daysOnline: 45,
-    pricePerM2: 2869,
-    tags: ['Piscine', 'Garage', 'Terrasse'],
+    id: '2', title: 'Villa contemporaine 5 pièces', city: 'Brignoles', zipcode: '83170',
+    price: 459000, surface: 160, rooms: 5, bedrooms: 4, propertyType: 'Villa',
+    dpe: 'B', status: 'prix_en_baisse', daysOnline: 45, pricePerM2: 2869, tags: ['Piscine', 'Garage', 'Terrasse'],
+    lat: 43.4067, lng: 6.0617,
   },
   {
-    id: '3',
-    title: 'Appartement T3 centre historique',
-    city: 'Saint-Maximin',
-    zipcode: '83470',
-    price: 189000,
-    surface: 72,
-    rooms: 3,
-    bedrooms: 2,
-    propertyType: 'Appartement',
-    dpe: 'C',
-    status: 'nouveau' as const,
-    daysOnline: 2,
-    pricePerM2: 2625,
-    tags: ['Balcon', 'Ascenseur'],
+    id: '3', title: 'Appartement T3 centre historique', city: 'Saint-Maximin', zipcode: '83470',
+    price: 189000, surface: 72, rooms: 3, bedrooms: 2, propertyType: 'Appartement',
+    dpe: 'C', status: 'nouveau', daysOnline: 2, pricePerM2: 2625, tags: ['Balcon', 'Ascenseur'],
+    lat: 43.4533, lng: 5.8667,
   },
   {
-    id: '4',
-    title: 'Bastide provençale 6 pièces',
-    city: 'Barjols',
-    zipcode: '83670',
-    price: 625000,
-    surface: 200,
-    rooms: 6,
-    bedrooms: 4,
-    propertyType: 'Bastide',
-    dpe: 'E',
-    status: 'stagne' as const,
-    daysOnline: 120,
-    pricePerM2: 3125,
-    tags: ['Piscine', 'Puits'],
+    id: '4', title: 'Bastide provençale 6 pièces', city: 'Barjols', zipcode: '83670',
+    price: 625000, surface: 200, rooms: 6, bedrooms: 4, propertyType: 'Bastide',
+    dpe: 'E', status: 'stagne', daysOnline: 120, pricePerM2: 3125, tags: ['Piscine', 'Puits'],
+    lat: 43.5583, lng: 6.0075,
   },
   {
-    id: '5',
-    title: 'Terrain constructible 800m²',
-    city: 'Carcès',
-    zipcode: '83570',
-    price: 85000,
-    surface: 800,
-    rooms: 0,
-    bedrooms: 0,
-    propertyType: 'Terrain',
-    dpe: null,
-    status: 'opportunite' as const,
-    daysOnline: 30,
-    pricePerM2: 106,
-    tags: ['Viabilisé'],
+    id: '5', title: 'Terrain constructible 800m²', city: 'Carcès', zipcode: '83570',
+    price: 85000, surface: 800, rooms: 0, bedrooms: 0, propertyType: 'Terrain',
+    dpe: null, status: 'opportunite', daysOnline: 30, pricePerM2: 106, tags: ['Viabilisé'],
+    lat: 43.4750, lng: 6.1833,
   },
   {
-    id: '6',
-    title: 'Villa 4 pièces avec piscine',
-    city: 'Carcès',
-    zipcode: '83570',
-    price: 385000,
-    surface: 130,
-    rooms: 4,
-    bedrooms: 3,
-    propertyType: 'Villa',
-    dpe: 'C',
-    status: 'actif' as const,
-    daysOnline: 8,
-    pricePerM2: 2962,
-    tags: ['Piscine', 'Climatisation'],
+    id: '6', title: 'Villa 4 pièces avec piscine', city: 'Carcès', zipcode: '83570',
+    price: 385000, surface: 130, rooms: 4, bedrooms: 3, propertyType: 'Villa',
+    dpe: 'C', status: 'actif', daysOnline: 8, pricePerM2: 2962, tags: ['Piscine', 'Climatisation'],
+    lat: 43.4800, lng: 6.1900,
   },
   {
-    id: '7',
-    title: 'Maison de maître 7 pièces',
-    city: 'Cotignac',
-    zipcode: '83570',
-    price: 720000,
-    surface: 250,
-    rooms: 7,
-    bedrooms: 5,
-    propertyType: 'Maison',
-    dpe: 'F',
-    status: 'prix_en_baisse' as const,
-    daysOnline: 90,
-    pricePerM2: 2880,
-    tags: ['Jardin', 'Cave', 'Grenier'],
+    id: '7', title: 'Maison de maître 7 pièces', city: 'Cotignac', zipcode: '83570',
+    price: 720000, surface: 250, rooms: 7, bedrooms: 5, propertyType: 'Maison',
+    dpe: 'F', status: 'prix_en_baisse', daysOnline: 90, pricePerM2: 2880, tags: ['Jardin', 'Cave', 'Grenier'],
+    lat: 43.5350, lng: 6.1600,
   },
   {
-    id: '8',
-    title: 'Appartement T2 centre ville',
-    city: 'Brignoles',
-    zipcode: '83170',
-    price: 135000,
-    surface: 52,
-    rooms: 2,
-    bedrooms: 1,
-    propertyType: 'Appartement',
-    dpe: 'D',
-    status: 'nouveau' as const,
-    daysOnline: 1,
-    pricePerM2: 2596,
-    tags: ['Centre', 'Commerces'],
+    id: '8', title: 'Appartement T2 centre ville', city: 'Brignoles', zipcode: '83170',
+    price: 135000, surface: 52, rooms: 2, bedrooms: 1, propertyType: 'Appartement',
+    dpe: 'D', status: 'nouveau', daysOnline: 1, pricePerM2: 2596, tags: ['Centre', 'Commerces'],
+    lat: 43.4100, lng: 6.0650,
   },
 ]
 

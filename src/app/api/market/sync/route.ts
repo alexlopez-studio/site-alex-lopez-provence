@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { fetchListings } from '@/lib/stream-estate'
+import { runMatchingForProperty } from '@/lib/market/matching-engine'
 
 /**
  * POST /api/market/sync
@@ -157,6 +158,35 @@ export async function POST(req: NextRequest) {
                 tag: 'Nouvelle annonce',
                 source: 'system',
               })
+
+            // Lancer le matching automatique contre les acheteurs
+            runMatchingForProperty(newProperty.id, 'market').then(async (matches) => {
+              // Créer des notifications pour les bons matchs (score ≥ 60)
+              const goodMatches = matches.filter((m) => m.score >= 60)
+              if (goodMatches.length === 0) return
+
+              const { data: propertyInfo } = await supabaseAdmin
+                .from('market_properties')
+                .select('title, city, price')
+                .eq('id', newProperty.id)
+                .single()
+
+              const formatter = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
+
+              for (const match of goodMatches) {
+                await supabaseAdmin.from('notifications').insert({
+                  type: 'matching_buyer',
+                  title: `Nouveau bien matché pour un acheteur`,
+                  message: `${propertyInfo?.title ?? 'Nouveau bien'} à ${propertyInfo?.city ?? ''} — ${propertyInfo?.price ? formatter.format(propertyInfo.price) : ''} — Score: ${match.score}%`,
+                  priority: match.score >= 80 ? 'high' : 'medium',
+                  market_property_id: newProperty.id,
+                  status: 'unread',
+                  action_label: 'Voir le matching',
+                } as never)
+              }
+            }).catch((err) =>
+              console.error('[Sync] Erreur matching auto pour nouveau bien:', err)
+            )
           }
 
           createdCount++
