@@ -7,6 +7,11 @@
 import { supabaseAdmin } from '@/lib/supabase'
 import type { ListingEvent, ListingEventType, ListingSnapshot } from './types'
 
+// ── Type helper pour tables non encore typées ──────────────
+const db = {
+    listing_events: () => supabaseAdmin.from('listing_events') as any,
+}
+
 // ── Détection d'événements ─────────────────────────────────
 
 interface SnapshotPair {
@@ -115,7 +120,7 @@ export async function insertEvents(
 ): Promise<number> {
     if (events.length === 0) return 0
 
-    const { error } = await supabaseAdmin.from('listing_events').insert(
+    const { error } = await db.listing_events().insert(
         events.map((e) => ({
             ...e,
             detected_at: new Date().toISOString(),
@@ -132,8 +137,7 @@ export async function insertEvents(
  * Compte le nombre de baisses de prix pour un listing.
  */
 export async function countPriceDrops(listingId: string): Promise<number> {
-    const { count, error } = await supabaseAdmin
-        .from('listing_events')
+    const { count, error } = await db.listing_events()
         .select('*', { count: 'exact', head: true })
         .eq('listing_id', listingId)
         .eq('event_type', 'price_drop')
@@ -147,8 +151,7 @@ export async function countPriceDrops(listingId: string): Promise<number> {
  * Somme de tous les drop_percent des événements price_drop.
  */
 export async function getTotalDropPercent(listingId: string): Promise<number> {
-    const { data, error } = await supabaseAdmin
-        .from('listing_events')
+    const { data, error } = await db.listing_events()
         .select('drop_percent')
         .eq('listing_id', listingId)
         .eq('event_type', 'price_drop')
@@ -162,8 +165,7 @@ export async function getTotalDropPercent(listingId: string): Promise<number> {
  * Vérifie si un listing a été republié.
  */
 export async function isRelisted(listingId: string): Promise<boolean> {
-    const { count, error } = await supabaseAdmin
-        .from('listing_events')
+    const { count, error } = await db.listing_events()
         .select('*', { count: 'exact', head: true })
         .eq('listing_id', listingId)
         .eq('event_type', 'listing_relisted')
@@ -178,8 +180,7 @@ export async function isRelisted(listingId: string): Promise<boolean> {
 export async function getLastEvent(
     listingId: string,
 ): Promise<{ event_type: ListingEventType; detected_at: string } | null> {
-    const { data, error } = await supabaseAdmin
-        .from('listing_events')
+    const { data, error } = await db.listing_events()
         .select('event_type, detected_at')
         .eq('listing_id', listingId)
         .order('detected_at', { ascending: false })

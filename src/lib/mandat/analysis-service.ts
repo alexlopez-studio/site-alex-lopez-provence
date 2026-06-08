@@ -8,7 +8,15 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { importAllListings } from './import-service'
 import { detectEvents, insertEvents, countPriceDrops, getTotalDropPercent, isRelisted } from './event-service'
 import { calculateScore } from './scoring-service'
-import type { BatchResult, Listing, ListingEvent, ListingSnapshot } from './types'
+import type { BatchResult, ListingEvent, ListingSnapshot } from './types'
+
+// ── Type helper pour tables non encore typées ──────────────
+const db = {
+    listings: () => supabaseAdmin.from('listings') as any,
+    listing_snapshots: () => supabaseAdmin.from('listing_snapshots') as any,
+    listing_events: () => supabaseAdmin.from('listing_events') as any,
+    seller_scores: () => supabaseAdmin.from('seller_scores') as any,
+}
 
 // ── Pipeline ────────────────────────────────────────────────
 
@@ -87,8 +95,7 @@ export async function runDailyAnalysis(): Promise<BatchResult> {
  * Utilise la contrainte UNIQUE (listing_id, date) pour éviter les doublons.
  */
 async function snapshotActiveListings(): Promise<number> {
-    const { data: listings, error } = await supabaseAdmin
-        .from('listings')
+    const { data: listings, error } = await db.listings()
         .select('id, price, status, surface, raw')
         .in('status', ['active', 'relisted'])
 
@@ -100,8 +107,7 @@ async function snapshotActiveListings(): Promise<number> {
     let created = 0
     for (const listing of listings) {
         // Vérifier si un snapshot existe déjà aujourd'hui
-        const { data: existing } = await supabaseAdmin
-            .from('listing_snapshots')
+        const { data: existing } = await db.listing_snapshots()
             .select('id')
             .eq('listing_id', listing.id)
             .gte('snapshotted_at', `${today}T00:00:00Z`)
@@ -110,8 +116,7 @@ async function snapshotActiveListings(): Promise<number> {
 
         if (existing) continue // Déjà snapshoté aujourd'hui
 
-        const { error: insertError } = await supabaseAdmin
-            .from('listing_snapshots')
+        const { error: insertError } = await db.listing_snapshots()
             .insert({
                 listing_id: listing.id,
                 price: listing.price,
@@ -139,8 +144,7 @@ async function snapshotActiveListings(): Promise<number> {
  */
 async function detectAndInsertEventsForAll(): Promise<number> {
     // Récupérer les listings qui ont au moins 1 snapshot
-    const { data: listings, error } = await supabaseAdmin
-        .from('listings')
+    const { data: listings, error } = await db.listings()
         .select('id')
 
     if (error) throw error
@@ -169,8 +173,7 @@ async function detectAndInsertEventsForAll(): Promise<number> {
 async function detectEventsForListing(
     listingId: string,
 ): Promise<Array<Omit<ListingEvent, 'id' | 'detected_at'>>> {
-    const { data: snapshots, error } = await supabaseAdmin
-        .from('listing_snapshots')
+    const { data: snapshots, error } = await db.listing_snapshots()
         .select('*')
         .eq('listing_id', listingId)
         .order('snapshotted_at', { ascending: false })
@@ -191,8 +194,7 @@ async function detectEventsForListing(
  * Recalcule le score pour tous les listings actifs.
  */
 async function recalculateAllScores(): Promise<number> {
-    const { data: listings, error } = await supabaseAdmin
-        .from('listings')
+    const { data: listings, error } = await db.listings()
         .select('*')
         .in('status', ['active', 'relisted'])
 
@@ -226,7 +228,7 @@ async function recalculateAllScores(): Promise<number> {
             // Upsert du score (1 par jour)
             const today = new Date().toISOString().split('T')[0]
 
-            const { error: upsertError } = await supabaseAdmin.from('seller_scores').upsert(
+            const { error: upsertError } = await db.seller_scores().upsert(
                 {
                     listing_id: listing.id,
                     score: score.score,

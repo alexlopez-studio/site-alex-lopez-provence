@@ -7,6 +7,11 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { fetchListings } from '@/lib/stream-estate'
 import type { Listing, BatchResult } from './types'
 
+// ── Type helper pour tables non encore typées ──────────────
+const db = {
+    listings: () => supabaseAdmin.from('listings') as any,
+}
+
 const SOURCE = 'stream_estate'
 
 // ── Configuration ──────────────────────────────────────────
@@ -105,8 +110,7 @@ async function upsertListing(raw: Record<string, unknown>): Promise<UpsertResult
     const externalId = String(raw.externalId ?? raw.id ?? '')
 
     // Vérifier si le listing existe déjà
-    const { data: existing } = await supabaseAdmin
-        .from('listings')
+    const { data: existing } = await db.listings()
         .select('id, price, status, last_seen_at')
         .eq('external_id', externalId)
         .eq('source', SOURCE)
@@ -114,8 +118,7 @@ async function upsertListing(raw: Record<string, unknown>): Promise<UpsertResult
 
     if (existing) {
         // Mise à jour
-        const { error } = await supabaseAdmin
-            .from('listings')
+        const { error } = await db.listings()
             .update({
                 price: Number(raw.price ?? 0) || null,
                 title: String(raw.title ?? ''),
@@ -149,7 +152,7 @@ async function upsertListing(raw: Record<string, unknown>): Promise<UpsertResult
     }
 
     // Création
-    const { error } = await supabaseAdmin.from('listings').insert({
+    const { error } = await db.listings().insert({
         external_id: externalId,
         source: SOURCE,
         title: String(raw.title ?? ''),

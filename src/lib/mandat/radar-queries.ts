@@ -6,6 +6,13 @@
 import { supabaseAdmin } from '@/lib/supabase'
 import type { RadarListing, RadarFilters, SellerPhase, ListingEventType } from './types'
 
+// ── Type helper pour tables non encore typées ──────────────
+const db = {
+    listings: () => supabaseAdmin.from('listings') as any,
+    listing_events: () => supabaseAdmin.from('listing_events') as any,
+    seller_scores: () => supabaseAdmin.from('seller_scores') as any,
+}
+
 // ── Helpers ─────────────────────────────────────────────────
 
 function buildRadarListing(row: Record<string, unknown>): RadarListing {
@@ -43,8 +50,7 @@ function buildRadarListing(row: Record<string, unknown>): RadarListing {
 export async function getRadarListings(
     filters: RadarFilters = {},
 ): Promise<{ data: RadarListing[]; total: number }> {
-    let query = supabaseAdmin
-        .from('listings')
+    let query = db.listings()
         .select(`
             *,
             seller_scores!inner (
@@ -126,8 +132,7 @@ export async function getPriceDropsThisWeek(limit = 20): Promise<RadarListing[]>
     const sevenDaysAgo = new Date()
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
 
-    const { data: listingIds, error } = await supabaseAdmin
-        .from('listing_events')
+    const { data: listingIds, error } = await db.listing_events()
         .select('listing_id')
         .eq('event_type', 'price_drop')
         .gte('detected_at', sevenDaysAgo.toISOString())
@@ -145,8 +150,7 @@ export async function getPriceDropsThisWeek(limit = 20): Promise<RadarListing[]>
  * Récupère les listings retirés récemment.
  */
 export async function getRemovedListings(limit = 20): Promise<RadarListing[]> {
-    const { data: listingIds, error } = await supabaseAdmin
-        .from('listing_events')
+    const { data: listingIds, error } = await db.listing_events()
         .select('listing_id')
         .in('event_type', ['listing_removed'])
         .order('detected_at', { ascending: false })
@@ -168,8 +172,7 @@ export async function getStaleListings(limit = 20): Promise<RadarListing[]> {
     const ninetyDaysAgo = new Date()
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90)
 
-    const { data, error } = await supabaseAdmin
-        .from('listings')
+    const { data, error } = await db.listings()
         .select('id')
         .in('status', ['active', 'relisted'])
         .lte('first_seen_at', ninetyDaysAgo.toISOString())
@@ -188,8 +191,7 @@ export async function getStaleListings(limit = 20): Promise<RadarListing[]> {
  * Récupère les listings republiés.
  */
 export async function getRelistedListings(limit = 20): Promise<RadarListing[]> {
-    const { data: listingIds, error } = await supabaseAdmin
-        .from('listing_events')
+    const { data: listingIds, error } = await db.listing_events()
         .select('listing_id')
         .eq('event_type', 'listing_relisted')
         .order('detected_at', { ascending: false })
@@ -215,8 +217,7 @@ export async function getRadarKPIs(): Promise<{
     averageScore: number
 }> {
     const [{ count: totalActive }, hot, stale, drops] = await Promise.all([
-        supabaseAdmin
-            .from('listings')
+        db.listings()
             .select('*', { count: 'exact', head: true })
             .in('status', ['active', 'relisted']),
         getHotListings(100),
@@ -225,8 +226,7 @@ export async function getRadarKPIs(): Promise<{
     ])
 
     // Score moyen des listings actifs
-    const { data: avgData } = await supabaseAdmin
-        .from('seller_scores')
+    const { data: avgData } = await db.seller_scores()
         .select('score')
         .order('calculated_at', { ascending: false })
         .limit(1000)
