@@ -9,7 +9,7 @@ import type { Listing, BatchResult } from './types'
 
 // ── Type helper pour tables non encore typées ──────────────
 const db = {
-    listings: () => supabaseAdmin.from('listings') as any,
+    listings: () => supabaseAdmin.from('listings' as unknown as any) as any,
 }
 
 const SOURCE = 'stream_estate'
