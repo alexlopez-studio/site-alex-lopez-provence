@@ -9,7 +9,7 @@ import type { ListingEvent, ListingEventType, ListingSnapshot } from './types'
 
 // ── Type helper pour tables non encore typées ──────────────
 const db = {
-    listing_events: () => supabaseAdmin.from('listing_events') as any,
+    listing_events: () => supabaseAdmin.from('listing_events' as unknown as any) as any,
 }
 
 // ── Détection d'événements ─────────────────────────────────

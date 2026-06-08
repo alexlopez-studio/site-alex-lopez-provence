@@ -8,9 +8,9 @@ import type { RadarListing, RadarFilters, SellerPhase, ListingEventType } from '
 
 // ── Type helper pour tables non encore typées ──────────────
 const db = {
-    listings: () => supabaseAdmin.from('listings') as any,
-    listing_events: () => supabaseAdmin.from('listing_events') as any,
-    seller_scores: () => supabaseAdmin.from('seller_scores') as any,
+    listings: () => supabaseAdmin.from('listings' as unknown as any) as any,
+    listing_events: () => supabaseAdmin.from('listing_events' as unknown as any) as any,
+    seller_scores: () => supabaseAdmin.from('seller_scores' as unknown as any) as any,
 }
 
 // ── Helpers ─────────────────────────────────────────────────
