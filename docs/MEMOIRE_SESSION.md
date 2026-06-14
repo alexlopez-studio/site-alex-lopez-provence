@@ -1,8 +1,10 @@
 # Mémoire de session — Mandat OS MVP
 
-**Date** : 31 mai → 1er juin 2026  
+**Date** : 31 mai → 1er juin 2026 (mise à jour le 14/06/2026)
 **Dernier commit** : `4e219d5` (pushé sur `main`)  
 **Preview Vercel** : https://site-alex-lopez-provence-4gskmtyuu-alexlopez-studio.vercel.app
+
+> Pour la vue d'ensemble fonctionnelle du site + du backoffice (toutes pages, API, schéma de données, intégrations), voir `docs/CAHIER_DES_CHARGES.md`.
 
 ---
 
@@ -165,12 +167,21 @@ Le **Spec Kit** est installé et initialisé dans le projet. Il permet de décri
 
 ## 6. Ce qu'il reste à faire (TODO)
 
+> Mise à jour 14/06/2026 : sur la branche `claude/dreamy-thompson-v6i8ac` (PR #105, non encore mergée sur `main`), du travail supplémentaire a été livré au-delà de ce mémo :
+> - **Pages restantes (ci-dessous) → faites** : `/admin/market/leads` (+ `[id]`), `/api/leads/list`, `/api/leads/stats`, `/api/leads/[id]/resend` couvrent le pipeline vendeurs/prospects et la gestion des demandes d'estimation.
+> - **Acquéreurs** : `/admin/market/acheteurs` (+ `nouveau`, `[id]`) ajoutés.
+> - **Matching** : `/admin/market/matching` + `/api/market/matching*` ajoutés.
+> - **Zones & Settings** : `/admin/market/zones`, `/admin/market/settings` ajoutés.
+> - **MandatFinder (architecture DDD)** : migration `005_mandatfinder_core.sql`, services `src/lib/mandat/*`, dashboard Radar (`/dashboard/radar`).
+>
+> Reste donc principalement :
+
 ### Lot 5 — Suivi conso API
-- [ ] Dashboard consommation Stream Estate (items/jour, coût estimé)
+- [ ] Dashboard consommation Stream Estate (items/jour, coût estimé) — pas encore implémenté ; la table `sync_runs` existe et est alimentée par `/api/market/sync`, mais aucune UI de visualisation dédiée pour l'instant.
 
 ### Pages restantes
-- [ ] Pipeline vendeurs / prospects
-- [ ] Gestion des demandes d'estimation
+- [x] Pipeline vendeurs / prospects — fait (`/admin/market/leads`)
+- [x] Gestion des demandes d'estimation — fait (`/admin/market/leads/[id]`, renvoi magic link)
 
 ## 6. Déploiement
 
