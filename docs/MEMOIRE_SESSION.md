@@ -1,7 +1,7 @@
 # Mémoire de session — Mandat OS MVP
 
-**Date** : 31 mai → 1er juin 2026 (mise à jour le 14/06/2026)
-**Dernier commit** : `4e219d5` (pushé sur `main`)  
+**Date** : 31 mai → 1er juin 2026 (mise à jour le 15/06/2026)
+**Dernier commit** : `05946a0` (branche `claude/dreamy-thompson-v6i8ac`, PR #105 non mergée)
 **Preview Vercel** : https://site-alex-lopez-provence-4gskmtyuu-alexlopez-studio.vercel.app
 
 > Pour la vue d'ensemble fonctionnelle du site + du backoffice (toutes pages, API, schéma de données, intégrations), voir `docs/CAHIER_DES_CHARGES.md`.
@@ -173,11 +173,21 @@ Le **Spec Kit** est installé et initialisé dans le projet. Il permet de décri
 > - **Matching** : `/admin/market/matching` + `/api/market/matching*` ajoutés.
 > - **Zones & Settings** : `/admin/market/zones`, `/admin/market/settings` ajoutés.
 > - **MandatFinder (architecture DDD)** : migration `005_mandatfinder_core.sql`, services `src/lib/mandat/*`, dashboard Radar (`/dashboard/radar`).
+
+> Mise à jour 15/06/2026 : pipeline "fenêtre d'or" MandatFinder branché en production (cron + interrupteur) :
+> - **Cron Vercel ajouté** (`vercel.json`) : `/api/jobs/analyze-listings` chaque nuit à 2h UTC (pipeline complet import → snapshot → événements → scores, un seul cron suffit car l'import est l'étape 1 de l'analyse).
+> - **Toggle pipeline** : migration `006_app_settings.sql` (table clé/valeur `app_settings`, défaut `mandatfinder_pipeline_enabled = true`), helpers `src/lib/settings.ts`, API `GET/PATCH /api/market/settings`. Les deux crons (`import-stream-estate`, `analyze-listings`) court-circuitent l'appel Stream Estate si le toggle est sur `false` (réponse `{ skipped: true, reason: 'pipeline_disabled' }`).
+> - **UI** : carte "Pipeline MandatFinder" sur `/admin/market/settings` (switch on/off persisté, statut Activé/Désactivé).
+> - **⚠️ Action requise côté Supabase** : appliquer la migration `006_app_settings.sql` (non exécutée automatiquement). Sans elle, `getSetting()` retourne le fallback (`true`) et le pipeline tourne par défaut — pas bloquant, mais le toggle UI ne pourra pas persister tant que la table n'existe pas.
+> - **Point de vigilance noté mais non traité** : `analyze-listings`/`import-stream-estate` ont `maxDuration = 300` (5 min), au-delà de la limite par défaut du plan Hobby Vercel (60s). À surveiller au premier run réel (logs Vercel) — si timeout, découper le traitement par lot ou passer en Pro.
 >
 > Reste donc principalement :
 
 ### Lot 5 — Suivi conso API
 - [ ] Dashboard consommation Stream Estate (items/jour, coût estimé) — pas encore implémenté ; la table `sync_runs` existe et est alimentée par `/api/market/sync`, mais aucune UI de visualisation dédiée pour l'instant.
+
+### Lot 6 — Alerting "fenêtre d'or"
+- [ ] Notification proactive (email/Telegram) quand un listing passe en phase `golden` — aujourd'hui il faut consulter `/dashboard/radar` manuellement.
 
 ### Pages restantes
 - [x] Pipeline vendeurs / prospects — fait (`/admin/market/leads`)
