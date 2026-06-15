@@ -9,7 +9,7 @@ import { isMandatFinderPipelineEnabled } from '@/lib/settings'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-export const maxDuration = 300 // 5 minutes max
+export const maxDuration = 60 // limite plan Hobby Vercel
 
 /**
  * GET /api/jobs/analyze-listings

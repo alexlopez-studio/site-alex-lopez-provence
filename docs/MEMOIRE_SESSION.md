@@ -1,7 +1,7 @@
 # Mémoire de session — Mandat OS MVP
 
 **Date** : 31 mai → 1er juin 2026 (mise à jour le 15/06/2026)
-**Dernier commit** : `05946a0` (branche `claude/dreamy-thompson-v6i8ac`, PR #105 non mergée)
+**Dernier commit** : voir branche `claude/dreamy-thompson-v6i8ac`, PR #105 non mergée
 **Preview Vercel** : https://site-alex-lopez-provence-4gskmtyuu-alexlopez-studio.vercel.app
 
 > Pour la vue d'ensemble fonctionnelle du site + du backoffice (toutes pages, API, schéma de données, intégrations), voir `docs/CAHIER_DES_CHARGES.md`.
@@ -179,7 +179,7 @@ Le **Spec Kit** est installé et initialisé dans le projet. Il permet de décri
 > - **Toggle pipeline** : migration `006_app_settings.sql` (table clé/valeur `app_settings`, défaut `mandatfinder_pipeline_enabled = true`), helpers `src/lib/settings.ts`, API `GET/PATCH /api/market/settings`. Les deux crons (`import-stream-estate`, `analyze-listings`) court-circuitent l'appel Stream Estate si le toggle est sur `false` (réponse `{ skipped: true, reason: 'pipeline_disabled' }`).
 > - **UI** : carte "Pipeline MandatFinder" sur `/admin/market/settings` (switch on/off persisté, statut Activé/Désactivé).
 > - **⚠️ Action requise côté Supabase** : appliquer la migration `006_app_settings.sql` (non exécutée automatiquement). Sans elle, `getSetting()` retourne le fallback (`true`) et le pipeline tourne par défaut — pas bloquant, mais le toggle UI ne pourra pas persister tant que la table n'existe pas.
-> - **Point de vigilance noté mais non traité** : `analyze-listings`/`import-stream-estate` ont `maxDuration = 300` (5 min), au-delà de la limite par défaut du plan Hobby Vercel (60s). À surveiller au premier run réel (logs Vercel) — si timeout, découper le traitement par lot ou passer en Pro.
+> - **Fix déploiement (15/06/2026)** : le déploiement Vercel du PR #105 échouait — `maxDuration = 300` (5 min) sur `analyze-listings`/`import-stream-estate` dépassait la limite du plan Hobby (60s), bloquant le build dès que `vercel.json` a activé le cron sur ces routes. Corrigé en passant `maxDuration` à `60` sur les deux routes. ⚠️ Si le traitement complet (import + analyse) dépasse 60s en pratique, il faudra découper le travail par lot ou passer au plan Pro (300s).
 >
 > Reste donc principalement :
 
