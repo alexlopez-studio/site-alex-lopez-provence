@@ -205,6 +205,24 @@ export type Database = {
       }
 
       // ── Tables Mandat OS ──────────────────────────────────
+      app_settings: {
+        Row: {
+          key: string
+          value: Json
+          updated_at: string
+        }
+        Insert: {
+          key: string
+          value: Json
+          updated_at?: string
+        }
+        Update: {
+          key?: string
+          value?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       monitored_zones: {
         Row: {
           id: string

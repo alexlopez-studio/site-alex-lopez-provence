@@ -5,6 +5,7 @@
 
 import { NextResponse } from 'next/server'
 import { importAllListings } from '@/lib/mandat/import-service'
+import { isMandatFinderPipelineEnabled } from '@/lib/settings'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -16,6 +17,11 @@ export const maxDuration = 300 // 5 minutes max
  */
 export async function GET() {
     console.log('[Cron] Démarrage import Stream Estate...')
+
+    if (!(await isMandatFinderPipelineEnabled())) {
+        console.log('[Cron] Pipeline MandatFinder désactivé (app_settings.mandatfinder_pipeline_enabled = false), arrêt.')
+        return NextResponse.json({ success: true, skipped: true, reason: 'pipeline_disabled' })
+    }
 
     try {
         const result = await importAllListings()

@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import { Save, RefreshCw, Mail, Bell, Globe, Clock } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Save, RefreshCw, Mail, Bell, Globe, Satellite } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { toast } from 'sonner'
 
 export default function SettingsPage() {
     const [syncFreq, setSyncFreq] = useState('daily')
@@ -14,6 +15,41 @@ export default function SettingsPage() {
     const [autoMatching, setAutoMatching] = useState(true)
     const [maxProperties, setMaxProperties] = useState('200')
     const [saved, setSaved] = useState(false)
+
+    const [pipelineEnabled, setPipelineEnabled] = useState(true)
+    const [pipelineLoading, setPipelineLoading] = useState(true)
+    const [pipelineSaving, setPipelineSaving] = useState(false)
+
+    useEffect(() => {
+        fetch('/api/market/settings')
+            .then((res) => res.json())
+            .then((data) => {
+                const value = data?.settings?.mandatfinder_pipeline_enabled
+                if (typeof value === 'boolean') setPipelineEnabled(value)
+            })
+            .catch((err) => console.error('Erreur chargement paramètres:', err))
+            .finally(() => setPipelineLoading(false))
+    }, [])
+
+    async function togglePipeline() {
+        const next = !pipelineEnabled
+        setPipelineSaving(true)
+        try {
+            const res = await fetch('/api/market/settings', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mandatfinder_pipeline_enabled: next }),
+            })
+            if (!res.ok) throw new Error('Erreur API')
+            setPipelineEnabled(next)
+            toast.success(next ? 'Pipeline MandatFinder activé' : 'Pipeline MandatFinder désactivé')
+        } catch (err) {
+            console.error('Erreur mise à jour pipeline:', err)
+            toast.error('Impossible de mettre à jour ce paramètre')
+        } finally {
+            setPipelineSaving(false)
+        }
+    }
 
     function handleSave() {
         setSaved(true)
@@ -36,6 +72,42 @@ export default function SettingsPage() {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
+                {/* Pipeline MandatFinder */}
+                <Card>
+                    <CardHeader>
+                        <div className="flex items-center gap-2">
+                            <Satellite className="h-4 w-4 text-brand" />
+                            <CardTitle className="text-sm">Pipeline MandatFinder</CardTitle>
+                        </div>
+                        <CardDescription className="text-xs">
+                            Import quotidien Stream Estate + scoring (cron Vercel, 2h UTC)
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium">Pipeline actif</p>
+                                <p className="text-xs text-muted-foreground">
+                                    Désactiver coupe les appels à l&apos;API Stream Estate (aucun coût) sans toucher au cron
+                                </p>
+                            </div>
+                            <button
+                                onClick={togglePipeline}
+                                disabled={pipelineLoading || pipelineSaving}
+                                className={'relative h-6 w-11 rounded-full transition-colors disabled:opacity-50 ' + (pipelineEnabled ? 'bg-brand' : 'bg-border')}
+                            >
+                                <span className={'absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform shadow-sm ' + (pipelineEnabled ? 'translate-x-5' : '')} />
+                            </button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            Statut :{' '}
+                            <span className={pipelineEnabled ? 'font-medium text-success' : 'font-medium text-error'}>
+                                {pipelineLoading ? '—' : pipelineEnabled ? 'Activé' : 'Désactivé'}
+                            </span>
+                        </p>
+                    </CardContent>
+                </Card>
+
                 {/* Synchronisation */}
                 <Card>
                     <CardHeader>
