@@ -8,6 +8,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { importAllListings } from './import-service'
 import { detectEvents, insertEvents, countPriceDrops, getTotalDropPercent, isRelisted } from './event-service'
 import { calculateScore } from './scoring-service'
+import { sendGoldenAlertIfNeeded } from './alert-service'
 import type { BatchResult, ListingEvent, ListingSnapshot } from './types'
 
 // ── Type helper pour tables non encore typées ──────────────
@@ -66,6 +67,17 @@ export async function runDailyAnalysis(): Promise<BatchResult> {
         scoresRecalculated = await recalculateAllScores()
     } catch (err) {
         errors.push(`Erreur scores: ${err instanceof Error ? err.message : String(err)}`)
+    }
+
+    // ── Étape 5 : Alerting "fenêtre d'or" ───────────────
+    console.log('[MandatFinder] Étape 5/5 : Alerting golden...')
+    try {
+        const alertResult = await sendGoldenAlertIfNeeded()
+        if (!alertResult.skipped) {
+            console.log(`[MandatFinder] ${alertResult.new_golden_count} nouveau(x) golden détecté(s), email envoyé: ${alertResult.email_sent}`)
+        }
+    } catch (err) {
+        errors.push(`Erreur alerting: ${err instanceof Error ? err.message : String(err)}`)
     }
 
     const finishedAt = new Date().toISOString()
