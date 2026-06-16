@@ -17,6 +17,7 @@ import {
   PackageIcon,
   UserPlusIcon,
   PanelLeftIcon,
+  FlameIcon,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -36,6 +37,7 @@ import {
 const NAV_ITEMS = [
   { title: "Dashboard", url: "/admin/market", icon: LayoutDashboardIcon },
   { title: "Leads", url: "/admin/market/leads", icon: UserPlusIcon },
+  { title: "Liste chaude", url: "/admin/market/liste-chaude", icon: FlameIcon },
   { title: "Marché", url: "/admin/market/properties", icon: Building2Icon },
   { title: "Acquéreurs", url: "/admin/market/acheteurs", icon: UsersIcon },
   { title: "Matching", url: "/admin/market/matching", icon: GitCompareArrowsIcon },
