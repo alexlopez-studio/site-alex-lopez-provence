@@ -1,8 +1,10 @@
 # Mémoire de session — Mandat OS MVP
 
-**Date** : 31 mai → 1er juin 2026  
-**Dernier commit** : `4e219d5` (pushé sur `main`)  
+**Date** : 31 mai → 1er juin 2026 (mise à jour le 15/06/2026)
+**Dernier commit** : voir branche `claude/dreamy-thompson-v6i8ac`, PR #105 non mergée
 **Preview Vercel** : https://site-alex-lopez-provence-4gskmtyuu-alexlopez-studio.vercel.app
+
+> Pour la vue d'ensemble fonctionnelle du site + du backoffice (toutes pages, API, schéma de données, intégrations), voir `docs/CAHIER_DES_CHARGES.md`.
 
 ---
 
@@ -165,12 +167,32 @@ Le **Spec Kit** est installé et initialisé dans le projet. Il permet de décri
 
 ## 6. Ce qu'il reste à faire (TODO)
 
+> Mise à jour 14/06/2026 : sur la branche `claude/dreamy-thompson-v6i8ac` (PR #105, non encore mergée sur `main`), du travail supplémentaire a été livré au-delà de ce mémo :
+> - **Pages restantes (ci-dessous) → faites** : `/admin/market/leads` (+ `[id]`), `/api/leads/list`, `/api/leads/stats`, `/api/leads/[id]/resend` couvrent le pipeline vendeurs/prospects et la gestion des demandes d'estimation.
+> - **Acquéreurs** : `/admin/market/acheteurs` (+ `nouveau`, `[id]`) ajoutés.
+> - **Matching** : `/admin/market/matching` + `/api/market/matching*` ajoutés.
+> - **Zones & Settings** : `/admin/market/zones`, `/admin/market/settings` ajoutés.
+> - **MandatFinder (architecture DDD)** : migration `005_mandatfinder_core.sql`, services `src/lib/mandat/*`, dashboard Radar (`/dashboard/radar`).
+
+> Mise à jour 15/06/2026 : pipeline "fenêtre d'or" MandatFinder branché en production (cron + interrupteur) :
+> - **Cron Vercel ajouté** (`vercel.json`) : `/api/jobs/analyze-listings` chaque nuit à 2h UTC (pipeline complet import → snapshot → événements → scores, un seul cron suffit car l'import est l'étape 1 de l'analyse).
+> - **Toggle pipeline** : migration `006_app_settings.sql` (table clé/valeur `app_settings`, défaut `mandatfinder_pipeline_enabled = true`), helpers `src/lib/settings.ts`, API `GET/PATCH /api/market/settings`. Les deux crons (`import-stream-estate`, `analyze-listings`) court-circuitent l'appel Stream Estate si le toggle est sur `false` (réponse `{ skipped: true, reason: 'pipeline_disabled' }`).
+> - **UI** : carte "Pipeline MandatFinder" sur `/admin/market/settings` (switch on/off persisté, statut Activé/Désactivé).
+> - **⚠️ Action requise côté Supabase** : appliquer la migration `006_app_settings.sql` (non exécutée automatiquement). Sans elle, `getSetting()` retourne le fallback (`true`) et le pipeline tourne par défaut — pas bloquant, mais le toggle UI ne pourra pas persister tant que la table n'existe pas.
+> - **`maxDuration` corrigé (15/06/2026)** : `analyze-listings`/`import-stream-estate` étaient à `maxDuration = 300` (5 min), au-delà de la limite du plan Hobby (60s) — ramené à `60`. Bonne pratique nécessaire mais probablement pas suffisante (voir point ci-dessous).
+> - **🔴 Déploiement Vercel du PR #105 en échec (non résolu)** : le check "Vercel" est en `failure` sur les derniers commits, y compris un commit docs-only — le build local (`pnpm run build`) passe sans erreur, et l'échec survient en quelques secondes (avant la fin d'un build normal), ce qui suggère un problème côté projet/compte Vercel (build qui ne démarre pas, quota, config du projet) plutôt qu'une erreur de code. Pas d'accès aux logs Vercel depuis cet environnement (`npx vercel inspect ... --logs` nécessite une auth non disponible ici). **Action requise côté Alexandre** : consulter les logs de déploiement sur le dashboard Vercel (lien dans les checks du PR #105) pour identifier la cause exacte.
+>
+> Reste donc principalement :
+
 ### Lot 5 — Suivi conso API
-- [ ] Dashboard consommation Stream Estate (items/jour, coût estimé)
+- [ ] Dashboard consommation Stream Estate (items/jour, coût estimé) — pas encore implémenté ; la table `sync_runs` existe et est alimentée par `/api/market/sync`, mais aucune UI de visualisation dédiée pour l'instant.
+
+### Lot 6 — Alerting "fenêtre d'or"
+- [ ] Notification proactive (email/Telegram) quand un listing passe en phase `golden` — aujourd'hui il faut consulter `/dashboard/radar` manuellement.
 
 ### Pages restantes
-- [ ] Pipeline vendeurs / prospects
-- [ ] Gestion des demandes d'estimation
+- [x] Pipeline vendeurs / prospects — fait (`/admin/market/leads`)
+- [x] Gestion des demandes d'estimation — fait (`/admin/market/leads/[id]`, renvoi magic link)
 
 ## 6. Déploiement
 
