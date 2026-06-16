@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
         name: body.name.trim(),
         zipcode: body.zipcode,
         city: body.city ?? null,
-        radius_km: body.radius_km ?? null,
+        insee_code: body.insee_code ?? null,
         active: body.active !== undefined ? Boolean(body.active) : true,
         sync_frequency: body.sync_frequency ?? 'daily',
       })

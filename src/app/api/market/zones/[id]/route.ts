@@ -63,7 +63,7 @@ export async function PATCH(
     if (body.name !== undefined) updateData.name = body.name
     if (body.zipcode !== undefined) updateData.zipcode = body.zipcode
     if (body.city !== undefined) updateData.city = body.city
-    if (body.radius_km !== undefined) updateData.radius_km = body.radius_km
+    if (body.insee_code !== undefined) updateData.insee_code = body.insee_code
     if (body.active !== undefined) updateData.active = Boolean(body.active)
     if (body.sync_frequency !== undefined) updateData.sync_frequency = body.sync_frequency
 
@@ -89,6 +89,8 @@ export async function PATCH(
 /**
  * DELETE /api/market/zones/[id]
  * Supprime une zone surveillée.
+ * Cascade : supprime les biens associés si aucune autre zone active
+ * ne surveille le même code postal.
  */
 export async function DELETE(
   _req: NextRequest,
@@ -99,7 +101,7 @@ export async function DELETE(
 
     const { data: existing, error: fetchError } = await supabaseAdmin
       .from('monitored_zones')
-      .select('id')
+      .select('id, zipcode')
       .eq('id', id)
       .single()
 
@@ -107,6 +109,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Zone introuvable' }, { status: 404 })
     }
 
+    const zipcode = existing.zipcode
+
+    // Supprimer la zone
     const { error } = await supabaseAdmin
       .from('monitored_zones')
       .delete()
@@ -117,7 +122,25 @@ export async function DELETE(
       return NextResponse.json({ error: 'Erreur suppression' }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true })
+    // Vérifier si d'autres zones actives utilisent le même code postal
+    const { count: remainingZones } = await supabaseAdmin
+      .from('monitored_zones')
+      .select('id', { count: 'exact', head: true })
+      .eq('zipcode', zipcode)
+
+    let deletedProperties = 0
+    if (!remainingZones || remainingZones === 0) {
+      // Plus aucune zone ne surveille ce code postal → purge des biens
+      const { count } = await supabaseAdmin
+        .from('market_properties')
+        .delete()
+        .eq('zipcode', zipcode)
+        .select('id', { count: 'exact', head: true } as never)
+
+      deletedProperties = count ?? 0
+    }
+
+    return NextResponse.json({ success: true, deleted_properties: deletedProperties })
   } catch (e) {
     console.error('[API /market/zones/[id]] DELETE', e)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
