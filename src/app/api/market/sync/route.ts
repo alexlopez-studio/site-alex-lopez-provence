@@ -232,21 +232,23 @@ export async function POST(req: NextRequest) {
       })
     } catch (err) {
       // Erreur pendant la sync
+      const errMsg = err instanceof Error ? err.message : String(err)
       if (syncId) {
         await supabaseAdmin
           .from('sync_runs')
           .update({
             status: 'error',
             finished_at: new Date().toISOString(),
-            error_message: String(err),
+            error_message: errMsg,
           })
           .eq('id', syncId)
       }
-      throw err
+      return NextResponse.json({ error: errMsg }, { status: 500 })
     }
   } catch (e) {
-    console.error('[API /market/sync]', e)
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+    const errMsg = e instanceof Error ? e.message : String(e)
+    console.error('[API /market/sync]', errMsg)
+    return NextResponse.json({ error: errMsg }, { status: 500 })
   }
 }
 

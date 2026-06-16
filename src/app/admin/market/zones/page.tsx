@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { toast } from 'sonner'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -289,12 +290,20 @@ export default function ZonesPage() {
   async function syncZone(zone: ZoneWithStats) {
     setSyncing((prev) => ({ ...prev, [zone.id]: true }))
     try {
-      await fetch('/api/market/sync', {
+      const res = await fetch('/api/market/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ zipcode: zone.zipcode }),
       })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(`Erreur sync ${zone.name} : ${data.error ?? res.statusText}`)
+      } else {
+        toast.success(`${zone.name} synchronisée — ${data.created ?? 0} créé(s), ${data.updated ?? 0} mis à jour`)
+      }
       await load()
+    } catch (err) {
+      toast.error(`Erreur réseau : ${err instanceof Error ? err.message : String(err)}`)
     } finally {
       setSyncing((prev) => ({ ...prev, [zone.id]: false }))
     }
