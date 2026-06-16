@@ -252,7 +252,7 @@ export type Database = {
           name: string
           zipcode: string
           city: string | null
-          radius_km: number | null
+          insee_code: string | null
           active: boolean
           sync_frequency: string
           last_synced_at: string | null
@@ -264,7 +264,7 @@ export type Database = {
           name: string
           zipcode: string
           city?: string | null
-          radius_km?: number | null
+          insee_code?: string | null
           active?: boolean
           sync_frequency?: string
           last_synced_at?: string | null
@@ -276,7 +276,7 @@ export type Database = {
           name?: string
           zipcode?: string
           city?: string | null
-          radius_km?: number | null
+          insee_code?: string | null
           active?: boolean
           sync_frequency?: string
           last_synced_at?: string | null
