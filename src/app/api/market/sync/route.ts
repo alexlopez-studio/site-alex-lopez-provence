@@ -48,6 +48,9 @@ export async function POST(req: NextRequest) {
         provider: 'stream_estate',
         status: 'running',
         started_at: new Date().toISOString(),
+        fetched_count: 0,
+        created_count: 0,
+        updated_count: 0,
       })
       .select('id')
       .single()
