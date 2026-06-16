@@ -24,6 +24,8 @@ export type LeadStatus =
   | 'vendu'
   | 'perdu'
 
+export type AdminRole = 'super_admin' | 'admin'
+
 export type LeadEventKind =
   | 'note'
   | 'status_change'
@@ -196,19 +198,31 @@ export type Database = {
           id: string
           email: string
           is_active: boolean
+          user_id: string | null
+          role: AdminRole
+          full_name: string | null
           created_at: string
+          updated_at: string
         }
         Insert: {
           id?: string
           email: string
           is_active?: boolean
+          user_id?: string | null
+          role?: AdminRole
+          full_name?: string | null
           created_at?: string
+          updated_at?: string
         }
         Update: {
           id?: string
           email?: string
           is_active?: boolean
+          user_id?: string | null
+          role?: AdminRole
+          full_name?: string | null
           created_at?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -942,6 +956,7 @@ export type Database = {
       lead_event_kind: LeadEventKind
       warm_contact_status: WarmContactStatus
       warm_event_type: WarmEventType
+      admin_role: AdminRole
     }
     CompositeTypes: {
       [_ in never]: never

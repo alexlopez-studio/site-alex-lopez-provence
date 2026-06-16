@@ -18,7 +18,9 @@ import {
   UserPlusIcon,
   PanelLeftIcon,
   FlameIcon,
+  ShieldIcon,
 } from "lucide-react"
+import type { AdminRole } from "@/types/supabase"
 
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
@@ -51,9 +53,21 @@ const ZONE_ITEMS = [
   { title: "Paramètres", url: "/admin/market/settings", icon: SettingsIcon },
 ]
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+const SUPER_ADMIN_ITEMS = [
+  { title: "Utilisateurs", url: "/admin/market/utilisateurs", icon: ShieldIcon },
+]
+
+type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
+  role?: AdminRole
+  email?: string
+}
+
+export function AppSidebar({ role, email, ...props }: AppSidebarProps) {
   const pathname = usePathname()
   const { state } = useSidebar()
+
+  const configItems =
+    role === "super_admin" ? [...ZONE_ITEMS, ...SUPER_ADMIN_ITEMS] : ZONE_ITEMS
 
   const isActive = (href: string) => {
     if (href === '/admin/market') return pathname === href
@@ -95,7 +109,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </p>
         </div>
         <NavMain
-          items={ZONE_ITEMS.map((item) => ({
+          items={configItems.map((item) => ({
             ...item,
             isActive: pathname === item.url,
           }))}
@@ -104,8 +118,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter>
         <NavUser
           user={{
-            name: "Alexandre Lopez",
-            email: "alexandre@iad.fr",
+            name: email ? email.split("@")[0] : "Administrateur",
+            email: email ?? "",
             avatar: "/alexandre-lopez-no-background.png",
           }}
         />

@@ -1,23 +1,18 @@
-'use client'
+import { redirect } from 'next/navigation'
+import { getCurrentAdmin } from '@/lib/auth'
+import { MarketShell } from './MarketShell'
 
-import { Toaster } from '@/components/ui/sonner'
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
-import { AppSidebar } from '@/components/app-sidebar'
-
-export default function MarketLayout({
+export default async function MarketLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const admin = await getCurrentAdmin()
+  if (!admin) redirect('/admin/login?redirect=/admin/market')
+
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <div className="p-4 lg:p-6">
-          {children}
-        </div>
-      </SidebarInset>
-      <Toaster richColors position="top-right" />
-    </SidebarProvider>
+    <MarketShell role={admin.role} email={admin.email}>
+      {children}
+    </MarketShell>
   )
 }
