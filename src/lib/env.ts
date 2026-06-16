@@ -8,7 +8,7 @@ export const env = {
   attio: { apiKey: process.env.ATTIO_API_KEY },
   admin: { password: process.env.ADMIN_PASSWORD ?? '' },
   streamEstate: {
-    apiUrl: process.env.STREAMESTATE_API_URL ?? 'https://api.stream-estate.com/v1',
+    apiUrl: process.env.STREAMESTATE_API_URL ?? 'https://api.stream.estate',
     apiKey: process.env.STREAMESTATE_API_KEY ?? '',
   },
   app: {

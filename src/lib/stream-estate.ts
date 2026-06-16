@@ -48,27 +48,34 @@ export interface StreamEstateSyncResult {
 function getHeaders(): Record<string, string> {
   return {
     'Content-Type': 'application/json',
-    'X-API-Key': env.streamEstate.apiKey,
+    'X-API-KEY': env.streamEstate.apiKey,
     Accept: 'application/json',
   }
 }
 
+// Extrait le code département depuis un code postal (ex: "83670" → "83")
+function deptFromZipcode(zipcode: string): string {
+  return zipcode.slice(0, 2)
+}
+
 /**
  * Récupère les annonces Stream Estate pour un code postal donné.
+ * API : https://api.stream.estate/documents/properties
  */
 export async function fetchListings(
   params: StreamEstateSyncParams,
 ): Promise<StreamEstateSyncResult> {
-  const { zipcode, propertyType, transactionType = 'vente', page = 1, limit = 30 } = params
+  const { zipcode, propertyType, transactionType = 'SELL', page = 1, limit = 30 } = params
 
   const query = new URLSearchParams()
-  query.set('zipcode', zipcode)
-  query.set('transaction_type', transactionType)
+  // Filtrage géographique par département (2 premiers chiffres du CP)
+  query.append('includedDepartments[]', deptFromZipcode(zipcode))
+  query.set('transactionType', transactionType)
   query.set('page', String(page))
-  query.set('limit', String(Math.min(limit, 30)))
-  if (propertyType) query.set('property_type', propertyType)
+  query.set('itemsPerPage', String(Math.min(limit, 30)))
+  if (propertyType) query.append('propertyTypes[]', propertyType)
 
-  const url = `${env.streamEstate.apiUrl}/listings?${query.toString()}`
+  const url = `${env.streamEstate.apiUrl}/documents/properties?${query.toString()}`
 
   const res = await fetch(url, {
     method: 'GET',
@@ -83,22 +90,25 @@ export async function fetchListings(
 
   const data = await res.json()
 
-  // Normalisation : on s'attend à un tableau dans data.listings ou data.data ou data
-  const rawListings = Array.isArray(data)
-    ? data
-    : Array.isArray(data.listings)
-      ? data.listings
-      : Array.isArray(data.data)
-        ? data.data
-        : []
+  // Format stream.estate : { "hydra:member": [...], "hydra:totalItems": N }
+  const rawListings: Record<string, unknown>[] = Array.isArray(data['hydra:member'])
+    ? data['hydra:member']
+    : Array.isArray(data)
+      ? data
+      : Array.isArray(data.listings)
+        ? data.listings
+        : Array.isArray(data.data)
+          ? data.data
+          : []
 
   const listings: StreamEstateListing[] = rawListings.map(normalizeListing)
+  const total: number = data['hydra:totalItems'] ?? data.total ?? data.total_count ?? listings.length
 
   return {
     listings,
-    total: data.total ?? data.total_count ?? listings.length,
+    total,
     page,
-    hasMore: (data.total ?? data.total_count ?? 0) > page * limit,
+    hasMore: total > page * limit,
   }
 }
 
@@ -108,7 +118,7 @@ export async function fetchListings(
 export async function fetchListingById(
   externalId: string,
 ): Promise<StreamEstateListing | null> {
-  const url = `${env.streamEstate.apiUrl}/listings/${encodeURIComponent(externalId)}`
+  const url = `${env.streamEstate.apiUrl}/documents/properties/${encodeURIComponent(externalId)}`
 
   const res = await fetch(url, {
     method: 'GET',
@@ -129,28 +139,40 @@ export async function fetchListingById(
 // ── Normalisation ───────────────────────────────────────────
 
 function normalizeListing(raw: Record<string, unknown>): StreamEstateListing {
-  const imagesRaw = raw.images ?? raw.photos
+  // stream.estate renvoie les photos dans adverts[0].photos ou directement photos
+  const adverts = Array.isArray(raw.adverts) ? raw.adverts as Record<string, unknown>[] : []
+  const firstAdvert = adverts[0] ?? {}
+  const imagesRaw = raw.photos ?? firstAdvert.photos ?? raw.images
   const images: string[] = Array.isArray(imagesRaw) ? imagesRaw.map(String) : []
 
+  // Prix : stream.estate stocke le prix dans adverts[0].price ou price
+  const price = Number(firstAdvert.price ?? raw.price ?? raw.prix ?? 0) || undefined
+
+  // URL de l'annonce : adverts[0].url ou url
+  const url = String(firstAdvert.url ?? raw.url ?? raw.source_url ?? '')
+
+  // Localisation : raw.postalCode, raw.city, raw.inseeCode
+  const location = (raw.location ?? {}) as Record<string, unknown>
+
   return {
-    id: String(raw.id ?? raw.uuid ?? ''),
-    externalId: String(raw.external_id ?? raw.externalId ?? raw.id ?? ''),
-    title: String(raw.title ?? raw.titre ?? raw.name ?? ''),
-    description: String(raw.description ?? raw.descriptif ?? ''),
-    city: String(raw.city ?? raw.ville ?? raw.commune ?? ''),
-    zipcode: String(raw.zipcode ?? raw.code_postal ?? raw.cp ?? ''),
-    inseeCode: String(raw.insee_code ?? raw.inseeCode ?? raw.code_insee ?? ''),
-    lat: Number(raw.lat ?? raw.latitude ?? 0) || undefined,
-    lon: Number(raw.lon ?? raw.longitude ?? raw.lng ?? 0) || undefined,
-    propertyType: String(raw.property_type ?? raw.type_bien ?? raw.type ?? ''),
-    price: Number(raw.price ?? raw.prix ?? 0) || undefined,
+    id: String(raw.id ?? raw['@id'] ?? ''),
+    externalId: String(raw.id ?? raw.external_id ?? raw.externalId ?? ''),
+    title: String(firstAdvert.title ?? raw.title ?? raw.titre ?? ''),
+    description: String(firstAdvert.description ?? raw.description ?? ''),
+    city: String(location.city ?? raw.city ?? raw.ville ?? ''),
+    zipcode: String(location.postalCode ?? raw.zipcode ?? raw.postalCode ?? raw.code_postal ?? ''),
+    inseeCode: String(location.inseeCode ?? raw.inseeCode ?? raw.insee_code ?? ''),
+    lat: Number(location.lat ?? raw.lat ?? raw.latitude ?? 0) || undefined,
+    lon: Number(location.lon ?? location.lng ?? raw.lon ?? raw.longitude ?? 0) || undefined,
+    propertyType: String(raw.propertyType ?? raw.property_type ?? raw.type ?? ''),
+    price,
     surface: Number(raw.surface ?? raw.surface_habitable ?? 0) || undefined,
-    landSurface: Number(raw.land_surface ?? raw.terrain ?? raw.surface_terrain ?? 0) || undefined,
-    rooms: Number(raw.rooms ?? raw.pieces ?? 0) || undefined,
-    bedrooms: Number(raw.bedrooms ?? raw.chambres ?? 0) || undefined,
-    dpe: String(raw.dpe ?? raw.dpe_lettre ?? raw.energie ?? ''),
-    ges: String(raw.ges ?? raw.ges_lettre ?? ''),
-    url: String(raw.url ?? raw.source_url ?? raw.lien ?? ''),
+    landSurface: Number(raw.landSurface ?? raw.land_surface ?? raw.terrain ?? 0) || undefined,
+    rooms: Number(raw.roomsCount ?? raw.rooms ?? raw.pieces ?? 0) || undefined,
+    bedrooms: Number(raw.bedroomsCount ?? raw.bedrooms ?? raw.chambres ?? 0) || undefined,
+    dpe: String(raw.dpeValue ?? raw.dpe ?? ''),
+    ges: String(raw.gesValue ?? raw.ges ?? ''),
+    url,
     status: String(raw.status ?? raw.statut ?? 'active'),
     images,
     publishedAt: String(raw.published_at ?? raw.date_publication ?? raw.created_at ?? ''),
