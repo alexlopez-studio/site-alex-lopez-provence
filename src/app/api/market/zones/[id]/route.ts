@@ -135,7 +135,7 @@ export async function DELETE(
         .from('market_properties')
         .delete()
         .eq('zipcode', zipcode)
-        .select('id', { count: 'exact', head: true } as never)
+        .select('id')
 
       deletedProperties = count ?? 0
     }
