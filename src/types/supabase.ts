@@ -24,6 +24,8 @@ export type LeadStatus =
   | 'vendu'
   | 'perdu'
 
+export type AdminRole = 'super_admin' | 'admin'
+
 export type LeadEventKind =
   | 'note'
   | 'status_change'
@@ -53,6 +55,15 @@ export type OpportunityStage =
 export type OpportunityPriority = 'low' | 'medium' | 'high' | 'critical'
 
 export type SyncStatus = 'running' | 'success' | 'error'
+
+// ── Liste Chaude (réseau / bouche-à-oreille) ───────────────
+
+export type WarmContactStatus =
+  | 'a_contacter' | 'contacte' | 'relance' | 'termine'
+
+export type WarmEventType =
+  | 'call' | 'email' | 'message' | 'meeting'
+  | 'note' | 'status_change' | 'referral' | 'import'
 
 export type Database = {
   __InternalSupabase: {
@@ -187,19 +198,31 @@ export type Database = {
           id: string
           email: string
           is_active: boolean
+          user_id: string | null
+          role: AdminRole
+          full_name: string | null
           created_at: string
+          updated_at: string
         }
         Insert: {
           id?: string
           email: string
           is_active?: boolean
+          user_id?: string | null
+          role?: AdminRole
+          full_name?: string | null
           created_at?: string
+          updated_at?: string
         }
         Update: {
           id?: string
           email?: string
           is_active?: boolean
+          user_id?: string | null
+          role?: AdminRole
+          full_name?: string | null
           created_at?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -616,6 +639,177 @@ export type Database = {
           },
         ]
       }
+      buyer_criteria: {
+        Row: {
+          id: string
+          lead_id: string
+          prospect_id: string | null
+          type_bien: string | null
+          communes: string[] | null
+          budget_max: number | null
+          surface_min: number | null
+          pieces_min: number | null
+          criteres: string[] | null
+          active: boolean
+          matched_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          lead_id: string
+          prospect_id?: string | null
+          type_bien?: string | null
+          communes?: string[] | null
+          budget_max?: number | null
+          surface_min?: number | null
+          pieces_min?: number | null
+          criteres?: string[] | null
+          active?: boolean
+          matched_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          lead_id?: string
+          prospect_id?: string | null
+          type_bien?: string | null
+          communes?: string[] | null
+          budget_max?: number | null
+          surface_min?: number | null
+          pieces_min?: number | null
+          criteres?: string[] | null
+          active?: boolean
+          matched_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      seller_properties: {
+        Row: {
+          id: string
+          lead_id: string
+          prospect_id: string | null
+          adresse: string | null
+          lat: number | null
+          lon: number | null
+          type_bien: string | null
+          sous_type: string | null
+          surface: number | null
+          surface_terrain: number | null
+          nb_pieces: number | null
+          etat: string | null
+          dpe: string | null
+          annee_construction: number | null
+          equipements: string[] | null
+          delai: string | null
+          prix_estime: number | null
+          actif: boolean
+          matched_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          lead_id: string
+          prospect_id?: string | null
+          adresse?: string | null
+          lat?: number | null
+          lon?: number | null
+          type_bien?: string | null
+          sous_type?: string | null
+          surface?: number | null
+          surface_terrain?: number | null
+          nb_pieces?: number | null
+          etat?: string | null
+          dpe?: string | null
+          annee_construction?: number | null
+          equipements?: string[] | null
+          delai?: string | null
+          prix_estime?: number | null
+          actif?: boolean
+          matched_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          lead_id?: string
+          prospect_id?: string | null
+          adresse?: string | null
+          lat?: number | null
+          lon?: number | null
+          type_bien?: string | null
+          sous_type?: string | null
+          surface?: number | null
+          surface_terrain?: number | null
+          nb_pieces?: number | null
+          etat?: string | null
+          dpe?: string | null
+          annee_construction?: number | null
+          equipements?: string[] | null
+          delai?: string | null
+          prix_estime?: number | null
+          actif?: boolean
+          matched_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      match_results: {
+        Row: {
+          id: string
+          buyer_lead_id: string
+          property_id: string | null
+          seller_lead_id: string | null
+          property_type: string
+          score: number
+          score_details: Json
+          matched_commune: boolean
+          matched_type: boolean
+          matched_budget: boolean
+          matched_surface: boolean
+          matched_pieces: boolean
+          notified_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          buyer_lead_id: string
+          property_id?: string | null
+          seller_lead_id?: string | null
+          property_type?: string
+          score?: number
+          score_details?: Json
+          matched_commune?: boolean
+          matched_type?: boolean
+          matched_budget?: boolean
+          matched_surface?: boolean
+          matched_pieces?: boolean
+          notified_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          buyer_lead_id?: string
+          property_id?: string | null
+          seller_lead_id?: string | null
+          property_type?: string
+          score?: number
+          score_details?: Json
+          matched_commune?: boolean
+          matched_type?: boolean
+          matched_budget?: boolean
+          matched_surface?: boolean
+          matched_pieces?: boolean
+          notified_at?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       sync_runs: {
         Row: {
           id: string
@@ -663,6 +857,92 @@ export type Database = {
           },
         ]
       }
+      warm_contacts: {
+        Row: {
+          id: string
+          full_name: string
+          relation: string | null
+          phone: string | null
+          email: string | null
+          status: WarmContactStatus
+          referrals: Json
+          follow_up_date: string | null
+          notes: string | null
+          source: string
+          last_contacted_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          full_name: string
+          relation?: string | null
+          phone?: string | null
+          email?: string | null
+          status?: WarmContactStatus
+          referrals?: Json
+          follow_up_date?: string | null
+          notes?: string | null
+          source?: string
+          last_contacted_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          full_name?: string
+          relation?: string | null
+          phone?: string | null
+          email?: string | null
+          status?: WarmContactStatus
+          referrals?: Json
+          follow_up_date?: string | null
+          notes?: string | null
+          source?: string
+          last_contacted_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      warm_contact_events: {
+        Row: {
+          id: string
+          contact_id: string
+          type: WarmEventType
+          content: string | null
+          metadata: Json
+          occurred_at: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          contact_id: string
+          type?: WarmEventType
+          content?: string | null
+          metadata?: Json
+          occurred_at?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          contact_id?: string
+          type?: WarmEventType
+          content?: string | null
+          metadata?: Json
+          occurred_at?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'warm_contact_events_contact_id_fkey'
+            columns: ['contact_id']
+            isOneToOne: false
+            referencedRelation: 'warm_contacts'
+            referencedColumns: ['id']
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -674,6 +954,9 @@ export type Database = {
       lead_tool: LeadTool
       lead_status: LeadStatus
       lead_event_kind: LeadEventKind
+      warm_contact_status: WarmContactStatus
+      warm_event_type: WarmEventType
+      admin_role: AdminRole
     }
     CompositeTypes: {
       [_ in never]: never

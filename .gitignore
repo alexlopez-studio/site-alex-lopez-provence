@@ -27,3 +27,6 @@ pnpm-debug.log*
 # Types
 next-env.d.ts
 .env*
+
+# TS incremental build cache
+*.tsbuildinfo

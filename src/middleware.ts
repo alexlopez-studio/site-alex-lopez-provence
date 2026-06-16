@@ -1,25 +1,38 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
+import { updateSession } from '@/lib/supabase/middleware'
 
-const ADMIN_COOKIE = 'admin-session'
-const ADMIN_LOGIN_PATH = '/admin/login'
+// Chemins accessibles sans session (auth elle-même)
+const PUBLIC_ADMIN_PATHS = [
+  '/admin/login',
+  '/admin/mot-de-passe-oublie',
+  '/admin/reset-password',
+]
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname
-  if (!path.startsWith('/admin')) return NextResponse.next()
-  if (path === ADMIN_LOGIN_PATH) return NextResponse.next()
 
-  const session = req.cookies.get(ADMIN_COOKIE)?.value
-  const adminPassword = process.env.ADMIN_PASSWORD
+  // Rafraîchit la session sur toutes les routes admin/dashboard
+  const { response, user } = await updateSession(req)
 
-  if (adminPassword && session === adminPassword) {
-    return NextResponse.next()
+  const isProtected = path.startsWith('/admin') || path.startsWith('/dashboard')
+  if (!isProtected) return response
+
+  // Pages publiques d'auth : on laisse passer (mais on garde les cookies rafraîchis)
+  if (PUBLIC_ADMIN_PATHS.some((p) => path === p || path.startsWith(p + '/'))) {
+    return response
   }
 
-  const loginUrl = new URL(ADMIN_LOGIN_PATH, req.url)
-  loginUrl.searchParams.set('redirect', path)
-  return NextResponse.redirect(loginUrl)
+  // Toute autre route admin/dashboard exige une session.
+  // Fail-closed : pas de session => redirection vers le login.
+  if (!user) {
+    const loginUrl = new URL('/admin/login', req.url)
+    loginUrl.searchParams.set('redirect', path.startsWith('/dashboard') ? '/admin/market' : path)
+    return NextResponse.redirect(loginUrl)
+  }
+
+  return response
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/dashboard/:path*'],
 }

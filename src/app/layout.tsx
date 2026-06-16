@@ -10,6 +10,7 @@ import { Footer } from '@/components/layout/Footer'
 import { AppChrome } from '@/components/layout/AppChrome'
 import { AnalyticsScripts } from '@/components/analytics/AnalyticsScripts'
 import { LinkClickTracker } from '@/components/analytics/LinkClickTracker'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { LOCALE_META, type Locale } from '@/i18n/config'
 
 const inter = Inter({
@@ -89,9 +90,11 @@ export default async function RootLayout({
         <AnalyticsScripts />
         <NextIntlClientProvider locale={locale} messages={messages}>
           <LinkClickTracker />
-          <AppChrome header={<Header />} footer={<Footer />}>
-            {children}
-          </AppChrome>
+          <TooltipProvider>
+            <AppChrome header={<Header />} footer={<Footer />}>
+              {children}
+            </AppChrome>
+          </TooltipProvider>
         </NextIntlClientProvider>
         <Script src="/_vercel/insights/script.js" strategy="afterInteractive" />
       </body>
