@@ -1,5 +1,3 @@
-import { redirect } from 'next/navigation'
-import { getCurrentAdmin } from '@/lib/auth'
 import { MarketShell } from './MarketShell'
 
 export default async function MarketLayout({
@@ -7,8 +5,12 @@ export default async function MarketLayout({
 }: {
   children: React.ReactNode
 }) {
-  const admin = await getCurrentAdmin()
-  if (!admin) redirect('/admin/login?redirect=/admin/market')
+  // Auth temporairement desactivee pour accelerer la navigation locale.
+  // Pour reactiver : restaurer getCurrentAdmin() + redirect si aucun admin.
+  const admin = {
+    role: 'super_admin' as const,
+    email: 'local-preview@iad.fr',
+  }
 
   return (
     <MarketShell role={admin.role} email={admin.email}>

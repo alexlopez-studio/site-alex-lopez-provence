@@ -24,7 +24,7 @@ export default function ResetPasswordPage() {
         setErr('Lien expiré ou session manquante. Recommencez la procédure.')
         return
       }
-      router.push('/admin/market')
+      router.push('/app/dashboard')
       router.refresh()
     } catch {
       setErr('Erreur, réessayez')

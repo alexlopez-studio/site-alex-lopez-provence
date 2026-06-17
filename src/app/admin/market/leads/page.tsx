@@ -217,7 +217,7 @@ export default function LeadsListPage() {
                                             </td>
                                             <td className="whitespace-nowrap px-4 py-3 text-xs text-muted-foreground">{formatDate(lead.created_at)}</td>
                                             <td className="px-4 py-3 text-right">
-                                                <Link href={'/admin/market/leads/' + lead.id} className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent">
+                                                <Link href={'/app/leads/' + lead.id} className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent">
                                                     <EyeIcon className="size-3.5" /> Détail
                                                 </Link>
                                             </td>

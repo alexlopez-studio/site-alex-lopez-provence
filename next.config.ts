@@ -5,6 +5,52 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 
 const nextConfig: NextConfig = {
   // output: 'export' intentionnellement absent — on a besoin des API routes et du ISR
+  async redirects() {
+    return [
+      {
+        source: '/admin/market',
+        destination: '/app/dashboard',
+        permanent: false,
+      },
+      {
+        source: '/admin/market/:path*',
+        destination: '/app/:path*',
+        permanent: false,
+      },
+      {
+        source: '/app/dashboard/radar',
+        destination: '/app/radar',
+        permanent: false,
+      },
+      {
+        source: '/app/dashboard/:path+',
+        destination: '/app/:path*',
+        permanent: false,
+      },
+      {
+        source: '/dashboard',
+        destination: '/app/dashboard',
+        permanent: false,
+      },
+      {
+        source: '/dashboard/radar',
+        destination: '/app/radar',
+        permanent: false,
+      },
+    ]
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/app/dashboard',
+        destination: '/admin/market',
+      },
+      {
+        source: '/app/:path*',
+        destination: '/admin/market/:path*',
+      },
+    ]
+  },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com' },

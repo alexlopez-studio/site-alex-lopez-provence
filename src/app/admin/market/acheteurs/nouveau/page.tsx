@@ -111,7 +111,7 @@ export default function NouvelAcquereurPage() {
       }
 
       toast.success('Acquéreur créé avec succès')
-      router.push(`/admin/market/acheteurs/${data.buyer.lead_id}`)
+      router.push(`/app/acheteurs/${data.buyer.lead_id}`)
     } catch (e) {
       console.error('Erreur création:', e)
       toast.error('Erreur serveur')
@@ -125,7 +125,7 @@ export default function NouvelAcquereurPage() {
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="sm" asChild>
-          <Link href="/admin/market/acheteurs">
+          <Link href="/app/acheteurs">
             <ChevronLeft className="h-4 w-4 mr-1" />
             Retour
           </Link>
@@ -308,7 +308,7 @@ export default function NouvelAcquereurPage() {
         {/* Actions */}
         <div className="flex justify-end gap-2 mt-6">
           <Button variant="outline" asChild>
-            <Link href="/admin/market/acheteurs">Annuler</Link>
+            <Link href="/app/acheteurs">Annuler</Link>
           </Button>
           <Button type="submit" disabled={!canSave || saving}>
             {saving && <Loader2 className="h-4 w-4 animate-spin mr-1" />}

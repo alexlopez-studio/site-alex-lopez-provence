@@ -193,7 +193,7 @@ export default function LeadDetailPage() {
         return (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 p-8">
                 <p className="text-muted-foreground">Lead introuvable</p>
-                <Link href="/admin/market/leads" className="text-sm text-brand underline">Retour à la liste</Link>
+                <Link href="/app/leads" className="text-sm text-brand underline">Retour à la liste</Link>
             </div>
         )
     }
@@ -205,7 +205,7 @@ export default function LeadDetailPage() {
     return (
         <div className="space-y-6">
             {/* Back button */}
-            <Link href="/admin/market/leads" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/app/leads" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
                 <ArrowLeft className="size-4" /> Retour aux leads
             </Link>
 

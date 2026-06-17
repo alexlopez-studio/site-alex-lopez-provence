@@ -167,7 +167,7 @@ export function RuleWizard() {
       }
 
       toast.success('Règle créée avec succès')
-      router.push('/admin/market/rules')
+      router.push('/app/rules')
       router.refresh()
     } catch {
       toast.error('Erreur réseau')
@@ -515,7 +515,7 @@ export function RuleWizard() {
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            onClick={() => router.push('/admin/market/rules')}
+            onClick={() => router.push('/app/rules')}
           >
             Annuler
           </Button>

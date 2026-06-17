@@ -282,7 +282,7 @@ export function AppChrome({
 }) {
   const pathname = usePathname()
   const isToolsMiniApp = pathname === '/outils' || pathname.startsWith('/outils/') || pathname.startsWith('/resultats/')
-  const isAdminArea = pathname.startsWith('/admin') || pathname.startsWith('/dashboard')
+  const isAdminArea = pathname.startsWith('/admin') || pathname.startsWith('/dashboard') || pathname.startsWith('/app')
 
   useEffect(function () {
     normalizeAdvisorName(document.body)

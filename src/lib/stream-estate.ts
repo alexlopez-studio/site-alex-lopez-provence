@@ -46,6 +46,10 @@ export interface StreamEstateSyncResult {
 // ── Client ──────────────────────────────────────────────────
 
 function getHeaders(): Record<string, string> {
+  if (!env.streamEstate.apiKey) {
+    throw new Error('STREAMESTATE_API_KEY manquante dans les variables d’environnement')
+  }
+
   return {
     'Content-Type': 'application/json',
     'X-API-KEY': env.streamEstate.apiKey,
@@ -53,37 +57,86 @@ function getHeaders(): Record<string, string> {
   }
 }
 
-// Extrait le code département depuis un code postal (ex: "83670" → "83")
-function deptFromZipcode(zipcode: string): string {
+// Cache en mémoire : code postal → ID interne département Stream Estate
+const deptIdCache = new Map<string, string>()
+
+// Cache des résultats par département : évite de re-scinder le même dépt pour chaque CP
+const deptResultsCache = new Map<string, { listings: StreamEstateListing[]; expiresAt: number }>()
+const CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
+
+// Stream Estate utilise des IDs internes pour les départements (pas les codes INSEE).
+// Ex: Var (code 83) = id 85. On résout via l'endpoint /cities.
+async function deptIdFromZipcode(zipcode: string): Promise<string> {
+  if (deptIdCache.has(zipcode)) return deptIdCache.get(zipcode)!
+
+  const url = `${env.streamEstate.apiUrl}/cities?zipcode=${encodeURIComponent(zipcode)}`
+  const res = await fetch(url, { headers: getHeaders(), cache: 'no-store' })
+  if (res.ok) {
+    const data = await res.json()
+    const dept: string | undefined = Array.isArray(data) ? data[0]?.department : undefined
+    if (dept) {
+      // "/departments/85" → "85"
+      const id = dept.split('/').pop() ?? zipcode.slice(0, 2)
+      deptIdCache.set(zipcode, id)
+      return id
+    }
+  }
+  // Fallback : code INSEE brut (incorrect pour certains depts, mais évite un crash)
   return zipcode.slice(0, 2)
 }
 
 /**
- * Récupère les annonces Stream Estate pour un code postal donné.
- * API : https://api.stream.estate/documents/properties
+ * Récupère TOUTES les annonces d'un département (paginé) avec mise en cache.
+ * Si déjà en cache et pas expiré, retourne le cache.
  */
-export async function fetchListings(
-  params: StreamEstateSyncParams,
-): Promise<StreamEstateSyncResult> {
-  const { zipcode, propertyType, transactionType = 0, page = 1, limit = 30 } = params
+async function fetchAllByDept(
+  deptId: string,
+  transactionType: number | null,
+  propertyType?: string,
+): Promise<StreamEstateListing[]> {
+  const cacheKey = `${deptId}-${transactionType ?? 'all'}-${propertyType ?? 'all'}`
 
+  const cached = deptResultsCache.get(cacheKey)
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.listings
+  }
+
+  const allListings: StreamEstateListing[] = []
+  for (let page = 1; page <= MAX_PAGES; page++) {
+    const { listings, hasMore } = await fetchOnePage(deptId, page, transactionType, propertyType)
+    allListings.push(...listings)
+    if (!hasMore) break
+  }
+
+  deptResultsCache.set(cacheKey, {
+    listings: allListings,
+    expiresAt: Date.now() + CACHE_TTL_MS,
+  })
+
+  return allListings
+}
+
+// Nombre max de pages à parcourir pour trouver les biens d'un code postal
+const MAX_PAGES = 10
+const PAGE_SIZE = 30
+
+async function fetchOnePage(
+  deptId: string,
+  page: number,
+  transactionType: number | null,
+  propertyType?: string,
+): Promise<{ listings: StreamEstateListing[]; hasMore: boolean }> {
   const query = new URLSearchParams()
-  // Filtrage géographique par département (2 premiers chiffres du CP)
-  query.append('includedDepartments[]', deptFromZipcode(zipcode))
+  query.append('includedDepartments[]', deptId)
   if (transactionType !== null && transactionType !== undefined) {
     query.set('transactionType', String(transactionType))
   }
   query.set('page', String(page))
-  query.set('itemsPerPage', String(Math.min(limit, 30)))
+  query.set('itemsPerPage', String(PAGE_SIZE))
   if (propertyType) query.append('propertyTypes[]', propertyType)
 
   const url = `${env.streamEstate.apiUrl}/documents/properties?${query.toString()}`
-
-  const res = await fetch(url, {
-    method: 'GET',
-    headers: getHeaders(),
-    cache: 'no-store',
-  })
+  const res = await fetch(url, { method: 'GET', headers: getHeaders(), cache: 'no-store' })
 
   if (!res.ok) {
     const text = await res.text().catch(() => '')
@@ -91,8 +144,6 @@ export async function fetchListings(
   }
 
   const data = await res.json()
-
-  // Format stream.estate : { "hydra:member": [...], "hydra:totalItems": N }
   const rawListings: Record<string, unknown>[] = Array.isArray(data['hydra:member'])
     ? data['hydra:member']
     : Array.isArray(data)
@@ -103,14 +154,35 @@ export async function fetchListings(
           ? data.data
           : []
 
-  const listings: StreamEstateListing[] = rawListings.map(normalizeListing)
-  const total: number = data['hydra:totalItems'] ?? data.total ?? data.total_count ?? listings.length
+  const explicitTotal: number | undefined = data['hydra:totalItems'] ?? data.total ?? undefined
+  const listings = rawListings.map(normalizeListing)
+  // Si l'API ne donne pas de total, on continue tant qu'une page pleine est retournée
+  const hasMore = explicitTotal !== undefined
+    ? explicitTotal > page * PAGE_SIZE
+    : rawListings.length === PAGE_SIZE
+  return { listings, hasMore }
+}
+
+/**
+ * Récupère les annonces Stream Estate pour un code postal donné.
+ * Pagine sur plusieurs pages (max MAX_PAGES) pour trouver les biens du bon code postal,
+ * car l'API filtre par département entier.
+ */
+export async function fetchListings(
+  params: StreamEstateSyncParams,
+): Promise<StreamEstateSyncResult> {
+  const { zipcode, propertyType, transactionType = 0 } = params
+
+  const deptId = await deptIdFromZipcode(zipcode)
+  const allDeptListings = await fetchAllByDept(deptId, transactionType, propertyType)
+
+  const matched = allDeptListings.filter((l) => l.zipcode === zipcode)
 
   return {
-    listings,
-    total,
-    page,
-    hasMore: total > page * limit,
+    listings: matched,
+    total: matched.length,
+    page: 1,
+    hasMore: false,
   }
 }
 
@@ -140,6 +212,21 @@ export async function fetchListingById(
 
 // ── Normalisation ───────────────────────────────────────────
 
+// Codes numériques Stream Estate → labels lisibles
+const PROPERTY_TYPE_LABELS: Record<number, string> = {
+  0: 'Appartement',
+  1: 'Maison',
+  2: 'Villa',
+  3: 'Studio',
+  4: 'Loft',
+  5: 'Terrain',
+  6: 'Commerce',
+  7: 'Bureau',
+  8: 'Immeuble',
+  9: 'Parking',
+  10: 'Autre',
+}
+
 function normalizeListing(raw: Record<string, unknown>): StreamEstateListing {
   // stream.estate renvoie les photos dans adverts[0].photos ou directement photos
   const adverts = Array.isArray(raw.adverts) ? raw.adverts as Record<string, unknown>[] : []
@@ -153,32 +240,56 @@ function normalizeListing(raw: Record<string, unknown>): StreamEstateListing {
   // URL de l'annonce : adverts[0].url ou url
   const url = String(firstAdvert.url ?? raw.url ?? raw.source_url ?? '')
 
-  // Localisation : raw.postalCode, raw.city, raw.inseeCode
   const location = (raw.location ?? {}) as Record<string, unknown>
 
+  const cityObj = (typeof raw.city === 'object' && raw.city !== null)
+    ? raw.city as Record<string, unknown>
+    : null
+  const cityName  = String(cityObj?.name ?? cityObj?.originalName ?? raw.ville ?? '')
+  const zipcode   = String(cityObj?.zipcode ?? raw.zipcode ?? raw.postalCode ?? raw.code_postal ?? '')
+  const rawTitle  = String(firstAdvert.title ?? raw.title ?? raw.titre ?? '').trim()
+  const ptRaw     = raw.propertyType ?? raw.property_type ?? raw.type
+  const ptNum     = typeof ptRaw === 'number' ? ptRaw : (ptRaw !== undefined ? Number(ptRaw) : NaN)
+  const pType     = (!isNaN(ptNum) && PROPERTY_TYPE_LABELS[ptNum])
+    ? PROPERTY_TYPE_LABELS[ptNum]
+    : (typeof ptRaw === 'string' && ptRaw ? ptRaw : '')
+  const surfaceN  = Number(raw.surface ?? raw.surface_habitable ?? 0) || undefined
+  const roomsN    = Number(raw.roomsCount ?? raw.rooms ?? raw.pieces ?? 0) || undefined
+
+  // Génère un titre lisible si Stream Estate retourne un titre trop générique ou vide
+  function buildTitle(): string {
+    if (rawTitle && rawTitle.length > 5 && !rawTitle.toLowerCase().includes('neuf à vendre')) return rawTitle
+    const parts: string[] = []
+    if (pType) parts.push(pType)
+    if (roomsN) parts.push(`${roomsN} pièce${roomsN > 1 ? 's' : ''}`)
+    if (surfaceN) parts.push(`${surfaceN} m²`)
+    if (cityName) parts.push(`à ${cityName}`)
+    return parts.length ? parts.join(' · ') : rawTitle || 'Bien immobilier'
+  }
+
   return {
-    id: String(raw.id ?? raw['@id'] ?? ''),
-    externalId: String(raw.id ?? raw.external_id ?? raw.externalId ?? ''),
-    title: String(firstAdvert.title ?? raw.title ?? raw.titre ?? ''),
+    id: String(raw.uuid ?? raw.id ?? raw['@id'] ?? ''),
+    externalId: String(raw.uuid ?? raw.id ?? raw.external_id ?? raw.externalId ?? ''),
+    title: buildTitle(),
     description: String(firstAdvert.description ?? raw.description ?? ''),
-    city: String(location.city ?? raw.city ?? raw.ville ?? ''),
-    zipcode: String(location.postalCode ?? raw.zipcode ?? raw.postalCode ?? raw.code_postal ?? ''),
-    inseeCode: String(location.inseeCode ?? raw.inseeCode ?? raw.insee_code ?? ''),
+    city: cityName,
+    zipcode,
+    inseeCode: String(cityObj?.insee ?? raw.inseeCode ?? raw.insee_code ?? ''),
     lat: Number(location.lat ?? raw.lat ?? raw.latitude ?? 0) || undefined,
     lon: Number(location.lon ?? location.lng ?? raw.lon ?? raw.longitude ?? 0) || undefined,
-    propertyType: String(raw.propertyType ?? raw.property_type ?? raw.type ?? ''),
+    propertyType: pType,
     price,
-    surface: Number(raw.surface ?? raw.surface_habitable ?? 0) || undefined,
+    surface: surfaceN,
     landSurface: Number(raw.landSurface ?? raw.land_surface ?? raw.terrain ?? 0) || undefined,
-    rooms: Number(raw.roomsCount ?? raw.rooms ?? raw.pieces ?? 0) || undefined,
+    rooms: roomsN,
     bedrooms: Number(raw.bedroomsCount ?? raw.bedrooms ?? raw.chambres ?? 0) || undefined,
     dpe: String(raw.dpeValue ?? raw.dpe ?? ''),
     ges: String(raw.gesValue ?? raw.ges ?? ''),
     url,
     status: String(raw.status ?? raw.statut ?? 'active'),
     images,
-    publishedAt: String(raw.published_at ?? raw.date_publication ?? raw.created_at ?? ''),
-    updatedAt: String(raw.updated_at ?? raw.date_mise_a_jour ?? raw.updatedAt ?? ''),
+    publishedAt: (raw.published_at ?? raw.date_publication ?? raw.created_at ?? raw.createdAt) as string | undefined || undefined,
+    updatedAt: (raw.updated_at ?? raw.date_mise_a_jour ?? raw.updatedAt) as string | undefined || undefined,
     raw,
   }
 }

@@ -4,27 +4,26 @@ import { usePathname } from 'next/navigation'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 
 const PAGE_TITLES: Record<string, string> = {
-  '/admin/market/leads': 'Leads',
-  '/admin/market': 'Dashboard',
-  '/admin/market/properties': 'Marché',
-  '/admin/market/acheteurs': 'Acquéreurs',
-  '/admin/market/matching': 'Matching',
-  '/admin/market/opportunities': 'Opportunités',
-  '/admin/market/rules': 'Règles',
-  '/admin/market/notifications': 'Notifications',
-  '/admin/market/zones': 'Zones surveillées',
-  '/admin/market/settings': 'Paramètres',
+  '/app/radar': 'Radar',
+  '/app/leads': 'Leads',
+  '/app/dashboard': 'Dashboard',
+  '/app/properties': 'Marché',
+  '/app/acheteurs': 'Acquéreurs',
+  '/app/matching': 'Matching',
+  '/app/opportunities': 'Opportunités',
+  '/app/rules': 'Règles',
+  '/app/notifications': 'Notifications',
+  '/app/zones': 'Zones surveillées',
+  '/app/settings': 'Paramètres',
 }
 
 export function SiteHeader() {
   const pathname = usePathname()
 
-  let title = 'Mandat OS'
-  for (const [path, label] of Object.entries(PAGE_TITLES)) {
-    if (pathname.startsWith(path)) {
-      title = label
-    }
-  }
+  const title =
+    Object.entries(PAGE_TITLES)
+      .sort(([a], [b]) => b.length - a.length)
+      .find(([path]) => pathname.startsWith(path))?.[1] ?? 'Mandat OS'
 
   return (
     <header className="flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear">

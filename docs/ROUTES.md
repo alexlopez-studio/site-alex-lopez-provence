@@ -11,6 +11,39 @@
 
 ## Routes du site
 
+### Logiciel Mandat OS
+
+Routes canoniques de navigation locale et backoffice :
+
+| Route | Description |
+|-------|-------------|
+| `/app/dashboard` | Vue d'ensemble Mandat OS |
+| `/app/radar` | Radar vendeurs / MandatFinder |
+| `/app/leads` | Pipeline leads vendeurs |
+| `/app/liste-chaude` | Liste chaude bouche-a-oreille |
+| `/app/properties` | Biens du marche |
+| `/app/properties/[id]` | Detail d'un bien |
+| `/app/acheteurs` | Acquereurs |
+| `/app/acheteurs/[id]` | Detail acquereur |
+| `/app/acheteurs/nouveau` | Creation acquereur |
+| `/app/matching` | Matching biens / acquereurs |
+| `/app/opportunities` | Opportunites |
+| `/app/rules` | Regles d'automatisation |
+| `/app/rules/new` | Creation de regle |
+| `/app/notifications` | Notifications |
+| `/app/zones` | Zones surveillees |
+| `/app/settings` | Parametres et controle sync |
+| `/app/utilisateurs` | Gestion utilisateurs admin |
+
+Routes historiques conservees en redirection/rewrite :
+
+| Ancienne route | Nouvelle route |
+|----------------|----------------|
+| `/admin/market` | `/app/dashboard` |
+| `/admin/market/:path*` | `/app/:path*` |
+| `/dashboard/radar` | `/app/radar` |
+| `/app/dashboard/:path+` | `/app/:path*` |
+
 ### Pages conversion
 
 | Route | Description | Lien vers |

@@ -9,9 +9,9 @@ export const metadata: Metadata = {
 
 export default async function UsersPage() {
   const admin = await getCurrentAdmin()
-  if (!admin) redirect('/admin/login?redirect=/admin/market/utilisateurs')
+  if (!admin) redirect('/admin/login?redirect=/app/utilisateurs')
   // Réservé au super admin
-  if (admin.role !== 'super_admin') redirect('/admin/market')
+  if (admin.role !== 'super_admin') redirect('/app/dashboard')
 
   return <UsersClient currentUserId={admin.id} />
 }

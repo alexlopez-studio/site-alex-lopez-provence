@@ -129,7 +129,7 @@ export function AcheteursListClient() {
             )}
           </Button>
           <Button asChild size="sm">
-            <Link href="/admin/market/acheteurs/nouveau">
+            <Link href="/app/acheteurs/nouveau">
               <Plus className="h-4 w-4 mr-1" />
               Nouvel acquéreur
             </Link>
@@ -247,7 +247,7 @@ export function AcheteursListClient() {
                             className="h-8 w-8"
                             asChild
                           >
-                            <Link href={`/admin/market/acheteurs/${buyer.lead_id}`}>
+                            <Link href={`/app/acheteurs/${buyer.lead_id}`}>
                               <Pencil className="h-3.5 w-3.5" />
                             </Link>
                           </Button>

@@ -4,11 +4,11 @@ import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
-  ArrowUpCircleIcon,
   Building2Icon,
   GitCompareArrowsIcon,
   KanbanIcon,
   LayoutDashboardIcon,
+  RadarIcon,
   ScrollTextIcon,
   BellIcon,
   MapIcon,
@@ -16,7 +16,6 @@ import {
   UsersIcon,
   PackageIcon,
   UserPlusIcon,
-  PanelLeftIcon,
   FlameIcon,
   ShieldIcon,
 } from "lucide-react"
@@ -33,28 +32,40 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarTrigger,
-  useSidebar,
 } from "@/components/ui/sidebar"
 
-const NAV_ITEMS = [
-  { title: "Dashboard", url: "/admin/market", icon: LayoutDashboardIcon },
-  { title: "Leads", url: "/admin/market/leads", icon: UserPlusIcon },
-  { title: "Liste chaude", url: "/admin/market/liste-chaude", icon: FlameIcon },
-  { title: "Marché", url: "/admin/market/properties", icon: Building2Icon },
-  { title: "Acquéreurs", url: "/admin/market/acheteurs", icon: UsersIcon },
-  { title: "Matching", url: "/admin/market/matching", icon: GitCompareArrowsIcon },
-  { title: "Opportunités", url: "/admin/market/opportunities", icon: KanbanIcon },
-  { title: "Règles", url: "/admin/market/rules", icon: ScrollTextIcon },
-  { title: "Notifications", url: "/admin/market/notifications", icon: BellIcon },
+const OVERVIEW_ITEMS = [
+  { title: "Dashboard", url: "/app/dashboard", icon: LayoutDashboardIcon },
 ]
 
-const ZONE_ITEMS = [
-  { title: "Zones surveillées", url: "/admin/market/zones", icon: MapIcon },
-  { title: "Paramètres", url: "/admin/market/settings", icon: SettingsIcon },
+const SELLER_ITEMS = [
+  { title: "Radar", url: "/app/radar", icon: RadarIcon },
+  { title: "Leads", url: "/app/leads", icon: UserPlusIcon },
+  { title: "Liste chaude", url: "/app/liste-chaude", icon: FlameIcon },
+  { title: "Opportunités", url: "/app/opportunities", icon: KanbanIcon },
+]
+
+const BUYER_ITEMS = [
+  { title: "Acquéreurs", url: "/app/acheteurs", icon: UsersIcon },
+  { title: "Matching", url: "/app/matching", icon: GitCompareArrowsIcon },
+]
+
+const MARKET_ITEMS = [
+  { title: "Biens", url: "/app/properties", icon: Building2Icon },
+  { title: "Zones surveillées", url: "/app/zones", icon: MapIcon },
+]
+
+const AUTOMATION_ITEMS = [
+  { title: "Règles", url: "/app/rules", icon: ScrollTextIcon },
+  { title: "Notifications", url: "/app/notifications", icon: BellIcon },
+]
+
+const CONFIG_ITEMS = [
+  { title: "Paramètres", url: "/app/settings", icon: SettingsIcon },
 ]
 
 const SUPER_ADMIN_ITEMS = [
-  { title: "Utilisateurs", url: "/admin/market/utilisateurs", icon: ShieldIcon },
+  { title: "Utilisateurs", url: "/app/utilisateurs", icon: ShieldIcon },
 ]
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
@@ -64,56 +75,46 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
 
 export function AppSidebar({ role, email, ...props }: AppSidebarProps) {
   const pathname = usePathname()
-  const { state } = useSidebar()
 
   const configItems =
-    role === "super_admin" ? [...ZONE_ITEMS, ...SUPER_ADMIN_ITEMS] : ZONE_ITEMS
+    role === "super_admin" ? [...CONFIG_ITEMS, ...SUPER_ADMIN_ITEMS] : CONFIG_ITEMS
 
   const isActive = (href: string) => {
-    if (href === '/admin/market') return pathname === href
+    if (href === '/app/dashboard') return pathname === href
     return pathname.startsWith(href)
   }
+
+  const withActiveState = (items: typeof OVERVIEW_ITEMS) =>
+    items.map((item) => ({
+      ...item,
+      isActive: isActive(item.url),
+    }))
 
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <SidebarMenu>
-          <SidebarMenuItem>
+          <SidebarMenuItem className="flex items-center gap-1 group-data-[collapsible=icon]:flex-col">
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
+              className="min-w-0 flex-1 data-[slot=sidebar-menu-button]:!p-1.5 group-data-[collapsible=icon]:flex-none"
             >
-              <Link href="/admin/market">
+              <Link href="/app/dashboard">
                 <PackageIcon className="h-5 w-5 text-brand" />
                 <span className="text-base font-semibold">Mandat OS</span>
               </Link>
             </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarTrigger className="w-full justify-start gap-2 [&>svg]:size-4 group-data-[collapsible=icon]:[&>svg]:mx-auto group-data-[collapsible=icon]:[&>svg]:ml-0 group-data-[collapsible=icon]:[&>span]:hidden" />
+            <SidebarTrigger className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground group-data-[collapsible=icon]:mt-1" />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain
-          items={NAV_ITEMS.map((item) => ({
-            ...item,
-            isActive: isActive(item.url),
-          }))}
-        />
-        <div className="mt-2 px-3 py-1">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-2">
-            Configuration
-          </p>
-        </div>
-        <NavMain
-          items={configItems.map((item) => ({
-            ...item,
-            isActive: pathname === item.url,
-          }))}
-        />
+        <NavMain title="Vue d'ensemble" items={withActiveState(OVERVIEW_ITEMS)} />
+        <NavMain title="Vendeurs" items={withActiveState(SELLER_ITEMS)} />
+        <NavMain title="Acquéreurs" items={withActiveState(BUYER_ITEMS)} />
+        <NavMain title="Marché" items={withActiveState(MARKET_ITEMS)} />
+        <NavMain title="Automatisation" items={withActiveState(AUTOMATION_ITEMS)} />
+        <NavMain title="Configuration" items={withActiveState(configItems)} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser

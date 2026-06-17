@@ -22,8 +22,9 @@ La branche locale `preview` peut etre en retard. Au 17/06/2026, elle etait encor
 - Branche de reference : `origin/preview`
 - Commit de reference au 17/06/2026 : `a2c1358`
 - Projet : `alexlopez-studio/site-alex-lopez-provence`
-- Backoffice principal : `/admin/market`
-- Ancienne entree `/dashboard/radar` : radar MandatFinder plus technique, a ne pas confondre avec le shell principal.
+- Backoffice principal : `/app/dashboard`
+- URLs canoniques logiciel : `/app/dashboard`, `/app/leads`, `/app/radar`, `/app/properties`, `/app/acheteurs`, `/app/matching`, `/app/opportunities`, `/app/rules`, `/app/notifications`, `/app/zones`, `/app/settings`, `/app/utilisateurs`.
+- Anciennes entrees `/admin/market/*` et `/dashboard/radar` : conservees via redirects/rewrites, mais ne sont plus les URLs a utiliser en navigation courante.
 - Ancien suivi Linear : historique utile, mais ne reflete plus l'avancement reel du code.
 
 ## Ce qui est deja realise
@@ -46,41 +47,29 @@ Les lots historiques 1 a 4 ne sont plus a traiter comme non demarres. Ils ont et
 - Pipeline MandatFinder avec toggle et cron Vercel.
 - Alerting email "fenetre d'or" via Resend apres analyse.
 - Corrections recentes Stream Estate : endpoint `stream.estate`, `/documents/properties`, `hydra:member`.
+- Simplification des URLs backoffice vers `/app/*`.
+- Sidebar Mandat OS reorganisee par sections metier : Vue d'ensemble, Vendeurs, Acquereurs, Marche, Automatisation, Configuration.
 
 ## Branches et organisation du travail
 
-Le travail recent a ete organise en deux pistes paralleles :
+Decision du 17/06/2026 : Codex reste seul sur le developpement et le design pour le moment.
 
-- Piste fonctionnalites : fonctionnalites backoffice / data / auth / sync / alerting.
-- Piste design : amelioration de l'interface logiciel et experience produit.
+- Branche de travail unique : `preview`.
+- Source de verite GitHub : `origin/preview`.
+- Les anciennes branches `design/*` et `feat/*` ne doivent plus etre utilisees pour le flux courant, sauf demande explicite d'Alexandre.
+- Les branches de sauvegarde locales peuvent rester temporairement pour recuperer un fichier, mais elles ne sont pas des bases de travail.
+- Quand Alexandre valide un push, pousser `preview` vers `origin/preview`.
+- Ne jamais pousser sans validation explicite d'Alexandre.
 
-Au 17/06/2026, la piste fonctionnalites identifiable cote remote est :
+## Coordination de travail
 
-- `origin/claude/wizardly-fermi-wa97uj`
-
-Cette branche est deja integree dans `origin/preview`.
-
-La branche design n'apparait pas sous un nom distant evident dans les refs actuellement visibles. Si une prochaine session doit reprendre le design, commencer par :
-
-1. `git fetch --all --prune`
-2. inspecter les branches distantes recentes,
-3. chercher une branche design/UX/UI eventuellement supprimee ou renomme,
-4. sinon creer une nouvelle branche design depuis `origin/preview`.
-
-Ne jamais reprendre le design depuis les anciennes branches du site public (`site-homepage-design-system`, `photo-audit`, etc.) sauf demande explicite : elles concernent surtout le site vitrine, pas le logiciel.
-
-## Coordination avec Claude Code
-
-Alexandre travaille aussi en parallele avec Claude Code. Pour eviter tout cafouillage :
+Pour eviter tout cafouillage :
 
 - Ne jamais faire de `git reset --hard`, rebase destructif ou checkout qui ecrase des fichiers sans accord explicite.
 - Toujours verifier `git status --short --branch` avant de modifier.
 - Toujours verifier si `origin/preview` a avance avec `git fetch --all --prune`.
-- Travailler sur une branche dediee par piste, par exemple :
-  - design logiciel : `design/mandat-os-ui`
-  - fonctionnalite : `feat/<nom-court>`
-- Ne pas melanger design et fonctionnalites dans la meme branche sauf demande explicite.
-- Si Claude Code a pousse du nouveau travail sur `preview` ou une branche parallele, le prendre en compte avant de continuer.
+- Travailler localement sur `preview`.
+- Si `origin/preview` a avance, stopper et clarifier avant de pousser ou de rebaser.
 - La doc du repo remplace Linear pour le suivi courant ; Linear reste seulement un historique.
 
 ## Journal d'avancement obligatoire
@@ -124,20 +113,27 @@ Si l'auth Supabase bloque l'e2e local, documenter le blocage et prevoir une stra
 
 Le design concerne le logiciel Mandat OS / MandatFinder, pas le site public.
 
+Preference de visualisation locale :
+
+- utiliser `localhost`, pas `127.0.0.1`,
+- ouvrir `http://localhost:<port>/app/dashboard`,
+- ouvrir dans VS Code quand c'est possible, via le Simple Browser integre.
+
 Ecrans principaux a prendre en compte :
 
-- `/admin/market`
-- `/admin/market/leads`
-- `/admin/market/liste-chaude`
-- `/admin/market/properties`
-- `/admin/market/acheteurs`
-- `/admin/market/matching`
-- `/admin/market/opportunities`
-- `/admin/market/rules`
-- `/admin/market/notifications`
-- `/admin/market/zones`
-- `/admin/market/settings`
-- `/admin/market/utilisateurs`
+- `/app/dashboard`
+- `/app/leads`
+- `/app/liste-chaude`
+- `/app/radar`
+- `/app/properties`
+- `/app/acheteurs`
+- `/app/matching`
+- `/app/opportunities`
+- `/app/rules`
+- `/app/notifications`
+- `/app/zones`
+- `/app/settings`
+- `/app/utilisateurs`
 
 Objectif design : unifier ces pages en vrai logiciel metier operationnel, pas en assemblage de templates shadcn.
 
@@ -172,6 +168,6 @@ Commits recents integres dans `origin/preview` :
 ## A ne pas refaire
 
 - Ne pas repartir du suivi initial qui indiquait Lot 2/3/4 a 0%.
-- Ne pas supposer que `/admin` est l'etat du logiciel : `/admin` redirige vers `/admin/market` sur la preview recente.
+- Ne pas supposer que `/admin` est l'etat du logiciel : la navigation courante passe par `/app/dashboard`, les routes `/admin/market/*` sont des routes historiques/rewrite.
 - Ne pas confondre design public du site vitrine et design du logiciel.
 - Ne pas rebaser ou reset sans verifier les changements locaux.

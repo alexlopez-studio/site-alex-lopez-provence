@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   Search,
@@ -8,15 +8,15 @@ import {
   ArrowUpDown,
   Home,
   MapPin,
-  Euro,
   Timer,
   MoreHorizontal,
   Eye,
   Star,
   Flag,
   ArrowUpRight,
+  RefreshCw,
 } from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -34,95 +34,38 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 
-interface PropertyData {
+interface PropertyRow {
   id: string
-  title: string
-  city: string
-  zipcode: string
-  price: number
-  surface: number
-  rooms: number
-  bedrooms: number
-  propertyType: string
+  external_id: string | null
+  title: string | null
+  city: string | null
+  zipcode: string | null
+  price: number | null
+  surface: number | null
+  price_per_m2: number | null
+  rooms: number | null
+  bedrooms: number | null
+  property_type: string | null
   dpe: string | null
-  status: string
-  daysOnline: number
-  pricePerM2: number
-  tags: string[]
-  lat: number
-  lng: number
+  status: string | null
+  first_seen_at: string | null
+  last_seen_at: string | null
+  url: string | null
 }
-
-// Coordonnées approximatives des communes du Var
-const CITY_COORDS: Record<string, [number, number]> = {
-  'Cotignac': [43.5283, 6.1525],
-  'Brignoles': [43.4067, 6.0617],
-  'Saint-Maximin': [43.4533, 5.8667],
-  'Barjols': [43.5583, 6.0075],
-  'Carcès': [43.4750, 6.1833],
-}
-
-const PROPERTIES: PropertyData[] = [
-  {
-    id: '1', title: 'Maison de village 4 pièces', city: 'Cotignac', zipcode: '83570',
-    price: 295000, surface: 110, rooms: 4, bedrooms: 3, propertyType: 'Maison',
-    dpe: 'D', status: 'actif', daysOnline: 15, pricePerM2: 2682, tags: ['Jardin', 'Vue'],
-    lat: 43.5283, lng: 6.1525,
-  },
-  {
-    id: '2', title: 'Villa contemporaine 5 pièces', city: 'Brignoles', zipcode: '83170',
-    price: 459000, surface: 160, rooms: 5, bedrooms: 4, propertyType: 'Villa',
-    dpe: 'B', status: 'prix_en_baisse', daysOnline: 45, pricePerM2: 2869, tags: ['Piscine', 'Garage', 'Terrasse'],
-    lat: 43.4067, lng: 6.0617,
-  },
-  {
-    id: '3', title: 'Appartement T3 centre historique', city: 'Saint-Maximin', zipcode: '83470',
-    price: 189000, surface: 72, rooms: 3, bedrooms: 2, propertyType: 'Appartement',
-    dpe: 'C', status: 'nouveau', daysOnline: 2, pricePerM2: 2625, tags: ['Balcon', 'Ascenseur'],
-    lat: 43.4533, lng: 5.8667,
-  },
-  {
-    id: '4', title: 'Bastide provençale 6 pièces', city: 'Barjols', zipcode: '83670',
-    price: 625000, surface: 200, rooms: 6, bedrooms: 4, propertyType: 'Bastide',
-    dpe: 'E', status: 'stagne', daysOnline: 120, pricePerM2: 3125, tags: ['Piscine', 'Puits'],
-    lat: 43.5583, lng: 6.0075,
-  },
-  {
-    id: '5', title: 'Terrain constructible 800m²', city: 'Carcès', zipcode: '83570',
-    price: 85000, surface: 800, rooms: 0, bedrooms: 0, propertyType: 'Terrain',
-    dpe: null, status: 'opportunite', daysOnline: 30, pricePerM2: 106, tags: ['Viabilisé'],
-    lat: 43.4750, lng: 6.1833,
-  },
-  {
-    id: '6', title: 'Villa 4 pièces avec piscine', city: 'Carcès', zipcode: '83570',
-    price: 385000, surface: 130, rooms: 4, bedrooms: 3, propertyType: 'Villa',
-    dpe: 'C', status: 'actif', daysOnline: 8, pricePerM2: 2962, tags: ['Piscine', 'Climatisation'],
-    lat: 43.4800, lng: 6.1900,
-  },
-  {
-    id: '7', title: 'Maison de maître 7 pièces', city: 'Cotignac', zipcode: '83570',
-    price: 720000, surface: 250, rooms: 7, bedrooms: 5, propertyType: 'Maison',
-    dpe: 'F', status: 'prix_en_baisse', daysOnline: 90, pricePerM2: 2880, tags: ['Jardin', 'Cave', 'Grenier'],
-    lat: 43.5350, lng: 6.1600,
-  },
-  {
-    id: '8', title: 'Appartement T2 centre ville', city: 'Brignoles', zipcode: '83170',
-    price: 135000, surface: 52, rooms: 2, bedrooms: 1, propertyType: 'Appartement',
-    dpe: 'D', status: 'nouveau', daysOnline: 1, pricePerM2: 2596, tags: ['Centre', 'Commerces'],
-    lat: 43.4100, lng: 6.0650,
-  },
-]
 
 const STATUS_BADGES: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-  nouveau: { label: 'Nouveau', variant: 'default' },
-  actif: { label: 'Actif', variant: 'secondary' },
-  prix_en_baisse: { label: 'Prix en baisse', variant: 'destructive' },
-  opportunite: { label: 'Opportunité', variant: 'default' },
-  stagne: { label: 'Stagne', variant: 'outline' },
+  active:          { label: 'Actif',          variant: 'secondary' },
+  actif:           { label: 'Actif',          variant: 'secondary' },
+  price_drop:      { label: 'Prix en baisse', variant: 'destructive' },
+  prix_en_baisse:  { label: 'Prix en baisse', variant: 'destructive' },
+  new:             { label: 'Nouveau',        variant: 'default' },
+  nouveau:         { label: 'Nouveau',        variant: 'default' },
+  opportunity:     { label: 'Opportunité',    variant: 'default' },
+  opportunite:     { label: 'Opportunité',    variant: 'default' },
+  stagnant:        { label: 'Stagne',         variant: 'outline' },
+  stagne:          { label: 'Stagne',         variant: 'outline' },
 }
 
 const DPE_COLORS: Record<string, string> = {
@@ -135,54 +78,75 @@ const DPE_COLORS: Record<string, string> = {
   G: 'bg-red-300 text-red-900 border-red-400',
 }
 
-function formatPrice(price: number) {
+function formatPrice(price: number | null) {
+  if (!price) return '—'
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(price)
 }
 
-function formatPricePerM2(price: number) {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(price) + '/m²'
+function daysOnline(firstSeenAt: string | null): number | null {
+  if (!firstSeenAt) return null
+  const diff = Date.now() - new Date(firstSeenAt).getTime()
+  return Math.max(0, Math.floor(diff / 86_400_000))
 }
 
 export function PropertiesTable() {
+  const [properties, setProperties] = useState<PropertyRow[]>([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [cityFilter, setCityFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('all')
-  const [sortBy, setSortBy] = useState<'price' | 'days' | 'surface'>('price')
+  const [sortBy, setSortBy] = useState<'price' | 'last_seen_at' | 'surface'>('last_seen_at')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
-  const cities = [...new Set(PROPERTIES.map(p => p.city))]
-  const types = [...new Set(PROPERTIES.map(p => p.propertyType))]
+  async function load() {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams({
+        limit: '100',
+        sort: `${sortBy}.${sortOrder}`,
+      })
+      const res = await fetch(`/api/market/properties?${params}`)
+      const data = await res.json()
+      setProperties(data.properties ?? [])
+      setTotal(data.total ?? 0)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-  const filtered = PROPERTIES
-    .filter(p => {
-      if (search) {
-        const s = search.toLowerCase()
-        if (!p.title.toLowerCase().includes(s) && !p.city.toLowerCase().includes(s)) return false
-      }
-      if (statusFilter !== 'all' && p.status !== statusFilter) return false
-      if (cityFilter !== 'all' && p.city !== cityFilter) return false
-      if (typeFilter !== 'all' && p.propertyType !== typeFilter) return false
-      return true
-    })
-    .sort((a, b) => {
-      const dir = sortOrder === 'asc' ? 1 : -1
-      if (sortBy === 'price') return (a.price - b.price) * dir
-      if (sortBy === 'days') return (a.daysOnline - b.daysOnline) * dir
-      return (a.surface - b.surface) * dir
-    })
+  useEffect(() => { load() }, [sortBy, sortOrder])
+
+  const cities = [...new Set(properties.map(p => p.city).filter(Boolean))] as string[]
+  const types  = [...new Set(properties.map(p => p.property_type).filter(Boolean))] as string[]
+
+  const filtered = properties.filter(p => {
+    if (search) {
+      const s = search.toLowerCase()
+      if (!(p.title ?? '').toLowerCase().includes(s) && !(p.city ?? '').toLowerCase().includes(s)) return false
+    }
+    if (statusFilter !== 'all' && p.status !== statusFilter) return false
+    if (cityFilter   !== 'all' && p.city !== cityFilter)     return false
+    if (typeFilter   !== 'all' && p.property_type !== typeFilter) return false
+    return true
+  })
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Marché immobilier</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          {PROPERTIES.length} biens surveillés sur vos zones
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Marché immobilier</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {loading ? '…' : total} biens synchronisés
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={load} disabled={loading}>
+          <RefreshCw className={cn('h-4 w-4 mr-1', loading && 'animate-spin')} />
+          Actualiser
+        </Button>
       </div>
 
-      {/* Filters */}
       <Card>
         <CardContent className="p-4">
           <div className="flex flex-wrap items-center gap-3">
@@ -196,38 +160,34 @@ export function PropertiesTable() {
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-9 w-[140px]">
+              <SelectTrigger className="h-9 w-[160px]">
                 <SelectValue placeholder="Statut" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous les statuts</SelectItem>
-                <SelectItem value="nouveau">Nouveau</SelectItem>
-                <SelectItem value="actif">Actif</SelectItem>
-                <SelectItem value="prix_en_baisse">Prix en baisse</SelectItem>
-                <SelectItem value="opportunite">Opportunité</SelectItem>
-                <SelectItem value="stagne">Stagne</SelectItem>
+                <SelectItem value="active">Actif</SelectItem>
+                <SelectItem value="price_drop">Prix en baisse</SelectItem>
+                <SelectItem value="new">Nouveau</SelectItem>
+                <SelectItem value="opportunity">Opportunité</SelectItem>
+                <SelectItem value="stagnant">Stagne</SelectItem>
               </SelectContent>
             </Select>
             <Select value={cityFilter} onValueChange={setCityFilter}>
-              <SelectTrigger className="h-9 w-[150px]">
+              <SelectTrigger className="h-9 w-[160px]">
                 <SelectValue placeholder="Ville" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Toutes les villes</SelectItem>
-                {cities.map(c => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
-                ))}
+                {cities.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="h-9 w-[150px]">
+              <SelectTrigger className="h-9 w-[160px]">
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous les types</SelectItem>
-                {types.map(t => (
-                  <SelectItem key={t} value={t}>{t}</SelectItem>
-                ))}
+                {types.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
               </SelectContent>
             </Select>
             <Button variant="ghost" size="sm" className="h-9">
@@ -238,20 +198,19 @@ export function PropertiesTable() {
         </CardContent>
       </Card>
 
-      {/* Results + sorting */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
           {filtered.length} résultat{filtered.length !== 1 ? 's' : ''}
         </p>
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">Trier par :</span>
-          <Select value={sortBy} onValueChange={(v) => setSortBy(v as 'price' | 'days' | 'surface')}>
-            <SelectTrigger className="h-8 w-[130px] text-xs">
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+            <SelectTrigger className="h-8 w-[150px] text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="last_seen_at">Dernière vue</SelectItem>
               <SelectItem value="price">Prix</SelectItem>
-              <SelectItem value="days">Jours en ligne</SelectItem>
               <SelectItem value="surface">Surface</SelectItem>
             </SelectContent>
           </Select>
@@ -266,7 +225,6 @@ export function PropertiesTable() {
         </div>
       </div>
 
-      {/* Table */}
       <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -285,8 +243,17 @@ export function PropertiesTable() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((prop) => {
-                  const badge = STATUS_BADGES[prop.status]
+                {loading && (
+                  <tr>
+                    <td colSpan={9} className="p-8 text-center text-sm text-muted-foreground">
+                      Chargement…
+                    </td>
+                  </tr>
+                )}
+                {!loading && filtered.map((prop) => {
+                  const badge = STATUS_BADGES[prop.status ?? '']
+                  const days = daysOnline(prop.first_seen_at)
+                  const dpe = prop.dpe?.toUpperCase()
                   return (
                     <tr
                       key={prop.id}
@@ -294,57 +261,65 @@ export function PropertiesTable() {
                     >
                       <td className="p-4">
                         <Link
-                          href={`/admin/market/properties/${prop.id}`}
+                          href={`/app/properties/${prop.id}`}
                           className="font-medium hover:text-brand transition-colors"
                         >
-                          {prop.title}
+                          {prop.title || 'Bien sans titre'}
                         </Link>
                         <div className="flex items-center gap-1 mt-1">
-                          <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">
-                            {prop.propertyType}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">{prop.rooms} pièces</span>
+                          {prop.property_type && (
+                            <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">
+                              {prop.property_type}
+                            </Badge>
+                          )}
+                          {prop.rooms ? (
+                            <span className="text-xs text-muted-foreground">{prop.rooms} pièces</span>
+                          ) : null}
                         </div>
                       </td>
                       <td className="p-4">
                         <div className="flex items-center gap-1 text-muted-foreground">
-                          <MapPin className="h-3.5 w-3.5" />
-                          {prop.city} ({prop.zipcode})
+                          <MapPin className="h-3.5 w-3.5 shrink-0" />
+                          {prop.city}{prop.zipcode ? ` (${prop.zipcode})` : ''}
                         </div>
                       </td>
                       <td className="p-4 text-right font-medium">
                         {formatPrice(prop.price)}
-                        {prop.status === 'prix_en_baisse' && (
+                        {prop.status === 'price_drop' || prop.status === 'prix_en_baisse' ? (
                           <div className="flex items-center justify-end gap-0.5 text-destructive text-xs">
                             <ArrowUpRight className="h-3 w-3 rotate-180" />
-                            -9.1%
+                            baisse
                           </div>
-                        )}
+                        ) : null}
                       </td>
                       <td className="p-4 text-right text-muted-foreground">
-                        {prop.surface} m²
+                        {prop.surface ? `${prop.surface} m²` : '—'}
                       </td>
                       <td className="p-4 text-right text-muted-foreground text-xs">
-                        {formatPricePerM2(prop.pricePerM2)}
+                        {prop.price_per_m2 ? `${new Intl.NumberFormat('fr-FR').format(prop.price_per_m2)} €/m²` : '—'}
                       </td>
                       <td className="p-4 text-center">
-                        {prop.dpe ? (
-                          <Badge variant="outline" className={cn('text-[10px] px-1.5', DPE_COLORS[prop.dpe])}>
-                            {prop.dpe}
+                        {dpe && DPE_COLORS[dpe] ? (
+                          <Badge variant="outline" className={cn('text-[10px] px-1.5', DPE_COLORS[dpe])}>
+                            {dpe}
                           </Badge>
                         ) : (
                           <span className="text-xs text-muted-foreground">—</span>
                         )}
                       </td>
                       <td className="p-4 text-center">
-                        <Badge variant={badge.variant} className="text-xs">
-                          {badge.label}
-                        </Badge>
+                        {badge ? (
+                          <Badge variant={badge.variant} className="text-xs">
+                            {badge.label}
+                          </Badge>
+                        ) : (
+                          <span className="text-xs text-muted-foreground capitalize">{prop.status ?? '—'}</span>
+                        )}
                       </td>
                       <td className="p-4 text-center">
                         <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
                           <Timer className="h-3 w-3" />
-                          {prop.daysOnline}j
+                          {days !== null ? `${days}j` : '—'}
                         </div>
                       </td>
                       <td className="p-4">
@@ -355,9 +330,18 @@ export function PropertiesTable() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-[160px]">
-                            <DropdownMenuItem>
-                              <Eye className="h-4 w-4 mr-2" /> Détail
+                            <DropdownMenuItem asChild>
+                              <Link href={`/app/properties/${prop.id}`}>
+                                <Eye className="h-4 w-4 mr-2" /> Détail
+                              </Link>
                             </DropdownMenuItem>
+                            {prop.url && (
+                              <DropdownMenuItem asChild>
+                                <a href={prop.url} target="_blank" rel="noopener noreferrer">
+                                  <ArrowUpRight className="h-4 w-4 mr-2" /> Voir l'annonce
+                                </a>
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem>
                               <Star className="h-4 w-4 mr-2" /> Marquer
                             </DropdownMenuItem>
@@ -374,7 +358,7 @@ export function PropertiesTable() {
               </tbody>
             </table>
           </div>
-          {filtered.length === 0 && (
+          {!loading && filtered.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Home className="h-12 w-12 text-muted-foreground/30 mb-3" />
               <p className="text-sm font-medium">Aucun bien trouvé</p>

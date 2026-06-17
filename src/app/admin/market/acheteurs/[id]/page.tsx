@@ -55,7 +55,7 @@ export default function EditAcquereurPage() {
         const res = await fetch(`/api/market/buyers/${leadId}`)
         if (!res.ok) {
           toast.error('Acquéreur non trouvé')
-          router.push('/admin/market/acheteurs')
+          router.push('/app/acheteurs')
           return
         }
         const data = await res.json()
@@ -177,7 +177,7 @@ export default function EditAcquereurPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" asChild>
-            <Link href="/admin/market/acheteurs">
+            <Link href="/app/acheteurs">
               <ChevronLeft className="h-4 w-4 mr-1" />
               Retour
             </Link>
@@ -375,7 +375,7 @@ export default function EditAcquereurPage() {
         {/* Actions */}
         <div className="flex justify-end gap-2 mt-6">
           <Button variant="outline" asChild>
-            <Link href="/admin/market/acheteurs">Annuler</Link>
+            <Link href="/app/acheteurs">Annuler</Link>
           </Button>
           <Button type="submit" disabled={saving}>
             {saving && <Loader2 className="h-4 w-4 animate-spin mr-1" />}

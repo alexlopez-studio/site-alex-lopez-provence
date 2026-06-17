@@ -126,7 +126,7 @@ export function PropertyDetail() {
     <div className="space-y-6">
       {/* Back button */}
       <Link
-        href="/admin/market/properties"
+        href="/app/properties"
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
         <ChevronLeft className="h-4 w-4" />

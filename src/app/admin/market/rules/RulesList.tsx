@@ -164,7 +164,7 @@ export function RulesList() {
             {rules.filter(r => r.active).length} règles actives sur {rules.length}
           </p>
         </div>
-        <Link href="/admin/market/rules/new">
+        <Link href="/app/rules/new">
           <Button>
             <Plus className="h-4 w-4 mr-2" />
             Nouvelle règle

@@ -60,26 +60,31 @@ export async function POST(req: NextRequest) {
     try {
       // 3. Appel Stream Estate
       const result = await fetchListings({ zipcode })
-      const { listings } = result
+      const listings = result.listings
 
       let createdCount = 0
       let updatedCount = 0
+      const skippedCount = 0
 
       // 4. Upsert des biens dans market_properties
       for (const listing of listings) {
         const externalId = listing.externalId || listing.id
 
         // Vérifier si le bien existe déjà
-        const { data: existing } = await supabaseAdmin
+        const { data: existing, error: existingError } = await supabaseAdmin
           .from('market_properties')
           .select('id, price')
           .eq('external_id', externalId)
           .eq('source', 'stream_estate')
           .maybeSingle()
 
+        if (existingError) {
+          throw new Error(`Lecture bien ${externalId} impossible: ${existingError.message}`)
+        }
+
         if (existing) {
           // Mise à jour
-          await supabaseAdmin
+          const { error: updateError } = await supabaseAdmin
             .from('market_properties')
             .update({
               title: listing.title ?? null,
@@ -98,9 +103,13 @@ export async function POST(req: NextRequest) {
             })
             .eq('id', existing.id)
 
+          if (updateError) {
+            throw new Error(`Mise à jour bien ${externalId} impossible: ${updateError.message}`)
+          }
+
           // Détection variation de prix
           if (existing.price != null && listing.price != null && existing.price !== listing.price) {
-            await supabaseAdmin
+            const { error: historyError } = await supabaseAdmin
               .from('property_price_history')
               .insert({
                 market_property_id: existing.id,
@@ -111,6 +120,10 @@ export async function POST(req: NextRequest) {
                   ? Math.round(((listing.price - existing.price) / existing.price) * 10000) / 100
                   : 0,
               })
+
+            if (historyError) {
+              throw new Error(`Historique prix ${externalId} impossible: ${historyError.message}`)
+            }
           }
 
           updatedCount++
@@ -121,7 +134,7 @@ export async function POST(req: NextRequest) {
               ? Math.round(listing.price / listing.surface)
               : null
 
-          const { data: newProperty } = await supabaseAdmin
+          const { data: newProperty, error: insertError } = await supabaseAdmin
             .from('market_properties')
             .insert({
               external_id: externalId,
@@ -146,21 +159,29 @@ export async function POST(req: NextRequest) {
               status: listing.status ?? 'active',
               first_seen_at: listing.publishedAt || new Date().toISOString(),
               last_seen_at: new Date().toISOString(),
-              published_at: listing.publishedAt ?? null,
+              published_at: listing.publishedAt || null,
               raw_json: (listing.raw ?? {}) as never,
             })
             .select('id')
             .single()
 
+          if (insertError) {
+            throw new Error(`Création bien ${externalId} impossible: ${insertError.message}`)
+          }
+
           // Tag automatique "Nouvelle annonce"
           if (newProperty?.id) {
-            await supabaseAdmin
+            const { error: tagError } = await supabaseAdmin
               .from('property_tags')
               .insert({
                 market_property_id: newProperty.id,
                 tag: 'Nouvelle annonce',
                 source: 'system',
               })
+
+            if (tagError) {
+              throw new Error(`Tag bien ${externalId} impossible: ${tagError.message}`)
+            }
 
             // Lancer le matching automatique contre les acheteurs
             runMatchingForProperty(newProperty.id, 'market').then(async (matches) => {
@@ -227,6 +248,7 @@ export async function POST(req: NextRequest) {
         zone_id: zoneId,
         sync_id: syncId,
         fetched: listings.length,
+        skipped: skippedCount,
         created: createdCount,
         updated: updatedCount,
       })
