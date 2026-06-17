@@ -33,6 +33,8 @@ export async function middleware(req: NextRequest) {
   return response
 }
 
+// Middleware désactivé temporairement — matcher vide = aucune route interceptée
+// Pour réactiver : remettre ['/admin/:path*', '/dashboard/:path*']
 export const config = {
-  matcher: ['/admin/:path*', '/dashboard/:path*'],
+  matcher: [],
 }

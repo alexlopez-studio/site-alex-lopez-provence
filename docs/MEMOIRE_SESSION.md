@@ -1,215 +1,177 @@
-# Mémoire de session — Mandat OS MVP
+# Memoire de reprise - Mandat OS / MandatFinder
 
-**Date** : 31 mai → 1er juin 2026 (mise à jour le 15/06/2026)
-**Dernier commit** : voir branche `claude/dreamy-thompson-v6i8ac`, PR #105 non mergée
-**Preview Vercel** : https://site-alex-lopez-provence-4gskmtyuu-alexlopez-studio.vercel.app
+Derniere mise a jour : 17/06/2026
 
-> Pour la vue d'ensemble fonctionnelle du site + du backoffice (toutes pages, API, schéma de données, intégrations), voir `docs/CAHIER_DES_CHARGES.md`.
+## Regle de reprise prioritaire
 
----
+Toujours repartir de la derniere branche distante `origin/preview`.
 
-## 1. Projet & Architecture
+Commande courte de reprise : si Alexandre dit simplement `start`, appliquer le protocole de `docs/START.md`.
 
-- **Un seul repo** : `site-alex-lopez-provence` → contient site vitrine + Mandat OS
-- **L'ancien dépôt `app-alex-lopez-provence`** est ignoré (obsolète)
-- **Stack** : Next.js 15 (App Router), TypeScript, Tailwind CSS, Supabase, Stream Estate
-- **Hébergement** : Vercel (projet `alexlopez-studio/site-alex-lopez-provence`)
-- **Vercel CLI** 54.6.1 installé et connecté
-- **Specify CLI (Spec Kit)** v0.9.0 installé via `uv tool install specify-cli`
+Avant toute analyse ou modification :
 
-## 2. GitHub Spec Kit — Spec-Driven Development
+1. Executer `git fetch --all --prune`.
+2. Comparer la branche locale avec `origin/preview`.
+3. Si la branche locale est en retard ou sale, ne pas raisonner depuis l'etat local comme source de verite.
+4. Ne pas ecraser les changements locaux non commites sans accord explicite.
 
-Le **Spec Kit** est installé et initialisé dans le projet. Il permet de décrire ce qu'on veut construire (le "quoi" et le "pourquoi") et génère automatiquement des specs, plans et tâches.
+La branche locale `preview` peut etre en retard. Au 17/06/2026, elle etait encore a `12af742` alors que `origin/preview` etait a `a2c1358`.
 
-### Commandes disponibles (slash commands dans le coding agent) :
+## Source de verite actuelle
 
-| Commande | Usage |
-|---|---|
-| `/speckit.constitution` | Établir les principes du projet et les guidelines |
-| `/speckit.specify` | Créer une spécification baseline |
-| `/speckit.plan` | Créer un plan d'implémentation technique |
-| `/speckit.tasks` | Générer des tâches actionnables |
-| `/speckit.implement` | Exécuter l'implémentation |
-| `/speckit.clarify` | Questions structurées pour lever les ambiguïtés |
-| `/speckit.analyze` | Rapport de cohérence cross-artefacts |
-| `/speckit.checklist` | Checklist qualité |
+- Branche de reference : `origin/preview`
+- Commit de reference au 17/06/2026 : `a2c1358`
+- Projet : `alexlopez-studio/site-alex-lopez-provence`
+- Backoffice principal : `/admin/market`
+- Ancienne entree `/dashboard/radar` : radar MandatFinder plus technique, a ne pas confondre avec le shell principal.
+- Ancien suivi Linear : historique utile, mais ne reflete plus l'avancement reel du code.
 
-### Installation :
-- `uv` (Python package manager) installé
-- `specify` CLI installé (v0.9.0)
-- Projet initialisé avec intégration **copilot**
-- Fichiers dans `.specify/` et `.github/`
+## Ce qui est deja realise
 
-## 3. Supabase
+Les lots historiques 1 a 4 ne sont plus a traiter comme non demarres. Ils ont ete realises puis prolonges.
 
-- **URL** : `https://byrsmbgfkvgxdtdyhrro.supabase.co`
-- **Tables existantes** : prospects, leads, lead_events, admin_users (Phase B)
-- **Tables Mandat OS** (déjà créées dans Supabase) :
-  - `monitored_zones`, `market_properties`, `property_price_history`, `property_tags`
-  - `management_rules`, `notifications`, `opportunities`, `property_notes`, `sync_runs`
-- **Client** : `src/lib/supabase.ts` (lazy Proxy, supabaseAdmin pour les API routes)
+- Infrastructure Stream Estate / Supabase.
+- API backend Mandat OS : biens, sync, regles, notifications, opportunites, zones.
+- UI backoffice : dashboard, marche, detail bien, opportunites, regles, notifications.
+- Moteur de regles : assistant, execution manuelle, regles preconfigurees.
+- Pipeline vendeurs / prospects : `/admin/market/leads`.
+- Acquereurs : `/admin/market/acheteurs`.
+- Matching : `/admin/market/matching`.
+- Zones surveillees : `/admin/market/zones`.
+- Centre de controle : `/admin/market/settings`.
+- Auth Supabase admin avec roles `super_admin` / `admin`.
+- Gestion utilisateurs : `/admin/market/utilisateurs`.
+- Liste chaude bouche-a-oreille : `/admin/market/liste-chaude`.
+- MandatFinder DDD : `src/lib/mandat/*`, migration core, radar, cron analyse.
+- Pipeline MandatFinder avec toggle et cron Vercel.
+- Alerting email "fenetre d'or" via Resend apres analyse.
+- Corrections recentes Stream Estate : endpoint `stream.estate`, `/documents/properties`, `hydra:member`.
 
-## 4. Fichiers créés
+## Branches et organisation du travail
 
-### Lot 1 — Infrastructure & synchronisation
+Le travail recent a ete organise en deux pistes paralleles :
 
-| Fichier | Description |
-|---|---|
-| `src/types/supabase.ts` | Types TypeScript pour toutes les tables (Phase B + Mandat OS) |
-| `src/lib/env.ts` | Ajout de `streamEstate` (apiUrl, apiKey) |
-| `src/lib/stream-estate.ts` | Client Stream Estate : `fetchListings()`, `fetchListingById()` + normalisation |
-| `src/app/api/market/properties/route.ts` | `GET /api/market/properties` — liste filtrée |
-| `src/app/api/market/properties/[id]/route.ts` | `GET/PATCH /api/market/properties/[id]` — détail + signal métier |
-| `src/app/api/market/sync/route.ts` | `POST /api/market/sync` — sync par code postal + moteur de règles |
-| `docs/MEMOIRE_SESSION.md` | Mémoire de session pour transfert entre chats |
+- Piste fonctionnalites : fonctionnalites backoffice / data / auth / sync / alerting.
+- Piste design : amelioration de l'interface logiciel et experience produit.
 
-### Lot 2 — API routes CRUD (créées le 01/06/2026)
+Au 17/06/2026, la piste fonctionnalites identifiable cote remote est :
 
-| Fichier | Méthodes | Description |
-|---|---|---|
-| `src/app/api/market/rules/route.ts` | `GET`, `POST` | Liste + création règles de gestion |
-| `src/app/api/market/rules/[id]/route.ts` | `GET`, `PATCH`, `DELETE` | Détail, modification, suppression règle |
-| `src/app/api/market/notifications/route.ts` | `GET`, `PATCH` | Liste + mise à jour groupée notifications |
-| `src/app/api/market/notifications/[id]/route.ts` | `PATCH` | Mise à jour status notification individuelle |
-| `src/app/api/market/opportunities/route.ts` | `GET`, `POST` | Liste + création opportunités |
-| `src/app/api/market/opportunities/[id]/route.ts` | `GET`, `PATCH`, `DELETE` | Détail, modification, suppression opportunité |
-| `src/app/api/market/zones/route.ts` | `GET`, `POST` | Liste + création zones surveillées |
-| `src/app/api/market/zones/[id]/route.ts` | `GET`, `PATCH`, `DELETE` | Détail, modification, suppression zone |
+- `origin/claude/wizardly-fermi-wa97uj`
 
-## 5. Ce qui a été fait
+Cette branche est deja integree dans `origin/preview`.
 
-### Lot 3 — Pages UI (interface utilisateur) ✅
-- [x] **Dashboard** : page d'accueil Mandat OS (KPIs, alertes, actions récentes, tendances prix par zone)
-- [x] **Table marché** : page principale avec table filtrable (recherche, status, ville, type, tri)
-- [x] **Détail bien** : page fiche bien enrichie (caractéristiques, historique prix, DPE, opportunités liées)
-- [x] **Kanban opportunités** : pipeline 7 colonnes (À qualifier → Mandat potentiel), cartes type/signal/priorité
-- [x] **Règles** : liste avec toggle activation, badges déclencheurs, exécution manuelle
-- [x] **Notifications** : Sheet latéral accessible depuis topbar, badges de priorité
+La branche design n'apparait pas sous un nom distant evident dans les refs actuellement visibles. Si une prochaine session doit reprendre le design, commencer par :
 
-### Lot 4 — Moteur de règles ✅
-- [x] Assistant création règle UI (4 étapes : déclencheur → conditions → actions → activation)
-- [x] Route API exécution manuelle `POST /api/market/rules/[id]/execute`
-- [x] Règles préconfigurées en seed SQL (6 règles)
-- [x] Bouton exécuter avec spinner + toast dans RulesList
+1. `git fetch --all --prune`
+2. inspecter les branches distantes recentes,
+3. chercher une branche design/UX/UI eventuellement supprimee ou renomme,
+4. sinon creer une nouvelle branche design depuis `origin/preview`.
 
-### Autres corrections
-- [x] Header/footer supprimés de la zone admin
-- [x] Route /dashboard avec redirection vers /admin/market
-- [x] Middleware protège /dashboard + /admin
-- [x] Variables CSS shadcn dans @theme
-- [x] Spec Kit reconfiguré pour Claude (était Copilot)
-- [x] Button.tsx : variant primary rétabli
+Ne jamais reprendre le design depuis les anciennes branches du site public (`site-homepage-design-system`, `photo-audit`, etc.) sauf demande explicite : elles concernent surtout le site vitrine, pas le logiciel.
 
-### Fichiers créés
+## Coordination avec Claude Code
 
-#### Lot 1 — Infrastructure & synchronisation
+Alexandre travaille aussi en parallele avec Claude Code. Pour eviter tout cafouillage :
 
-| Fichier | Description |
-|---|---|
-| `src/types/supabase.ts` | Types TypeScript pour toutes les tables (Phase B + Mandat OS) |
-| `src/lib/env.ts` | Ajout de `streamEstate` (apiUrl, apiKey) |
-| `src/lib/stream-estate.ts` | Client Stream Estate : `fetchListings()`, `fetchListingById()` + normalisation |
-| `src/app/api/market/properties/route.ts` | `GET /api/market/properties` — liste filtrée |
-| `src/app/api/market/properties/[id]/route.ts` | `GET/PATCH /api/market/properties/[id]` — détail + signal métier |
-| `src/app/api/market/sync/route.ts` | `POST /api/market/sync` — sync par code postal + moteur de règles |
+- Ne jamais faire de `git reset --hard`, rebase destructif ou checkout qui ecrase des fichiers sans accord explicite.
+- Toujours verifier `git status --short --branch` avant de modifier.
+- Toujours verifier si `origin/preview` a avance avec `git fetch --all --prune`.
+- Travailler sur une branche dediee par piste, par exemple :
+  - design logiciel : `design/mandat-os-ui`
+  - fonctionnalite : `feat/<nom-court>`
+- Ne pas melanger design et fonctionnalites dans la meme branche sauf demande explicite.
+- Si Claude Code a pousse du nouveau travail sur `preview` ou une branche parallele, le prendre en compte avant de continuer.
+- La doc du repo remplace Linear pour le suivi courant ; Linear reste seulement un historique.
 
-#### Lot 2 — API routes CRUD
+## Journal d'avancement obligatoire
 
-| Fichier | Méthodes | Description |
-|---|---|---|
-| `src/app/api/market/rules/route.ts` | `GET`, `POST` | Liste + création règles de gestion |
-| `src/app/api/market/rules/[id]/route.ts` | `GET`, `PATCH`, `DELETE` | Détail, modification, suppression règle |
-| `src/app/api/market/notifications/route.ts` | `GET`, `PATCH` | Liste + mise à jour groupée notifications |
-| `src/app/api/market/notifications/[id]/route.ts` | `PATCH` | Mise à jour status notification individuelle |
-| `src/app/api/market/opportunities/route.ts` | `GET`, `POST` | Liste + création opportunités |
-| `src/app/api/market/opportunities/[id]/route.ts` | `GET`, `PATCH`, `DELETE` | Détail, modification, suppression opportunité |
-| `src/app/api/market/zones/route.ts` | `GET`, `POST` | Liste + création zones surveillées |
-| `src/app/api/market/zones/[id]/route.ts` | `GET`, `PATCH`, `DELETE` | Détail, modification, suppression zone |
+A chaque nouvelle action de conception, developpement, correction, audit ou decision structurante :
 
-#### Lot 3 — Pages UI
+- mettre a jour `docs/SUIVI_PROJET.md`,
+- ajouter une entree horodatee dans la section "Journal d'avancement",
+- utiliser l'heure locale Europe/Paris,
+- mentionner la branche ou base de travail,
+- resumer ce qui a ete fait,
+- noter les fichiers principaux touches,
+- noter l'etat final : fait, en cours, bloque ou a verifier.
 
-| Fichier | Description |
-|---|---|
-| `src/app/admin/market/layout.tsx` | Layout avec sidebar navigation (Pilotage + Configuration), topbar, NotificationsSheet |
-| `src/app/admin/market/page.tsx` | Dashboard — page d'accueil |
-| `src/app/admin/market/DashboardContent.tsx` | KPIs (biens, prix/m², opportunités, alertes), tendances par zone, alertes récentes, derniers biens, actions rapides |
-| `src/app/admin/market/properties/page.tsx` | Table marché — page liste |
-| `src/app/admin/market/properties/PropertiesTable.tsx` | Table filtrable avec recherche, status/ville/type, tri prix/jours/surface |
-| `src/app/admin/market/properties/[id]/page.tsx` | Détail bien — page fiche |
-| `src/app/admin/market/properties/[id]/PropertyDetail.tsx` | Fiche enrichie : prix, surface, DPE, caractéristiques, historique prix, opportunités, alertes |
-| `src/app/admin/market/opportunities/page.tsx` | Kanban — page pipeline |
-| `src/app/admin/market/opportunities/KanbanBoard.tsx` | Kanban 7 colonnes, cartes avec type/signal/priorité/propriété liée |
-| `src/app/admin/market/rules/page.tsx` | Règles — page liste |
-| `src/app/admin/market/rules/RulesList.tsx` | Liste en grille avec toggle, badges déclencheur, exécution manuelle via API |
-| `src/components/admin/NotificationsSheet.tsx` | Sheet latéral notifications avec badges priorité, actions marquer/archiver |
-| `src/app/dashboard/page.tsx` | Route /dashboard → redirection vers /admin/market |
+Ne pas attendre la fin d'une grosse session pour tracer les changements importants.
 
-#### Lot 4 — Moteur de règles
+## Auditeur qualite Playwright
 
-| Fichier | Description |
-|---|---|
-| `src/app/api/market/rules/[id]/execute/route.ts` | `POST /api/market/rules/[id]/execute` — exécution manuelle |
-| `src/components/admin/RuleWizard.tsx` | Assistant création 4 étapes (déclencheur → conditions → actions → activation) |
-| `src/app/admin/market/rules/new/page.tsx` | Route `/admin/market/rules/new` |
-| `supabase/migrations/003_seed_rules.sql` | 6 règles préconfigurées (baisse >5%, nouveau bien, sous-évalué, stagnation, baisse modérée, expiration) |
+Le projet doit integrer un reflexe d'audit qualite via Playwright CLI.
 
-### Routes disponibles
+Principe :
 
-| URL | Description |
-|---|---|
-| `/dashboard` | Redirige vers `/admin/market` |
-| `/admin/market` | Dashboard Mandat OS |
-| `/admin/market/properties` | Tableau du marché |
-| `/admin/market/properties/[id]` | Détail d'un bien |
-| `/admin/market/opportunities` | Kanban pipeline |
-| `/admin/market/rules` | Liste des règles |
-| `/admin/market/rules/new` | Assistant création de règle |
+- apres chaque changement fonctionnel ou design significatif, executer un audit Playwright adapte au changement,
+- utiliser `pnpm test:e2e` pour la suite e2e quand le serveur local ou `BASE_URL` est disponible,
+- pour un audit cible, lancer Playwright sur le ou les tests concernes,
+- conserver les traces/screenshot en cas d'echec,
+- noter le resultat dans le journal d'avancement de `docs/SUIVI_PROJET.md`.
 
-## 6. Ce qu'il reste à faire (TODO)
+Pour le chantier design logiciel, l'auditeur doit couvrir progressivement :
 
-> Mise à jour 14/06/2026 : sur la branche `claude/dreamy-thompson-v6i8ac` (PR #105, non encore mergée sur `main`), du travail supplémentaire a été livré au-delà de ce mémo :
-> - **Pages restantes (ci-dessous) → faites** : `/admin/market/leads` (+ `[id]`), `/api/leads/list`, `/api/leads/stats`, `/api/leads/[id]/resend` couvrent le pipeline vendeurs/prospects et la gestion des demandes d'estimation.
-> - **Acquéreurs** : `/admin/market/acheteurs` (+ `nouveau`, `[id]`) ajoutés.
-> - **Matching** : `/admin/market/matching` + `/api/market/matching*` ajoutés.
-> - **Zones & Settings** : `/admin/market/zones`, `/admin/market/settings` ajoutés.
-> - **MandatFinder (architecture DDD)** : migration `005_mandatfinder_core.sql`, services `src/lib/mandat/*`, dashboard Radar (`/dashboard/radar`).
+- chargement des pages `/admin/market/*` principales,
+- navigation sidebar,
+- absence d'erreurs console critiques,
+- lisibilite desktop et mobile/tablette quand pertinent,
+- absence de debordement horizontal,
+- verification des workflows critiques : login, dashboard, zones, settings, liste chaude, matching.
 
-> Mise à jour 15/06/2026 : pipeline "fenêtre d'or" MandatFinder branché en production (cron + interrupteur) :
-> - **Cron Vercel ajouté** (`vercel.json`) : `/api/jobs/analyze-listings` chaque nuit à 2h UTC (pipeline complet import → snapshot → événements → scores, un seul cron suffit car l'import est l'étape 1 de l'analyse).
-> - **Toggle pipeline** : migration `006_app_settings.sql` (table clé/valeur `app_settings`, défaut `mandatfinder_pipeline_enabled = true`), helpers `src/lib/settings.ts`, API `GET/PATCH /api/market/settings`. Les deux crons (`import-stream-estate`, `analyze-listings`) court-circuitent l'appel Stream Estate si le toggle est sur `false` (réponse `{ skipped: true, reason: 'pipeline_disabled' }`).
-> - **UI** : carte "Pipeline MandatFinder" sur `/admin/market/settings` (switch on/off persisté, statut Activé/Désactivé).
-> - **⚠️ Action requise côté Supabase** : appliquer la migration `006_app_settings.sql` (non exécutée automatiquement). Sans elle, `getSetting()` retourne le fallback (`true`) et le pipeline tourne par défaut — pas bloquant, mais le toggle UI ne pourra pas persister tant que la table n'existe pas.
-> - **`maxDuration` corrigé (15/06/2026)** : `analyze-listings`/`import-stream-estate` étaient à `maxDuration = 300` (5 min), au-delà de la limite du plan Hobby (60s) — ramené à `60`. Bonne pratique nécessaire mais probablement pas suffisante (voir point ci-dessous).
-> - **🔴 Déploiement Vercel du PR #105 en échec (non résolu)** : le check "Vercel" est en `failure` sur les derniers commits, y compris un commit docs-only — le build local (`pnpm run build`) passe sans erreur, et l'échec survient en quelques secondes (avant la fin d'un build normal), ce qui suggère un problème côté projet/compte Vercel (build qui ne démarre pas, quota, config du projet) plutôt qu'une erreur de code. Pas d'accès aux logs Vercel depuis cet environnement (`npx vercel inspect ... --logs` nécessite une auth non disponible ici). **Action requise côté Alexandre** : consulter les logs de déploiement sur le dashboard Vercel (lien dans les checks du PR #105) pour identifier la cause exacte.
->
-> Reste donc principalement :
+Si l'auth Supabase bloque l'e2e local, documenter le blocage et prevoir une strategie de test dediee : compte de test, mocks, storage state Playwright ou base URL preview authentifiee.
 
-### Lot 5 — Suivi conso API
-- [ ] Dashboard consommation Stream Estate (items/jour, coût estimé) — pas encore implémenté ; la table `sync_runs` existe et est alimentée par `/api/market/sync`, mais aucune UI de visualisation dédiée pour l'instant.
+## Priorite design logiciel
 
-### Lot 6 — Alerting "fenêtre d'or"
-- [ ] Notification proactive (email/Telegram) quand un listing passe en phase `golden` — aujourd'hui il faut consulter `/dashboard/radar` manuellement.
+Le design concerne le logiciel Mandat OS / MandatFinder, pas le site public.
 
-### Pages restantes
-- [x] Pipeline vendeurs / prospects — fait (`/admin/market/leads`)
-- [x] Gestion des demandes d'estimation — fait (`/admin/market/leads/[id]`, renvoi magic link)
+Ecrans principaux a prendre en compte :
 
-## 6. Déploiement
+- `/admin/market`
+- `/admin/market/leads`
+- `/admin/market/liste-chaude`
+- `/admin/market/properties`
+- `/admin/market/acheteurs`
+- `/admin/market/matching`
+- `/admin/market/opportunities`
+- `/admin/market/rules`
+- `/admin/market/notifications`
+- `/admin/market/zones`
+- `/admin/market/settings`
+- `/admin/market/utilisateurs`
 
-- **Commit et push sur `main`** → déclenche build **Production**
-- **Pour Preview** : `vercel deploy --yes` (build OK)
-- **Variables Vercel** : STREAMESTATE_API_URL et STREAMESTATE_API_KEY en mode Preview + Production (pas Development)
-- **Pour tester en local** : ajouter manuellement dans `.env.local` :
-  ```
-  STREAMESTATE_API_URL=<demander à Alexandre>
-  STREAMESTATE_API_KEY=<demander à Alexandre>
-  ```
+Objectif design : unifier ces pages en vrai logiciel metier operationnel, pas en assemblage de templates shadcn.
 
-## 7. Conventions de code
+Points d'attention :
 
-- API routes : `src/app/api/market/[resource]/route.ts`
-- Client Stream Estate : `src/lib/stream-estate.ts`
-- Types : dans `src/types/supabase.ts` (format Row/Insert/Update/Relationships)
-- Supabase : utiliser `supabaseAdmin` (service_role) pour les API routes
-- Aucun multi-tenant (single tenant pour Alexandre)
-- Pour les updates typés, utiliser `Database['public']['Tables'][table]['Update']` comme type
+- Garder une interface dense, calme, lisible, orientee decision.
+- Eviter les sections marketing ou trop decoratives dans le backoffice.
+- Stabiliser la navigation : sidebar, header, statut sync, role utilisateur.
+- Rendre les etats metier lisibles : opportunite, baisse de prix, phase vendeur, score, fraicheur zone, alertes.
+- Ne pas masquer les workflows utiles derriere des cards trop grandes.
+
+## Etat preview recent a connaitre
+
+Commits recents integres dans `origin/preview` :
+
+- `d2a5e47` : CRM "Liste chaude" + import vCard/CSV.
+- `3477453` : auth Supabase + roles admin/super admin + gestion utilisateurs.
+- `0aa5c97` : centre de controle sync + zones branchees API.
+- `2b6ceab` : communes officielles via `geo.api.gouv.fr` + cascade delete biens.
+- `129229e` : toggle pipeline MandatFinder + cron analyse quotidienne.
+- `840a824` : email "fenetre d'or" via Resend.
+- `77dfe1b`, `768dc0e`, `bb2d9c6` : corrections sync / Stream Estate.
+- `a2c1358` : route diagnostic `test-stream-estate`, a supprimer apres debug.
+
+## Documents utiles
+
+- `docs/SUIVI_PROJET.md` : suivi projet mis a jour.
+- `docs/CAHIER_DES_CHARGES.md` : cahier des charges historique.
+- `docs/MANDATFINDER_ARCHITECTURE.md` : architecture DDD MandatFinder.
+- `docs/ATTIO_CRM.md` : contexte CRM externe.
+
+## A ne pas refaire
+
+- Ne pas repartir du suivi initial qui indiquait Lot 2/3/4 a 0%.
+- Ne pas supposer que `/admin` est l'etat du logiciel : `/admin` redirige vers `/admin/market` sur la preview recente.
+- Ne pas confondre design public du site vitrine et design du logiciel.
+- Ne pas rebaser ou reset sans verifier les changements locaux.
