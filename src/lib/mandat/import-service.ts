@@ -16,10 +16,13 @@ const SOURCE = 'stream_estate'
 
 // ── Configuration ──────────────────────────────────────────
 
+// Seuls les codes postaux explicitement définis dans MANDAT_CP sont traités.
+// Ex: MANDAT_CP=83600 ou MANDAT_CP=83600,83190
+// Aucun CP par défaut : tu ne paies que pour ceux que tu as choisis.
 const MANDAT_CP = typeof process !== 'undefined' ? process.env.MANDAT_CP : undefined
 const ZIPCODES = MANDAT_CP
     ? MANDAT_CP.split(',').map((z: string) => z.trim())
-    : ['83600', '83220', '83190', '83580', '83330', '83250', '83400']
+    : [] // ← vide intentionnellement : défini MANDAT_CP dans .env.local
 
 const PROPERTY_TYPES = ['house', 'apartment']
 

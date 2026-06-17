@@ -116,8 +116,10 @@ async function fetchAllByDept(
   return allListings
 }
 
-// Nombre max de pages à parcourir pour trouver les biens d'un code postal
-const MAX_PAGES = 10
+// Nombre max de pages à parcourir par département.
+// 4 pages × 30 annonces = 120 annonces max par département : largement suffisant
+// pour couvrir les annonces actives d'un CP. Si tu veux +, ajuste ici ou via MANDAT_CP.
+const MAX_PAGES = 4
 const PAGE_SIZE = 30
 
 async function fetchOnePage(
