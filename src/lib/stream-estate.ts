@@ -31,7 +31,7 @@ export interface StreamEstateListing {
 export interface StreamEstateSyncParams {
   zipcode: string
   propertyType?: string
-  transactionType?: string
+  transactionType?: 0 | 1 | null  // 0 = vente, 1 = location
   page?: number
   limit?: number
 }
@@ -65,12 +65,14 @@ function deptFromZipcode(zipcode: string): string {
 export async function fetchListings(
   params: StreamEstateSyncParams,
 ): Promise<StreamEstateSyncResult> {
-  const { zipcode, propertyType, transactionType = 'SELL', page = 1, limit = 30 } = params
+  const { zipcode, propertyType, transactionType = 0, page = 1, limit = 30 } = params
 
   const query = new URLSearchParams()
   // Filtrage géographique par département (2 premiers chiffres du CP)
   query.append('includedDepartments[]', deptFromZipcode(zipcode))
-  query.set('transactionType', transactionType)
+  if (transactionType !== null && transactionType !== undefined) {
+    query.set('transactionType', String(transactionType))
+  }
   query.set('page', String(page))
   query.set('itemsPerPage', String(Math.min(limit, 30)))
   if (propertyType) query.append('propertyTypes[]', propertyType)
