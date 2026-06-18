@@ -91,6 +91,119 @@ Lot 4 -> Lot 5 (Monitoring)
 
 ## Journal de Bord
 
+### 18/06/2026 - 23:19 CEST
+- Base/branche : `preview`.
+- Type : optimisation crédits Stream Estate (backend) + cohérence UX zones surveillées + migration Supabase.
+- Statut : **fait** (local, non commité).
+- Resume : confirmation du contrat API Stream Estate via doc officielle `docs.stream.estate` (filtre commune `includedZipcodes[]` / `includedInseeCodes[]`, `transactionType=0`=vente, `propertyTypes[]` numériques Appartement 0 / Maison 1, `itemsPerPage` max 30, `itemsPerPage=0`=comptage gratuit, `hydra:totalItems`). Facturation confirmée par Alexandre : **0,01 €/bien** (30 biens = 0,30 €). Côté code : suppression de la route de diagnostic `test-stream-estate` (tapait l'API à chaque chargement) ; `fetchListings`/`previewListings` filtrent par INSEE quand dispo et par `propertyTypes=[0,1]` (résidentiel) ; preview désormais **gratuit** (`itemsPerPage=0`) ; suppression de l'appel preview facturé séparé dans `/api/market/sync` (total lu sur la page 1) ; **garde-fou anti-re-sync** configurable (`stream_estate_resync_window_minutes`, défaut 360 min) qui renvoie la base sans appel si la zone est fraîche, avec bypass `force:true`. UX zones rendue cohérente : toast distinct « déjà à jour » + action « Forcer la resync », toast « sync partielle », badge fraîcheur aligné sur la fenêtre, badge précision INSEE (« Commune exacte » vs « CP seul · communes voisines incluses »), mention « Estimation · gratuit ». Champ « Fenêtre resync (min) » éditable dans Réglages.
+- Fichiers : `src/lib/stream-estate.ts`, `src/lib/mandat/import-service.ts`, `src/app/api/market/sync/route.ts`, `src/app/api/market/sync-preview/route.ts`, `src/app/api/market/sync-stats/route.ts`, `src/app/admin/market/zones/page.tsx`, `src/app/admin/market/settings/page.tsx`, `supabase/migrations/011_stream_estate_resync_window.sql` (suppr. `src/app/api/market/test-stream-estate/route.ts`).
+- Audit qualite : `npx tsc --noEmit` OK ; `npm run build` OK ; migration `011` **appliquée sur Supabase** (`byrsmbgfkvgxdtdyhrro`) → clé `stream_estate_resync_window_minutes=360` présente ; serveur dev relancé proprement (un graphe turbopack corrompu par la suppression/ajout de routes à chaud provoquait un 500 sur `/api/market/sync-stats`, résolu au redémarrage).
+- Point d'attention : tracker de migrations Supabase ne liste que `006`/`008` alors que les clés de `009` sont en base → `009`/`010` ont été appliquées hors tracker ; prudence si futur `supabase db push`. Tout le travail reste **local non commité** sur `preview`.
+- Suite : sur validation d'Alexandre, commit unique (optimisation backend + UX + migration) sur `preview` ; vérification visuelle des badges après `npm run dev` + hard refresh.
+
+### 18/06/2026 - 21:55 CEST
+- Base/branche : `preview`.
+- Type : sync contrôlée Stream Estate + mise à jour documentaire.
+- Statut : **fait**.
+- Resume : ajout d'un flux de prévisualisation `/api/market/sync-preview` et d'une sync contrôlée par CP + plafond `max_items` sur `/app/zones`. L'import Stream Estate filtre maintenant les annonces clairement hors ligne (`expired`, `removed`, `inactive`, etc.) pour éviter de surcharger l'estimation et la sync. Mise à jour des docs de reprise et d'architecture pour refléter le flux budgeté sur les items.
+- Fichiers : `src/lib/stream-estate.ts`, `src/lib/stream-estate-budget.ts`, `src/app/api/market/sync/route.ts`, `src/app/api/market/sync-preview/route.ts`, `src/app/api/market/sync-stats/route.ts`, `src/app/admin/market/zones/page.tsx`, `src/app/admin/market/settings/page.tsx`, `src/app/admin/market/properties/PropertiesTable.tsx`, `docs/START.md`, `docs/MEMOIRE_SESSION.md`, `docs/MANDATFINDER_ARCHITECTURE.md`, `docs/SUIVI_PROJET.md`.
+- Audit qualite : `npm run build` OK ; serveur Next relance sur `http://localhost:3002` ; verification visuelle du panneau `/app/zones` et de la previsualisation.
+- Point d'attention : la base live doit encore recevoir la migration `010_stream_estate_items_budget.sql` pour tracer officiellement `item_count` / `external_item_count`.
+- Suite : appliquer la migration Supabase puis, si besoin, poursuivre le nettoyage des libellés historiques restants "appel/requete" dans les écrans secondaires.
+
+### 18/06/2026 - 20:59 CEST
+- Base/branche : `preview`.
+- Type : correction de lecture budget Stream Estate.
+- Statut : **fait**.
+- Resume : prise en compte de la console Stream Estate fournie par Alexandre. La consommation reellement visible cote fournisseur n'etait pas de 0,02 EUR mais d'environ 0,92 EUR depuis 5 EUR de depart, avec 92 items utilises et 4,08 EUR restants. Conclusion: notre suivi local par requetes sous-estimait la consommation reelle. Le tableau de bord fournisseur doit rester la source de verite pour la depense effective.
+- Fichiers : `docs/SUIVI_PROJET.md`.
+- Audit qualite : lecture de la capture d'ecran fournie par Alexandre ; pas de changement de code applique dans cette entree.
+- Point d'attention : le modele local actuel mesure encore des appels/requetes et non directement les items factures par le fournisseur. Il faut eviter de confondre estimation interne et consommation facturée.
+- Suite : si on reviens sur le budget Stream Estate, recalibrer le modele de cout sur l'unite facturee par le fournisseur avant d'autoriser de nouvelles syncs.
+
+### 18/06/2026 - 20:56 CEST
+- Base/branche : `preview`.
+- Type : ajustement flux Stream Estate / reprise propre apres test.
+- Statut : **fait**.
+- Resume : correction du comportement de `fetchListings` pour permettre un import partiel explicite quand le plafond de requetes coupe la pagination. La route `/api/market/sync` marque maintenant le run comme `blocked` avec `stream_estate_request_limit_reached` tout en conservant les biens deja importes. Reexecution du pilote `83670` avec budget minimal rearme temporairement a `0.02 EUR` pour un seul appel supplementaire : `30` biens crees, `1` requete externe, run `blocked` mais utile, puis remise de `stream_estate_sync_enabled=false` et du solde manuel a `0`.
+- Fichiers : `src/lib/stream-estate.ts`, `src/app/api/market/sync/route.ts`, `docs/SUIVI_PROJET.md`.
+- Audit qualite : `npm run build` OK ; redemarrage propre du serveur Next sur `http://localhost:3002` ; verification HTTP OK sur `/api/market/settings` et `/api/market/sync-stats` apres redemarrage ; base finale confirmee avec `market_properties=30`, `monitored_zones=0`, `sync_runs=3`, `stream_estate_usage_events=2`.
+- Point d'attention : le test a consommé `2` appels externes au total sur Stream Estate depuis la reprise. Le dernier run reste trace comme `blocked` par plafond de requete, mais le partage de progression fonctionne désormais.
+- Suite : si on veut aller plus loin, soit augmenter temporairement `stream_estate_max_requests_per_sync` pour couvrir plus de pages, soit garder ce mode partiel et utiliser les 30 biens importes pour la suite des tests UI/API.
+
+### 18/06/2026 - 20:48 CEST
+- Base/branche : `preview`.
+- Type : environnement local / redemarrage Next.
+- Statut : **fait**.
+- Resume : apres ajout de `STREAMESTATE_API_KEY` et `STREAMESTATE_API_URL` dans `.env.local`, redemarrage du serveur Next local sur `http://localhost:3002` pour recharger les variables d'environnement. Aucun appel fournisseur Stream Estate n'a ete lance pendant cette verification.
+- Fichiers : `docs/SUIVI_PROJET.md`.
+- Audit qualite : `http://localhost:3002/app/dashboard` repond `200 OK` ; `/api/market/sync-stats` confirme `zones=0`, sync Stream Estate desactivee, solde manuel `0`, cout par requete `0.01`, plafond `1`, aucun appel externe enregistre.
+- Point d'attention : serveur Next actif sur le port `3002` via process Node PID `36774`.
+- Suite : pour le vrai test API, reactiver temporairement la sync avec un solde manuel de `0.01 EUR`, conserver `stream_estate_max_requests_per_sync=1`, puis lancer un seul `POST /api/market/sync` sur le CP pilote.
+
+### 18/06/2026 - 17:56 CEST
+- Base/branche : `preview`.
+- Type : nettoyage Supabase / preparation test API Stream Estate.
+- Statut : **fait, test API bloque par configuration locale**.
+- Resume : purge de la base Supabase distante pour repartir d'un etat propre avant test Stream Estate. Suppression coherente des biens `market_properties` et de leurs dependances directes, puis suppression de l'historique `sync_runs`, du journal `stream_estate_usage_events` et des zones surveillees `monitored_zones`. Tentative de test controle sur le CP `83670` avec garde-fou a 1 requete : l'appel a ete bloque avant appel fournisseur reel car `STREAMESTATE_API_KEY` est absente de l'environnement serveur local. Le faux depart cree par la route (`zone`, `sync_run`, `usage_event`) a ete supprime ensuite.
+- Fichiers : `docs/SUIVI_PROJET.md`.
+- Audit qualite : verification SQL finale : `market_properties=0`, `monitored_zones=0`, `sync_runs=0`, `stream_estate_usage_events=0`. Verification API locale : `/api/market/properties?limit=5` retourne `total=0`, `/api/market/zones` retourne `0`, `/api/market/sync-stats` retourne `zones=0`, sync Stream Estate desactivee, solde manuel `0`, cout par requete `0.01`, plafond `1`.
+- Point d'attention : ajouter `STREAMESTATE_API_KEY` dans `.env.local` puis redemarrer le serveur Next avant un vrai test d'appel API. La route actuelle compte aussi une erreur de configuration comme un `external_request` dans le run ; le faux compteur a ete purge pour garder la base propre.
+- Suite : une fois la cle locale ajoutee et le serveur redemarre, reactiver temporairement la sync avec `stream_estate_manual_balance_eur=0.01`, conserver `stream_estate_max_requests_per_sync=1`, puis relancer `POST /api/market/sync` sur un seul CP pilote.
+
+### 18/06/2026 - 17:48 CEST
+- Base/branche : `preview`.
+- Type : reprise de session / start.
+- Statut : **fait**.
+- Resume : application du protocole `docs/START.md` : lecture de `docs/MEMOIRE_SESSION.md` et `docs/SUIVI_PROJET.md`, `git fetch --all --prune`, verification de l'etat Git, comparaison avec `origin/preview`, verification du serveur local Next deja actif sur le port `3002`.
+- Etat Git : `preview` locale est 5 commits devant `origin/preview` et 0 commit derriere ; des changements locaux non commites sont presents sur le chantier Stream Estate / budget / zones / biens synchronises.
+- Fichiers : `docs/MEMOIRE_SESSION.md`, `docs/SUIVI_PROJET.md`.
+- Audit qualite : `curl -I` OK sur `http://localhost:3002/app/dashboard`, `http://localhost:3002/app/settings` et `http://localhost:3002/app/zones` ; navigateur integre Codex non disponible dans cette session (`iab` absent), donc pas d'ouverture visuelle via Browser.
+- Point d'attention : ne pas pousser vers `origin/preview` sans demande explicite ; ne pas ecraser les modifications locales en cours.
+- Suite : reprendre apres l'application de la migration `009_stream_estate_budget_guardrails.sql` : renseigner le solde manuel dans `/app/settings`, activer prudemment la sync Stream Estate, puis tester un seul code postal pilote.
+
+### 18/06/2026 - 15:38 CEST
+- Base/branche : `preview`.
+- Type : application migration Supabase.
+- Statut : **fait**.
+- Resume : application reussie de la migration `009_stream_estate_budget_guardrails.sql` sur la base Supabase distante. La migration ajoute :
+  - 3 colonnes a `sync_runs` : `external_request_count`, `estimated_cost_eur`, `blocked_reason` ;
+  - nouvelle table `stream_estate_usage_events` avec index pour tracer chaque appel Stream Estate ;
+  - 5 parametres dans `app_settings` : `stream_estate_sync_enabled` (false), `stream_estate_manual_balance_eur` (0), `stream_estate_cost_per_request_eur` (0.01), `stream_estate_max_requests_per_sync` (1), `stream_estate_min_balance_eur` (0).
+- Fichiers : `supabase/migrations/009_stream_estate_budget_guardrails.sql`, `docs/SUIVI_PROJET.md`.
+- Audit qualite : execution directe via script Node.js + `pg` ; 12/12 statements SQL executes avec succes ; verification post-application confirme colonnes, table et parametres crees.
+- Point d'attention : aucun.
+- Suite : renseigner le solde manuel dans `/app/settings` via UI, puis activer la sync Stream Estate et tester un CP pilote.
+
+### 18/06/2026 - 11:10 CEST
+- Base/branche : `preview`.
+- Type : coherence zones surveillees / biens synchronises.
+- Statut : implemente et verifie en local.
+- Resume : renforcement du lien operationnel entre zones surveillees et biens sans ajouter de nouvelle table. La source de verite reste le code postal : `monitored_zones.zipcode = market_properties.zipcode`. L'API `/api/market/sync-stats` expose maintenant, par zone, le dernier run, le dernier succes, les appels et couts du dernier run, le nombre de biens en base, le nombre de biens revus et le nombre de biens non revus depuis la derniere sync reussie. `/app/zones` affiche ces reperes sur chaque zone. `/app/properties?zipcode=...` affiche un bandeau contextualise avec la zone, les biens revus/non revus et le cout/appels du dernier succes.
+- Fichiers : `src/app/api/market/sync-stats/route.ts`, `src/app/admin/market/zones/page.tsx`, `src/app/admin/market/properties/PropertiesTable.tsx`, `docs/SUIVI_PROJET.md`.
+- Audit qualite : `npm run lint` OK avec warnings preexistants ; `npm run build` OK ; HTTP local OK sur `http://localhost:3003/app/zones`, `http://localhost:3003/app/properties?zipcode=83670`, `http://localhost:3003/api/market/sync-stats`.
+- Point d'attention : la base locale renvoie actuellement `zones: []`, car des zones ont ete supprimees via l'UI/API pendant la session locale. Rien n'a ete restaure automatiquement.
+- Suite : recreer une zone pilote, appliquer la migration budget Stream Estate, puis tester une sync CP unique pour voir les compteurs `revus / non revus / cout` avec donnees reelles.
+
+### 18/06/2026 - 10:19 CEST
+- Base/branche : `preview`.
+- Type : architecture API / budget / admin UX.
+- Statut : implemente et verifie en local.
+- Resume : remplacement de la synchronisation Stream Estate large par une synchronisation stricte par code postal avec `includedZipcodes[]`. Ajout d'un double garde-fou budget : activation manuelle, solde manuel estime, cout par appel fixe a 0,01 EUR, plafond d'appels par sync et solde minimum. Ajout du journal estime des appels Stream Estate et extension du suivi `sync_runs` pour appels externes, cout estime et raison de blocage.
+- Fichiers : `src/lib/stream-estate.ts`, `src/lib/stream-estate-budget.ts`, `src/app/api/market/sync/route.ts`, `src/app/api/market/sync-stats/route.ts`, `src/app/api/market/test-stream-estate/route.ts`, `src/lib/mandat/import-service.ts`, `src/app/admin/market/settings/page.tsx`, `src/app/admin/market/zones/page.tsx`, `src/types/supabase.ts`, `supabase/migrations/009_stream_estate_budget_guardrails.sql`, `docs/SUIVI_PROJET.md`.
+- Audit qualite : `npm run lint` OK avec warnings preexistants ; `npm run build` OK ; verification statique OK (`includedZipcodes[]` present, plus de `includedDepartments[]` ni `/cities` dans `src`) ; HTTP local OK sur `http://localhost:3003/app/settings`, `http://localhost:3003/app/zones`, `http://localhost:3003/api/market/sync-stats` ; test `POST /api/market/sync` avec CP invalide => `400`, sync desactivee => `403` et `external_requests: 0`.
+- Point d'attention : la migration Supabase `009_stream_estate_budget_guardrails.sql` est creee mais pas appliquee a la base connectee localement au moment du test. L'API garde un repli compatible avant migration pour eviter un `500`, mais le suivi complet des couts demande l'application de cette migration.
+- Suite : appliquer la migration Supabase, renseigner le solde manuel et le cout par appel dans `/app/settings`, puis seulement activer la sync Stream Estate et tester un seul CP pilote.
+
+### 18/06/2026 - 10:24 CEST
+- Base/branche : `preview`.
+- Type : correction parametre budget.
+- Statut : fait.
+- Resume : alignement du cout Stream Estate par appel sur la valeur confirmee par Alexandre : 0,01 EUR. Mise a jour du fallback serveur, de la valeur initiale UI, de la migration Supabase et du parametre local via `/api/market/settings`.
+- Fichiers : `src/lib/stream-estate-budget.ts`, `src/app/admin/market/settings/page.tsx`, `supabase/migrations/009_stream_estate_budget_guardrails.sql`, `docs/SUIVI_PROJET.md`.
+- Audit qualite : verification HTTP locale sur `/api/market/sync-stats`, le champ `stream_estate_budget.cost_per_request_eur` retourne `0.01`.
+- Suite : appliquer la migration Supabase puis renseigner le solde manuel avant d'activer une sync CP pilote.
+
 ### 18/06/2026 - 09:51 CEST
 - Base/branche : `preview`.
 - Type : correction UX / zones surveillees.

@@ -4,7 +4,13 @@
 // ═══════════════════════════════════════════════════════════════
 
 import { supabaseAdmin } from '@/lib/supabase'
-import { fetchListings } from '@/lib/stream-estate'
+import { fetchListings, StreamEstateRequestLimitError } from '@/lib/stream-estate'
+import {
+    canSpendStreamEstateItems,
+    getAvailableStreamEstateItems,
+    getStreamEstateBudgetSnapshot,
+    recordStreamEstateUsageEvent,
+} from '@/lib/stream-estate-budget'
 import type { Listing, BatchResult } from './types'
 
 // ── Type helper pour tables non encore typées ──────────────
@@ -24,7 +30,8 @@ const ZIPCODES = MANDAT_CP
     ? MANDAT_CP.split(',').map((z: string) => z.trim())
     : [] // ← vide intentionnellement : défini MANDAT_CP dans .env.local
 
-const PROPERTY_TYPES = ['house', 'apartment']
+// Codes Stream Estate : Appartement 0, Maison 1. On ne récupère que le résidentiel.
+const PROPERTY_TYPES = [0, 1]
 
 // ── Service ────────────────────────────────────────────────
 
@@ -74,28 +81,55 @@ async function importZipcode(
 ): Promise<{ listingsNew: number; listingsUpdated: number }> {
     let listingsNew = 0
     let listingsUpdated = 0
-    let page = 1
-    let hasMore = true
+    const budget = await getStreamEstateBudgetSnapshot()
 
-    while (hasMore) {
-        const result = await fetchListings({
-            zipcode,
-            page,
-            limit: 30,
-        })
+    if (!budget.syncEnabled) {
+        throw new Error('stream_estate_sync_disabled')
+    }
 
-        for (const raw of result.listings) {
-            try {
-                const upserted = await upsertListing(raw as unknown as Record<string, unknown>)
-                if (upserted === 'created') listingsNew++
-                else if (upserted === 'updated') listingsUpdated++
-            } catch (err) {
-                console.error(`Erreur upsert listing ${raw.externalId ?? raw.id}:`, err)
+    const maxItems = Math.min(
+        budget.maxItemsPerSync,
+        getAvailableStreamEstateItems(budget),
+    )
+
+    if (maxItems < 1) {
+        throw new Error('stream_estate_budget_insufficient')
+    }
+
+    const result = await fetchListings({
+        zipcode,
+        propertyTypes: PROPERTY_TYPES,
+        maxItems,
+        beforeRequest: async () => {
+            const allowed = await canSpendStreamEstateItems()
+            if (!allowed.ok) {
+                throw new StreamEstateRequestLimitError(allowed.reason, allowed.reason)
             }
-        }
+        },
+        onRequest: async (event) => {
+            await recordStreamEstateUsageEvent({
+                syncRunId: null,
+                zipcode,
+                endpoint: event.endpoint,
+                page: event.page,
+                requestStatus: event.requestStatus,
+                itemCount: event.itemCount,
+                estimatedCostEur: event.itemCount * budget.costPerItemEur,
+                startedAt: event.startedAt,
+                finishedAt: event.finishedAt,
+                errorMessage: event.errorMessage ?? null,
+            })
+        },
+    })
 
-        hasMore = result.hasMore
-        page++
+    for (const raw of result.listings) {
+        try {
+            const upserted = await upsertListing(raw as unknown as Record<string, unknown>)
+            if (upserted === 'created') listingsNew++
+            else if (upserted === 'updated') listingsUpdated++
+        } catch (err) {
+            console.error(`Erreur upsert listing ${raw.externalId ?? raw.id}:`, err)
+        }
     }
 
     return { listingsNew, listingsUpdated }

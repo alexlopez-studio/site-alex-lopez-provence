@@ -30,10 +30,14 @@ export interface StreamEstateListing {
 
 export interface StreamEstateSyncParams {
   zipcode: string
-  propertyType?: string
+  /** Code INSEE de la commune. Si fourni, on filtre via includedInseeCodes[] (commune exacte). */
+  inseeCode?: string | null
+  /** Codes numériques Stream Estate : Appartement 0, Maison 1, … Défaut : [0, 1]. */
+  propertyTypes?: number[]
   transactionType?: 0 | 1 | null  // 0 = vente, 1 = location
-  page?: number
-  limit?: number
+  maxItems?: number
+  beforeRequest?: (ctx: StreamEstateRequestContext) => Promise<void> | void
+  onRequest?: (event: StreamEstateRequestEvent) => Promise<void> | void
 }
 
 export interface StreamEstateSyncResult {
@@ -41,11 +45,48 @@ export interface StreamEstateSyncResult {
   total: number
   page: number
   hasMore: boolean
+  truncated: boolean
+  externalRequests: number
+  totalAvailable: number
+}
+
+export interface StreamEstatePreviewResult {
+  totalAvailable: number
+  estimatedItems: number
+  capped: boolean
+}
+
+export type StreamEstateRequestContext = {
+  zipcode: string
+  endpoint: string
+  page: number
+  itemsPerPage: number
+}
+
+export type StreamEstateRequestEvent = StreamEstateRequestContext & {
+  requestStatus: 'success' | 'error'
+  startedAt: string
+  finishedAt: string
+  itemCount: number
+  errorMessage?: string
+}
+
+export class StreamEstateRequestLimitError extends Error {
+  code: string
+
+  constructor(
+    message = 'Plafond d’items Stream Estate atteint avant la fin de la pagination',
+    code = 'stream_estate_item_limit_reached',
+  ) {
+    super(message)
+    this.name = 'StreamEstateRequestLimitError'
+    this.code = code
+  }
 }
 
 // ── Client ──────────────────────────────────────────────────
 
-function getHeaders(): Record<string, string> {
+function getHeaders(accept = 'application/json'): Record<string, string> {
   if (!env.streamEstate.apiKey) {
     throw new Error('STREAMESTATE_API_KEY manquante dans les variables d’environnement')
   }
@@ -53,92 +94,67 @@ function getHeaders(): Record<string, string> {
   return {
     'Content-Type': 'application/json',
     'X-API-KEY': env.streamEstate.apiKey,
-    Accept: 'application/json',
+    Accept: accept,
   }
 }
 
-// Cache en mémoire : code postal → ID interne département Stream Estate
-const deptIdCache = new Map<string, string>()
+const PAGE_SIZE = 30 // = itemsPerPage max autorisé par l'API → minimise le nombre de pages
+const PROPERTIES_ENDPOINT = '/documents/properties'
+// Codes Stream Estate : Appartement 0, Maison 1, Immeuble 2, Parking 3, Bureau 4, Terrain 5, Commerce 6
+const DEFAULT_PROPERTY_TYPES = [0, 1] // résidentiel uniquement : on ne paie pas terrains/parkings/commerces
+const OFFLINE_STATUSES = new Set(['expired', 'removed', 'inactive', 'deleted', 'archived', 'closed', 'sold'])
 
-// Cache des résultats par département : évite de re-scinder le même dépt pour chaque CP
-const deptResultsCache = new Map<string, { listings: StreamEstateListing[]; expiresAt: number }>()
-const CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
-
-// Stream Estate utilise des IDs internes pour les départements (pas les codes INSEE).
-// Ex: Var (code 83) = id 85. On résout via l'endpoint /cities.
-async function deptIdFromZipcode(zipcode: string): Promise<string> {
-  if (deptIdCache.has(zipcode)) return deptIdCache.get(zipcode)!
-
-  const url = `${env.streamEstate.apiUrl}/cities?zipcode=${encodeURIComponent(zipcode)}`
-  const res = await fetch(url, { headers: getHeaders(), cache: 'no-store' })
-  if (res.ok) {
-    const data = await res.json()
-    const dept: string | undefined = Array.isArray(data) ? data[0]?.department : undefined
-    if (dept) {
-      // "/departments/85" → "85"
-      const id = dept.split('/').pop() ?? zipcode.slice(0, 2)
-      deptIdCache.set(zipcode, id)
-      return id
-    }
-  }
-  // Fallback : code INSEE brut (incorrect pour certains depts, mais évite un crash)
-  return zipcode.slice(0, 2)
-}
+type GeoTarget = { zipcode: string; inseeCode?: string | null }
 
 /**
- * Récupère TOUTES les annonces d'un département (paginé) avec mise en cache.
- * Si déjà en cache et pas expiré, retourne le cache.
+ * Ajoute le filtre géographique le plus fin possible :
+ * - includedInseeCodes[] (commune exacte) si un code INSEE est disponible ;
+ * - includedZipcodes[] (peut couvrir plusieurs communes) sinon.
  */
-async function fetchAllByDept(
-  deptId: string,
-  transactionType: number | null,
-  propertyType?: string,
-): Promise<StreamEstateListing[]> {
-  const cacheKey = `${deptId}-${transactionType ?? 'all'}-${propertyType ?? 'all'}`
-
-  const cached = deptResultsCache.get(cacheKey)
-  if (cached && cached.expiresAt > Date.now()) {
-    return cached.listings
+function appendGeoFilter(query: URLSearchParams, target: GeoTarget): void {
+  if (target.inseeCode) {
+    query.append('includedInseeCodes[]', target.inseeCode)
+  } else {
+    query.append('includedZipcodes[]', target.zipcode)
   }
-
-  const allListings: StreamEstateListing[] = []
-  for (let page = 1; page <= MAX_PAGES; page++) {
-    const { listings, hasMore } = await fetchOnePage(deptId, page, transactionType, propertyType)
-    allListings.push(...listings)
-    if (!hasMore) break
-  }
-
-  deptResultsCache.set(cacheKey, {
-    listings: allListings,
-    expiresAt: Date.now() + CACHE_TTL_MS,
-  })
-
-  return allListings
 }
 
-// Nombre max de pages à parcourir par département.
-// 4 pages × 30 annonces = 120 annonces max par département : largement suffisant
-// pour couvrir les annonces actives d'un CP. Si tu veux +, ajuste ici ou via MANDAT_CP.
-const MAX_PAGES = 4
-const PAGE_SIZE = 30
+function appendPropertyTypes(query: URLSearchParams, propertyTypes: number[]): void {
+  for (const code of propertyTypes) {
+    query.append('propertyTypes[]', String(code))
+  }
+}
+
+/** Filtre client de sûreté : par INSEE si on a filtré par INSEE, sinon par CP. */
+function matchesGeoTarget(listing: StreamEstateListing, target: GeoTarget): boolean {
+  if (target.inseeCode) return listing.inseeCode === target.inseeCode
+  return listing.zipcode === target.zipcode
+}
+
+function isOnlineListingStatus(status?: string | null): boolean {
+  const normalized = String(status ?? '').trim().toLowerCase()
+  if (!normalized) return true
+  return !OFFLINE_STATUSES.has(normalized)
+}
 
 async function fetchOnePage(
-  deptId: string,
+  target: GeoTarget,
   page: number,
   transactionType: number | null,
-  propertyType?: string,
-): Promise<{ listings: StreamEstateListing[]; hasMore: boolean }> {
+  propertyTypes: number[],
+  itemsPerPage = PAGE_SIZE,
+): Promise<{ listings: StreamEstateListing[]; hasMore: boolean; totalAvailable: number }> {
   const query = new URLSearchParams()
-  query.append('includedDepartments[]', deptId)
+  appendGeoFilter(query, target)
   if (transactionType !== null && transactionType !== undefined) {
     query.set('transactionType', String(transactionType))
   }
   query.set('page', String(page))
-  query.set('itemsPerPage', String(PAGE_SIZE))
-  if (propertyType) query.append('propertyTypes[]', propertyType)
+  query.set('itemsPerPage', String(itemsPerPage))
+  appendPropertyTypes(query, propertyTypes)
 
-  const url = `${env.streamEstate.apiUrl}/documents/properties?${query.toString()}`
-  const res = await fetch(url, { method: 'GET', headers: getHeaders(), cache: 'no-store' })
+  const url = `${env.streamEstate.apiUrl}${PROPERTIES_ENDPOINT}?${query.toString()}`
+  const res = await fetch(url, { method: 'GET', headers: getHeaders('application/ld+json'), cache: 'no-store' })
 
   if (!res.ok) {
     const text = await res.text().catch(() => '')
@@ -157,34 +173,142 @@ async function fetchOnePage(
           : []
 
   const explicitTotal: number | undefined = data['hydra:totalItems'] ?? data.total ?? undefined
-  const listings = rawListings.map(normalizeListing)
-  // Si l'API ne donne pas de total, on continue tant qu'une page pleine est retournée
+  const listings = rawListings
+    .map(normalizeListing)
+    .filter((listing) => matchesGeoTarget(listing, target))
+    .filter((listing) => isOnlineListingStatus(listing.status))
+  // hasMore : on se base sur le total quand il est connu (en utilisant la taille de page
+  // réellement demandée), sinon on continue tant qu'une page pleine est retournée.
   const hasMore = explicitTotal !== undefined
-    ? explicitTotal > page * PAGE_SIZE
-    : rawListings.length === PAGE_SIZE
-  return { listings, hasMore }
+    ? explicitTotal > page * itemsPerPage
+    : rawListings.length === itemsPerPage
+  return { listings, hasMore, totalAvailable: explicitTotal ?? listings.length }
+}
+
+async function fetchTotalAvailable(
+  target: GeoTarget,
+  transactionType: number | null,
+  propertyTypes: number[],
+): Promise<number> {
+  const query = new URLSearchParams()
+  appendGeoFilter(query, target)
+  if (transactionType !== null && transactionType !== undefined) {
+    query.set('transactionType', String(transactionType))
+  }
+  query.set('page', '1')
+  // itemsPerPage=0 → l'API renvoie hydra:totalItems sans hydra:member : comptage gratuit
+  // (facturation à l'item). Si l'API renvoyait quand même des biens, on les ignore.
+  query.set('itemsPerPage', '0')
+  appendPropertyTypes(query, propertyTypes)
+
+  const url = `${env.streamEstate.apiUrl}${PROPERTIES_ENDPOINT}?${query.toString()}`
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: getHeaders('application/ld+json'),
+    cache: 'no-store',
+  })
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(`Stream Estate API error ${res.status}: ${text}`)
+  }
+
+  const data = await res.json()
+  const explicitTotal = data['hydra:totalItems'] ?? data.total
+  if (typeof explicitTotal === 'number' && Number.isFinite(explicitTotal)) {
+    return explicitTotal
+  }
+
+  const rawListings: unknown[] = Array.isArray(data['hydra:member'])
+    ? data['hydra:member']
+    : Array.isArray(data)
+      ? data
+      : Array.isArray(data.listings)
+        ? data.listings
+        : Array.isArray(data.data)
+          ? data.data
+          : []
+
+  return rawListings.length
+}
+
+export async function previewListings(
+  params: Pick<StreamEstateSyncParams, 'zipcode' | 'inseeCode' | 'propertyTypes' | 'transactionType'>,
+): Promise<StreamEstatePreviewResult> {
+  const { zipcode, inseeCode = null, propertyTypes = DEFAULT_PROPERTY_TYPES, transactionType = 0 } = params
+  const totalAvailable = await fetchTotalAvailable({ zipcode, inseeCode }, transactionType, propertyTypes)
+  return {
+    totalAvailable,
+    estimatedItems: totalAvailable,
+    capped: false,
+  }
 }
 
 /**
  * Récupère les annonces Stream Estate pour un code postal donné.
- * Pagine sur plusieurs pages (max MAX_PAGES) pour trouver les biens du bon code postal,
- * car l'API filtre par département entier.
+ * Une synchronisation = un seul code postal. La pagination est plafonnée par maxItems.
  */
 export async function fetchListings(
   params: StreamEstateSyncParams,
 ): Promise<StreamEstateSyncResult> {
-  const { zipcode, propertyType, transactionType = 0 } = params
+  const { zipcode, inseeCode = null, propertyTypes = DEFAULT_PROPERTY_TYPES, transactionType = 0 } = params
+  const target: GeoTarget = { zipcode, inseeCode }
+  const maxItems = Math.max(1, Math.floor(params.maxItems ?? PAGE_SIZE))
+  const listings: StreamEstateListing[] = []
+  let externalRequests = 0
+  let totalAvailable = 0
+  let hasMore = false
+  let truncated = false
 
-  const deptId = await deptIdFromZipcode(zipcode)
-  const allDeptListings = await fetchAllByDept(deptId, transactionType, propertyType)
+  for (let page = 1; listings.length < maxItems; page++) {
+    const itemsPerPage = Math.min(PAGE_SIZE, maxItems - listings.length)
+    const context = { zipcode, endpoint: PROPERTIES_ENDPOINT, page, itemsPerPage }
+    await params.beforeRequest?.(context)
 
-  const matched = allDeptListings.filter((l) => l.zipcode === zipcode)
+    const startedAt = new Date().toISOString()
+    try {
+      const result = await fetchOnePage(target, page, transactionType, propertyTypes, itemsPerPage)
+      const finishedAt = new Date().toISOString()
+      externalRequests++
+      const remainingSlots = Math.max(0, maxItems - listings.length)
+      const pageListings = result.listings.slice(0, remainingSlots)
+      listings.push(...pageListings)
+      totalAvailable = result.totalAvailable
+      hasMore = result.hasMore
+      await params.onRequest?.({
+        ...context,
+        requestStatus: 'success',
+        startedAt,
+        finishedAt,
+        itemCount: pageListings.length,
+      })
+      if (!hasMore || listings.length >= maxItems) break
+    } catch (error) {
+      const finishedAt = new Date().toISOString()
+      externalRequests++
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      await params.onRequest?.({
+        ...context,
+        requestStatus: 'error',
+        startedAt,
+        finishedAt,
+        itemCount: 0,
+        errorMessage,
+      })
+      throw error
+    }
+  }
+
+  truncated = hasMore && listings.length >= maxItems
 
   return {
-    listings: matched,
-    total: matched.length,
+    listings,
+    total: listings.length,
     page: 1,
-    hasMore: false,
+    hasMore,
+    truncated,
+    externalRequests,
+    totalAvailable,
   }
 }
 

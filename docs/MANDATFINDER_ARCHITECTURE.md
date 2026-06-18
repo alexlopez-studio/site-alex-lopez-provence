@@ -38,6 +38,9 @@ src/
 │   │   ├── jobs/
 │   │   │   ├── import-stream-estate/    ← Cron : import quotidien des annonces
 │   │   │   │   └── route.ts
+│   │   │   ├── market/
+│   │   │   │   ├── sync-preview/         ← Préflight Stream Estate (budget + totalItems)
+│   │   │   │   └── sync/                ← Sync contrôlée par CP + plafond max_items
 │   │   │   └── analyze-listings/        ← Cron : analyse + scoring quotidien
 │   │   │       └── route.ts
 │   │   └── radar/
@@ -93,10 +96,11 @@ MandateProbability → Résultat du scoring (0-100) + breakdown par axe
 
 | Responsabilité | Détail |
 |---------------|--------|
-| Importer | Appelle `stream-estate.fetchListings()` pour chaque CP |
+| Importer | Appelle `stream-estate.fetchListings()` pour chaque CP avec plafond `max_items` |
 | Upsert | Insère ou met à jour la table `listings` |
 | Préparer snapshot | Copie l'état dans `listing_snapshots` si le prix ou le statut change |
 | Logger | Enregistre les résultats de l'import (nouvelles, mises à jour, erreurs) |
+| Préflight | Utilise `stream-estate.previewListings()` avant la sync pour estimer `hydra:totalItems` et le coût |
 
 **Dépendances** : `stream-estate.ts`, `supabase.ts`
 **Déclencheur** : Cron `/api/jobs/import-stream-estate`

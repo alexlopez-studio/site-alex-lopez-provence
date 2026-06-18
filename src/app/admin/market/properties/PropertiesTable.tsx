@@ -55,6 +55,21 @@ interface PropertyRow {
   url: string | null
 }
 
+interface ZoneContext {
+  zone_id: string
+  name: string
+  zipcode: string
+  city: string | null
+  last_sync_status: string | null
+  last_success_sync_at: string | null
+  last_external_requests: number
+  last_estimated_cost_eur: number
+  last_blocked_reason: string | null
+  property_count: number
+  seen_property_count: number
+  not_seen_property_count: number
+}
+
 const STATUS_BADGES: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   active:          { label: 'Actif',          variant: 'secondary' },
   actif:           { label: 'Actif',          variant: 'secondary' },
@@ -83,6 +98,26 @@ function formatPrice(price: number | null) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(price)
 }
 
+function formatCost(value: number) {
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value)
+}
+
+function relativeTime(iso: string | null): string {
+  if (!iso) return '—'
+  const diff = Date.now() - new Date(iso).getTime()
+  const m = Math.floor(diff / 60000)
+  if (m < 1) return 'À l’instant'
+  if (m < 60) return `Il y a ${m} min`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `Il y a ${h}h`
+  return `Il y a ${Math.floor(h / 24)}j`
+}
+
 function daysOnline(firstSeenAt: string | null): number | null {
   if (!firstSeenAt) return null
   const diff = Date.now() - new Date(firstSeenAt).getTime()
@@ -98,6 +133,7 @@ export function PropertiesTable({ initialZipcode }: { initialZipcode?: string })
   const [cityFilter, setCityFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('all')
   const [zipcodeFilter, setZipcodeFilter] = useState(initialZipcode ?? '')
+  const [zoneContext, setZoneContext] = useState<ZoneContext | null>(null)
   const [sortBy, setSortBy] = useState<'price' | 'last_seen_at' | 'surface'>('last_seen_at')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
@@ -109,10 +145,20 @@ export function PropertiesTable({ initialZipcode }: { initialZipcode?: string })
         sort: `${sortBy}.${sortOrder}`,
       })
       if (zipcodeFilter) params.set('zipcode', zipcodeFilter)
-      const res = await fetch(`/api/market/properties?${params}`)
+      const [res, statsRes] = await Promise.all([
+        fetch(`/api/market/properties?${params}`),
+        zipcodeFilter ? fetch('/api/market/sync-stats') : Promise.resolve(null),
+      ])
       const data = await res.json()
       setProperties(data.properties ?? [])
       setTotal(data.total ?? 0)
+      if (statsRes) {
+        const stats = await statsRes.json()
+        const zone = (stats.zones ?? []).find((item: ZoneContext) => item.zipcode === zipcodeFilter)
+        setZoneContext(zone ?? null)
+      } else {
+        setZoneContext(null)
+      }
     } finally {
       setLoading(false)
     }
@@ -157,8 +203,22 @@ export function PropertiesTable({ initialZipcode }: { initialZipcode?: string })
       {zipcodeFilter && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-brand-light/60 px-4 py-3">
           <div>
-            <p className="text-sm font-semibold text-foreground">Biens filtrés par zone surveillée</p>
-            <p className="text-xs text-muted-foreground">Code postal {zipcodeFilter}</p>
+            <p className="text-sm font-semibold text-foreground">
+              {zoneContext ? `Biens synchronisés pour ${zoneContext.name}` : 'Biens filtrés par zone surveillée'}
+            </p>
+            <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+              <span>CP {zipcodeFilter}{zoneContext?.city ? ` · ${zoneContext.city}` : ''}</span>
+              <span>{zoneContext?.seen_property_count ?? total} revu{(zoneContext?.seen_property_count ?? total) > 1 ? 's' : ''}</span>
+              <span className={(zoneContext?.not_seen_property_count ?? 0) > 0 ? 'text-amber-700' : ''}>
+                {zoneContext?.not_seen_property_count ?? 0} non revu{(zoneContext?.not_seen_property_count ?? 0) > 1 ? 's' : ''}
+              </span>
+              {zoneContext && (
+                <span>
+                  Dernier succès : {relativeTime(zoneContext.last_success_sync_at)} · {zoneContext.last_external_requests} item{zoneContext.last_external_requests > 1 ? 's' : ''} · {formatCost(zoneContext.last_estimated_cost_eur)}
+                </span>
+              )}
+              {zoneContext?.last_blocked_reason && <span className="text-amber-700">{zoneContext.last_blocked_reason}</span>}
+            </div>
           </div>
           <Button variant="outline" size="sm" onClick={clearZipcodeFilter}>
             Voir tous les biens

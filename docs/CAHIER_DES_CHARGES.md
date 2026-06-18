@@ -113,7 +113,7 @@ Outils Clients:
 #### Lot 5 : Monitoring
 | ID | Tache | Description | Livrable | Priorite | Labels | Assigne |
 |----|-------|-------------|----------|----------|--------|---------|
-| MON-001 | Dashboard Consommation API | Suivi des appels a Stream Estate | /dashboard/monitoring | ⭐ | monitoring, lot-5 | @alexlopez |
+| MON-001 | Dashboard Consommation API | Suivi des items facturés à Stream Estate | /dashboard/monitoring | ⭐ | monitoring, lot-5 | @alexlopez |
 
 ## 4. INTEGRATIONS & AUTOMATISATIONS
 
@@ -135,7 +135,7 @@ Outils Clients:
 | Push sur preview | Deployment preview | Vercel | Lien preview genere |
 | Nouvelle issue Linear | Creation de branche GitHub | Work | Branche feature/[id-linear] creee |
 | Issue Linear en In Progress | Notification Slack | Linear | Alexandre notifie |
-| Sync quotidienne | Recuperation biens Stream Estate | Cron Vercel | Donnees a jour dans Supabase |
+| Sync quotidienne | Recuperation biens Stream Estate | Cron Vercel | Donnees a jour dans Supabase avec garde-fou budget / items |
 
 ### 4.3 Commandes Work pour ce Projet
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import type { Database } from '@/types/supabase'
+import { purgeMarketPropertiesByZipcode } from '@/lib/market/property-cleanup'
 
 type ZonesUpdate = Database['public']['Tables']['monitored_zones']['Update']
 
@@ -131,13 +132,12 @@ export async function DELETE(
     let deletedProperties = 0
     if (!remainingZones || remainingZones === 0) {
       // Plus aucune zone ne surveille ce code postal → purge des biens
-      const { count } = await supabaseAdmin
-        .from('market_properties')
-        .delete()
-        .eq('zipcode', zipcode)
-        .select('id')
-
-      deletedProperties = count ?? 0
+      const purge = await purgeMarketPropertiesByZipcode(zipcode)
+      if (purge.error) {
+        console.error('[API /market/zones/[id]] property purge error:', purge.error)
+        return NextResponse.json({ error: 'Zone supprimée, mais purge des biens impossible' }, { status: 500 })
+      }
+      deletedProperties = purge.deletedProperties
     }
 
     return NextResponse.json({ success: true, deleted_properties: deletedProperties })

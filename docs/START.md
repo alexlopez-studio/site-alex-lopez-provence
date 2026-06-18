@@ -30,6 +30,7 @@ Important :
 - origin/preview est la source de verite GitHub.
 - On ne travaille plus avec des branches design/features separees, sauf decision explicite.
 - Quand on visualise en local, ouvre directement le dashboard logiciel `http://localhost:<port>/app/dashboard`.
+- Pour le flux Stream Estate, ouvrir aussi `/app/zones` afin de tester la sync contrôlée, le budget items et la prévisualisation avant import.
 - Ouvre la visualisation dans VS Code quand c'est possible, via le Simple Browser integre.
 - Ne suppose pas qu'une redirection login middleware est active : verifier l'etat reel du middleware et de la garde layout.
 - Le suivi courant se fait dans les docs du repo, pas dans Linear.

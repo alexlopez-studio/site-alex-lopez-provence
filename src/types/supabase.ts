@@ -840,6 +840,10 @@ export type Database = {
           created_count: number
           updated_count: number
           error_message: string | null
+          external_request_count: number
+          external_item_count: number
+          estimated_cost_eur: number
+          blocked_reason: string | null
         }
         Insert: {
           id?: string
@@ -852,6 +856,10 @@ export type Database = {
           created_count?: number
           updated_count?: number
           error_message?: string | null
+          external_request_count?: number
+          external_item_count?: number
+          estimated_cost_eur?: number
+          blocked_reason?: string | null
         }
         Update: {
           id?: string
@@ -864,6 +872,10 @@ export type Database = {
           created_count?: number
           updated_count?: number
           error_message?: string | null
+          external_request_count?: number
+          external_item_count?: number
+          estimated_cost_eur?: number
+          blocked_reason?: string | null
         }
         Relationships: [
           {
@@ -871,6 +883,59 @@ export type Database = {
             columns: ['zone_id']
             isOneToOne: false
             referencedRelation: 'monitored_zones'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      stream_estate_usage_events: {
+        Row: {
+          id: string
+          sync_run_id: string | null
+          zipcode: string
+          endpoint: string
+          page: number
+          request_status: string
+          item_count: number
+          estimated_cost_eur: number
+          started_at: string
+          finished_at: string | null
+          error_message: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          sync_run_id?: string | null
+          zipcode: string
+          endpoint: string
+          page: number
+          request_status: string
+          item_count?: number
+          estimated_cost_eur?: number
+          started_at: string
+          finished_at?: string | null
+          error_message?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          sync_run_id?: string | null
+          zipcode?: string
+          endpoint?: string
+          page?: number
+          request_status?: string
+          item_count?: number
+          estimated_cost_eur?: number
+          started_at?: string
+          finished_at?: string | null
+          error_message?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'stream_estate_usage_events_sync_run_id_fkey'
+            columns: ['sync_run_id']
+            isOneToOne: false
+            referencedRelation: 'sync_runs'
             referencedColumns: ['id']
           },
         ]

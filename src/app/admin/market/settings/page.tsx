@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { RefreshCw, Activity, Database, Clock, CheckCircle2, XCircle, Loader2, BarChart3, Satellite } from 'lucide-react'
+import { RefreshCw, Activity, Database, Clock, CheckCircle2, XCircle, Loader2, BarChart3, Satellite, WalletCards, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -32,6 +33,32 @@ interface SyncStats {
   last_sync_at: string | null
   sparkline: SparkPoint[]
   zones: ZoneStat[]
+  stream_estate_budget?: StreamEstateBudget
+}
+
+interface StreamEstateBudget {
+  sync_enabled: boolean
+  manual_balance_eur: number
+  cost_per_item_eur?: number
+  max_items_per_sync?: number
+  cost_per_request_eur: number
+  max_requests_per_sync: number
+  min_balance_eur: number
+  resync_window_minutes?: number
+  estimated_balance_eur: number
+  estimated_spent_total_eur: number
+  estimated_spent_today_eur: number
+  estimated_spent_month_eur: number
+  estimated_items_total?: number
+  estimated_items_today?: number
+  estimated_items_month?: number
+  external_items_total?: number
+  external_items_today?: number
+  external_items_month?: number
+  external_requests_total: number
+  external_requests_today: number
+  external_requests_month: number
+  last_blocked_reason: string | null
 }
 
 interface SyncRun {
@@ -44,6 +71,10 @@ interface SyncRun {
   fetched_count: number | null
   created_count: number | null
   updated_count: number | null
+  external_request_count: number | null
+  external_item_count: number | null
+  estimated_cost_eur: number | null
+  blocked_reason: string | null
   error_message: string | null
   monitored_zones: { name: string; zipcode: string; city: string | null } | null
 }
@@ -52,6 +83,22 @@ interface SyncRun {
 
 function fmt(n: number): string {
   return new Intl.NumberFormat('fr-FR').format(n)
+}
+
+function formatResyncWindow(minutes: number): string {
+  if (minutes <= 0) return 'désactivée'
+  if (minutes < 60) return `${minutes} min`
+  const h = minutes / 60
+  return Number.isInteger(h) ? `${h} h` : `${h.toFixed(1)} h`
+}
+
+function fmtEur(n: number): string {
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(n)
 }
 
 function relativeTime(iso: string | null): string {
@@ -112,6 +159,11 @@ function StatusBadge({ status }: { status: string }) {
       <XCircle className="h-3 w-3" /> Erreur
     </span>
   )
+  if (status === 'blocked') return (
+    <span className="flex items-center gap-1 text-[10px] text-amber-800 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">
+      <XCircle className="h-3 w-3" /> Bloquée
+    </span>
+  )
   return (
     <span className="flex items-center gap-1 text-[10px] text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">
       <Loader2 className="h-3 w-3 animate-spin" /> En cours
@@ -131,6 +183,13 @@ export default function SettingsPage() {
   const [pipelineEnabled, setPipelineEnabled] = useState(true)
   const [pipelineLoading, setPipelineLoading] = useState(true)
   const [pipelineSaving, setPipelineSaving] = useState(false)
+  const [streamEstateSyncEnabled, setStreamEstateSyncEnabled] = useState(false)
+  const [manualBalanceEur, setManualBalanceEur] = useState('0')
+  const [costPerRequestEur, setCostPerRequestEur] = useState('0.01')
+  const [maxRequestsPerSync, setMaxRequestsPerSync] = useState('1')
+  const [minBalanceEur, setMinBalanceEur] = useState('0')
+  const [resyncWindowMinutes, setResyncWindowMinutes] = useState('360')
+  const [budgetSaving, setBudgetSaving] = useState(false)
 
   const load = useCallback(async () => {
     try {
@@ -159,6 +218,29 @@ export default function SettingsPage() {
       .then((data) => {
         const value = data?.settings?.mandatfinder_pipeline_enabled
         if (typeof value === 'boolean') setPipelineEnabled(value)
+        const settings = data?.settings ?? {}
+        if (typeof settings.stream_estate_sync_enabled === 'boolean') {
+          setStreamEstateSyncEnabled(settings.stream_estate_sync_enabled)
+        }
+        if (settings.stream_estate_manual_balance_eur !== undefined) {
+          setManualBalanceEur(String(settings.stream_estate_manual_balance_eur))
+        }
+        if (settings.stream_estate_cost_per_item_eur !== undefined) {
+          setCostPerRequestEur(String(settings.stream_estate_cost_per_item_eur))
+        } else if (settings.stream_estate_cost_per_request_eur !== undefined) {
+          setCostPerRequestEur(String(settings.stream_estate_cost_per_request_eur))
+        }
+        if (settings.stream_estate_max_items_per_sync !== undefined) {
+          setMaxRequestsPerSync(String(settings.stream_estate_max_items_per_sync))
+        } else if (settings.stream_estate_max_requests_per_sync !== undefined) {
+          setMaxRequestsPerSync(String(settings.stream_estate_max_requests_per_sync))
+        }
+        if (settings.stream_estate_min_balance_eur !== undefined) {
+          setMinBalanceEur(String(settings.stream_estate_min_balance_eur))
+        }
+        if (settings.stream_estate_resync_window_minutes !== undefined) {
+          setResyncWindowMinutes(String(settings.stream_estate_resync_window_minutes))
+        }
       })
       .catch((err) => console.error('Erreur chargement paramètres:', err))
       .finally(() => setPipelineLoading(false))
@@ -181,6 +263,41 @@ export default function SettingsPage() {
       toast.error('Impossible de mettre à jour ce paramètre')
     } finally {
       setPipelineSaving(false)
+    }
+  }
+
+  async function saveStreamEstateBudget() {
+    const payload = {
+      stream_estate_sync_enabled: streamEstateSyncEnabled,
+      stream_estate_manual_balance_eur: Math.max(0, Number(manualBalanceEur) || 0),
+      stream_estate_cost_per_item_eur: Math.max(0, Number(costPerRequestEur) || 0),
+      stream_estate_cost_per_request_eur: Math.max(0, Number(costPerRequestEur) || 0),
+      stream_estate_max_items_per_sync: Math.max(1, Math.floor(Number(maxRequestsPerSync) || 1)),
+      stream_estate_max_requests_per_sync: Math.max(1, Math.floor(Number(maxRequestsPerSync) || 1)),
+      stream_estate_min_balance_eur: Math.max(0, Number(minBalanceEur) || 0),
+      stream_estate_resync_window_minutes: Math.max(0, Math.floor(Number(resyncWindowMinutes) || 0)),
+    }
+
+    setBudgetSaving(true)
+    try {
+      const res = await fetch('/api/market/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) throw new Error('Erreur API')
+      setManualBalanceEur(String(payload.stream_estate_manual_balance_eur))
+      setCostPerRequestEur(String(payload.stream_estate_cost_per_request_eur))
+      setMaxRequestsPerSync(String(payload.stream_estate_max_requests_per_sync))
+      setMinBalanceEur(String(payload.stream_estate_min_balance_eur))
+      setResyncWindowMinutes(String(payload.stream_estate_resync_window_minutes))
+      toast.success('Budget Stream Estate enregistré')
+      await load()
+    } catch (err) {
+      console.error('Erreur mise à jour budget Stream Estate:', err)
+      toast.error('Impossible de mettre à jour le budget Stream Estate')
+    } finally {
+      setBudgetSaving(false)
     }
   }
 
@@ -217,8 +334,8 @@ export default function SettingsPage() {
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {[
-            { label: "Syncs aujourd'hui", value: stats?.syncs_today ?? '—' },
-            { label: 'Syncs ce mois', value: stats?.syncs_this_month ?? '—' },
+            { label: "Items aujourd'hui", value: stats?.stream_estate_budget?.external_items_today ?? stats?.stream_estate_budget?.external_requests_today ?? '—' },
+            { label: 'Items ce mois', value: stats?.stream_estate_budget?.external_items_month ?? stats?.stream_estate_budget?.external_requests_month ?? '—' },
             { label: 'Syncs total', value: stats ? fmt(stats.total_syncs) : '—' },
             { label: "Biens récupérés aujourd'hui", value: stats ? fmt(stats.properties_fetched_today) : '—' },
             { label: 'Biens récupérés ce mois', value: stats ? fmt(stats.properties_fetched_month) : '—' },
@@ -240,7 +357,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader className="pb-2 pt-4 px-4">
               <div className="flex items-center justify-between">
-                <CardDescription className="text-xs">Appels API — 30 derniers jours</CardDescription>
+                <CardDescription className="text-xs">Items API — 30 derniers jours</CardDescription>
                 <span className="text-[10px] text-muted-foreground">
                   Dernière sync : {relativeTime(stats.last_sync_at)}
                 </span>
@@ -255,6 +372,97 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         )}
+      </section>
+
+      {/* Section 2 — Budget Stream Estate */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2">
+          <WalletCards className="h-4 w-4 text-brand" />
+          <h2 className="text-sm font-semibold">Budget Stream Estate</h2>
+          <Badge
+            variant="outline"
+            className={`text-[10px] ${
+              stats?.stream_estate_budget?.sync_enabled
+                ? 'text-green-700 border-green-200 bg-green-50'
+                : 'text-amber-800 border-amber-200 bg-amber-50'
+            }`}
+          >
+            {stats?.stream_estate_budget?.sync_enabled ? 'Sync manuelle active' : 'Sync manuelle désactivée'}
+          </Badge>
+        </div>
+
+        <div className="grid gap-3 lg:grid-cols-[1fr_1.15fr]">
+          <Card>
+            <CardContent className="p-4">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {[
+                  { label: 'Solde estimé', value: stats?.stream_estate_budget ? fmtEur(stats.stream_estate_budget.estimated_balance_eur) : '—' },
+                  { label: 'Dépensé aujourd’hui', value: stats?.stream_estate_budget ? fmtEur(stats.stream_estate_budget.estimated_spent_today_eur) : '—' },
+                  { label: 'Dépensé ce mois', value: stats?.stream_estate_budget ? fmtEur(stats.stream_estate_budget.estimated_spent_month_eur) : '—' },
+                  { label: 'Items ce mois', value: stats?.stream_estate_budget ? fmt(stats.stream_estate_budget.external_items_month ?? stats.stream_estate_budget.external_requests_month) : '—' },
+                ].map((item) => (
+                  <div key={item.label} className="rounded-md border bg-background px-3 py-2">
+                    <p className="text-[10px] text-muted-foreground leading-tight">{item.label}</p>
+                    <p className="mt-1 text-lg font-semibold tabular-nums">{loading ? '…' : item.value}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-muted-foreground sm:grid-cols-4">
+                <span>Coût/item : {stats?.stream_estate_budget ? fmtEur(stats.stream_estate_budget.cost_per_item_eur ?? stats.stream_estate_budget.cost_per_request_eur) : '—'}</span>
+                <span>Max items/sync : {stats?.stream_estate_budget?.max_items_per_sync ?? stats?.stream_estate_budget?.max_requests_per_sync ?? '—'}</span>
+                <span>Réserve min. : {stats?.stream_estate_budget ? fmtEur(stats.stream_estate_budget.min_balance_eur) : '—'}</span>
+                <span>Resync auto : {stats?.stream_estate_budget?.resync_window_minutes != null ? formatResyncWindow(stats.stream_estate_budget.resync_window_minutes) : '—'}</span>
+                <span>Dernier blocage : {stats?.stream_estate_budget?.last_blocked_reason ?? '—'}</span>
+              </div>
+              <p className="mt-3 text-[11px] text-muted-foreground">
+                Solde estimé calculé depuis le solde manuel et les items journalisés. Stream Estate ne fournit pas de solde public ici.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="grid gap-3 sm:grid-cols-6">
+                <label className="space-y-1 sm:col-span-1">
+                  <span className="text-[11px] font-medium">Sync</span>
+                  <button
+                    type="button"
+                    onClick={() => setStreamEstateSyncEnabled((v) => !v)}
+                    className={'relative block h-9 w-16 rounded-full transition-colors disabled:opacity-50 ' + (streamEstateSyncEnabled ? 'bg-brand' : 'bg-border')}
+                  >
+                    <span className={'absolute left-1 top-1 h-7 w-7 rounded-full bg-white transition-transform shadow-sm ' + (streamEstateSyncEnabled ? 'translate-x-7' : '')} />
+                  </button>
+                </label>
+                <label className="space-y-1">
+                  <span className="text-[11px] font-medium">Solde manuel (€)</span>
+                  <Input type="number" min="0" step="0.01" value={manualBalanceEur} onChange={(e) => setManualBalanceEur(e.target.value)} />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-[11px] font-medium">Coût/item (€)</span>
+                  <Input type="number" min="0" step="0.001" value={costPerRequestEur} onChange={(e) => setCostPerRequestEur(e.target.value)} />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-[11px] font-medium">Max items/sync</span>
+                  <Input type="number" min="1" step="1" value={maxRequestsPerSync} onChange={(e) => setMaxRequestsPerSync(e.target.value)} />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-[11px] font-medium">Solde min. (€)</span>
+                  <Input type="number" min="0" step="0.01" value={minBalanceEur} onChange={(e) => setMinBalanceEur(e.target.value)} />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-[11px] font-medium">Fenêtre resync (min)</span>
+                  <Input type="number" min="0" step="30" value={resyncWindowMinutes} onChange={(e) => setResyncWindowMinutes(e.target.value)} />
+                </label>
+              </div>
+              <div className="mt-3 flex justify-end">
+                <Button size="sm" onClick={saveStreamEstateBudget} disabled={budgetSaving}>
+                  {budgetSaving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
+                  Enregistrer
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </section>
 
       {/* Section 2 — Fraîcheur par zone */}
@@ -329,6 +537,8 @@ export default function SettingsPage() {
                   <th className="text-right px-4 py-2 font-medium">Récupérés</th>
                   <th className="text-right px-4 py-2 font-medium">Créés</th>
                   <th className="text-right px-4 py-2 font-medium">MAJ</th>
+                  <th className="text-right px-4 py-2 font-medium">Items</th>
+                  <th className="text-right px-4 py-2 font-medium">Coût</th>
                   <th className="text-left px-4 py-2 font-medium">Statut</th>
                 </tr>
               </thead>
@@ -336,7 +546,7 @@ export default function SettingsPage() {
                 {loading ? (
                   [...Array(5)].map((_, i) => (
                     <tr key={i} className="border-b">
-                      {[...Array(7)].map((__, j) => (
+                      {[...Array(9)].map((__, j) => (
                         <td key={j} className="px-4 py-2">
                           <div className="h-3 rounded bg-muted animate-pulse" />
                         </td>
@@ -345,7 +555,7 @@ export default function SettingsPage() {
                   ))
                 ) : runs.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+                    <td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">
                       <BarChart3 className="mx-auto h-6 w-6 opacity-30 mb-2" />
                       Aucune synchronisation enregistrée
                     </td>
@@ -368,11 +578,13 @@ export default function SettingsPage() {
                       <td className="px-4 py-2 text-right tabular-nums">{run.fetched_count ?? '—'}</td>
                       <td className="px-4 py-2 text-right tabular-nums text-green-700">{run.created_count ?? '—'}</td>
                       <td className="px-4 py-2 text-right tabular-nums text-blue-700">{run.updated_count ?? '—'}</td>
+                      <td className="px-4 py-2 text-right tabular-nums">{run.external_item_count ?? run.external_request_count ?? 0}</td>
+                      <td className="px-4 py-2 text-right tabular-nums">{fmtEur(Number(run.estimated_cost_eur ?? 0))}</td>
                       <td className="px-4 py-2">
                         <StatusBadge status={run.status} />
-                        {run.error_message && (
-                          <p className="text-[9px] text-red-600 mt-0.5 truncate max-w-[120px]" title={run.error_message}>
-                            {run.error_message}
+                        {(run.blocked_reason || run.error_message) && (
+                          <p className="text-[9px] text-red-600 mt-0.5 truncate max-w-[120px]" title={run.blocked_reason ?? run.error_message ?? ''}>
+                            {run.blocked_reason ?? run.error_message}
                           </p>
                         )}
                       </td>
@@ -401,7 +613,7 @@ export default function SettingsPage() {
                   <p className="text-sm font-medium">Pipeline MandatFinder</p>
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Désactiver coupe les appels à l&apos;API Stream Estate sans toucher au cron
+                  Désactiver coupe les syncs Stream Estate sans toucher au cron
                 </p>
               </div>
               <button
@@ -415,9 +627,9 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between px-4 py-3">
               <div>
                 <p className="text-sm font-medium">Synchronisation automatique</p>
-                <p className="text-xs text-muted-foreground">Cron Vercel · Chaque nuit à 2h UTC</p>
+                <p className="text-xs text-muted-foreground">Crons désactivés tant que le budget n’est pas validé</p>
               </div>
-              <Badge variant="outline" className="text-green-700 border-green-200 bg-green-50 text-[10px]">Actif</Badge>
+              <Badge variant="outline" className="text-amber-800 border-amber-200 bg-amber-50 text-[10px]">Désactivé</Badge>
             </div>
             <div className="flex items-center justify-between px-4 py-3">
               <div>

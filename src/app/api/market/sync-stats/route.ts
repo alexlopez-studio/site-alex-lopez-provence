@@ -1,5 +1,48 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { getStreamEstateBudgetSnapshot } from '@/lib/stream-estate-budget'
+import { getSetting } from '@/lib/settings'
+
+const STREAM_ESTATE_RESYNC_WINDOW_KEY = 'stream_estate_resync_window_minutes'
+const DEFAULT_RESYNC_WINDOW_MINUTES = 360
+
+type SyncRunStat = {
+  id: string
+  zone_id: string | null
+  started_at: string | null
+  fetched_count: number | null
+  status: string | null
+  external_request_count?: number | null
+  external_item_count?: number | null
+  estimated_cost_eur?: number | null
+  blocked_reason?: string | null
+}
+
+async function fetchSyncRuns(): Promise<SyncRunStat[]> {
+  const fullSelect = 'id, zone_id, started_at, fetched_count, status, external_request_count, external_item_count, estimated_cost_eur, blocked_reason'
+  const legacySelect = 'id, zone_id, started_at, fetched_count, status'
+
+  const full = await supabaseAdmin
+    .from('sync_runs')
+    .select(fullSelect)
+    .order('started_at', { ascending: false })
+    .limit(2000)
+
+  if (!full.error) return (full.data ?? []) as SyncRunStat[]
+
+  const legacy = await supabaseAdmin
+    .from('sync_runs')
+    .select(legacySelect)
+    .order('started_at', { ascending: false })
+    .limit(2000)
+
+  if (legacy.error) {
+    console.error('[API /market/sync-stats] sync_runs error:', legacy.error.message)
+    return []
+  }
+
+  return (legacy.data ?? []) as SyncRunStat[]
+}
 
 /**
  * GET /api/market/sync-stats
@@ -13,13 +56,7 @@ export async function GET() {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString()
 
     // Tous les sync_runs (cap 2000 pour éviter de charger trop)
-    const { data: allRuns } = await supabaseAdmin
-      .from('sync_runs')
-      .select('id, zone_id, started_at, fetched_count, status')
-      .order('started_at', { ascending: false })
-      .limit(2000)
-
-    const runs = allRuns ?? []
+    const runs = await fetchSyncRuns()
     const todayRuns = runs.filter((r) => (r.started_at ?? '') >= todayStart)
     const monthRuns = runs.filter((r) => (r.started_at ?? '') >= monthStart)
 
@@ -30,8 +67,13 @@ export async function GET() {
     const properties_fetched_today = todayRuns.reduce((s, r) => s + (r.fetched_count ?? 0), 0)
     const properties_fetched_month = monthRuns.reduce((s, r) => s + (r.fetched_count ?? 0), 0)
     const last_sync_at = runs[0]?.started_at ?? null
+    const budget = await getStreamEstateBudgetSnapshot()
+    const resyncWindowRaw = await getSetting<number>(STREAM_ESTATE_RESYNC_WINDOW_KEY, DEFAULT_RESYNC_WINDOW_MINUTES)
+    const resyncWindowMinutes = Number.isFinite(Number(resyncWindowRaw))
+      ? Math.max(0, Math.floor(Number(resyncWindowRaw)))
+      : DEFAULT_RESYNC_WINDOW_MINUTES
 
-    // Sparkline : appels par jour sur les 30 derniers jours
+    // Sparkline : items par jour sur les 30 derniers jours
     const sparklineMap: Record<string, { syncs: number; fetched: number }> = {}
     for (let i = 29; i >= 0; i--) {
       const d = new Date(Date.now() - i * 86400000)
@@ -53,16 +95,44 @@ export async function GET() {
       .select('id, name, zipcode, city, last_synced_at, active, sync_frequency')
       .order('created_at', { ascending: true })
 
+    const monitoredZipcodes = new Set((zones ?? []).map((zone) => zone.zipcode).filter(Boolean))
+    const { data: propertyZipcodes } = await supabaseAdmin
+      .from('market_properties')
+      .select('id, zipcode')
+      .limit(10000)
+
+    const orphanProperties = (propertyZipcodes ?? []).filter((property) => {
+      if (!property.zipcode) return true
+      return !monitoredZipcodes.has(property.zipcode)
+    })
+    const orphanByZipcode = orphanProperties.reduce<Record<string, number>>((acc, property) => {
+      const key = property.zipcode ?? 'sans_cp'
+      acc[key] = (acc[key] ?? 0) + 1
+      return acc
+    }, {})
+
     const zoneStats = await Promise.all(
       (zones ?? []).map(async (zone) => {
         // Dernier run pour cette zone
         const lastRun = runs.find((r) => r.zone_id === zone.id)
+        const lastSuccessRun = runs.find((r) => r.zone_id === zone.id && r.status === 'success')
 
         // Nombre de biens en base pour ce code postal
         const { count: property_count } = await supabaseAdmin
           .from('market_properties')
           .select('id', { count: 'exact', head: true })
           .eq('zipcode', zone.zipcode)
+
+        const { count: not_seen_property_count } = lastSuccessRun?.started_at
+          ? await supabaseAdmin
+              .from('market_properties')
+              .select('id', { count: 'exact', head: true })
+              .eq('zipcode', zone.zipcode)
+              .lt('last_seen_at', lastSuccessRun.started_at)
+          : { count: 0 }
+
+        const totalProperties = property_count ?? 0
+        const notSeenProperties = not_seen_property_count ?? 0
 
         return {
           zone_id: zone.id,
@@ -73,7 +143,14 @@ export async function GET() {
           active: zone.active,
           sync_frequency: zone.sync_frequency,
           last_sync_status: lastRun?.status ?? null,
-          property_count: property_count ?? 0,
+          last_sync_started_at: lastRun?.started_at ?? null,
+          last_success_sync_at: lastSuccessRun?.started_at ?? null,
+          last_external_requests: lastRun?.external_item_count ?? lastRun?.external_request_count ?? 0,
+          last_estimated_cost_eur: lastRun?.estimated_cost_eur ?? 0,
+          last_blocked_reason: lastRun?.blocked_reason ?? null,
+          property_count: totalProperties,
+          seen_property_count: Math.max(0, totalProperties - notSeenProperties),
+          not_seen_property_count: notSeenProperties,
         }
       }),
     )
@@ -88,6 +165,36 @@ export async function GET() {
       last_sync_at,
       sparkline,
       zones: zoneStats,
+      orphan_properties: {
+        count: orphanProperties.length,
+        zipcodes: Object.entries(orphanByZipcode)
+          .map(([zipcode, count]) => ({ zipcode, count }))
+          .sort((a, b) => b.count - a.count || a.zipcode.localeCompare(b.zipcode)),
+      },
+      stream_estate_budget: {
+        sync_enabled: budget.syncEnabled,
+        manual_balance_eur: budget.manualBalanceEur,
+        cost_per_item_eur: budget.costPerItemEur,
+        max_items_per_sync: budget.maxItemsPerSync,
+        cost_per_request_eur: budget.costPerItemEur,
+        max_requests_per_sync: budget.maxItemsPerSync,
+        min_balance_eur: budget.minBalanceEur,
+        resync_window_minutes: resyncWindowMinutes,
+        estimated_balance_eur: budget.estimatedBalanceEur,
+        estimated_spent_total_eur: budget.estimatedSpentTotalEur,
+        estimated_spent_today_eur: budget.estimatedSpentTodayEur,
+        estimated_spent_month_eur: budget.estimatedSpentMonthEur,
+        estimated_items_total: budget.estimatedItemsTotal,
+        estimated_items_today: budget.estimatedItemsToday,
+        estimated_items_month: budget.estimatedItemsMonth,
+        external_items_total: budget.externalRequestsTotal,
+        external_items_today: budget.externalRequestsToday,
+        external_items_month: budget.externalRequestsMonth,
+        external_requests_total: budget.externalRequestsTotal,
+        external_requests_today: budget.externalRequestsToday,
+        external_requests_month: budget.externalRequestsMonth,
+        last_blocked_reason: budget.lastBlockedReason,
+      },
     })
   } catch (e) {
     console.error('[API /market/sync-stats]', e)

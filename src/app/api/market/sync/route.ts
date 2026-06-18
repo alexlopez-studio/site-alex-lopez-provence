@@ -1,66 +1,263 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { fetchListings } from '@/lib/stream-estate'
+import { fetchListings, StreamEstateRequestLimitError } from '@/lib/stream-estate'
 import { runMatchingForProperty } from '@/lib/market/matching-engine'
+import { getSetting } from '@/lib/settings'
+import {
+  canSpendStreamEstateItems,
+  getAvailableStreamEstateItems,
+  getStreamEstateBudgetSnapshot,
+  recordStreamEstateUsageEvent,
+} from '@/lib/stream-estate-budget'
+
+const ZIPCODE_RE = /^\d{5}$/
+
+// Fenêtre anti-re-sync : on ne re-synchronise pas une zone vue récemment (0 appel API).
+const STREAM_ESTATE_RESYNC_WINDOW_KEY = 'stream_estate_resync_window_minutes'
+const DEFAULT_RESYNC_WINDOW_MINUTES = 360 // 6 h
+
+async function getResyncWindowMinutes(): Promise<number> {
+  const raw = await getSetting<number>(STREAM_ESTATE_RESYNC_WINDOW_KEY, DEFAULT_RESYNC_WINDOW_MINUTES)
+  const n = typeof raw === 'number' ? raw : Number(raw)
+  return Number.isFinite(n) ? Math.max(0, Math.floor(n)) : DEFAULT_RESYNC_WINDOW_MINUTES
+}
+
+function errorResponse(error: string, status: number, extra: Record<string, unknown> = {}) {
+  return NextResponse.json({ error, ...extra }, { status })
+}
+
+function estimatedBalanceAfter(manualBalanceEur: number, totalSpentEur: number, currentRunCostEur: number) {
+  return Math.max(0, manualBalanceEur - totalSpentEur - currentRunCostEur)
+}
+
+async function updateSyncRun(syncId: string | undefined, payload: Record<string, unknown>) {
+  if (!syncId) return
+  const { error } = await supabaseAdmin
+    .from('sync_runs')
+    .update(payload as never)
+    .eq('id', syncId)
+
+  if (error) {
+    console.error('[API /market/sync] sync_run update failed:', error.message)
+  }
+}
+
+async function createSyncRun(zoneId: string, status: 'running' | 'blocked', blockedReason?: string) {
+  const now = new Date().toISOString()
+
+  const fullPayload = {
+    zone_id: zoneId,
+    provider: 'stream_estate',
+    status,
+    started_at: now,
+    finished_at: status === 'blocked' ? now : null,
+    fetched_count: 0,
+    created_count: 0,
+    updated_count: 0,
+    external_request_count: 0,
+    external_item_count: 0,
+    estimated_cost_eur: 0,
+    blocked_reason: blockedReason ?? null,
+    error_message: blockedReason ?? null,
+  }
+
+  const legacyPayload = {
+    zone_id: zoneId,
+    provider: 'stream_estate',
+    status,
+    started_at: now,
+    finished_at: status === 'blocked' ? now : null,
+    fetched_count: 0,
+    created_count: 0,
+    updated_count: 0,
+    error_message: blockedReason ?? null,
+  }
+
+  let { data, error } = await supabaseAdmin
+    .from('sync_runs')
+    .insert(fullPayload as never)
+    .select('id')
+    .single()
+
+  if (error) {
+    const retry = await supabaseAdmin
+      .from('sync_runs')
+      .insert(legacyPayload as never)
+      .select('id')
+      .single()
+    data = retry.data
+    error = retry.error
+  }
+
+  if (error) {
+    throw new Error(`Impossible de créer le journal de synchronisation: ${error.message}`)
+  }
+
+  return data?.id as string | undefined
+}
+
+function readMaxItems(body: Record<string, unknown> | null | undefined, fallback: number): number {
+  const raw = body?.max_items ?? body?.maxItems ?? body?.max_requests_per_sync ?? body?.maxRequestsPerSync
+  const parsed = typeof raw === 'number' ? raw : Number(raw)
+  if (!Number.isFinite(parsed)) return fallback
+  return Math.max(1, Math.floor(parsed))
+}
+
+type ZoneInfo = { id: string; inseeCode: string | null; lastSyncedAt: string | null }
+
+async function getOrCreateZone(zipcode: string): Promise<ZoneInfo> {
+  const { data: existingZone } = await supabaseAdmin
+    .from('monitored_zones')
+    .select('id, insee_code, last_synced_at')
+    .eq('zipcode', zipcode)
+    .maybeSingle()
+
+  if (existingZone) {
+    return {
+      id: existingZone.id as string,
+      inseeCode: (existingZone.insee_code as string | null) ?? null,
+      lastSyncedAt: (existingZone.last_synced_at as string | null) ?? null,
+    }
+  }
+
+  const { data: created } = await supabaseAdmin
+    .from('monitored_zones')
+    .insert({ name: `Zone ${zipcode}`, zipcode, sync_frequency: 'manual' })
+    .select('id, insee_code, last_synced_at')
+    .single()
+
+  if (!created) {
+    throw new Error('Impossible de créer la zone')
+  }
+
+  return { id: created.id as string, inseeCode: (created.insee_code as string | null) ?? null, lastSyncedAt: null }
+}
 
 /**
  * POST /api/market/sync
  * Lance une synchronisation Stream Estate pour une zone surveillée.
- * Body : { zipcode: string }
+ * Body : { zipcode: string, max_items?: number }
  */
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const zipcode: string = body.zipcode
+    const zipcode = body?.zipcode
 
-    if (!zipcode) {
-      return NextResponse.json({ error: 'zipcode requis' }, { status: 400 })
+    if (typeof zipcode !== 'string' || !ZIPCODE_RE.test(zipcode)) {
+      return errorResponse('zipcode invalide : un seul code postal à 5 chiffres est attendu', 400)
     }
 
-    // 1. Créer ou récupérer la zone surveillée
-    const { data: existingZone } = await supabaseAdmin
-      .from('monitored_zones')
-      .select('id')
-      .eq('zipcode', zipcode)
-      .maybeSingle()
+    const budget = await getStreamEstateBudgetSnapshot()
+    const force = (body as Record<string, unknown>)?.force === true
+    const zone = await getOrCreateZone(zipcode)
+    const zoneId = zone.id
 
-    let zoneId: string
-    if (existingZone) {
-      zoneId = existingZone.id
-    } else {
-      const { data: created } = await supabaseAdmin
-        .from('monitored_zones')
-        .insert({ name: `Zone ${zipcode}`, zipcode, sync_frequency: 'manual' })
-        .select('id')
-        .single()
-
-      if (!created) {
-        return NextResponse.json({ error: 'Impossible de créer la zone' }, { status: 500 })
+    // 0. Garde-fou anti-re-sync : zone synchronisée récemment → on renvoie la base, 0 appel API.
+    if (!force && zone.lastSyncedAt) {
+      const windowMinutes = await getResyncWindowMinutes()
+      const ageMs = Date.now() - new Date(zone.lastSyncedAt).getTime()
+      if (windowMinutes > 0 && Number.isFinite(ageMs) && ageMs >= 0 && ageMs < windowMinutes * 60_000) {
+        const { count } = await supabaseAdmin
+          .from('market_properties')
+          .select('id', { count: 'exact', head: true })
+          .eq('zipcode', zipcode)
+          .eq('source', 'stream_estate')
+        return NextResponse.json({
+          success: true,
+          from_cache: true,
+          skipped_reason: 'recently_synced',
+          zone_id: zoneId,
+          last_synced_at: zone.lastSyncedAt,
+          resync_window_minutes: windowMinutes,
+          fetched: count ?? 0,
+          created: 0,
+          updated: 0,
+          external_requests: 0,
+          billed_items: 0,
+          estimated_cost_eur: 0,
+          estimated_balance_after: budget.estimatedBalanceEur,
+        })
       }
-      zoneId = created.id
     }
 
-    // 2. Journal de synchronisation
-    const { data: syncRun } = await supabaseAdmin
-      .from('sync_runs')
-      .insert({
-        zone_id: zoneId,
-        provider: 'stream_estate',
-        status: 'running',
-        started_at: new Date().toISOString(),
-        fetched_count: 0,
-        created_count: 0,
-        updated_count: 0,
+    if (!budget.syncEnabled) {
+      const syncId = await createSyncRun(zoneId, 'blocked', 'stream_estate_sync_disabled')
+      return errorResponse('Synchronisation Stream Estate désactivée', 403, {
+        sync_id: syncId,
+        blocked_reason: 'stream_estate_sync_disabled',
+        estimated_items: 0,
+        external_requests: 0,
+        fetched: 0,
+        billed_items: 0,
+        estimated_cost_eur: 0,
+        estimated_balance_after: budget.estimatedBalanceEur,
       })
-      .select('id')
-      .single()
+    }
 
-    const syncId = syncRun?.id
+    const availableItems = Math.min(
+      budget.maxItemsPerSync,
+      getAvailableStreamEstateItems(budget),
+    )
+
+    if (availableItems < 1) {
+      const syncId = await createSyncRun(zoneId, 'blocked', 'stream_estate_budget_insufficient')
+      return errorResponse('Budget Stream Estate insuffisant', 402, {
+        sync_id: syncId,
+        blocked_reason: 'stream_estate_budget_insufficient',
+        estimated_items: 0,
+        external_requests: 0,
+        fetched: 0,
+        billed_items: 0,
+        estimated_cost_eur: 0,
+        estimated_balance_after: budget.estimatedBalanceEur,
+      })
+    }
+
+    // maxItems borné par le budget disponible → plus besoin d'un appel preview facturé séparé.
+    const requestedMaxItems = Math.min(
+      readMaxItems(body as Record<string, unknown>, budget.maxItemsPerSync),
+      budget.maxItemsPerSync,
+    )
+    const maxItems = Math.min(requestedMaxItems, availableItems)
+
+    const syncId = await createSyncRun(zoneId, 'running')
+    let externalRequestCount = 0
+    let estimatedCostEur = 0
+    let billedItemCount = 0
 
     try {
       // 3. Appel Stream Estate
-      const result = await fetchListings({ zipcode })
+      const result = await fetchListings({
+        zipcode,
+        inseeCode: zone.inseeCode,
+        maxItems,
+        beforeRequest: async () => {
+          const allowed = await canSpendStreamEstateItems()
+          if (!allowed.ok) {
+            throw new StreamEstateRequestLimitError(allowed.reason, allowed.reason)
+          }
+        },
+        onRequest: async (event) => {
+          externalRequestCount++
+          billedItemCount += event.itemCount
+          estimatedCostEur += event.itemCount * budget.costPerItemEur
+          await recordStreamEstateUsageEvent({
+            syncRunId: syncId ?? null,
+            zipcode,
+            endpoint: event.endpoint,
+            page: event.page,
+            requestStatus: event.requestStatus,
+            itemCount: event.itemCount,
+            estimatedCostEur: event.itemCount * budget.costPerItemEur,
+            startedAt: event.startedAt,
+            finishedAt: event.finishedAt,
+            errorMessage: event.errorMessage ?? null,
+          })
+        },
+      })
       const listings = result.listings
+      // totalAvailable provient de la page 1 (hydra:totalItems) → estimation sans appel séparé.
+      const estimatedItems = Math.min(result.totalAvailable, maxItems)
 
       let createdCount = 0
       let updatedCount = 0
@@ -224,17 +421,21 @@ export async function POST(req: NextRequest) {
       await executeRulesForZone(zoneId)
 
       // 7. Mettre à jour le journal
+      const syncStatus = result.truncated ? 'blocked' : 'success'
+      const blockedReason = result.truncated ? 'stream_estate_item_limit_reached' : null
+
       if (syncId) {
-        await supabaseAdmin
-          .from('sync_runs')
-          .update({
-            status: 'success',
-            finished_at: new Date().toISOString(),
-            fetched_count: listings.length,
-            created_count: createdCount,
-            updated_count: updatedCount,
-          })
-          .eq('id', syncId)
+        await updateSyncRun(syncId, {
+          status: syncStatus,
+          finished_at: new Date().toISOString(),
+          fetched_count: listings.length,
+          external_item_count: billedItemCount,
+          created_count: createdCount,
+          updated_count: updatedCount,
+          external_request_count: externalRequestCount,
+          estimated_cost_eur: estimatedCostEur,
+          blocked_reason: blockedReason,
+        })
       }
 
       // 8. Mettre à jour last_synced_at de la zone
@@ -245,27 +446,49 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({
         success: true,
+        partial: result.truncated,
+        blocked_reason: blockedReason,
         zone_id: zoneId,
         sync_id: syncId,
         fetched: listings.length,
         skipped: skippedCount,
         created: createdCount,
         updated: updatedCount,
+        estimated_items: estimatedItems,
+        external_requests: externalRequestCount,
+        billed_items: billedItemCount,
+        estimated_cost_eur: estimatedCostEur,
+        estimated_balance_after: estimatedBalanceAfter(
+          budget.manualBalanceEur,
+          budget.estimatedSpentTotalEur,
+          estimatedCostEur,
+        ),
       })
     } catch (err) {
       // Erreur pendant la sync
       const errMsg = err instanceof Error ? err.message : String(err)
       if (syncId) {
-        await supabaseAdmin
-          .from('sync_runs')
-          .update({
-            status: 'error',
-            finished_at: new Date().toISOString(),
-            error_message: errMsg,
-          })
-          .eq('id', syncId)
+        await updateSyncRun(syncId, {
+          status: 'error',
+          finished_at: new Date().toISOString(),
+          error_message: errMsg,
+          blocked_reason: null,
+          external_request_count: externalRequestCount,
+          external_item_count: billedItemCount,
+          estimated_cost_eur: estimatedCostEur,
+        })
       }
-      return NextResponse.json({ error: errMsg }, { status: 500 })
+      return errorResponse(errMsg, 500, {
+        blocked_reason: null,
+        external_requests: externalRequestCount,
+        billed_items: billedItemCount,
+        estimated_cost_eur: estimatedCostEur,
+        estimated_balance_after: estimatedBalanceAfter(
+          budget.manualBalanceEur,
+          budget.estimatedSpentTotalEur,
+          estimatedCostEur,
+        ),
+      })
     }
   } catch (e) {
     const errMsg = e instanceof Error ? e.message : String(e)

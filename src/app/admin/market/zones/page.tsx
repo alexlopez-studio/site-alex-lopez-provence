@@ -32,24 +32,97 @@ interface Zone {
 
 interface ZoneWithStats extends Zone {
   property_count: number
+  seen_property_count: number
+  not_seen_property_count: number
   last_sync_status: string | null
+  last_sync_started_at: string | null
+  last_success_sync_at: string | null
+  last_external_requests: number
+  last_estimated_cost_eur: number
+  last_blocked_reason: string | null
+}
+
+interface StreamEstateBudget {
+  sync_enabled: boolean
+  manual_balance_eur: number
+  cost_per_item_eur?: number
+  max_items_per_sync?: number
+  cost_per_request_eur: number
+  max_requests_per_sync: number
+  min_balance_eur: number
+  resync_window_minutes?: number
+  estimated_balance_eur: number
+  estimated_spent_today_eur: number
+  estimated_spent_month_eur: number
+  estimated_items_total?: number
+  estimated_items_today?: number
+  estimated_items_month?: number
+  external_items_today?: number
+  external_items_month?: number
+  external_requests_today: number
+  external_requests_month: number
+  last_blocked_reason: string | null
+}
+
+interface SyncPreview {
+  zipcode: string
+  requested_max_items: number
+  budget_max_items_per_sync: number
+  effective_max_items: number
+  max_items: number
+  total_available: number
+  estimated_items: number
+  estimated_cost_eur: number
+  estimated_balance_after: number
+  sync_enabled: boolean
+  can_confirm: boolean
+  blocked_reason: string | null
+  cost_per_item_eur: number
+  min_balance_eur: number
+  estimated_balance_eur: number
+}
+
+interface OrphanProperties {
+  count: number
+  zipcodes: Array<{ zipcode: string; count: number }>
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-function freshnessStatus(last_synced_at: string | null, last_sync_status: string | null) {
+const VERY_STALE_MINUTES = 7 * 24 * 60 // 7 jours
+
+// Fraîcheur alignée sur la fenêtre anti-re-sync : tant qu'on est dans la fenêtre, une nouvelle
+// sync serait ignorée (zone à jour). Au-delà, une resync est possible — c'est normal, pas alarmant.
+function freshnessStatus(
+  last_synced_at: string | null,
+  last_sync_status: string | null,
+  resyncWindowMinutes: number,
+) {
   if (last_sync_status === 'error') return 'error'
+  if (last_sync_status === 'blocked') return 'blocked'
   if (!last_synced_at) return 'never'
-  const ageH = (Date.now() - new Date(last_synced_at).getTime()) / 3600000
-  return ageH < 24 ? 'ok' : 'stale'
+  const ageMin = (Date.now() - new Date(last_synced_at).getTime()) / 60000
+  if (resyncWindowMinutes > 0 && ageMin < resyncWindowMinutes) return 'fresh'
+  if (ageMin > VERY_STALE_MINUTES) return 'stale'
+  return 'syncable'
 }
 
-function FreshnessBadge({ last_synced_at, last_sync_status }: { last_synced_at: string | null; last_sync_status: string | null }) {
-  const status = freshnessStatus(last_synced_at, last_sync_status)
+function FreshnessBadge({
+  last_synced_at,
+  last_sync_status,
+  resyncWindowMinutes = 360,
+}: {
+  last_synced_at: string | null
+  last_sync_status: string | null
+  resyncWindowMinutes?: number
+}) {
+  const status = freshnessStatus(last_synced_at, last_sync_status, resyncWindowMinutes)
   const map = {
-    ok: { icon: CheckCircle2, label: 'À jour', cls: 'text-green-700 bg-green-50 border-green-200' },
+    fresh: { icon: CheckCircle2, label: 'À jour', cls: 'text-green-700 bg-green-50 border-green-200' },
+    syncable: { icon: RefreshCw, label: 'Resync possible', cls: 'text-blue-700 bg-blue-50 border-blue-200' },
     stale: { icon: AlertTriangle, label: 'Ancien', cls: 'text-amber-700 bg-amber-50 border-amber-200' },
     error: { icon: XCircle, label: 'Erreur', cls: 'text-red-700 bg-red-50 border-red-200' },
+    blocked: { icon: AlertTriangle, label: 'Bloquée', cls: 'text-amber-800 bg-amber-50 border-amber-200' },
     never: { icon: Clock, label: 'Jamais synced', cls: 'text-muted-foreground bg-muted border-border' },
   }
   const { icon: Icon, label, cls } = map[status]
@@ -68,6 +141,22 @@ function formatLastSync(iso: string | null): string {
   const h = Math.floor(m / 60)
   if (h < 24) return `Il y a ${h}h`
   return `Il y a ${Math.floor(h / 24)}j`
+}
+
+function formatResyncWindow(minutes: number): string {
+  if (minutes <= 0) return 'désactivée'
+  if (minutes < 60) return `${minutes} min`
+  const h = minutes / 60
+  return Number.isInteger(h) ? `${h} h` : `${h.toFixed(1)} h`
+}
+
+function formatEuro(value: number): string {
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value)
 }
 
 // ── Commune search ──────────────────────────────────────────────────────────
@@ -225,6 +314,18 @@ export default function ZonesPage() {
   const [syncing, setSyncing] = useState<Record<string, boolean>>({})
   const [showNew, setShowNew] = useState(false)
   const [deleteInfo, setDeleteInfo] = useState<{ zone: ZoneWithStats; deletedProperties?: number } | null>(null)
+  const [budget, setBudget] = useState<StreamEstateBudget | null>(null)
+  const [orphanProperties, setOrphanProperties] = useState<OrphanProperties | null>(null)
+  const [purgingOrphans, setPurgingOrphans] = useState(false)
+  const [syncDraft, setSyncDraft] = useState<{ zipcode: string; label: string; maxItems: string }>({
+    zipcode: '',
+    label: '',
+    maxItems: '30',
+  })
+  const [syncPreview, setSyncPreview] = useState<SyncPreview | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [confirmingSync, setConfirmingSync] = useState(false)
+  const syncPanelRef = useRef<HTMLDivElement>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -235,16 +336,45 @@ export default function ZonesPage() {
       ])
       const { zones: rawZones } = await zonesRes.json()
       const stats = await statsRes.json()
+      setBudget(stats.stream_estate_budget ?? null)
+      setOrphanProperties(stats.orphan_properties ?? null)
 
-      const statsMap: Record<string, { property_count: number; last_sync_status: string | null }> = {}
+      const statsMap: Record<string, {
+        property_count: number
+        seen_property_count: number
+        not_seen_property_count: number
+        last_sync_status: string | null
+        last_sync_started_at: string | null
+        last_success_sync_at: string | null
+        last_external_requests: number
+        last_estimated_cost_eur: number
+        last_blocked_reason: string | null
+      }> = {}
       for (const z of stats.zones ?? []) {
-        statsMap[z.zone_id] = { property_count: z.property_count, last_sync_status: z.last_sync_status }
+        statsMap[z.zone_id] = {
+          property_count: z.property_count,
+          seen_property_count: z.seen_property_count,
+          not_seen_property_count: z.not_seen_property_count,
+          last_sync_status: z.last_sync_status,
+          last_sync_started_at: z.last_sync_started_at,
+          last_success_sync_at: z.last_success_sync_at,
+          last_external_requests: z.last_external_requests,
+          last_estimated_cost_eur: z.last_estimated_cost_eur,
+          last_blocked_reason: z.last_blocked_reason,
+        }
       }
 
       setZones((rawZones ?? []).map((z: Zone) => ({
         ...z,
         property_count: statsMap[z.id]?.property_count ?? 0,
+        seen_property_count: statsMap[z.id]?.seen_property_count ?? 0,
+        not_seen_property_count: statsMap[z.id]?.not_seen_property_count ?? 0,
         last_sync_status: statsMap[z.id]?.last_sync_status ?? null,
+        last_sync_started_at: statsMap[z.id]?.last_sync_started_at ?? null,
+        last_success_sync_at: statsMap[z.id]?.last_success_sync_at ?? null,
+        last_external_requests: statsMap[z.id]?.last_external_requests ?? 0,
+        last_estimated_cost_eur: statsMap[z.id]?.last_estimated_cost_eur ?? 0,
+        last_blocked_reason: statsMap[z.id]?.last_blocked_reason ?? null,
       })))
     } catch (err) {
       console.error('Erreur chargement zones', err)
@@ -254,6 +384,15 @@ export default function ZonesPage() {
   }, [])
 
   useEffect(() => { load() }, [load])
+
+  useEffect(() => {
+    if (!budget) return
+    setSyncDraft((current) => {
+      if (current.zipcode) return current
+      const fallbackMax = budget.max_items_per_sync ?? budget.max_requests_per_sync ?? 30
+      return { ...current, maxItems: String(fallbackMax) }
+    })
+  }, [budget])
 
   async function addZone(commune: CommuneResult, zipcode: string) {
     await fetch('/api/market/zones', {
@@ -288,29 +427,142 @@ export default function ZonesPage() {
     await load()
   }
 
-  async function syncZone(zone: ZoneWithStats) {
-    setSyncing((prev) => ({ ...prev, [zone.id]: true }))
+  async function previewSync(zipcode: string, maxItems: number) {
+    if (!/^\d{5}$/.test(zipcode)) {
+      toast.error('Choisis un code postal valide avant de prévisualiser')
+      return null
+    }
+    setPreviewLoading(true)
+    try {
+      const res = await fetch('/api/market/sync-preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ zipcode, max_items: maxItems }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(`Prévisualisation impossible : ${data.error ?? res.statusText}`)
+        setSyncPreview(null)
+        return null
+      }
+      setSyncPreview(data)
+      return data as SyncPreview
+    } catch (err) {
+      toast.error(`Prévisualisation impossible : ${err instanceof Error ? err.message : String(err)}`)
+      setSyncPreview(null)
+      return null
+    } finally {
+      setPreviewLoading(false)
+    }
+  }
+
+  async function confirmSync(force = false) {
+    const zipcode = syncDraft.zipcode.trim()
+    const maxItems = Math.max(1, Math.floor(Number(syncDraft.maxItems) || 1))
+    if (!/^\d{5}$/.test(zipcode)) {
+      toast.error('Choisis un code postal valide avant de confirmer')
+      return
+    }
+
+    if (!syncPreview || syncPreview.zipcode !== zipcode || syncPreview.max_items !== maxItems) {
+      const refreshed = await previewSync(zipcode, maxItems)
+      if (!refreshed) return
+      if (!refreshed.can_confirm) {
+        toast.error('Le plafond demandé dépasse le budget disponible')
+        return
+      }
+    } else if (!syncPreview.can_confirm) {
+      toast.error('Le plafond demandé dépasse le budget disponible')
+      return
+    }
+
+    setConfirmingSync(true)
+    setSyncing((prev) => ({ ...prev, [zipcode]: true }))
     try {
       const res = await fetch('/api/market/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ zipcode: zone.zipcode }),
+        body: JSON.stringify({ zipcode, max_items: maxItems, force }),
       })
       const data = await res.json()
       if (!res.ok) {
-        toast.error(`Erreur sync ${zone.name} : ${data.error ?? res.statusText}`)
+        const reason = data.blocked_reason ? ` (${data.blocked_reason})` : ''
+        toast.error(`Sync refusée : ${data.error ?? res.statusText}${reason}`)
+      } else if (data.from_cache) {
+        // La fenêtre anti-re-sync a court-circuité l'appel : aucune dépense.
+        const windowLabel = typeof data.resync_window_minutes === 'number'
+          ? ` · resync auto après ${formatResyncWindow(data.resync_window_minutes)}`
+          : ''
+        toast(`${zipcode} déjà à jour — synchronisé ${formatLastSync(data.last_synced_at)} (aucun appel API)`, {
+          description: `${data.fetched ?? 0} bien(s) déjà en base${windowLabel}`,
+          action: {
+            label: 'Forcer la resync',
+            onClick: () => { void confirmSync(true) },
+          },
+        })
+      } else if (data.partial) {
+        toast.warning(`Sync partielle de ${zipcode} — plafond de ${maxItems} item(s) atteint (${data.fetched ?? 0} récupéré(s)). Augmente le plafond pour tout récupérer.`)
+        setSyncPreview(null)
+        setSyncDraft((current) => ({ ...current, zipcode: '', label: '' }))
       } else {
-        toast.success(`${zone.name} synchronisée — ${data.fetched ?? 0} récupéré(s), ${data.created ?? 0} créé(s), ${data.updated ?? 0} mis à jour`)
+        toast.success(`${zipcode} synchronisé — ${data.fetched ?? 0} bien(s), ${data.billed_items ?? 0} item(s), ${formatEuro(Number(data.estimated_cost_eur ?? 0))} estimés`)
+        setSyncPreview(null)
+        setSyncDraft((current) => ({ ...current, zipcode: '', label: '' }))
       }
       await load()
     } catch (err) {
       toast.error(`Erreur réseau : ${err instanceof Error ? err.message : String(err)}`)
     } finally {
-      setSyncing((prev) => ({ ...prev, [zone.id]: false }))
+      setConfirmingSync(false)
+      setSyncing((prev) => ({ ...prev, [zipcode]: false }))
+    }
+  }
+
+  async function prefillSyncFromZone(zone: ZoneWithStats) {
+    const maxItems = budget?.max_items_per_sync ?? budget?.max_requests_per_sync ?? 30
+    setSyncDraft({
+      zipcode: zone.zipcode,
+      label: zone.name,
+      maxItems: String(maxItems),
+    })
+    if (syncPanelRef.current) {
+      syncPanelRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+    const preview = await previewSync(zone.zipcode, maxItems)
+    if (preview && !preview.can_confirm) {
+      toast.error('Ce plafond dépasse le budget disponible')
+    }
+  }
+
+  async function purgeOrphanProperties() {
+    const count = orphanProperties?.count ?? 0
+    if (count === 0) return
+    const zipcodes = orphanProperties?.zipcodes.slice(0, 8).map((item) => `${item.zipcode} (${item.count})`).join(', ')
+    if (!confirm(`Supprimer ${count} bien${count > 1 ? 's' : ''} hors zones surveillées ?\n\nCP concernés : ${zipcodes}${(orphanProperties?.zipcodes.length ?? 0) > 8 ? ', …' : ''}\n\nCette action ne supprime aucune zone.`)) {
+      return
+    }
+
+    setPurgingOrphans(true)
+    try {
+      const res = await fetch('/api/market/properties?scope=orphans', { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(`Purge impossible : ${data.error ?? res.statusText}`)
+      } else {
+        toast.success(`${data.deleted_properties ?? 0} bien(s) hors zones supprimé(s)`)
+      }
+      await load()
+    } catch (err) {
+      toast.error(`Erreur purge : ${err instanceof Error ? err.message : String(err)}`)
+    } finally {
+      setPurgingOrphans(false)
     }
   }
 
   const activeCount = zones.filter((z) => z.active).length
+  const syncBlockedByBudget = Boolean(
+    budget && (!budget.sync_enabled || budget.estimated_balance_eur <= budget.min_balance_eur),
+  )
 
   return (
     <div className="space-y-6">
@@ -325,6 +577,220 @@ export default function ZonesPage() {
           <MapPin className="mr-1 h-4 w-4" /> Ajouter une commune
         </Button>
       </div>
+
+      {budget && (
+        <Card className={budget.sync_enabled ? '' : 'border-amber-200 bg-amber-50/60'}>
+          <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-semibold">Synchronisation Stream Estate par code postal</p>
+                <Badge
+                  variant="outline"
+                  className={budget.sync_enabled
+                    ? 'text-[10px] bg-green-50 text-green-700 border-green-200'
+                    : 'text-[10px] bg-amber-50 text-amber-800 border-amber-200'}
+                >
+                  {budget.sync_enabled ? 'Active' : 'Désactivée'}
+                </Badge>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Une action synchronise uniquement le CP sélectionné. Plafond : {budget.max_items_per_sync ?? budget.max_requests_per_sync} item{(budget.max_items_per_sync ?? budget.max_requests_per_sync) > 1 ? 's' : ''} par sync.
+                {typeof budget.resync_window_minutes === 'number' && ` Resync auto après ${formatResyncWindow(budget.resync_window_minutes)} (forçable).`}
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 text-xs sm:grid-cols-4">
+              <div>
+                <p className="text-[10px] text-muted-foreground">Solde estimé</p>
+                <p className="font-semibold tabular-nums">{formatEuro(budget.estimated_balance_eur)}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground">Coût/item</p>
+                <p className="font-semibold tabular-nums">{formatEuro(budget.cost_per_item_eur ?? budget.cost_per_request_eur)}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground">Items aujourd’hui</p>
+                <p className="font-semibold tabular-nums">{budget.external_items_today ?? budget.external_requests_today}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground">Dépensé mois</p>
+                <p className="font-semibold tabular-nums">{formatEuro(budget.estimated_spent_month_eur)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {orphanProperties && orphanProperties.count > 0 && (
+        <Card className="border-red-200 bg-red-50/70">
+          <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-700" />
+              <div>
+                <p className="text-sm font-semibold text-red-900">
+                  {orphanProperties.count} bien{orphanProperties.count > 1 ? 's' : ''} en base sans zone surveillée
+                </p>
+                <p className="mt-1 text-xs text-red-800">
+                  Ces biens ne sont rattachés à aucune zone actuelle. CP concernés : {orphanProperties.zipcodes.slice(0, 8).map((item) => `${item.zipcode} (${item.count})`).join(', ')}
+                  {orphanProperties.zipcodes.length > 8 ? ', …' : ''}
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={purgeOrphanProperties}
+              disabled={purgingOrphans}
+              className="border-red-200 bg-white text-red-800 hover:bg-red-100"
+            >
+              <Trash2 className="mr-1 h-4 w-4" />
+              {purgingOrphans ? 'Purge…' : 'Purger les biens hors zones'}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      <section ref={syncPanelRef} className="rounded-xl border bg-muted/20 p-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-sm font-semibold">Sync contrôlée Stream Estate</h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Choisis un code postal, fixe un plafond d&apos;items, puis prévisualise le coût avant de lancer l&apos;import.
+            </p>
+          </div>
+          <Badge
+            variant="outline"
+            className={`w-fit text-[10px] ${
+              budget?.sync_enabled
+                ? 'text-green-700 border-green-200 bg-green-50'
+                : 'text-amber-800 border-amber-200 bg-amber-50'
+            }`}
+          >
+            {budget?.sync_enabled ? 'Sync autorisée' : 'Sync désactivée'}
+          </Badge>
+        </div>
+
+        <div className="mt-4 grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+          <div className="space-y-3">
+            <CommuneSearch
+              onSelect={(commune, zip) => {
+                setSyncDraft((current) => ({ ...current, zipcode: zip, label: `${commune.nom} · ${zip}` }))
+                setSyncPreview(null)
+              }}
+            />
+            <div className="grid gap-3 sm:grid-cols-[1fr_160px]">
+              <label className="space-y-1">
+                <span className="text-[11px] font-medium">Code postal</span>
+                <Input
+                  inputMode="numeric"
+                  maxLength={5}
+                  placeholder="83670"
+                  value={syncDraft.zipcode}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '').slice(0, 5)
+                    setSyncDraft((current) => ({ ...current, zipcode: value }))
+                    setSyncPreview(null)
+                  }}
+                />
+              </label>
+              <label className="space-y-1">
+                <span className="text-[11px] font-medium">Max items</span>
+                <Input
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={syncDraft.maxItems}
+                  onChange={(e) => {
+                    setSyncDraft((current) => ({ ...current, maxItems: e.target.value }))
+                    setSyncPreview(null)
+                  }}
+                />
+              </label>
+            </div>
+            <div className="rounded-lg border bg-background px-3 py-2 text-xs text-muted-foreground">
+              {syncDraft.zipcode
+                ? <span><strong className="text-foreground">{syncDraft.label || `CP ${syncDraft.zipcode}`}</strong> · plafond {syncDraft.maxItems || '1'} item(s)</span>
+                : <span>Commence par sélectionner une commune ou saisir un code postal.</span>}
+            </div>
+          </div>
+
+          <div className="rounded-lg border bg-background p-3">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold">Estimation <span className="font-normal text-green-700">· gratuit</span></p>
+                <p className="text-[11px] text-muted-foreground">Comptage sans création de zone ni consommation de crédit</p>
+              </div>
+              <Badge
+                variant="outline"
+                className={`text-[10px] ${
+                  syncPreview?.can_confirm
+                    ? 'text-green-700 border-green-200 bg-green-50'
+                    : syncPreview
+                      ? 'text-amber-800 border-amber-200 bg-amber-50'
+                      : 'text-muted-foreground border-border bg-muted'
+                }`}
+              >
+                {previewLoading ? 'Prévu…' : syncPreview?.can_confirm ? 'OK' : syncPreview ? 'À revoir' : 'En attente'}
+              </Badge>
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
+              <div className="rounded-md border px-3 py-2">
+                <p className="text-muted-foreground">Items estimés</p>
+                <p className="mt-1 text-lg font-semibold tabular-nums">{syncPreview ? syncPreview.estimated_items : '—'}</p>
+              </div>
+              <div className="rounded-md border px-3 py-2">
+                <p className="text-muted-foreground">Coût estimé</p>
+                <p className="mt-1 text-lg font-semibold tabular-nums">{syncPreview ? formatEuro(syncPreview.estimated_cost_eur) : '—'}</p>
+              </div>
+              <div className="rounded-md border px-3 py-2">
+                <p className="text-muted-foreground">Total trouvé</p>
+                <p className="mt-1 text-lg font-semibold tabular-nums">{syncPreview ? syncPreview.total_available : '—'}</p>
+              </div>
+              <div className="rounded-md border px-3 py-2">
+                <p className="text-muted-foreground">Solde après</p>
+                <p className="mt-1 text-lg font-semibold tabular-nums">{syncPreview ? formatEuro(syncPreview.estimated_balance_after) : '—'}</p>
+              </div>
+            </div>
+
+            <p className="mt-3 text-[11px] text-muted-foreground">
+              {syncPreview?.blocked_reason === 'stream_estate_sync_disabled'
+                ? 'La sync est désactivée dans le budget.'
+                : syncPreview?.blocked_reason === 'stream_estate_max_items_exceeded'
+                  ? `Le plafond demandé (${syncPreview.requested_max_items}) dépasse le plafond global autorisé (${syncPreview.budget_max_items_per_sync}).`
+                : syncPreview?.blocked_reason === 'stream_estate_budget_insufficient'
+                  ? 'Le plafond demandé dépasse le budget disponible.'
+                  : syncPreview
+                    ? `Prévision basée sur ${syncPreview.total_available} bien(s) côté API avec un plafond effectif de ${syncPreview.effective_max_items} item(s).`
+                    : 'Aucune prévisualisation chargée pour l’instant.'}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-[11px] text-muted-foreground">
+            La confirmation relance une vérification côté serveur avant de lancer l&apos;import.
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => previewSync(syncDraft.zipcode.trim(), Math.max(1, Math.floor(Number(syncDraft.maxItems) || 1)))}
+              disabled={previewLoading || !syncDraft.zipcode}
+            >
+              {previewLoading ? <RefreshCw className="mr-1 h-4 w-4 animate-spin" /> : <Search className="mr-1 h-4 w-4" />}
+              Prévisualiser
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => confirmSync()}
+              disabled={confirmingSync || previewLoading || !syncPreview?.can_confirm}
+            >
+              <RefreshCw className={`mr-1 h-4 w-4 ${confirmingSync ? 'animate-spin' : ''}`} />
+              Confirmer la sync
+            </Button>
+          </div>
+        </div>
+      </section>
 
       {/* Toast suppression */}
       {deleteInfo && (
@@ -382,17 +848,35 @@ export default function ZonesPage() {
                       >
                         {zone.active ? 'Actif' : 'Inactif'}
                       </Badge>
-                      <FreshnessBadge last_synced_at={zone.last_synced_at} last_sync_status={zone.last_sync_status} />
+                      <FreshnessBadge last_synced_at={zone.last_synced_at} last_sync_status={zone.last_sync_status} resyncWindowMinutes={budget?.resync_window_minutes} />
                     </div>
                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                       <p className="text-xs text-muted-foreground">
                         CP {zone.zipcode}
                         {zone.insee_code && <span className="ml-1 opacity-60">· INSEE {zone.insee_code}</span>}
-                        {' · '}{zone.property_count} bien{zone.property_count !== 1 ? 's' : ''} en base
                       </p>
+                      {zone.insee_code ? (
+                        <Badge variant="outline" className="text-[10px] bg-green-50 text-green-700 border-green-200" title="Filtrage Stream Estate par code INSEE : seuls les biens de cette commune sont récupérés.">
+                          Commune exacte
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-800 border-amber-200" title="Sans code INSEE, le filtrage se fait par code postal et peut inclure les communes voisines partageant ce CP.">
+                          CP seul · communes voisines incluses
+                        </Badge>
+                      )}
                     </div>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                    <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[10px] text-muted-foreground sm:grid-cols-4">
+                      <span><strong className="text-foreground">{zone.property_count}</strong> en base</span>
+                      <span><strong className="text-foreground">{zone.seen_property_count}</strong> revu{zone.seen_property_count > 1 ? 's' : ''}</span>
+                      <span className={zone.not_seen_property_count > 0 ? 'text-amber-700' : ''}>
+                        <strong className={zone.not_seen_property_count > 0 ? 'text-amber-800' : 'text-foreground'}>{zone.not_seen_property_count}</strong> non revu{zone.not_seen_property_count > 1 ? 's' : ''}
+                      </span>
+                      <span><strong className="text-foreground">{zone.last_external_requests}</strong> item{zone.last_external_requests > 1 ? 's' : ''} · {formatEuro(zone.last_estimated_cost_eur)}</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-1">
                       Dernière sync : {formatLastSync(zone.last_synced_at)}
+                      {zone.last_success_sync_at ? ` · Dernier succès : ${formatLastSync(zone.last_success_sync_at)}` : ''}
+                      {zone.last_blocked_reason ? ` · ${zone.last_blocked_reason}` : ''}
                     </p>
                   </div>
                 </div>
@@ -406,12 +890,12 @@ export default function ZonesPage() {
                     <Building2 className="h-3.5 w-3.5" />
                   </Link>
                   <button
-                    onClick={() => syncZone(zone)}
-                    disabled={syncing[zone.id]}
+                    onClick={() => prefillSyncFromZone(zone)}
+                    disabled={syncing[zone.zipcode] || syncBlockedByBudget}
                     className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors disabled:opacity-50"
-                    title="Synchroniser maintenant"
+                    title={syncBlockedByBudget ? 'Sync Stream Estate bloquée par budget ou désactivée' : `Prévisualiser la sync du CP ${zone.zipcode}`}
                   >
-                    <RefreshCw className={`h-3.5 w-3.5 ${syncing[zone.id] ? 'animate-spin' : ''}`} />
+                    <RefreshCw className={`h-3.5 w-3.5 ${syncing[zone.zipcode] ? 'animate-spin' : ''}`} />
                   </button>
                   <button
                     onClick={() => toggleZone(zone)}

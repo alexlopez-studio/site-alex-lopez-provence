@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { purgeMarketPropertiesByIds } from '@/lib/market/property-cleanup'
 
 /**
  * GET /api/market/properties
@@ -82,6 +83,68 @@ export async function GET(req: NextRequest) {
     })
   } catch (e) {
     console.error('[API /market/properties]', e)
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+  }
+}
+
+/**
+ * DELETE /api/market/properties?scope=orphans
+ * Purge explicitement les biens dont le code postal n'est surveillé par aucune zone.
+ */
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url)
+    const scope = searchParams.get('scope')
+
+    if (scope !== 'orphans') {
+      return NextResponse.json({ error: 'scope=orphans requis' }, { status: 400 })
+    }
+
+    const { data: zones, error: zonesError } = await supabaseAdmin
+      .from('monitored_zones')
+      .select('zipcode')
+
+    if (zonesError) {
+      console.error('[API /market/properties] zones read error:', zonesError)
+      return NextResponse.json({ error: 'Erreur lecture zones' }, { status: 500 })
+    }
+
+    const monitoredZipcodes = new Set((zones ?? []).map((zone) => zone.zipcode).filter(Boolean))
+    const { data: properties, error: propertiesError } = await supabaseAdmin
+      .from('market_properties')
+      .select('id, zipcode')
+      .limit(10000)
+
+    if (propertiesError) {
+      console.error('[API /market/properties] orphan read error:', propertiesError)
+      return NextResponse.json({ error: 'Erreur lecture biens' }, { status: 500 })
+    }
+
+    const orphanProperties = (properties ?? []).filter((property) => {
+      if (!property.zipcode) return true
+      return !monitoredZipcodes.has(property.zipcode)
+    })
+    const byZipcode = orphanProperties.reduce<Record<string, number>>((acc, property) => {
+      const key = property.zipcode ?? 'sans_cp'
+      acc[key] = (acc[key] ?? 0) + 1
+      return acc
+    }, {})
+
+    const purge = await purgeMarketPropertiesByIds(orphanProperties.map((property) => property.id))
+    if (purge.error) {
+      console.error('[API /market/properties] orphan purge error:', purge.error)
+      return NextResponse.json({ error: 'Purge impossible', detail: purge.error }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      success: true,
+      deleted_properties: purge.deletedProperties,
+      zipcodes: Object.entries(byZipcode)
+        .map(([zipcode, count]) => ({ zipcode, count }))
+        .sort((a, b) => b.count - a.count || a.zipcode.localeCompare(b.zipcode)),
+    })
+  } catch (e) {
+    console.error('[API /market/properties] DELETE', e)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }

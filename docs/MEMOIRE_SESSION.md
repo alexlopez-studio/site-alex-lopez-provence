@@ -1,6 +1,6 @@
 # Memoire de reprise - Mandat OS / MandatFinder
 
-Derniere mise a jour : 17/06/2026
+Derniere mise a jour : 18/06/2026
 
 ## Regle de reprise prioritaire
 
@@ -47,6 +47,9 @@ Les lots historiques 1 a 4 ne sont plus a traiter comme non demarres. Ils ont et
 - Pipeline MandatFinder avec toggle et cron Vercel.
 - Alerting email "fenetre d'or" via Resend apres analyse.
 - Corrections recentes Stream Estate : endpoint `stream.estate`, `/documents/properties`, `hydra:member`.
+- Sync controlee Stream Estate sur `/app/zones` avec previsualisation budgetee, plafond `max_items` et confirmation explicite.
+- Optimisation credits Stream Estate (18/06, local non commite) : filtrage commune `includedZipcodes[]` / `includedInseeCodes[]`, `transactionType=0`, `propertyTypes=[0,1]`, preview gratuit `itemsPerPage=0`, suppression de l'appel preview facture separe, garde-fou anti-re-sync configurable (`stream_estate_resync_window_minutes`, defaut 360 min) avec bypass `force:true`, route diagnostic `test-stream-estate` supprimee. Facturation confirmee : 0,01 EUR/bien.
+- Coherence UX zones avec ce flux : toast « deja a jour » + action « Forcer la resync », toast « sync partielle », badge fraicheur aligne sur la fenetre, badge precision INSEE, mention « Estimation gratuit », champ « Fenetre resync (min) » editable dans Reglages.
 - Simplification des URLs backoffice vers `/app/*`.
 - Sidebar Mandat OS reorganisee par sections metier : Vue d'ensemble, Vendeurs, Acquereurs, Marche, Automatisation, Configuration.
 
@@ -156,7 +159,9 @@ Commits recents integres dans `origin/preview` :
 - `129229e` : toggle pipeline MandatFinder + cron analyse quotidienne.
 - `840a824` : email "fenetre d'or" via Resend.
 - `77dfe1b`, `768dc0e`, `bb2d9c6` : corrections sync / Stream Estate.
-- `a2c1358` : route diagnostic `test-stream-estate`, a supprimer apres debug.
+- `a2c1358` : route diagnostic `test-stream-estate` (DESORMAIS supprimee dans le working tree local, non commite).
+
+Travail local en cours non commite sur `preview` (18/06, apres `65a3cfd`) : optimisation credits Stream Estate + coherence UX zones. Migration `011_stream_estate_resync_window.sql` **appliquee sur Supabase** (`byrsmbgfkvgxdtdyhrro`, cle `stream_estate_resync_window_minutes=360`). Migrations `009`/`010` appliquees hors tracker Supabase (le tracker ne liste que `006`/`008`) : prudence avant tout `supabase db push`. `npx tsc --noEmit` + `npm run build` OK. En attente de validation d'Alexandre pour un commit unique.
 
 ## Documents utiles
 
