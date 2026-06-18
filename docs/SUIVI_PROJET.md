@@ -91,6 +91,15 @@ Lot 4 -> Lot 5 (Monitoring)
 
 ## Journal de Bord
 
+### 18/06/2026 - 09:41 CEST
+- Base/branche : `preview`.
+- Type : visualisation locale / pre-push.
+- Statut : en cours de verification utilisateur.
+- Resume : lancement du serveur local Next sur le port `3002` avec `npm run dev -- --port 3002`. Verification HTTP : `/app/dashboard` repond `200 OK`, `/admin/market` redirige vers `/app/dashboard`, `/admin/market/properties` redirige vers `/app/properties`. Ouverture de `http://localhost:3002/app/dashboard` dans le navigateur macOS. Le navigateur integre Codex n'etait pas disponible dans cette session ; la commande VS Code `code` n'est pas installee dans le shell.
+- Fichiers : `docs/SUIVI_PROJET.md`.
+- Audit qualite : `curl -I` sur `/app/dashboard`, `/admin/market`, `/dashboard`, `/admin/market/properties`.
+- Suite : Alexandre verifie visuellement en local. Ne pas pousser vers `origin/preview` avant validation explicite.
+
 ### 18/06/2026 - 09:24 CEST
 - Base/branche : `preview`.
 - Type : organisation / consolidation Git.
