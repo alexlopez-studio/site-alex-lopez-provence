@@ -91,6 +91,26 @@ Lot 4 -> Lot 5 (Monitoring)
 
 ## Journal de Bord
 
+### 19/06/2026 - 00:12 CEST
+- Base/branche : `preview`.
+- Type : commit local (UX bouton sync + maj suivi projet).
+- Statut : **fait** (commit local, non pousse).
+- Resume : commit de l'edit UX restant (message explicite de la raison de blocage sous "Confirmer la sync" + infobulle, dans `zones/page.tsx`) et des entrees de journal `23:19`/`00:07`/`00:12`. Le working tree est de nouveau propre apres ce commit. Rappel : les correctifs base (migration 010 appliquee, run debloque) sont cote Supabase, pas dans git.
+- Fichiers : `src/app/admin/market/zones/page.tsx`, `docs/SUIVI_PROJET.md`.
+- Audit qualite : `npx tsc --noEmit` OK (deja verifie sur l'edit UX) ; pas de push (en attente de validation explicite d'Alexandre).
+- Point d'attention : aucun push effectue ; `preview` local en avance sur `origin/preview` de 2 commits (`06ce78a` puis celui-ci).
+- Suite : selon Alexandre, creer les zones commune-par-commune et/ou pousser `preview`.
+
+### 19/06/2026 - 00:07 CEST
+- Base/branche : `preview`.
+- Type : correction base live (migration manquante) + diagnostic affichage zones + UX bouton sync + cadrage filtrage commune.
+- Statut : **fait** (correctifs base appliques ; edit UX local non commite).
+- Resume : diagnostic du symptome "plus rien ne s'affiche dans Zones / sync coincee". Cause racine trouvee : la **migration 010 n'avait jamais ete appliquee en base live** (colonnes `external_item_count` sur `sync_runs` et `item_count` sur `stream_estate_usage_events` absentes). A la fin d'une sync, l'update de `sync_runs` echouait silencieusement -> run bloque en statut `running`. Correctif : **migration 010 appliquee** sur Supabase (`byrsmbgfkvgxdtdyhrro`) + run bloque repare (`running` -> `success`). Verifie que les donnees etaient intactes : 1 zone (CP 83670) + 30 biens, APIs `zones`/`sync-stats`/`properties` repondent 200 avec les 30 biens. Cote UX : bouton "Confirmer la sync" reste grise tant que budget/preview ne le permettent pas -> ajout d'un message explicite de la raison (texte + infobulle) pour ne plus laisser un bouton muet (le blocage actuel vient d'un solde manuel a 0 EUR). Cadrage filtrage commune : le CP 83670 couvre 6 communes (Tavernes 83135, Varages 83145, Barjols 83012, Fox-Amphoux 83060, Montmeyan 83084, Chateauvert 83039) ; Pontevès = INSEE 83095, 0 bien actuellement. Pour filtrer une commune exclusivement -> creer la zone via "Ajouter une commune" (porte l'INSEE -> sync `includedInseeCodes[]`), la "Zone 83670" actuelle est en mode CP (sans INSEE) et ramene toutes les communes ; cote affichage, le menu "Ville" de la page Biens filtre deja par commune.
+- Fichiers : `src/app/admin/market/zones/page.tsx` (message raison bouton, local non commite). Base : migration `010_stream_estate_items_budget.sql` appliquee, ligne `sync_runs` debloquee.
+- Audit qualite : `npx tsc --noEmit` OK ; verifs HTTP sur `http://localhost:3000` : `/api/market/zones`=1 zone, `/api/market/sync-stats`=zone 83670 / 30 biens, `/api/market/properties?zipcode=83670`=total 30 ; schema `sync_runs`/`stream_estate_usage_events` confirme complet apres 010.
+- Point d'attention : **correction de l'entree 23:19** -> la migration 010 n'etait PAS appliquee (009 oui). Etat live desormais : 006, 008, 009, 010, 011 appliquees. Le tracker Supabase reste partiel (009/010 ajoutees hors tracker au depart) : prudence avant tout `supabase db push`. L'edit UX du bouton est en working tree non commite (le reste du chantier est dans `06ce78a`).
+- Suite : selon choix d'Alexandre, creer une/des zone(s) commune-par-commune (ex. Pontevès 83095) et decider du sort de la "Zone 83670" CP ; remettre un petit solde manuel pour reautoriser une sync ; commiter l'edit UX du bouton.
+
 ### 18/06/2026 - 23:19 CEST
 - Base/branche : `preview`.
 - Type : optimisation crédits Stream Estate (backend) + cohérence UX zones surveillées + migration Supabase.

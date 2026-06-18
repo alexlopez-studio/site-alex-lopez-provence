@@ -564,6 +564,17 @@ export default function ZonesPage() {
     budget && (!budget.sync_enabled || budget.estimated_balance_eur <= budget.min_balance_eur),
   )
 
+  // Explique pourquoi « Confirmer la sync » est (in)disponible, pour ne pas laisser un bouton grisé muet.
+  const confirmReason = (() => {
+    if (!syncDraft.zipcode) return 'Sélectionne un code postal pour prévisualiser.'
+    if (!syncPreview) return 'Clique « Prévisualiser » pour estimer le coût, puis confirme.'
+    if (syncPreview.can_confirm) return 'Prêt : la confirmation relance une vérification serveur avant l’import.'
+    if (syncPreview.blocked_reason === 'stream_estate_sync_disabled') return 'Sync désactivée — active-la dans Réglages › Budget Stream Estate.'
+    if (syncPreview.blocked_reason === 'stream_estate_max_items_exceeded') return `Plafond demandé (${syncPreview.requested_max_items}) supérieur au plafond autorisé (${syncPreview.budget_max_items_per_sync}).`
+    if (syncPreview.blocked_reason === 'stream_estate_budget_insufficient') return 'Budget insuffisant — augmente le « Solde manuel » dans Réglages › Budget Stream Estate.'
+    return 'Confirmation indisponible pour ce réglage.'
+  })()
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -767,8 +778,8 @@ export default function ZonesPage() {
         </div>
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-[11px] text-muted-foreground">
-            La confirmation relance une vérification côté serveur avant de lancer l&apos;import.
+          <p className={`text-[11px] ${syncPreview && !syncPreview.can_confirm ? 'text-amber-700' : 'text-muted-foreground'}`}>
+            {confirmReason}
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -784,6 +795,7 @@ export default function ZonesPage() {
               size="sm"
               onClick={() => confirmSync()}
               disabled={confirmingSync || previewLoading || !syncPreview?.can_confirm}
+              title={confirmReason}
             >
               <RefreshCw className={`mr-1 h-4 w-4 ${confirmingSync ? 'animate-spin' : ''}`} />
               Confirmer la sync
