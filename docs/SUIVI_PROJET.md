@@ -91,6 +91,15 @@ Lot 4 -> Lot 5 (Monitoring)
 
 ## Journal de Bord
 
+### 18/06/2026 - 09:24 CEST
+- Base/branche : `preview`.
+- Type : organisation / consolidation Git.
+- Statut : fait localement, en attente de validation push.
+- Resume : consolidation du flux demande par Alexandre. `preview` locale a ete fast-forward sur `origin/preview`, puis la branche locale `feat/estimation-zod-validation` a ete mergee dans `preview` avec resolution du conflit sur `src/app/api/estimation/route.ts`. La validation Zod a ete conservee et etendue aux champs actuels de l'estimation (`sous_type`, surfaces terrain/cadastre, annee, DPE verifie, numero DPE). Les changements en cours de `design/shadcn-pro-system` ont ete recuperes via stash sur `preview`. Les consignes projet ont ete alignees sur le flux simplifie : travail local sur `preview`, `origin/preview` source de verite, plus de sous-branches locales sauf decision explicite. Les branches locales integrees `design/shadcn-pro-system`, `feat/estimation-zod-validation` et `main` ont ete supprimees ; il ne reste que `preview` en local.
+- Fichiers : `CLAUDE.md`, `AGENTS.md`, `docs/WORKFLOW_BRANCHES.md`, `docs/SUIVI_PROJET.md`, `src/app/api/estimation/route.ts`, `src/lib/schemas/estimation.ts`.
+- Audit qualite : `npm run lint` passe avec warnings existants ; `npm run build` passe avec warnings existants (`next lint` deprecie, Supabase Edge Runtime, imports inutilises). Aucun push effectue.
+- Suite : pousser `preview` vers `origin/preview` uniquement apres validation explicite d'Alexandre. Point de reprise : `preview` locale propre, 3 commits d'avance sur `origin/preview`.
+
 ### 18/06/2026 - 00:51 CEST
 - Base/branche : `preview`.
 - Type : optimisation / consommation API Stream Estate.

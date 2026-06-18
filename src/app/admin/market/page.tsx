@@ -1,20 +1,39 @@
+import { PlusIcon, RefreshCwIcon } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
 import { SectionCards } from '@/components/section-cards'
 import { ChartAreaInteractive } from '@/components/chart-area-interactive'
 import { DataTable } from '@/components/data-table'
+import { PageHeader, PageShell, PageSection } from '@/components/pro'
 import data from './data.json'
 
 export default function MarketPage() {
   return (
-    <div className="flex flex-1 flex-col">
-      <div className="@container/main flex flex-1 flex-col gap-2">
-        <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+    <div className="@container/main flex flex-1 flex-col">
+      <PageShell>
+        <PageHeader
+          eyebrow="Mandat OS"
+          title="Centre de controle"
+          description="Vue d'ensemble des signaux, opportunites et donnees utiles pour piloter la prospection."
+          actions={
+            <>
+              <Button variant="outline" size="sm">
+                <RefreshCwIcon />
+                Synchroniser
+              </Button>
+              <Button variant="primary" size="sm">
+                <PlusIcon />
+                Nouvelle zone
+              </Button>
+            </>
+          }
+        />
+        <PageSection>
           <SectionCards />
-          <div className="px-4 lg:px-6">
-            <ChartAreaInteractive />
-          </div>
+          <ChartAreaInteractive />
           <DataTable data={data} />
-        </div>
-      </div>
+        </PageSection>
+      </PageShell>
     </div>
   )
 }
