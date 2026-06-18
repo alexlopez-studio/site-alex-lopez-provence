@@ -6,11 +6,17 @@ export const metadata: Metadata = {
   title: 'Marché — Mandat OS',
 }
 
-export default function PropertiesPage() {
+export default async function PropertiesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ zipcode?: string }>
+}) {
+  const { zipcode } = await searchParams
+
   return (
     <div className="flex flex-col gap-6">
-      <PropertiesMapWrapper />
-      <PropertiesTable />
+      <PropertiesMapWrapper initialZipcode={zipcode} />
+      <PropertiesTable initialZipcode={zipcode} />
     </div>
   )
 }

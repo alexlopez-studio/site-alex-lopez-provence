@@ -1,19 +1,88 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { PropertiesMap } from './PropertiesMap'
 
-// Copie légère des données mock avec uniquement ce dont la carte a besoin
-const MAP_PROPERTIES = [
-    { id: '1', title: 'Maison de village 4 pièces', city: 'Cotignac', price: 295000, surface: 110, rooms: 4, propertyType: 'Maison', lat: 43.5283, lng: 6.1525, status: 'actif' },
-    { id: '2', title: 'Villa contemporaine 5 pièces', city: 'Brignoles', price: 459000, surface: 160, rooms: 5, propertyType: 'Villa', lat: 43.4067, lng: 6.0617, status: 'prix_en_baisse' },
-    { id: '3', title: 'Appartement T3 centre historique', city: 'Saint-Maximin', price: 189000, surface: 72, rooms: 3, propertyType: 'Appartement', lat: 43.4533, lng: 5.8667, status: 'nouveau' },
-    { id: '4', title: 'Bastide provençale 6 pièces', city: 'Barjols', price: 625000, surface: 200, rooms: 6, propertyType: 'Bastide', lat: 43.5583, lng: 6.0075, status: 'stagne' },
-    { id: '5', title: 'Terrain constructible 800m²', city: 'Carcès', price: 85000, surface: 800, rooms: 0, propertyType: 'Terrain', lat: 43.4750, lng: 6.1833, status: 'opportunite' },
-    { id: '6', title: 'Villa 4 pièces avec piscine', city: 'Carcès', price: 385000, surface: 130, rooms: 4, propertyType: 'Villa', lat: 43.4800, lng: 6.1900, status: 'actif' },
-    { id: '7', title: 'Maison de maître 7 pièces', city: 'Cotignac', price: 720000, surface: 250, rooms: 7, propertyType: 'Maison', lat: 43.5350, lng: 6.1600, status: 'prix_en_baisse' },
-    { id: '8', title: 'Appartement T2 centre ville', city: 'Brignoles', price: 135000, surface: 52, rooms: 2, propertyType: 'Appartement', lat: 43.4100, lng: 6.0650, status: 'nouveau' },
-]
+type PropertyApiRow = {
+  id: string
+  title: string | null
+  city: string | null
+  price: number | null
+  surface: number | null
+  rooms: number | null
+  property_type: string | null
+  lat: number | null
+  lon: number | null
+  status: string | null
+}
 
-export function PropertiesMapWrapper() {
-    return <PropertiesMap properties={MAP_PROPERTIES} />
+type MapProperty = {
+  id: string
+  title: string
+  city: string
+  price: number
+  surface: number
+  rooms: number
+  propertyType: string
+  lat: number
+  lng: number
+  status: string
+}
+
+function normalizeStatus(status: string | null): string {
+  if (!status) return 'actif'
+  if (status === 'active') return 'actif'
+  if (status === 'price_drop') return 'prix_en_baisse'
+  if (status === 'new') return 'nouveau'
+  if (status === 'opportunity') return 'opportunite'
+  if (status === 'stagnant') return 'stagne'
+  return status
+}
+
+export function PropertiesMapWrapper({ initialZipcode }: { initialZipcode?: string }) {
+  const [properties, setProperties] = useState<MapProperty[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadMapProperties() {
+      const params = new URLSearchParams({
+        limit: '100',
+        sort: 'last_seen_at.desc',
+      })
+      if (initialZipcode) params.set('zipcode', initialZipcode)
+
+      const res = await fetch(`/api/market/properties?${params}`)
+      const data = await res.json()
+      const rows = (data.properties ?? []) as PropertyApiRow[]
+
+      const mapped = rows
+        .filter((row) => typeof row.lat === 'number' && typeof row.lon === 'number')
+        .map((row) => ({
+          id: row.id,
+          title: row.title ?? 'Bien sans titre',
+          city: row.city ?? '—',
+          price: row.price ?? 0,
+          surface: row.surface ?? 0,
+          rooms: row.rooms ?? 0,
+          propertyType: row.property_type ?? 'Bien',
+          lat: row.lat as number,
+          lng: row.lon as number,
+          status: normalizeStatus(row.status),
+        }))
+
+      if (!cancelled) setProperties(mapped)
+    }
+
+    loadMapProperties().catch((err) => {
+      console.error('Erreur chargement carte biens', err)
+      if (!cancelled) setProperties([])
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [initialZipcode])
+
+  return <PropertiesMap properties={properties} />
 }

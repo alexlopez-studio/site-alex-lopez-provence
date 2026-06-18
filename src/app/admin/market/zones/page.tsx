@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { MapPin, RefreshCw, Trash2, Power, PowerOff, CheckCircle2, AlertTriangle, XCircle, Clock, Search, ChevronDown } from 'lucide-react'
+import Link from 'next/link'
+import { MapPin, RefreshCw, Trash2, Power, PowerOff, CheckCircle2, AlertTriangle, XCircle, Clock, Search, Building2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
@@ -299,7 +300,7 @@ export default function ZonesPage() {
       if (!res.ok) {
         toast.error(`Erreur sync ${zone.name} : ${data.error ?? res.statusText}`)
       } else {
-        toast.success(`${zone.name} synchronisée — ${data.created ?? 0} créé(s), ${data.updated ?? 0} mis à jour`)
+        toast.success(`${zone.name} synchronisée — ${data.fetched ?? 0} récupéré(s), ${data.created ?? 0} créé(s), ${data.updated ?? 0} mis à jour`)
       }
       await load()
     } catch (err) {
@@ -397,6 +398,13 @@ export default function ZonesPage() {
                 </div>
 
                 <div className="flex items-center gap-1 shrink-0">
+                  <Link
+                    href={`/app/properties?zipcode=${encodeURIComponent(zone.zipcode)}`}
+                    className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                    title={`Voir les biens du CP ${zone.zipcode}`}
+                  >
+                    <Building2 className="h-3.5 w-3.5" />
+                  </Link>
                   <button
                     onClick={() => syncZone(zone)}
                     disabled={syncing[zone.id]}

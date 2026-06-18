@@ -91,6 +91,15 @@ Lot 4 -> Lot 5 (Monitoring)
 
 ## Journal de Bord
 
+### 18/06/2026 - 09:51 CEST
+- Base/branche : `preview`.
+- Type : correction UX / zones surveillees.
+- Statut : fait localement, en attente de validation visuelle.
+- Resume : correction du manque constate sur le parcours zones surveillees. Chaque zone affiche maintenant une action directe vers les biens du code postal (`/app/properties?zipcode=...`). La page Biens lit ce parametre, filtre l'API `/api/market/properties` avec `zipcode`, affiche un bandeau de contexte et permet de revenir a tous les biens. La carte des biens n'utilise plus les 8 donnees mockees : elle charge les vrais biens depuis l'API et respecte le meme filtre CP. Le toast de synchronisation de zone affiche aussi le nombre de biens recuperes.
+- Fichiers : `src/app/admin/market/zones/page.tsx`, `src/app/admin/market/properties/page.tsx`, `src/app/admin/market/properties/PropertiesTable.tsx`, `src/app/admin/market/properties/PropertiesMapWrapper.tsx`, `docs/SUIVI_PROJET.md`.
+- Audit qualite : `npm run lint` passe avec warnings existants hors fichiers touches ; `npm run build` passe. Verification HTTP : `/app/zones` et `/app/properties?zipcode=83670` repondent `200 OK`, API `/api/market/properties?zipcode=83670&limit=100` retourne des biens filtres. Le serveur dev a ete redemarre sur `3002` apres le build pour remettre le cache `.next` en etat.
+- Suite : verifier visuellement dans le navigateur local le clic depuis `/app/zones` vers les biens filtres, puis pousser `preview` vers `origin/preview` uniquement apres validation explicite.
+
 ### 18/06/2026 - 09:41 CEST
 - Base/branche : `preview`.
 - Type : visualisation locale / pre-push.

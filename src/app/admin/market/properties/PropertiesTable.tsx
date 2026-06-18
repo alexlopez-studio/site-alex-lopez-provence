@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import {
   Search,
@@ -89,7 +89,7 @@ function daysOnline(firstSeenAt: string | null): number | null {
   return Math.max(0, Math.floor(diff / 86_400_000))
 }
 
-export function PropertiesTable() {
+export function PropertiesTable({ initialZipcode }: { initialZipcode?: string }) {
   const [properties, setProperties] = useState<PropertyRow[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -97,16 +97,18 @@ export function PropertiesTable() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [cityFilter, setCityFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('all')
+  const [zipcodeFilter, setZipcodeFilter] = useState(initialZipcode ?? '')
   const [sortBy, setSortBy] = useState<'price' | 'last_seen_at' | 'surface'>('last_seen_at')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true)
     try {
       const params = new URLSearchParams({
         limit: '100',
         sort: `${sortBy}.${sortOrder}`,
       })
+      if (zipcodeFilter) params.set('zipcode', zipcodeFilter)
       const res = await fetch(`/api/market/properties?${params}`)
       const data = await res.json()
       setProperties(data.properties ?? [])
@@ -114,9 +116,14 @@ export function PropertiesTable() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [sortBy, sortOrder, zipcodeFilter])
 
-  useEffect(() => { load() }, [sortBy, sortOrder])
+  useEffect(() => { load() }, [load])
+
+  function clearZipcodeFilter() {
+    setZipcodeFilter('')
+    window.history.replaceState(null, '', '/app/properties')
+  }
 
   const cities = [...new Set(properties.map(p => p.city).filter(Boolean))] as string[]
   const types  = [...new Set(properties.map(p => p.property_type).filter(Boolean))] as string[]
@@ -138,7 +145,7 @@ export function PropertiesTable() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Marché immobilier</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {loading ? '…' : total} biens synchronisés
+            {loading ? '…' : total} biens synchronisés{zipcodeFilter ? ` sur le CP ${zipcodeFilter}` : ''}
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={load} disabled={loading}>
@@ -146,6 +153,18 @@ export function PropertiesTable() {
           Actualiser
         </Button>
       </div>
+
+      {zipcodeFilter && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-brand-light/60 px-4 py-3">
+          <div>
+            <p className="text-sm font-semibold text-foreground">Biens filtrés par zone surveillée</p>
+            <p className="text-xs text-muted-foreground">Code postal {zipcodeFilter}</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={clearZipcodeFilter}>
+            Voir tous les biens
+          </Button>
+        </div>
+      )}
 
       <Card>
         <CardContent className="p-4">
