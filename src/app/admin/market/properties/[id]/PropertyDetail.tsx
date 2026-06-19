@@ -2,21 +2,16 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
-  ArrowLeft,
-  Home,
   MapPin,
-  Euro,
-  Maximize2,
   Bed,
-  Bath,
+  Home,
   Ruler,
   Zap,
-  Calendar,
-  Clock,
   TrendingDown,
   AlertTriangle,
+  CheckCircle2,
   Star,
   FileText,
   Plus,
@@ -25,47 +20,79 @@ import {
   ExternalLink,
   Tag,
   Users,
+  Loader2,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
-const MOCK_PROPERTY = {
-  id: '2',
-  title: 'Villa contemporaine 5 pièces',
-  city: 'Brignoles',
-  zipcode: '83170',
-  address: 'Chemin des Oliviers, 83170 Brignoles',
-  price: 459000,
-  originalPrice: 505000,
-  surface: 160,
-  landSurface: 800,
-  rooms: 5,
-  bedrooms: 4,
-  bathrooms: 2,
-  propertyType: 'Villa',
-  dpe: 'B',
-  ges: 'A',
-  description: 'Magnifique villa contemporaine construite en 2020, située dans un quartier calme et recherché de Brignoles. Profitez d\'une vue dégagée sur la campagne environnante depuis la grande terrasse. Prestations haut de gamme : cuisine équipée, climatisation réversible, piscine chauffée, garage double.',
-  status: 'prix_en_baisse' as const,
-  firstSeenAt: '2026-04-15',
-  lastSeenAt: '2026-06-01',
-  publishedAt: '2026-04-15',
-  daysOnline: 45,
-  pricePerM2: 2869,
-  url: 'https://example.com/bien/2',
-  tags: ['Piscine', 'Garage', 'Terrasse', 'Climatisation', 'Vue dégagée'],
-  priceHistory: [
-    { date: '2026-05-20', price: 459000, change: -46000, changePercent: -9.1 },
-    { date: '2026-04-15', price: 505000, change: 0, changePercent: 0 },
-  ],
-  opportunities: [
-    { id: 'o1', title: 'Baisse significative — potentiel mandat', stage: 'À contacter', priority: 'high' },
-  ],
+// ── Types (réponse /api/market/properties/[id]) ─────────────
+
+interface PropertyRow {
+  id: string
+  title: string | null
+  description: string | null
+  city: string | null
+  zipcode: string | null
+  property_type: string | null
+  price: number | null
+  surface: number | null
+  land_surface: number | null
+  rooms: number | null
+  bedrooms: number | null
+  dpe: string | null
+  ges: string | null
+  url: string | null
+  status: string | null
+  first_seen_at: string | null
+  last_seen_at: string | null
+  published_at: string | null
+  price_per_m2: number | null
 }
+
+interface PriceHistoryRow {
+  id: string
+  old_price: number | null
+  new_price: number | null
+  variation_amount: number | null
+  variation_percent: number | null
+  detected_at: string | null
+}
+
+interface TagRow { id: string; tag: string; source: string | null }
+interface NoteRow { id: string; note: string; created_at: string }
+interface LinkedOpportunity { id: string; title: string; stage: string | null; priority: string | null }
+interface Signal {
+  summary: string
+  interesting: string[]
+  concerns: string[]
+  recommendedAction: string
+}
+
+interface PropertyDetailData {
+  property: PropertyRow
+  price_history: PriceHistoryRow[]
+  tags: TagRow[]
+  notes: NoteRow[]
+  opportunity: LinkedOpportunity | null
+  signal: Signal | null
+}
+
+interface BuyerMatch {
+  buyer_lead_id: string
+  score: number
+  matched_commune: boolean
+  matched_type: boolean
+  matched_budget: boolean
+  matched_surface: boolean
+  matched_pieces: boolean
+}
+
+// ── Helpers ─────────────────────────────────────────────────
 
 const DPE_COLORS: Record<string, string> = {
   A: 'bg-green-100 text-green-700 border-green-200',
@@ -77,54 +104,175 @@ const DPE_COLORS: Record<string, string> = {
   G: 'bg-red-300 text-red-900 border-red-400',
 }
 
-function formatPrice(price: number) {
+const STATUS_LABELS: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+  active: { label: 'Actif', variant: 'secondary' },
+  actif: { label: 'Actif', variant: 'secondary' },
+  price_drop: { label: 'Prix en baisse', variant: 'destructive' },
+  prix_en_baisse: { label: 'Prix en baisse', variant: 'destructive' },
+  removed: { label: 'Retiré', variant: 'outline' },
+  expired: { label: 'Expiré', variant: 'outline' },
+  relisted: { label: 'Remise en vente', variant: 'default' },
+}
+
+function formatPrice(price: number | null | undefined): string {
+  if (price == null) return '—'
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(price)
 }
 
-function formatDate(dateStr: string) {
+function formatDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return '—'
   return new Date(dateStr).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-interface BuyerMatch {
-  buyer_lead_id: string
-  score: number
-  score_details: {
-    commune: number
-    type: number
-    budget: number
-    surface: number
-    pieces: number
-  }
-  matched_commune: boolean
-  matched_type: boolean
-  matched_budget: boolean
-  matched_surface: boolean
-  matched_pieces: boolean
+function daysSince(dateStr: string | null | undefined): number | null {
+  if (!dateStr) return null
+  return Math.max(0, Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000))
 }
+
+// Prix d'origine déduit de l'historique : plus haut prix observé.
+function originalPriceFrom(history: PriceHistoryRow[]): number | null {
+  let max: number | null = null
+  for (const h of history) {
+    for (const v of [h.old_price, h.new_price]) {
+      if (v != null && (max == null || v > max)) max = v
+    }
+  }
+  return max
+}
+
+// ── Component ───────────────────────────────────────────────
 
 export function PropertyDetail() {
   const params = useParams()
   const router = useRouter()
-  const property = MOCK_PROPERTY
   const propertyId = params.id as string
 
-  // Charger les acheteurs potentiels pour ce bien
+  const [data, setData] = useState<PropertyDetailData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
+
   const [potentialBuyers, setPotentialBuyers] = useState<BuyerMatch[]>([])
   const [loadingMatches, setLoadingMatches] = useState(false)
+
+  const [creatingOpp, setCreatingOpp] = useState(false)
+  const [noteDraft, setNoteDraft] = useState('')
+  const [savingNote, setSavingNote] = useState(false)
+
+  const load = useCallback(async () => {
+    if (!propertyId) return
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/market/properties/${propertyId}`)
+      if (res.status === 404) { setNotFound(true); return }
+      if (!res.ok) throw new Error('Erreur API')
+      const json = await res.json()
+      setData(json)
+    } catch (err) {
+      console.error('Erreur chargement bien', err)
+      toast.error('Impossible de charger ce bien')
+    } finally {
+      setLoading(false)
+    }
+  }, [propertyId])
+
+  useEffect(() => { load() }, [load])
 
   useEffect(() => {
     if (!propertyId) return
     setLoadingMatches(true)
     fetch(`/api/market/matching?property_id=${propertyId}&limit=10&min_score=40`)
-      .then((res) => res.ok ? res.json() : { matches: [] })
-      .then((data) => setPotentialBuyers(data.matches ?? []))
+      .then((res) => (res.ok ? res.json() : { matches: [] }))
+      .then((d) => setPotentialBuyers(d.matches ?? []))
       .catch(() => setPotentialBuyers([]))
       .finally(() => setLoadingMatches(false))
   }, [propertyId])
 
+  async function createOpportunity() {
+    if (!data) return
+    const p = data.property
+    const isPriceDrop = p.status === 'price_drop' || p.status === 'prix_en_baisse'
+    const title = p.city ? `${p.title ?? 'Bien'} — ${p.city}` : (p.title ?? 'Bien')
+    setCreatingOpp(true)
+    try {
+      const res = await fetch('/api/market/opportunities', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          market_property_id: p.id,
+          title,
+          stage: 'À qualifier',
+          priority: isPriceDrop ? 'high' : 'medium',
+          signal_type: isPriceDrop ? 'price_drop' : 'new_listing',
+          created_from: 'manual',
+        }),
+      })
+      if (!res.ok) throw new Error('Erreur API')
+      toast.success('Opportunité créée', {
+        description: title,
+        action: { label: 'Voir le pipeline', onClick: () => router.push('/app/opportunities') },
+      })
+      await load()
+    } catch (err) {
+      console.error('Erreur création opportunité:', err)
+      toast.error('Impossible de créer l’opportunité')
+    } finally {
+      setCreatingOpp(false)
+    }
+  }
+
+  async function addNote() {
+    const note = noteDraft.trim()
+    if (!note) return
+    setSavingNote(true)
+    try {
+      const res = await fetch(`/api/market/properties/${propertyId}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ note }),
+      })
+      if (!res.ok) throw new Error('Erreur API')
+      setNoteDraft('')
+      toast.success('Note ajoutée')
+      await load()
+    } catch (err) {
+      console.error('Erreur ajout note:', err)
+      toast.error('Impossible d’ajouter la note')
+    } finally {
+      setSavingNote(false)
+    }
+  }
+
+  // ── États de page ──────────────────────────────────────────
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-24 text-muted-foreground">
+        <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Chargement du bien…
+      </div>
+    )
+  }
+
+  if (notFound || !data) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 py-24 text-center">
+        <Home className="h-10 w-10 text-muted-foreground/30" />
+        <p className="text-sm font-medium">Bien introuvable</p>
+        <Link href="/app/properties" className="text-sm text-brand hover:underline">Retour au marché</Link>
+      </div>
+    )
+  }
+
+  const { property, price_history, tags, notes, opportunity, signal } = data
+  const originalPrice = originalPriceFrom(price_history)
+  const dropPercent = originalPrice && property.price != null && originalPrice > property.price
+    ? ((originalPrice - property.price) / originalPrice) * 100
+    : null
+  const daysOnline = daysSince(property.first_seen_at)
+  const statusBadge = STATUS_LABELS[property.status ?? ''] ?? { label: property.status ?? 'Statut inconnu', variant: 'outline' as const }
+  const address = [property.zipcode, property.city].filter(Boolean).join(' ') || '—'
+
   return (
     <div className="space-y-6">
-      {/* Back button */}
       <Link
         href="/app/properties"
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -136,37 +284,37 @@ export function PropertyDetail() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{property.title}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{property.title ?? 'Bien immobilier'}</h1>
           <div className="flex items-center gap-2 mt-1">
             <MapPin className="h-4 w-4 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">{property.address}</p>
+            <p className="text-sm text-muted-foreground">{address}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            <ExternalLink className="h-4 w-4 mr-1" />
-            Voir l'annonce
-          </Button>
-          <Button variant="outline" size="sm">
-            <Star className="h-4 w-4 mr-1" />
-            Favori
-          </Button>
+          {property.url && (
+            <Button variant="outline" size="sm" asChild>
+              <a href={property.url} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4 mr-1" />
+                Voir l&apos;annonce
+              </a>
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Key info cards */}
+      {/* KPI cards */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Prix actuel</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">{formatPrice(property.price)}</div>
-            {property.originalPrice && (
+            <div className={cn('text-2xl font-bold', dropPercent ? 'text-destructive' : '')}>{formatPrice(property.price)}</div>
+            {dropPercent != null && originalPrice != null && (
               <div className="flex items-center gap-1 mt-1">
                 <TrendingDown className="h-3 w-3 text-destructive" />
                 <span className="text-xs text-destructive">
-                  -{((property.originalPrice - property.price) / property.originalPrice * 100).toFixed(1)}% (était {formatPrice(property.originalPrice)})
+                  -{dropPercent.toFixed(1)}% (était {formatPrice(originalPrice)})
                 </span>
               </div>
             )}
@@ -178,9 +326,9 @@ export function PropertyDetail() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Surface</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{property.surface} m²</div>
+            <div className="text-2xl font-bold">{property.surface != null ? `${property.surface} m²` : '—'}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              Terrain : {property.landSurface} m²
+              {property.land_surface != null ? `Terrain : ${property.land_surface} m²` : 'Terrain non renseigné'}
             </p>
           </CardContent>
         </Card>
@@ -190,10 +338,8 @@ export function PropertyDetail() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Prix / m²</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatPrice(property.pricePerM2)}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              vs {formatPrice(2450)} moyenne zone
-            </p>
+            <div className="text-2xl font-bold">{formatPrice(property.price_per_m2)}</div>
+            <p className="text-xs text-muted-foreground mt-1">{property.property_type ?? '—'}</p>
           </CardContent>
         </Card>
 
@@ -203,15 +349,15 @@ export function PropertyDetail() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold flex items-center gap-2">
-              {property.daysOnline} jours
-              {property.daysOnline > 30 && (
+              {daysOnline != null ? `${daysOnline} j` : '—'}
+              {daysOnline != null && daysOnline > 30 && (
                 <Badge variant="outline" className="text-amber-600 bg-amber-50 border-amber-200 text-xs">
                   Stagne
                 </Badge>
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Publié le {formatDate(property.publishedAt)}
+              Publié le {formatDate(property.published_at ?? property.first_seen_at)}
             </p>
           </CardContent>
         </Card>
@@ -232,21 +378,21 @@ export function PropertyDetail() {
                   <div className="rounded-full bg-muted/30 w-12 h-12 flex items-center justify-center mx-auto mb-2">
                     <Bed className="h-5 w-5 text-muted-foreground" />
                   </div>
-                  <p className="text-lg font-bold">{property.bedrooms}</p>
+                  <p className="text-lg font-bold">{property.bedrooms ?? '—'}</p>
                   <p className="text-xs text-muted-foreground">Chambres</p>
                 </div>
                 <div className="text-center">
                   <div className="rounded-full bg-muted/30 w-12 h-12 flex items-center justify-center mx-auto mb-2">
-                    <Bath className="h-5 w-5 text-muted-foreground" />
+                    <Home className="h-5 w-5 text-muted-foreground" />
                   </div>
-                  <p className="text-lg font-bold">{property.bathrooms}</p>
-                  <p className="text-xs text-muted-foreground">Salles de bain</p>
+                  <p className="text-lg font-bold">{property.rooms ?? '—'}</p>
+                  <p className="text-xs text-muted-foreground">Pièces</p>
                 </div>
                 <div className="text-center">
                   <div className="rounded-full bg-muted/30 w-12 h-12 flex items-center justify-center mx-auto mb-2">
                     <Ruler className="h-5 w-5 text-muted-foreground" />
                   </div>
-                  <p className="text-lg font-bold">{property.surface} m²</p>
+                  <p className="text-lg font-bold">{property.surface != null ? `${property.surface} m²` : '—'}</p>
                   <p className="text-xs text-muted-foreground">Surface habitable</p>
                 </div>
                 <div className="text-center">
@@ -261,7 +407,7 @@ export function PropertyDetail() {
                       <p className="text-xs text-muted-foreground mt-1">DPE</p>
                     </>
                   ) : (
-                    <p className="text-xs text-muted-foreground mt-3">Non disponible</p>
+                    <p className="text-xs text-muted-foreground mt-3">DPE n/d</p>
                   )}
                 </div>
               </div>
@@ -269,15 +415,18 @@ export function PropertyDetail() {
               <Separator className="my-4" />
 
               <div className="flex flex-wrap gap-2">
-                <Badge variant="outline" className="text-xs">
-                  {property.propertyType}
-                </Badge>
-                {property.tags.map((tag) => (
-                  <Badge key={tag} variant="secondary" className="text-xs">
+                {property.property_type && (
+                  <Badge variant="outline" className="text-xs">{property.property_type}</Badge>
+                )}
+                {tags.map((t) => (
+                  <Badge key={t.id} variant="secondary" className="text-xs">
                     <Tag className="h-3 w-3 mr-1" />
-                    {tag}
+                    {t.tag}
                   </Badge>
                 ))}
+                {tags.length === 0 && !property.property_type && (
+                  <span className="text-xs text-muted-foreground">Aucun tag</span>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -288,8 +437,8 @@ export function PropertyDetail() {
               <CardTitle>Description</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {property.description}
+              <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                {property.description?.trim() || 'Aucune description fournie par l’annonce.'}
               </p>
             </CardContent>
           </Card>
@@ -298,36 +447,43 @@ export function PropertyDetail() {
           <Card>
             <CardHeader>
               <CardTitle>Historique des prix</CardTitle>
-              <CardDescription>Évolution du prix de ce bien</CardDescription>
+              <CardDescription>Variations détectées sur ce bien</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {property.priceHistory.map((entry, i) => (
-                  <div key={i} className="flex items-center justify-between rounded-lg border p-3">
-                    <div>
-                      <p className="text-sm font-medium">{formatDate(entry.date)}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {i === property.priceHistory.length - 1 ? 'Mise en vente initiale' : 'Baisse de prix'}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-bold">{formatPrice(entry.price)}</p>
-                      {entry.change !== 0 && (
-                        <p className="text-xs text-destructive">
-                          {formatPrice(Math.abs(entry.change))} ({entry.changePercent}%)
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              {price_history.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Aucune variation de prix détectée depuis la première synchronisation.</p>
+              ) : (
+                <div className="space-y-3">
+                  {price_history.map((entry) => {
+                    const variation = entry.variation_percent ?? 0
+                    return (
+                      <div key={entry.id} className="flex items-center justify-between rounded-lg border p-3">
+                        <div>
+                          <p className="text-sm font-medium">{formatDate(entry.detected_at)}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatPrice(entry.old_price)} → {formatPrice(entry.new_price)}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className={cn('text-sm font-bold', variation < 0 ? 'text-destructive' : variation > 0 ? 'text-emerald-600' : '')}>
+                            {variation > 0 ? '+' : ''}{variation}%
+                          </p>
+                          {entry.variation_amount != null && (
+                            <p className="text-xs text-muted-foreground">{formatPrice(Math.abs(entry.variation_amount))}</p>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Right column — sidebar */}
+        {/* Right column */}
         <div className="space-y-6">
-          {/* Status */}
+          {/* Situation */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Situation</CardTitle>
@@ -335,38 +491,57 @@ export function PropertyDetail() {
             <CardContent className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Statut</span>
-                <Badge variant="destructive">Prix en baisse</Badge>
+                <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Première détection</span>
-                <span className="text-sm">{formatDate(property.firstSeenAt)}</span>
+                <span className="text-sm">{formatDate(property.first_seen_at)}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Dernière mise à jour</span>
-                <span className="text-sm">{formatDate(property.lastSeenAt)}</span>
+                <span className="text-sm">{formatDate(property.last_seen_at)}</span>
               </div>
             </CardContent>
           </Card>
 
-          {/* Alerte */}
-          <Card className="border-destructive/30 bg-destructive/5">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="h-5 w-5 text-destructive mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-destructive">Baisse détectée</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Ce bien a baissé de 9.1% depuis sa mise en vente. C'est le moment idéal pour contacter le vendeur.
-                  </p>
-                  <Button size="sm" className="mt-3 h-8 text-xs">
-                    Créer une opportunité
-                  </Button>
+          {/* Signal métier (calculé côté API) */}
+          {signal && (
+            <Card className="border-brand/30 bg-brand/5">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-brand" />
+                  Lecture du signal
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-xs text-muted-foreground leading-relaxed">{signal.summary}</p>
+                {signal.interesting.length > 0 && (
+                  <div className="space-y-1">
+                    {signal.interesting.map((s, i) => (
+                      <div key={i} className="flex items-start gap-1.5 text-xs text-emerald-700">
+                        <CheckCircle2 className="h-3 w-3 mt-0.5 shrink-0" /> {s}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {signal.concerns.length > 0 && (
+                  <div className="space-y-1">
+                    {signal.concerns.map((s, i) => (
+                      <div key={i} className="flex items-start gap-1.5 text-xs text-amber-700">
+                        <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0" /> {s}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="rounded-md bg-background border px-3 py-2">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Action recommandée</p>
+                  <p className="text-xs font-medium mt-0.5">{signal.recommendedAction}</p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
-          {/* Acquéreurs potentiels — cross-reference matching */}
+          {/* Acquéreurs potentiels */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -379,21 +554,19 @@ export function PropertyDetail() {
             </CardHeader>
             <CardContent>
               {loadingMatches ? (
-                <p className="text-xs text-muted-foreground">Chargement...</p>
+                <p className="text-xs text-muted-foreground">Chargement…</p>
               ) : potentialBuyers.length === 0 ? (
                 <p className="text-xs text-muted-foreground">Aucun acquéreur potentiel trouvé</p>
               ) : (
                 <div className="space-y-2">
                   {potentialBuyers.map((match) => (
-                    <div
-                      key={match.buyer_lead_id}
-                      className="rounded-lg border p-3 hover:bg-accent/50 transition-colors cursor-pointer"
-                    >
+                    <div key={match.buyer_lead_id} className="rounded-lg border p-3">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-medium">Acquéreur #{match.buyer_lead_id.slice(0, 8)}</span>
-                        <span className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-semibold ${
-                          match.score >= 80 ? 'text-green-600 bg-green-50 border-green-200' : 'text-amber-600 bg-amber-50 border-amber-200'
-                        }`}>
+                        <span className={cn(
+                          'inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-semibold',
+                          match.score >= 80 ? 'text-green-600 bg-green-50 border-green-200' : 'text-amber-600 bg-amber-50 border-amber-200',
+                        )}>
                           {match.score}%
                         </span>
                       </div>
@@ -411,62 +584,82 @@ export function PropertyDetail() {
             </CardContent>
           </Card>
 
-          {/* Opportunités liées */}
+          {/* Opportunité liée */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Opportunités liées</CardTitle>
+              <CardTitle className="text-sm font-medium">Opportunité liée</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {property.opportunities.map((opp) => (
-                <div
-                  key={opp.id}
-                  className="rounded-lg border p-3 hover:bg-accent/50 transition-colors cursor-pointer"
+              {opportunity ? (
+                <Link
+                  href="/app/opportunities"
+                  className="block rounded-lg border p-3 hover:bg-accent/50 transition-colors"
                 >
                   <div className="flex items-start gap-2">
-                    <div className="mt-0.5">
-                      <Star className="h-4 w-4 text-amber-500" />
-                    </div>
+                    <Star className="h-4 w-4 text-amber-500 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium">{opp.title}</p>
+                      <p className="text-sm font-medium">{opportunity.title}</p>
                       <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="secondary" className="text-[10px]">
-                          {opp.stage}
-                        </Badge>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            'text-[10px]',
-                            opp.priority === 'high' && 'bg-orange-50 text-orange-700 border-orange-200'
-                          )}
-                        >
-                          {opp.priority === 'high' ? 'Haute priorité' : opp.priority}
-                        </Badge>
+                        <Badge variant="secondary" className="text-[10px]">{opportunity.stage ?? '—'}</Badge>
+                        {opportunity.priority && (
+                          <Badge variant="outline" className="text-[10px]">{opportunity.priority}</Badge>
+                        )}
                       </div>
                     </div>
                   </div>
+                </Link>
+              ) : (
+                <p className="text-xs text-muted-foreground">Aucune opportunité encore créée pour ce bien.</p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Notes */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Notes</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {notes.length > 0 && (
+                <div className="space-y-2">
+                  {notes.map((n) => (
+                    <div key={n.id} className="rounded-lg border bg-muted/20 p-2">
+                      <p className="text-xs whitespace-pre-line">{n.note}</p>
+                      <p className="text-[10px] text-muted-foreground mt-1">{formatDate(n.created_at)}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-              <Button variant="outline" size="sm" className="w-full text-xs">
-                <Plus className="h-3.5 w-3.5 mr-1" />
-                Ajouter une note
-              </Button>
+              )}
+              <div className="flex items-center gap-2">
+                <Input
+                  value={noteDraft}
+                  onChange={(e) => setNoteDraft(e.target.value)}
+                  placeholder="Ajouter une note…"
+                  onKeyDown={(e) => { if (e.key === 'Enter') addNote() }}
+                />
+                <Button size="sm" onClick={addNote} disabled={savingNote || !noteDraft.trim()}>
+                  {savingNote ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
           {/* Actions */}
           <div className="space-y-2">
-            <Button className="w-full">
-              <Building2 className="h-4 w-4 mr-2" />
-              Créer une opportunité
-            </Button>
-            <Button variant="outline" className="w-full">
-              <FileText className="h-4 w-4 mr-2" />
-              Ajouter une note
-            </Button>
-            <Button variant="ghost" className="w-full text-muted-foreground">
-              <Tag className="h-4 w-4 mr-2" />
-              Gérer les tags
-            </Button>
+            {!opportunity && (
+              <Button className="w-full" onClick={createOpportunity} disabled={creatingOpp}>
+                {creatingOpp ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Building2 className="h-4 w-4 mr-2" />}
+                Créer une opportunité
+              </Button>
+            )}
+            {property.url && (
+              <Button variant="outline" className="w-full" asChild>
+                <a href={property.url} target="_blank" rel="noopener noreferrer">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Voir l&apos;annonce d&apos;origine
+                </a>
+              </Button>
+            )}
           </div>
         </div>
       </div>

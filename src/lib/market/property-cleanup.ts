@@ -5,6 +5,14 @@ export type PropertyPurgeResult = {
   error?: string
 }
 
+// Une table de dépendance peut ne pas exister sur tous les environnements (ex. match_results
+// absent en local). Dans ce cas il n'y a rien à nettoyer : on ignore l'erreur au lieu d'avorter.
+function isMissingTableError(error: { code?: string; message?: string } | null): boolean {
+  if (!error) return false
+  if (error.code === 'PGRST205' || error.code === '42P01') return true
+  return /Could not find the table|does not exist/i.test(error.message ?? '')
+}
+
 export async function purgeMarketPropertiesByIds(ids: string[]): Promise<PropertyPurgeResult> {
   const propertyIds = [...new Set(ids)].filter(Boolean)
   if (propertyIds.length === 0) return { deletedProperties: 0 }
@@ -20,7 +28,7 @@ export async function purgeMarketPropertiesByIds(ids: string[]): Promise<Propert
 
   for (const step of cleanupSteps) {
     const { error } = await step()
-    if (error) {
+    if (error && !isMissingTableError(error)) {
       return { deletedProperties: 0, error: error.message }
     }
   }

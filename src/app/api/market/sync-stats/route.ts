@@ -92,7 +92,7 @@ export async function GET() {
     // Zones avec statut de fraîcheur et nombre de biens
     const { data: zones } = await supabaseAdmin
       .from('monitored_zones')
-      .select('id, name, zipcode, city, last_synced_at, active, sync_frequency')
+      .select('id, name, zipcode, city, insee_code, last_synced_at, active, sync_frequency')
       .order('created_at', { ascending: true })
 
     const monitoredZipcodes = new Set((zones ?? []).map((zone) => zone.zipcode).filter(Boolean))
@@ -117,17 +117,22 @@ export async function GET() {
         const lastRun = runs.find((r) => r.zone_id === zone.id)
         const lastSuccessRun = runs.find((r) => r.zone_id === zone.id && r.status === 'success')
 
-        // Nombre de biens en base pour ce code postal
+        // Nombre de biens en base pour cette zone : par INSEE si la zone cible une commune
+        // exacte (plusieurs communes peuvent partager un CP), sinon par code postal.
+        const zoneInsee = (zone as { insee_code?: string | null }).insee_code ?? null
+        const zoneFilterColumn = zoneInsee ? 'insee_code' : 'zipcode'
+        const zoneFilterValue = zoneInsee ?? zone.zipcode
+
         const { count: property_count } = await supabaseAdmin
           .from('market_properties')
           .select('id', { count: 'exact', head: true })
-          .eq('zipcode', zone.zipcode)
+          .eq(zoneFilterColumn, zoneFilterValue)
 
         const { count: not_seen_property_count } = lastSuccessRun?.started_at
           ? await supabaseAdmin
               .from('market_properties')
               .select('id', { count: 'exact', head: true })
-              .eq('zipcode', zone.zipcode)
+              .eq(zoneFilterColumn, zoneFilterValue)
               .lt('last_seen_at', lastSuccessRun.started_at)
           : { count: 0 }
 

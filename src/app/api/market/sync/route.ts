@@ -105,13 +105,30 @@ function readMaxItems(body: Record<string, unknown> | null | undefined, fallback
 
 type ZoneInfo = { id: string; inseeCode: string | null; lastSyncedAt: string | null }
 
-async function getOrCreateZone(zipcode: string): Promise<ZoneInfo> {
-  const { data: existingZone } = await supabaseAdmin
+type ZoneLookup = { zipcode: string; inseeCode?: string | null; name?: string | null; city?: string | null }
+
+/**
+ * Identifie la zone à synchroniser. Une commune (code INSEE) est l'identité fine :
+ * plusieurs communes peuvent partager un même code postal, donc on cible d'abord par INSEE
+ * quand il est connu, et seulement sinon par CP (zone « catch-all » sans INSEE).
+ * On évite `.maybeSingle()` qui plante dès que deux zones partagent un CP.
+ */
+async function getOrCreateZone({ zipcode, inseeCode, name, city }: ZoneLookup): Promise<ZoneInfo> {
+  const normalizedInsee = inseeCode && /^\d{5}$/.test(inseeCode) ? inseeCode : null
+
+  const baseSelect = supabaseAdmin
     .from('monitored_zones')
     .select('id, insee_code, last_synced_at')
-    .eq('zipcode', zipcode)
-    .maybeSingle()
 
+  const query = normalizedInsee
+    ? baseSelect.eq('insee_code', normalizedInsee)
+    : baseSelect.eq('zipcode', zipcode).is('insee_code', null)
+
+  const { data: matches } = await query
+    .order('created_at', { ascending: true })
+    .limit(1)
+
+  const existingZone = matches?.[0]
   if (existingZone) {
     return {
       id: existingZone.id as string,
@@ -122,7 +139,13 @@ async function getOrCreateZone(zipcode: string): Promise<ZoneInfo> {
 
   const { data: created } = await supabaseAdmin
     .from('monitored_zones')
-    .insert({ name: `Zone ${zipcode}`, zipcode, sync_frequency: 'manual' })
+    .insert({
+      name: name?.trim() || (city?.trim() ? city.trim() : `Zone ${zipcode}`),
+      zipcode,
+      city: city?.trim() || null,
+      insee_code: normalizedInsee,
+      sync_frequency: 'manual',
+    })
     .select('id, insee_code, last_synced_at')
     .single()
 
@@ -149,7 +172,16 @@ export async function POST(req: NextRequest) {
 
     const budget = await getStreamEstateBudgetSnapshot()
     const force = (body as Record<string, unknown>)?.force === true
-    const zone = await getOrCreateZone(zipcode)
+    const rawInsee = (body as Record<string, unknown>)?.insee_code ?? (body as Record<string, unknown>)?.inseeCode
+    const inseeCode = typeof rawInsee === 'string' && /^\d{5}$/.test(rawInsee) ? rawInsee : null
+    const rawName = (body as Record<string, unknown>)?.name
+    const rawCity = (body as Record<string, unknown>)?.city
+    const zone = await getOrCreateZone({
+      zipcode,
+      inseeCode,
+      name: typeof rawName === 'string' ? rawName : null,
+      city: typeof rawCity === 'string' ? rawCity : null,
+    })
     const zoneId = zone.id
 
     // 0. Garde-fou anti-re-sync : zone synchronisée récemment → on renvoie la base, 0 appel API.
@@ -157,11 +189,13 @@ export async function POST(req: NextRequest) {
       const windowMinutes = await getResyncWindowMinutes()
       const ageMs = Date.now() - new Date(zone.lastSyncedAt).getTime()
       if (windowMinutes > 0 && Number.isFinite(ageMs) && ageMs >= 0 && ageMs < windowMinutes * 60_000) {
-        const { count } = await supabaseAdmin
+        const cacheCountQuery = supabaseAdmin
           .from('market_properties')
           .select('id', { count: 'exact', head: true })
-          .eq('zipcode', zipcode)
           .eq('source', 'stream_estate')
+        const { count } = await (zone.inseeCode
+          ? cacheCountQuery.eq('insee_code', zone.inseeCode)
+          : cacheCountQuery.eq('zipcode', zipcode))
         return NextResponse.json({
           success: true,
           from_cache: true,

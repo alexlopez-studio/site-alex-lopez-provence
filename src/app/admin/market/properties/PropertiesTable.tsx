@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import {
   Search,
   SlidersHorizontal,
@@ -15,6 +17,7 @@ import {
   Flag,
   ArrowUpRight,
   RefreshCw,
+  Building2,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -125,9 +128,11 @@ function daysOnline(firstSeenAt: string | null): number | null {
 }
 
 export function PropertiesTable({ initialZipcode }: { initialZipcode?: string }) {
+  const router = useRouter()
   const [properties, setProperties] = useState<PropertyRow[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [creatingOppId, setCreatingOppId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [cityFilter, setCityFilter] = useState('all')
@@ -165,6 +170,37 @@ export function PropertiesTable({ initialZipcode }: { initialZipcode?: string })
   }, [sortBy, sortOrder, zipcodeFilter])
 
   useEffect(() => { load() }, [load])
+
+  async function createOpportunity(prop: PropertyRow) {
+    const isPriceDrop = prop.status === 'price_drop' || prop.status === 'prix_en_baisse'
+    const titleBase = prop.title ?? 'Bien'
+    const title = prop.city ? `${titleBase} — ${prop.city}` : titleBase
+    setCreatingOppId(prop.id)
+    try {
+      const res = await fetch('/api/market/opportunities', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          market_property_id: prop.id,
+          title,
+          stage: 'À qualifier',
+          priority: isPriceDrop ? 'high' : 'medium',
+          signal_type: isPriceDrop ? 'price_drop' : 'new_listing',
+          created_from: 'manual',
+        }),
+      })
+      if (!res.ok) throw new Error('Erreur API')
+      toast.success('Opportunité créée', {
+        description: title,
+        action: { label: 'Voir le pipeline', onClick: () => router.push('/app/opportunities') },
+      })
+    } catch (err) {
+      console.error('Erreur création opportunité:', err)
+      toast.error('Impossible de créer l’opportunité')
+    } finally {
+      setCreatingOppId(null)
+    }
+  }
 
   function clearZipcodeFilter() {
     setZipcodeFilter('')
@@ -421,6 +457,12 @@ export function PropertiesTable({ initialZipcode }: { initialZipcode?: string })
                                 </a>
                               </DropdownMenuItem>
                             )}
+                            <DropdownMenuItem
+                              onClick={() => createOpportunity(prop)}
+                              disabled={creatingOppId === prop.id}
+                            >
+                              <Building2 className="h-4 w-4 mr-2" /> Créer une opportunité
+                            </DropdownMenuItem>
                             <DropdownMenuItem>
                               <Star className="h-4 w-4 mr-2" /> Marquer
                             </DropdownMenuItem>

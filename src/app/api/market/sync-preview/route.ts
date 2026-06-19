@@ -25,14 +25,24 @@ export async function POST(req: NextRequest) {
     const requestedMaxItems = readMaxItems(body as Record<string, unknown>, budget.maxItemsPerSync)
     const effectiveMaxItems = Math.min(requestedMaxItems, budget.maxItemsPerSync)
 
-    // Comptage via itemsPerPage=0 (gratuit en facturation à l'item). On reprend le code INSEE
-    // de la zone si elle existe, pour que l'estimation colle au filtre réel de la sync.
-    const { data: zone } = await supabaseAdmin
-      .from('monitored_zones')
-      .select('insee_code')
-      .eq('zipcode', zipcode)
-      .maybeSingle()
-    const preview = await previewListings({ zipcode, inseeCode: (zone?.insee_code as string | null) ?? null })
+    // Comptage via itemsPerPage=0 (gratuit en facturation à l'item). On prend l'INSEE fourni
+    // par le client (commune visée dans le panneau) en priorité, sinon on retombe sur la zone
+    // CP existante. On évite `.maybeSingle()` qui plante dès que deux communes partagent un CP.
+    const rawInsee = (body as Record<string, unknown>)?.insee_code ?? (body as Record<string, unknown>)?.inseeCode
+    let inseeCode: string | null =
+      typeof rawInsee === 'string' && /^\d{5}$/.test(rawInsee) ? rawInsee : null
+
+    if (!inseeCode) {
+      const { data: zoneRows } = await supabaseAdmin
+        .from('monitored_zones')
+        .select('insee_code')
+        .eq('zipcode', zipcode)
+        .order('created_at', { ascending: true })
+        .limit(1)
+      inseeCode = (zoneRows?.[0]?.insee_code as string | null) ?? null
+    }
+
+    const preview = await previewListings({ zipcode, inseeCode })
     const estimatedItems = Math.min(preview.totalAvailable, effectiveMaxItems)
     const estimatedCostEur = estimatedItems * budget.costPerItemEur
     const availableItems = Math.min(budget.maxItemsPerSync, getAvailableStreamEstateItems(budget))

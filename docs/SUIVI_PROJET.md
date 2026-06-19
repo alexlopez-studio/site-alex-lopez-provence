@@ -91,6 +91,63 @@ Lot 4 -> Lot 5 (Monitoring)
 
 ## Journal de Bord
 
+### 20/06/2026 - 01:05 CEST
+- Base/branche : `preview`.
+- Type : feature — fiche bien `/app/properties/[id]` réelle (fin du mock).
+- Statut : **fait** (local non commité ; testé sur un vrai bien Pontevès).
+- Résumé : la fiche détail tournait entièrement sur `MOCK_PROPERTY`. L'API `/api/market/properties/[id]` était déjà complète (bien + historique prix + tags + notes + opportunité liée + notifications + **signal métier calculé**). Travail :
+  1. `PropertyDetail.tsx` réécrit : `fetch('/api/market/properties/[id]')`, états chargement/404, mapping des vrais champs `market_properties`. KPI prix (avec prix d'origine déduit de l'historique), surface/terrain, prix/m², jours en ligne (calculé depuis `first_seen_at`). Caractéristiques : chambres/pièces/surface/DPE + tags réels. Historique des prix réel (variations `property_price_history`). Acquéreurs potentiels (matching, déjà réel) conservés.
+  2. Bloc **« Lecture du signal »** branché sur le `signal` calculé par l'API (résumé, points intéressants, préoccupations, action recommandée) — remplace l'alerte « -9,1 % » en dur.
+  3. **Opportunité liée** affichée si présente (lien vers `/app/opportunities`) ; sinon bouton **« Créer une opportunité »** câblé (POST `market_property_id`, signal_type selon l'état) + toast « Voir le pipeline ».
+  4. **Notes fonctionnelles** : nouvel endpoint `POST /api/market/properties/[id]/notes` + composer (Entrée pour valider) ; liste des notes réelle.
+  5. Boutons morts retirés (Favori, Gérer les tags — sans backend).
+- Fichiers : `src/app/admin/market/properties/[id]/PropertyDetail.tsx` (réécrit), `src/app/api/market/properties/[id]/notes/route.ts` (nouveau).
+- Audit qualité : `npx tsc --noEmit` OK ; test live sur bien Pontevès `f773d231…` : détail 200, données réelles (4 tags, opportunité liée, signal), POST note 0→1 ; note de test supprimée ensuite.
+- Point d'attention : pas de DELETE note exposé (suppression de test faite via SQL) ; le bien testé avait `dpe` vide et 0 variation de prix → blocs « DPE n/d » et « Aucune variation » gérés.
+- Suite : commit unique sur `preview` après validation (zones commune-exacte + pont opportunités + fiche bien réelle) ; éventuellement exposer un DELETE note et « Gérer les tags ».
+
+### 20/06/2026 - 00:36 CEST
+- Base/branche : `preview`.
+- Type : feature — pont biens → opportunités (pipeline de mandats réel).
+- Statut : **fait** (local non commité ; testé end-to-end sur la base live).
+- Résumé : cœur métier MandatFinder. L'API `opportunities` (GET/POST/PATCH/DELETE) et la table existaient déjà, mais le Kanban était mocké et le drag&drop ne persistait pas. Travail :
+  1. `GET /api/market/opportunities` enrichi : 2e requête groupée `market_properties` (`.in('id', ids)`, sans relation PostgREST) → chaque opportunité reçoit `property: {title, city, zipcode, price}|null`.
+  2. `KanbanBoard.tsx` réécrit : suppression de `MOCK_OPPORTUNITIES`, chargement réel via l'API, mapping ligne→carte (`signal_type`→type avec fallback `manual`, encart bien masqué si absent). **Convention `stage` = label FR** (valeur déjà stockée par le POST/les règles) ; un stage inconnu retombe sur « À qualifier ». Colonnes Converti/Écarté rendues droppables (pipeline complet, fin des cartes « légende » statiques).
+  3. Drag&drop **persistant** : update optimiste local + `PATCH /[id] {stage}`, revert + toast si échec.
+  4. Dialog « Nouvelle opportunité » (création manuelle) branché sur le bouton header + les « + » de colonne (stage pré-rempli) ; pattern `Dialog`/`Select` réutilisé.
+  5. `PropertiesTable.tsx` : item dropdown « Créer une opportunité » sur un vrai bien → POST avec `market_property_id`, `signal_type` selon l'état (price_drop/new_listing), toast avec action « Voir le pipeline ».
+- Fichiers : `src/app/api/market/opportunities/route.ts`, `src/app/admin/market/opportunities/KanbanBoard.tsx`, `src/app/admin/market/properties/PropertiesTable.tsx`.
+- Audit qualité : `npx tsc --noEmit` OK ; end-to-end live OK (POST→GET enrichi→PATCH stage persisté→DELETE) ; `/app/opportunities` répond 200.
+- Nettoyage data (validé par Alexandre « purger orphelines + mock ») : `DELETE FROM opportunities WHERE market_property_id IS NULL` après nullification des FK `notifications.opportunity_id` / `property_notes.opportunity_id` (transaction Supabase MCP). **65 opportunités orphelines supprimées** (dont les 8 restes de mock à stage slug, toutes sans bien). Reste **5 opportunités**, toutes rattachées à un vrai bien Pontevès 83670, en stage « À analyser ».
+- Point d'attention : avant nettoyage la base contenait 70 opportunités (Alexandre avait resynchronisé : biens Pontevès 83670 réapparus + règles ayant créé ~60 opportunités). Désormais le Kanban est propre (5 cartes enrichies).
+- Suite : rendre la fiche `/app/properties/[id]` réelle (encore mockée) ; commit unique sur `preview` après validation.
+
+### 19/06/2026 - 11:05 CEST
+- Base/branche : `preview`.
+- Type : feature — zones « commune exacte » (INSEE) de bout en bout + fix purge biens + nettoyage base.
+- Statut : **fait** (local non commité ; base live nettoyée).
+- Resume : objectif = filtrage commune-par-commune via code INSEE plutôt que par CP (qui ramène toutes les communes voisines). Diagnostic : l'infra INSEE était déjà câblée (colonne `insee_code` migration 008, POST zones, lib `includedInseeCodes[]`, sync + preview relisant l'INSEE), MAIS le pipeline identifiait une zone **par `zipcode` avec `.maybeSingle()`** → cassait dès que 2 communes partagent un CP, et le panneau « Sync contrôlée » **perdait l'INSEE** avant l'envoi. Corrections :
+  1. `sync/route.ts` : `getOrCreateZone` cible par INSEE quand fourni (sinon CP-mode `insee_code IS NULL`), via `.order().limit(1)` au lieu de `.maybeSingle()` ; stocke `insee_code`/`name`/`city` à la création ; le POST lit `insee_code`/`name`/`city` du body. Garde-fou anti-re-sync : comptage filtré par INSEE quand dispo.
+  2. `sync-preview/route.ts` : accepte `insee_code` du body (priorité), fallback zone CP sans `.maybeSingle()`.
+  3. `zones/page.tsx` : `syncDraft` porte `insee`/`communeName` ; `CommuneSearch` du panneau capture l'INSEE ; CP saisi à la main réinitialise l'INSEE ; `previewSync`/`confirmSync`/`prefillSyncFromZone` transmettent l'INSEE ; badge « Commune exacte · INSEE … » vs « CP seul · communes voisines incluses » dans le récap.
+  4. `sync-stats/route.ts` : compte les biens par INSEE quand la zone en a un (sinon par CP).
+  5. `src/lib/market/property-cleanup.ts` : **fix** — la chaîne de purge avortait sur `match_results` (table absente en base live) → toute suppression de bien échouait. Ajout `isMissingTableError()` qui ignore les tables absentes (PGRST205/42P01/« Could not find the table »).
+- Action base live (choix Alexandre « repartir propre ») : suppression des 2 zones CP (`83670` 30 biens, `13390` 5 biens) + purge des 35 biens orphelins. Base désormais : **0 zone, 0 bien, 0 orphelin**.
+- Fichiers : `src/app/api/market/sync/route.ts`, `src/app/api/market/sync-preview/route.ts`, `src/app/api/market/sync-stats/route.ts`, `src/app/admin/market/zones/page.tsx`, `src/lib/market/property-cleanup.ts`, `docs/SUIVI_PROJET.md`.
+- Audit qualité : `npx tsc --noEmit` OK (×2) ; HTTP local OK (`sync-stats`=200, `sync-preview` renvoie un total filtré par INSEE) ; suppression zones + purge orphelins confirmées via API.
+- Point d'attention : les `total_available` du preview sont gonflés (Tavernes 83135=773, Barjols 83012=1750, CP 83670 seul=3772, Paris 75056=10000 plafonné). Les comptages **varient par INSEE** → le filtre serveur agit bien, mais le total `itemsPerPage=0` semble ignorer une partie du filtrage. Sans impact sur le coût (plafonné par `max_items` ; filtre client `matchesGeoTarget` garantit qu'on ne garde que la commune), mais **on paie les items d'une page même si certains sont hors commune** : à valider par une sync sonde (~0,01 €) quand Alexandre autorise une dépense.
+- Suite : Alexandre reconstruit les zones commune par commune via « Ajouter une commune » ; remettre un solde manuel dans Réglages pour réautoriser une sync ; commit unique sur `preview` après validation.
+
+### 19/06/2026 - 10:15 CEST
+- Base/branche : `preview`.
+- Type : reprise de session / démarrage serveur local.
+- Statut : **fait**.
+- Résumé : application du protocole `docs/START.md`. Fetch `origin/preview`, vérification Git (preview alignée sur origin/preview), serveur Next lancé sur port 3002 avec `npm run dev -- --port 3002`. Serveur compilé en 1330ms, middleware compilé en 185ms.
+- Fichiers : `docs/SUIVI_PROJET.md`.
+- Audit qualité : `curl -I http://localhost:3002/app/dashboard` → `200 OK` ; serveur live et réactif.
+- Point d'attention : aucun.
+- Suite : selon Alexandre, tâche suivante.
+
 ### 19/06/2026 - 00:12 CEST
 - Base/branche : `preview`.
 - Type : commit local (UX bouton sync + maj suivi projet).

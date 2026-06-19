@@ -317,8 +317,10 @@ export default function ZonesPage() {
   const [budget, setBudget] = useState<StreamEstateBudget | null>(null)
   const [orphanProperties, setOrphanProperties] = useState<OrphanProperties | null>(null)
   const [purgingOrphans, setPurgingOrphans] = useState(false)
-  const [syncDraft, setSyncDraft] = useState<{ zipcode: string; label: string; maxItems: string }>({
+  const [syncDraft, setSyncDraft] = useState<{ zipcode: string; insee: string | null; communeName: string | null; label: string; maxItems: string }>({
     zipcode: '',
+    insee: null,
+    communeName: null,
     label: '',
     maxItems: '30',
   })
@@ -427,7 +429,7 @@ export default function ZonesPage() {
     await load()
   }
 
-  async function previewSync(zipcode: string, maxItems: number) {
+  async function previewSync(zipcode: string, maxItems: number, inseeCode: string | null = null) {
     if (!/^\d{5}$/.test(zipcode)) {
       toast.error('Choisis un code postal valide avant de prévisualiser')
       return null
@@ -437,7 +439,7 @@ export default function ZonesPage() {
       const res = await fetch('/api/market/sync-preview', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ zipcode, max_items: maxItems }),
+        body: JSON.stringify({ zipcode, max_items: maxItems, insee_code: inseeCode }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -458,6 +460,7 @@ export default function ZonesPage() {
 
   async function confirmSync(force = false) {
     const zipcode = syncDraft.zipcode.trim()
+    const inseeCode = syncDraft.insee
     const maxItems = Math.max(1, Math.floor(Number(syncDraft.maxItems) || 1))
     if (!/^\d{5}$/.test(zipcode)) {
       toast.error('Choisis un code postal valide avant de confirmer')
@@ -465,7 +468,7 @@ export default function ZonesPage() {
     }
 
     if (!syncPreview || syncPreview.zipcode !== zipcode || syncPreview.max_items !== maxItems) {
-      const refreshed = await previewSync(zipcode, maxItems)
+      const refreshed = await previewSync(zipcode, maxItems, inseeCode)
       if (!refreshed) return
       if (!refreshed.can_confirm) {
         toast.error('Le plafond demandé dépasse le budget disponible')
@@ -482,7 +485,7 @@ export default function ZonesPage() {
       const res = await fetch('/api/market/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ zipcode, max_items: maxItems, force }),
+        body: JSON.stringify({ zipcode, max_items: maxItems, force, insee_code: inseeCode, name: syncDraft.communeName, city: syncDraft.communeName }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -503,11 +506,11 @@ export default function ZonesPage() {
       } else if (data.partial) {
         toast.warning(`Sync partielle de ${zipcode} — plafond de ${maxItems} item(s) atteint (${data.fetched ?? 0} récupéré(s)). Augmente le plafond pour tout récupérer.`)
         setSyncPreview(null)
-        setSyncDraft((current) => ({ ...current, zipcode: '', label: '' }))
+        setSyncDraft((current) => ({ ...current, zipcode: '', insee: null, communeName: null, label: '' }))
       } else {
         toast.success(`${zipcode} synchronisé — ${data.fetched ?? 0} bien(s), ${data.billed_items ?? 0} item(s), ${formatEuro(Number(data.estimated_cost_eur ?? 0))} estimés`)
         setSyncPreview(null)
-        setSyncDraft((current) => ({ ...current, zipcode: '', label: '' }))
+        setSyncDraft((current) => ({ ...current, zipcode: '', insee: null, communeName: null, label: '' }))
       }
       await load()
     } catch (err) {
@@ -522,13 +525,15 @@ export default function ZonesPage() {
     const maxItems = budget?.max_items_per_sync ?? budget?.max_requests_per_sync ?? 30
     setSyncDraft({
       zipcode: zone.zipcode,
+      insee: zone.insee_code,
+      communeName: zone.city ?? zone.name,
       label: zone.name,
       maxItems: String(maxItems),
     })
     if (syncPanelRef.current) {
       syncPanelRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
-    const preview = await previewSync(zone.zipcode, maxItems)
+    const preview = await previewSync(zone.zipcode, maxItems, zone.insee_code)
     if (preview && !preview.can_confirm) {
       toast.error('Ce plafond dépasse le budget disponible')
     }
@@ -684,7 +689,13 @@ export default function ZonesPage() {
           <div className="space-y-3">
             <CommuneSearch
               onSelect={(commune, zip) => {
-                setSyncDraft((current) => ({ ...current, zipcode: zip, label: `${commune.nom} · ${zip}` }))
+                setSyncDraft((current) => ({
+                  ...current,
+                  zipcode: zip,
+                  insee: commune.code,
+                  communeName: commune.nom,
+                  label: `${commune.nom} · ${zip}`,
+                }))
                 setSyncPreview(null)
               }}
             />
@@ -698,7 +709,8 @@ export default function ZonesPage() {
                   value={syncDraft.zipcode}
                   onChange={(e) => {
                     const value = e.target.value.replace(/\D/g, '').slice(0, 5)
-                    setSyncDraft((current) => ({ ...current, zipcode: value }))
+                    // CP saisi à la main → on perd la précision commune (INSEE).
+                    setSyncDraft((current) => ({ ...current, zipcode: value, insee: null, communeName: null, label: '' }))
                     setSyncPreview(null)
                   }}
                 />
@@ -717,10 +729,23 @@ export default function ZonesPage() {
                 />
               </label>
             </div>
-            <div className="rounded-lg border bg-background px-3 py-2 text-xs text-muted-foreground">
-              {syncDraft.zipcode
-                ? <span><strong className="text-foreground">{syncDraft.label || `CP ${syncDraft.zipcode}`}</strong> · plafond {syncDraft.maxItems || '1'} item(s)</span>
-                : <span>Commence par sélectionner une commune ou saisir un code postal.</span>}
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-background px-3 py-2 text-xs text-muted-foreground">
+              {syncDraft.zipcode ? (
+                <>
+                  <span><strong className="text-foreground">{syncDraft.label || `CP ${syncDraft.zipcode}`}</strong> · plafond {syncDraft.maxItems || '1'} item(s)</span>
+                  {syncDraft.insee ? (
+                    <Badge variant="outline" className="text-[10px] bg-green-50 text-green-700 border-green-200" title={`Filtrage Stream Estate par code INSEE ${syncDraft.insee} : seuls les biens de cette commune sont récupérés.`}>
+                      Commune exacte · INSEE {syncDraft.insee}
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-800 border-amber-200" title="Sans code INSEE, le filtrage se fait par code postal et peut inclure les communes voisines partageant ce CP.">
+                      CP seul · communes voisines incluses
+                    </Badge>
+                  )}
+                </>
+              ) : (
+                <span>Commence par sélectionner une commune ou saisir un code postal.</span>
+              )}
             </div>
           </div>
 
@@ -785,7 +810,7 @@ export default function ZonesPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => previewSync(syncDraft.zipcode.trim(), Math.max(1, Math.floor(Number(syncDraft.maxItems) || 1)))}
+              onClick={() => previewSync(syncDraft.zipcode.trim(), Math.max(1, Math.floor(Number(syncDraft.maxItems) || 1)), syncDraft.insee)}
               disabled={previewLoading || !syncDraft.zipcode}
             >
               {previewLoading ? <RefreshCw className="mr-1 h-4 w-4 animate-spin" /> : <Search className="mr-1 h-4 w-4" />}

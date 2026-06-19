@@ -44,8 +44,37 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Erreur base de données' }, { status: 500 })
     }
 
+    // Enrichissement : on attache le bien lié (titre/ville/prix) sans dépendre d'une
+    // relation PostgREST — une seule requête groupée sur les market_property_id présents.
+    const rows = opportunities ?? []
+    const propertyIds = [...new Set(
+      rows.map((o) => o.market_property_id).filter((id): id is string => Boolean(id)),
+    )]
+
+    const propertyMap: Record<string, { id: string; title: string | null; city: string | null; zipcode: string | null; price: number | null }> = {}
+    if (propertyIds.length > 0) {
+      const { data: properties } = await supabaseAdmin
+        .from('market_properties')
+        .select('id, title, city, zipcode, price')
+        .in('id', propertyIds)
+      for (const p of properties ?? []) {
+        propertyMap[p.id as string] = {
+          id: p.id as string,
+          title: (p.title as string | null) ?? null,
+          city: (p.city as string | null) ?? null,
+          zipcode: (p.zipcode as string | null) ?? null,
+          price: (p.price as number | null) ?? null,
+        }
+      }
+    }
+
+    const enriched = rows.map((o) => ({
+      ...o,
+      property: o.market_property_id ? propertyMap[o.market_property_id] ?? null : null,
+    }))
+
     return NextResponse.json({
-      opportunities,
+      opportunities: enriched,
       total: count ?? 0,
       page,
       limit,
