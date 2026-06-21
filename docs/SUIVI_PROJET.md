@@ -88,15 +88,12 @@ déclenchent **que si on resynchronise dans le temps** (détection des baisses d
 des republications). Sans sync récurrente → tout reste `cold` → aucun vendeur à contacter.
 
 ### P0 — sans ça, la boucle ne tourne pas
-1. **Sync récurrente contrôlée** : cadence retenue **1×/jour la nuit** (cron ~`0 3 * * *`),
-   garde-fous budget déjà en place (migrations 009/010/011).
-   ⚠️ **Piège identifié** : le cron existant `/api/jobs/import-stream-estate` appelle
-   `importAllListings()` qui écrit dans la table **`listings` (monde radar mort)**, PAS
-   dans `market_properties` où tourne le score. Le réactiver tel quel brûlerait des
-   crédits **sans alimenter le score**. → P0.1 réel = **créer/repointer un job cron qui
-   itère `monitored_zones` et lance la logique de `/api/market/sync` par zone** (même flux
-   que « Confirmer la sync »), avec auth cron + plafond budget. Puis `vercel.json` →
-   `"crons": [{ "path": "...", "schedule": "0 3 * * *" }]`.
+1. ✅ **Sync récurrente contrôlée — CODÉE, gardée OFF** (22/06). Job
+   `/api/jobs/sync-zones` qui itère `monitored_zones` et lance `/api/market/sync` par zone
+   (alimente `market_properties`, pas le `listings` mort). Schedule `0 3 * * *` câblé dans
+   `vercel.json` mais **inerte** tant que `STREAM_ESTATE_CRON_ENABLED != 'true'`.
+   **Pour activer en prod** : poser `STREAM_ESTATE_CRON_ENABLED=true` (+ `CRON_SECRET`)
+   dans Vercel et vérifier le budget Stream Estate. Détail : entrée journal 22/06.
 2. **Détection baisse de prix + republication → score** : vérifier que
    `property_price_history` s'accumule bien au fil des syncs, brancher la détection
    retrait/republication pour réveiller l'axe Comportement (15 pts dormants dans
@@ -127,6 +124,40 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
 - A maintenir : tenir `docs/START.md`, `docs/MEMOIRE_SESSION.md`, `docs/SUIVI_PROJET.md` et `docs/ROUTES.md` alignes avec les routes canoniques `/app/*`.
 
 ## Journal de Bord
+
+### 22/06/2026 - P0.1 : job cron de sync récurrente par zone (codé, gardé OFF)
+- Base/branche : `preview` (local non commité au moment de l'écriture).
+- Type : feature — oxygène du score (sync récurrente alimentant `market_properties`).
+- Statut : **fait** (codé + testé ; cron inerte par défaut).
+- Décision (Alexandre) : coder le job, garder le cron OFF, activable plus tard ; cadence 1×/jour la nuit.
+- Travail :
+  1. **Nouveau** `src/app/api/jobs/sync-zones/route.ts` : itère `monitored_zones` actives
+     (triées par `last_synced_at` la plus ancienne, plafond `MAX_ZONES_PER_RUN=20`) et
+     appelle `/api/market/sync` par zone → réutilise TOUS les garde-fous existants
+     (budget, fenêtre anti-re-sync). Alimente `market_properties` (≠ `import-stream-estate`
+     qui visait la table `listings` du monde radar mort).
+  2. `vercel.json` : schedule `{ "path": "/api/jobs/sync-zones", "schedule": "0 3 * * *" }`
+     ajouté mais **inerte**.
+- Deux filets de sécurité « zéro crédit par surprise » :
+  1. `STREAM_ESTATE_CRON_ENABLED` doit valoir `'true'` (défaut OFF) pour exécuter — sinon
+     no-op `{skipped:true, reason:'cron_disabled'}`. C'est l'interrupteur volontaire (à
+     poser dans les env Vercel quand Alexandre valide). Choisi car
+     `isMandatFinderPipelineEnabled()` a un défaut `true` (settings.ts) → pas fiable comme OFF.
+  2. Chaque `/api/market/sync` respecte le budget Stream Estate (item limit, solde, syncEnabled).
+  - Auth cron optionnelle via `CRON_SECRET` (en-tête `Authorization: Bearer`).
+- Fichiers : `src/app/api/jobs/sync-zones/route.ts` (nouveau), `vercel.json`, `docs/SUIVI_PROJET.md`.
+- Audit qualité : `npx tsc --noEmit` OK. Test live :
+  - sans param → `{skipped:true, reason:'cron_disabled'}` (sécurité OK) ;
+  - `?test=1` → 1 zone active (83670/Pontevès) synchronisée, **5 biens MAJ, 5 items facturés (~0,05 €)**, stop sur `stream_estate_item_limit_reached`. Orchestration + plafond budget validés.
+- ⚠️ Point d'attention : `?test=1` n'est **pas un dry-run** — il déclenche une vraie sync
+  et dépense le budget disponible (ici borné à 5 items par le garde-fou). Pour tester sans
+  dépense, mettre la sync budget à 0/désactivée avant.
+- Tradeoff assumé : orchestration via self-HTTP `fetch` vers `/api/market/sync` (réutilise
+  les garde-fous sans refactor du handler de 370 lignes). À remplacer par une fonction
+  partagée `syncZone()` si le nombre de zones ou la durée pose problème (maxDuration 60s).
+- Suite : quand Alexandre veut activer en prod → poser `STREAM_ESTATE_CRON_ENABLED=true`
+  (+ `CRON_SECRET`) dans Vercel et vérifier le budget Stream Estate. Puis P0.2 (détection
+  baisse/republication → axe Comportement).
 
 ### 22/06/2026 - Recentrage MVP sur la boucle mandat (priorisation)
 - Base/branche : `preview`.

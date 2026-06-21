@@ -1,4 +1,6 @@
 {
   "installCommand": "pnpm install --no-frozen-lockfile",
-  "crons": []
+  "crons": [
+    { "path": "/api/jobs/sync-zones", "schedule": "0 3 * * *" }
+  ]
 }
