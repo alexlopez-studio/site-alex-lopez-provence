@@ -37,6 +37,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import type { SellerPhase } from '@/lib/mandat/types'
 import { SellerPhaseBadge } from '@/app/dashboard/radar/_components/SellerPhaseBadge'
@@ -58,7 +59,17 @@ interface PropertyRow {
   first_seen_at: string | null
   last_seen_at: string | null
   url: string | null
-  mandate_score?: { score: number; phase: SellerPhase } | null
+  mandate_score?: {
+    score: number
+    phase: SellerPhase
+    time_score: number
+    frustration_score: number
+    drop_intensity_score: number
+    behavior_score: number
+    days_online: number
+    price_drops_count: number
+    total_drop_percent: number
+  } | null
 }
 
 interface ZoneContext {
@@ -140,9 +151,10 @@ export function PropertiesTable({ initialZipcode }: { initialZipcode?: string })
   const [statusFilter, setStatusFilter] = useState('all')
   const [cityFilter, setCityFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('all')
+  const [phaseFilter, setPhaseFilter] = useState<'all' | SellerPhase>('all')
   const [zipcodeFilter, setZipcodeFilter] = useState(initialZipcode ?? '')
   const [zoneContext, setZoneContext] = useState<ZoneContext | null>(null)
-  const [sortBy, setSortBy] = useState<'price' | 'last_seen_at' | 'surface'>('last_seen_at')
+  const [sortBy, setSortBy] = useState<'price' | 'last_seen_at' | 'surface' | 'mandate_score'>('last_seen_at')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
   const load = useCallback(async () => {
@@ -221,8 +233,19 @@ export function PropertiesTable({ initialZipcode }: { initialZipcode?: string })
     if (statusFilter !== 'all' && p.status !== statusFilter) return false
     if (cityFilter   !== 'all' && p.city !== cityFilter)     return false
     if (typeFilter   !== 'all' && p.property_type !== typeFilter) return false
+    if (phaseFilter  !== 'all' && p.mandate_score?.phase !== phaseFilter) return false
     return true
   })
+
+  // Tri par score mandat côté client (le score n'est pas une colonne SQL) ;
+  // les autres tris restent gérés côté serveur.
+  const sorted = sortBy === 'mandate_score'
+    ? [...filtered].sort((a, b) => {
+        const av = a.mandate_score?.score ?? -1
+        const bv = b.mandate_score?.score ?? -1
+        return sortOrder === 'asc' ? av - bv : bv - av
+      })
+    : filtered
 
   return (
     <div className="space-y-6">
@@ -308,6 +331,18 @@ export function PropertiesTable({ initialZipcode }: { initialZipcode?: string })
                 {types.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
               </SelectContent>
             </Select>
+            <Select value={phaseFilter} onValueChange={(v) => setPhaseFilter(v as 'all' | SellerPhase)}>
+              <SelectTrigger className="h-9 w-[160px]">
+                <SelectValue placeholder="Phase vendeur" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes les phases</SelectItem>
+                <SelectItem value="golden">Fenêtre d&apos;or</SelectItem>
+                <SelectItem value="hot">Chaud</SelectItem>
+                <SelectItem value="warm">Tiède</SelectItem>
+                <SelectItem value="cold">Froid</SelectItem>
+              </SelectContent>
+            </Select>
             <Button variant="ghost" size="sm" className="h-9">
               <SlidersHorizontal className="h-4 w-4 mr-1" />
               Filtres
@@ -318,7 +353,7 @@ export function PropertiesTable({ initialZipcode }: { initialZipcode?: string })
 
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          {filtered.length} résultat{filtered.length !== 1 ? 's' : ''}
+          {sorted.length} résultat{sorted.length !== 1 ? 's' : ''}
         </p>
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">Trier par :</span>
@@ -327,6 +362,7 @@ export function PropertiesTable({ initialZipcode }: { initialZipcode?: string })
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="mandate_score">Score mandat</SelectItem>
               <SelectItem value="last_seen_at">Dernière vue</SelectItem>
               <SelectItem value="price">Prix</SelectItem>
               <SelectItem value="surface">Surface</SelectItem>
@@ -369,7 +405,7 @@ export function PropertiesTable({ initialZipcode }: { initialZipcode?: string })
                     </td>
                   </tr>
                 )}
-                {!loading && filtered.map((prop) => {
+                {!loading && sorted.map((prop) => {
                   const badge = STATUS_BADGES[prop.status ?? '']
                   const days = daysOnline(prop.first_seen_at)
                   const dpe = prop.dpe?.toUpperCase()
@@ -437,10 +473,37 @@ export function PropertiesTable({ initialZipcode }: { initialZipcode?: string })
                       </td>
                       <td className="p-4 text-center">
                         {prop.mandate_score ? (
-                          <div className="flex flex-col items-center gap-1">
-                            <span className="text-sm font-semibold tabular-nums">{prop.mandate_score.score}</span>
-                            <SellerPhaseBadge phase={prop.mandate_score.phase} />
-                          </div>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="inline-flex flex-col items-center gap-1 cursor-help">
+                                <span className="text-sm font-semibold tabular-nums">{prop.mandate_score.score}</span>
+                                <SellerPhaseBadge phase={prop.mandate_score.phase} />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="left" className="w-56">
+                              <p className="font-medium mb-1.5">
+                                Détail du score — à étudier au cas par cas
+                              </p>
+                              <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs">
+                                <span>Temps en ligne</span>
+                                <span className="text-right tabular-nums">
+                                  {prop.mandate_score.days_online} j · {prop.mandate_score.time_score}/40
+                                </span>
+                                <span>Baisses de prix</span>
+                                <span className="text-right tabular-nums">
+                                  {prop.mandate_score.price_drops_count} · {prop.mandate_score.frustration_score}/30
+                                </span>
+                                <span>Intensité baisse</span>
+                                <span className="text-right tabular-nums">
+                                  {prop.mandate_score.total_drop_percent}% · {prop.mandate_score.drop_intensity_score}/15
+                                </span>
+                                <span>Comportement</span>
+                                <span className="text-right tabular-nums">
+                                  {prop.mandate_score.behavior_score}/15
+                                </span>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
                         ) : (
                           <span className="text-xs text-muted-foreground">—</span>
                         )}

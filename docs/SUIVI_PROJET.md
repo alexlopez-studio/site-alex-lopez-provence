@@ -81,6 +81,9 @@ Lot 4 -> Lot 5 (Monitoring)
 3. Corriger ou documenter l'etat des tables Radar Supabase (`listings`, `listing_events`) selon l'environnement cible.
 4. Reactiver/verifier la garde auth admin avant toute mise en production.
 
+> Backlog produit (features post-MVP : espace client, stats client, gestion de projet
+> de la vente, KPI, marque, intégration Plaud Pro) : voir `docs/BACKLOG.md`.
+
 ## Taches Ouvertes Courantes
 
 - En cours : design logiciel Mandat OS, navigation et ergonomie backoffice.
@@ -90,6 +93,20 @@ Lot 4 -> Lot 5 (Monitoring)
 - A maintenir : tenir `docs/START.md`, `docs/MEMOIRE_SESSION.md`, `docs/SUIVI_PROJET.md` et `docs/ROUTES.md` alignes avec les routes canoniques `/app/*`.
 
 ## Journal de Bord
+
+### 22/06/2026 - Tri/filtre par score mandat + breakdown des sous-scores
+- Base/branche : `preview` (local non commité).
+- Type : feature — triage du marché par score mandat.
+- Statut : **fait** (tsc OK ; `/app/properties` 200).
+- Contexte / décision (Alexandre) : le score mandat final doit être un **indicateur de triage important mais non déterminant** — les 4 sous-scores (Temps/Frustration/Intensité/Comportement) doivent rester étudiables au cas par cas. Donc surfacer le détail, pas seulement l'agrégat.
+- Travail (tout dans `PropertiesTable.tsx`, côté client car le score n'est pas une colonne SQL et la table charge ≤100 biens filtrés par zone) :
+  1. **Tri « Score mandat »** ajouté au Select de tri ; tri appliqué en mémoire sur le score (les tris prix/surface/dernière vue restent serveur).
+  2. **Filtre « Phase vendeur »** (Toutes / Fenêtre d'or / Chaud / Tiède / Froid) → filtre `mandate_score.phase`.
+  3. **Tooltip de breakdown** sur la cellule score : Temps (j · /40), Baisses (n · /30), Intensité (% · /15), Comportement (/15), avec mention « à étudier au cas par cas ». Le détail complet reste aussi dans la carte de la fiche bien.
+- Fichiers : `src/app/admin/market/properties/PropertiesTable.tsx`, `docs/SUIVI_PROJET.md`.
+- Audit qualité : `npx tsc --noEmit` OK ; `/app/properties` répond 200.
+- Point d'attention : tri/filtre opèrent sur la page chargée (≤100 biens par zone) ; si un jour une zone dépasse ce volume, prévoir un tri/filtre score côté serveur (full-scan + scoring) avec pagination.
+- Suite : commit sur `preview` après validation ; pré-remplir le `signal_type`/priorité d'opportunité selon la phase à la création.
 
 ### 21/06/2026 - CŒUR : MandateProbabilityScore branché sur les biens réels
 - Base/branche : `preview` (local non commité).
