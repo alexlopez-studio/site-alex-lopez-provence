@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { scoreMarketProperty } from '@/lib/market/mandate-score'
 
 /**
  * GET /api/market/properties/:id
@@ -62,8 +63,11 @@ export async function GET(
       .order('created_at', { ascending: false })
       .limit(10)
 
-    // Déduction métier : lecture du signal
-    const signal = buildBusinessSignal(property, priceHistory ?? [])
+    // Score métier (MandateProbabilityScore) sur le bien réel
+    const mandateScore = scoreMarketProperty(property, priceHistory ?? [])
+
+    // Déduction métier : lecture du signal (jours en ligne dérivés du score)
+    const signal = buildBusinessSignal(property, priceHistory ?? [], mandateScore.days_online)
 
     return NextResponse.json({
       property,
@@ -73,6 +77,7 @@ export async function GET(
       opportunity: opportunity ?? null,
       notifications: notifications ?? [],
       signal,
+      mandate_score: mandateScore,
     })
   } catch (e) {
     console.error('[API /market/properties/:id]', e)
@@ -114,6 +119,7 @@ export async function PATCH(
 function buildBusinessSignal(
   property: Record<string, unknown>,
   priceHistory: Array<Record<string, unknown>>,
+  daysOnline: number,
 ): {
   summary: string
   interesting: string[]
@@ -123,7 +129,6 @@ function buildBusinessSignal(
   const interesting: string[] = []
   const concerns: string[] = []
 
-  const daysOnline = property.days_online ?? 0
   const price = Number(property.price) || 0
   const surface = Number(property.surface) || 0
   const pricePerM2 = Number(property.price_per_m2) || 0

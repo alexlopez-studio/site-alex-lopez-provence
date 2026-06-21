@@ -91,6 +91,32 @@ Lot 4 -> Lot 5 (Monitoring)
 
 ## Journal de Bord
 
+### 21/06/2026 - CŒUR : MandateProbabilityScore branché sur les biens réels
+- Base/branche : `preview` (local non commité).
+- Type : feature — cœur métier / avantage concurrentiel.
+- Statut : **fait** (testé live sur les 5 biens Pontevès ; tsc OK).
+- Contexte / diagnostic : le moteur de score différenciateur (`MandateProbabilityScore`, 0-100, 4 axes Temps/Frustration/Intensité/Comportement → phases cold/warm/hot/golden) existait déjà dans `src/lib/mandat/scoring-service.ts` MAIS tournait à vide : il était câblé au monde `dashboard/radar` qui lit les tables `listings`/`listing_events`/`seller_scores` **absentes en base live**. Pendant ce temps, les vrais biens synchronisés (`market_properties`) ne recevaient qu'une heuristique en prose ad-hoc (`buildBusinessSignal`). Bug latent découvert au passage : `market_properties` n'a **pas** de colonne `days_online` → l'heuristique lisait `property.days_online` toujours `undefined` (axe temps jamais déclenché).
+- Décision (Alexandre) : **porter le score sur `market_properties`** (source de vérité unique = les données synchronisées), pas de nouvelles tables.
+- Travail :
+  1. **Adaptateur** `src/lib/market/mandate-score.ts` (nouveau) : `scoreMarketProperty(property, priceHistory)` dérive `days_online` depuis `first_seen_at` (jusqu'à maintenant si actif, sinon `last_seen_at`), compte les baisses et calcule la baisse totale % depuis le prix d'origine via `property_price_history`, puis appelle `calculateScore()`. Axe comportement (republication) non encore tracé par la sync → `isRelisted=false` (15 pts non exploités, TODO documenté).
+  2. **Route détail** `GET /api/market/properties/[id]` : ajoute `mandate_score` dans la réponse ; `buildBusinessSignal` reçoit désormais le `days_online` calculé (corrige le bug latent de l'axe temps).
+  3. **Route liste** `GET /api/market/properties` : un seul appel groupé `property_price_history` (`.in('market_property_id', ids)`) pour la page courante, puis scoring en mémoire → chaque bien porte `mandate_score`.
+  4. **UI** : colonne « Score mandat » (score + badge phase) dans `PropertiesTable.tsx` ; carte « Score mandat » dans `PropertyDetail.tsx` (jauge 0-100 colorée par phase + détail des 4 axes). Réutilise `SellerPhaseBadge` du monde radar.
+- Fichiers : `src/lib/market/mandate-score.ts` (nouveau), `src/app/api/market/properties/[id]/route.ts`, `src/app/api/market/properties/route.ts`, `src/app/admin/market/properties/PropertiesTable.tsx`, `src/app/admin/market/properties/[id]/PropertyDetail.tsx`, `docs/SUIVI_PROJET.md`.
+- Audit qualité : `npx tsc --noEmit` OK ; test live `/api/market/properties?limit=5` → 5 biens Pontevès scorés (tous `cold` score 5 : ≤30 j, 0 baisse — cohérent avec des annonces récentes) ; détail `f773d231…` → `mandate_score` complet avec breakdown ; pages `/app/properties` et `/app/properties/[id]` répondent 200, aucune erreur runtime liée (seules erreurs log = `/api/matching` préexistant, tables absentes).
+- Point d'attention : (a) tant que les biens sont récents et sans baisse, tout reste `cold` — la différenciation hot/golden apparaîtra avec l'ancienneté + les baisses détectées par la sync ; (b) axe comportement (republication) à activer côté sync ; (c) le monde `dashboard/radar` (tables `listings`) reste en doublon, non utilisé par le pipeline réel — à retirer/réconcilier plus tard.
+- Suite : commit sur `preview` après validation Alexandre ; envisager un seuil de phase qui pré-remplit le `signal_type` à la création d'opportunité, et un tri/filtre par score dans la table.
+
+### 21/06/2026 - reprise de session + consolidation tracée
+- Base/branche : `preview`, alignée sur `origin/preview` (working tree propre).
+- Type : suivi projet / reprise de session.
+- Statut : **fait**.
+- Résumé : reprise de session. Serveur Next relancé via `npm run dev -- --port 3002` (Next 15.5.15 Turbopack, prêt en ~1,7 s) ; routes vérifiées `/app/dashboard`, `/app/zones`, `/` → toutes `200`. Traçage explicite du commit de consolidation **`d9eceff`** (2026-06-20 00:57) « feat(mandat-os): zones commune-exacte + pont biens→opportunités + fiche bien réelle » : il regroupe les 3 chantiers décrits dans les entrées 19/06 11:05 (zones INSEE), 20/06 00:36 (pont biens→opportunités) et 20/06 01:05 (fiche bien réelle), qui étaient « local non commité ». Ce travail est désormais **commité ET poussé** sur `origin/preview`. La « Suite : commit unique sur preview » de ces entrées est donc réalisée.
+- Fichiers : `docs/SUIVI_PROJET.md`.
+- Audit qualité : `curl` HTTP local OK (3 routes `200`) ; `git status` propre, `preview` == `origin/preview`.
+- Point d'attention : les sections « Avancement par Lot » et « Métriques » plus bas restent historiques (ère Linear) et ne reflètent pas l'état réel — voir note ligne 18.
+- Suite : **pivot vers le cœur de l'application** (avantage concurrentiel) — moteur de détection/qualification d'opportunités de mandat. Cadre à définir avec Alexandre avant implémentation.
+
 ### 20/06/2026 - 01:05 CEST
 - Base/branche : `preview`.
 - Type : feature — fiche bien `/app/properties/[id]` réelle (fin du mock).
@@ -471,5 +497,5 @@ Deployment: Work, declenche un deployment Vercel pour la branche preview.
 - Progression globale: 0%
 
 ---
-Derniere mise a jour: 09/06/2026
-Maintenu par: Work (IA) avec Mistral
+Derniere mise a jour: 21/06/2026
+Maintenu par: Claude Code (sur `preview`)

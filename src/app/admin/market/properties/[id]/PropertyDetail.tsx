@@ -29,6 +29,8 @@ import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import type { SellerPhase } from '@/lib/mandat/types'
+import { SellerPhaseBadge } from '@/app/dashboard/radar/_components/SellerPhaseBadge'
 
 // ── Types (réponse /api/market/properties/[id]) ─────────────
 
@@ -73,6 +75,18 @@ interface Signal {
   recommendedAction: string
 }
 
+interface MandateScoreView {
+  score: number
+  phase: SellerPhase
+  time_score: number
+  frustration_score: number
+  drop_intensity_score: number
+  behavior_score: number
+  days_online: number
+  price_drops_count: number
+  total_drop_percent: number
+}
+
 interface PropertyDetailData {
   property: PropertyRow
   price_history: PriceHistoryRow[]
@@ -80,6 +94,7 @@ interface PropertyDetailData {
   notes: NoteRow[]
   opportunity: LinkedOpportunity | null
   signal: Signal | null
+  mandate_score?: MandateScoreView | null
 }
 
 interface BuyerMatch {
@@ -262,7 +277,7 @@ export function PropertyDetail() {
     )
   }
 
-  const { property, price_history, tags, notes, opportunity, signal } = data
+  const { property, price_history, tags, notes, opportunity, signal, mandate_score } = data
   const originalPrice = originalPriceFrom(price_history)
   const dropPercent = originalPrice && property.price != null && originalPrice > property.price
     ? ((originalPrice - property.price) / originalPrice) * 100
@@ -503,6 +518,60 @@ export function PropertyDetail() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Score mandat (MandateProbabilityScore calculé côté API) */}
+          {mandate_score && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <TrendingDown className="h-4 w-4 text-brand" />
+                  Score mandat
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Probabilité d&apos;obtenir le mandat (fenêtre d&apos;or vendeur)
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-end justify-between">
+                  <span className="text-3xl font-bold tabular-nums leading-none">
+                    {mandate_score.score}
+                    <span className="text-sm font-normal text-muted-foreground">/100</span>
+                  </span>
+                  <SellerPhaseBadge phase={mandate_score.phase} />
+                </div>
+                <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                  <div
+                    className={cn(
+                      'h-full rounded-full transition-all',
+                      mandate_score.phase === 'golden' && 'bg-red-500',
+                      mandate_score.phase === 'hot' && 'bg-orange-500',
+                      mandate_score.phase === 'warm' && 'bg-yellow-500',
+                      mandate_score.phase === 'cold' && 'bg-gray-400',
+                    )}
+                    style={{ width: `${mandate_score.score}%` }}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                  <span>Temps en ligne</span>
+                  <span className="text-right tabular-nums text-foreground">
+                    {mandate_score.days_online} j · {mandate_score.time_score}/40
+                  </span>
+                  <span>Baisses de prix</span>
+                  <span className="text-right tabular-nums text-foreground">
+                    {mandate_score.price_drops_count} · {mandate_score.frustration_score}/30
+                  </span>
+                  <span>Intensité baisse</span>
+                  <span className="text-right tabular-nums text-foreground">
+                    {mandate_score.total_drop_percent}% · {mandate_score.drop_intensity_score}/15
+                  </span>
+                  <span>Comportement</span>
+                  <span className="text-right tabular-nums text-foreground">
+                    {mandate_score.behavior_score}/15
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Signal métier (calculé côté API) */}
           {signal && (

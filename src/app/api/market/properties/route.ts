@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { purgeMarketPropertiesByIds } from '@/lib/market/property-cleanup'
+import { scoreMarketProperty, type PriceHistoryRow } from '@/lib/market/mandate-score'
 
 /**
  * GET /api/market/properties
@@ -75,9 +76,30 @@ export async function GET(req: NextRequest) {
       filtered = filtered.filter(p => idsWithTag.has(p.id))
     }
 
+    // Score métier (MandateProbabilityScore) pour la page courante :
+    // un seul appel groupé sur l'historique de prix, puis scoring en mémoire.
+    const ids = filtered.map((p) => p.id)
+    const historyByProperty = new Map<string, PriceHistoryRow[]>()
+    if (ids.length > 0) {
+      const { data: history } = await supabaseAdmin
+        .from('property_price_history')
+        .select('market_property_id, old_price, new_price, variation_amount, variation_percent, detected_at')
+        .in('market_property_id', ids)
+      for (const row of history ?? []) {
+        const key = row.market_property_id as string
+        if (!historyByProperty.has(key)) historyByProperty.set(key, [])
+        historyByProperty.get(key)!.push(row as PriceHistoryRow)
+      }
+    }
+
+    const withScore = filtered.map((property) => ({
+      ...property,
+      mandate_score: scoreMarketProperty(property, historyByProperty.get(property.id) ?? []),
+    }))
+
     return NextResponse.json({
-      properties: filtered,
-      total: count ?? filtered.length,
+      properties: withScore,
+      total: count ?? withScore.length,
       page,
       limit,
     })

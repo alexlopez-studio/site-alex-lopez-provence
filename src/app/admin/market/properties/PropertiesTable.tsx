@@ -38,6 +38,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
+import type { SellerPhase } from '@/lib/mandat/types'
+import { SellerPhaseBadge } from '@/app/dashboard/radar/_components/SellerPhaseBadge'
 
 interface PropertyRow {
   id: string
@@ -56,6 +58,7 @@ interface PropertyRow {
   first_seen_at: string | null
   last_seen_at: string | null
   url: string | null
+  mandate_score?: { score: number; phase: SellerPhase } | null
 }
 
 interface ZoneContext {
@@ -353,6 +356,7 @@ export function PropertiesTable({ initialZipcode }: { initialZipcode?: string })
                   <th className="text-right p-4 font-medium text-muted-foreground">Prix/m²</th>
                   <th className="text-center p-4 font-medium text-muted-foreground">DPE</th>
                   <th className="text-center p-4 font-medium text-muted-foreground">Statut</th>
+                  <th className="text-center p-4 font-medium text-muted-foreground">Score mandat</th>
                   <th className="text-center p-4 font-medium text-muted-foreground">En ligne</th>
                   <th className="w-[50px] p-4"></th>
                 </tr>
@@ -360,7 +364,7 @@ export function PropertiesTable({ initialZipcode }: { initialZipcode?: string })
               <tbody>
                 {loading && (
                   <tr>
-                    <td colSpan={9} className="p-8 text-center text-sm text-muted-foreground">
+                    <td colSpan={10} className="p-8 text-center text-sm text-muted-foreground">
                       Chargement…
                     </td>
                   </tr>
@@ -429,6 +433,16 @@ export function PropertiesTable({ initialZipcode }: { initialZipcode?: string })
                           </Badge>
                         ) : (
                           <span className="text-xs text-muted-foreground capitalize">{prop.status ?? '—'}</span>
+                        )}
+                      </td>
+                      <td className="p-4 text-center">
+                        {prop.mandate_score ? (
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="text-sm font-semibold tabular-nums">{prop.mandate_score.score}</span>
+                            <SellerPhaseBadge phase={prop.mandate_score.phase} />
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
                         )}
                       </td>
                       <td className="p-4 text-center">
