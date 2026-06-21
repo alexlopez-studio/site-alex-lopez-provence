@@ -75,14 +75,48 @@ Lot 2 -> Lot 4 (Moteur de Regles)
 Lot 3 -> Lot 4
 Lot 4 -> Lot 5 (Monitoring)
 
-## Prochaines Etapes
-1. Continuer l'unification UX de Mandat OS depuis les routes canoniques `/app/*`.
-2. Auditer la sidebar et les routes principales `/app/*` avec Playwright quand l'environnement de test est pret.
-3. Corriger ou documenter l'etat des tables Radar Supabase (`listings`, `listing_events`) selon l'environnement cible.
-4. Reactiver/verifier la garde auth admin avant toute mise en production.
+## Prochaines Etapes — MVP « trouver des vendeurs → récupérer des mandats »
 
-> Backlog produit (features post-MVP : espace client, stats client, gestion de projet
-> de la vente, KPI, marque, intégration Plaud Pro) : voir `docs/BACKLOG.md`.
+Objectif MVP recentré : la seule chose qui compte pour le MVP est de **détecter les
+vendeurs en fenêtre d'or et déclencher la prise de contact pour obtenir le mandat**.
+Le reste (espace client, gestion de projet, etc.) vient ensuite — voir `docs/BACKLOG.md`.
+
+Constat déterminant : le `mandate_score` est branché mais ne peut pas encore révéler de
+fenêtre d'or. L'axe Temps (40 pts) monte passivement avec le calendrier, mais les axes
+Frustration + Intensité (45 pts, le signal le plus fort) et Comportement (15 pts) ne se
+déclenchent **que si on resynchronise dans le temps** (détection des baisses de prix et
+des republications). Sans sync récurrente → tout reste `cold` → aucun vendeur à contacter.
+
+### P0 — sans ça, la boucle ne tourne pas
+1. **Sync récurrente contrôlée** : cadence retenue **1×/jour la nuit** (cron ~`0 3 * * *`),
+   garde-fous budget déjà en place (migrations 009/010/011).
+   ⚠️ **Piège identifié** : le cron existant `/api/jobs/import-stream-estate` appelle
+   `importAllListings()` qui écrit dans la table **`listings` (monde radar mort)**, PAS
+   dans `market_properties` où tourne le score. Le réactiver tel quel brûlerait des
+   crédits **sans alimenter le score**. → P0.1 réel = **créer/repointer un job cron qui
+   itère `monitored_zones` et lance la logique de `/api/market/sync` par zone** (même flux
+   que « Confirmer la sync »), avec auth cron + plafond budget. Puis `vercel.json` →
+   `"crons": [{ "path": "...", "schedule": "0 3 * * *" }]`.
+2. **Détection baisse de prix + republication → score** : vérifier que
+   `property_price_history` s'accumule bien au fil des syncs, brancher la détection
+   retrait/republication pour réveiller l'axe Comportement (15 pts dormants dans
+   `mandate-score.ts`, `isRelisted=false`).
+
+### P1 — transformer la détection en action
+3. **Surfaçage « à contacter »** : écran/widget des vendeurs en phase chaud/golden +
+   alerte au franchissement de seuil (réutiliser `src/lib/mandat/alert-service.ts` +
+   `golden-alert-template`).
+4. **Workflow prospection → mandat** : depuis un bien chaud, capturer le contact vendeur
+   et le statut de prise de contact, relié à l'opportunité, jusqu'au stage « mandat obtenu ».
+
+### P1.5 — fiabilité pour usage réel
+5. **Réactiver/sécuriser la garde auth admin** (actuellement neutralisée en local) avant
+   toute utilisation en conditions réelles.
+
+### Le reste (plus tard)
+- Backlog produit (espace client, stats client, gestion de projet, KPI, marque, Plaud Pro) : `docs/BACKLOG.md`.
+- Nettoyage du monde `dashboard/radar` mort (tables `listings`/`listing_events` absentes).
+- Unification UX `/app/*` + audit Playwright.
 
 ## Taches Ouvertes Courantes
 
@@ -93,6 +127,30 @@ Lot 4 -> Lot 5 (Monitoring)
 - A maintenir : tenir `docs/START.md`, `docs/MEMOIRE_SESSION.md`, `docs/SUIVI_PROJET.md` et `docs/ROUTES.md` alignes avec les routes canoniques `/app/*`.
 
 ## Journal de Bord
+
+### 22/06/2026 - Recentrage MVP sur la boucle mandat (priorisation)
+- Base/branche : `preview`.
+- Type : décision / cadrage produit.
+- Statut : **fait** (priorisation tracée ; aucune implémentation).
+- Décision (Alexandre) : recentrer le MVP sur l'essentiel = **trouver des vendeurs et
+  récupérer des mandats** ; le reste se fera ensuite.
+- Constat déterminant : le `mandate_score` est branché mais ne discrimine pas encore.
+  L'axe Temps monte passivement, mais les baisses de prix (45 pts, signal le plus fort)
+  et les republications (15 pts) ne se détectent **qu'avec une sync récurrente**. Sans
+  elle, tout reste `cold` → aucun vendeur chaud → pas de mandat. Donc la priorité n°1
+  n'est pas de l'UI mais la **réactivation de la sync récurrente contrôlée** (garde-fous
+  budget 009/010/011 déjà en place ; `vercel.json` → `"crons": []` actuellement).
+- Plan priorisé (détail dans « Prochaines Etapes ») : P0 = sync récurrente + détection
+  baisse/republication branchée au score ; P1 = surfaçage « à contacter » + workflow
+  prospection→mandat ; P1.5 = réactiver l'auth admin ; le reste = backlog.
+- Cadence validée (Alexandre) : **1×/jour la nuit** (cron ~`0 3 * * *`).
+- ⚠️ Constat à l'analyse de P0.1 : le cron existant `import-stream-estate` alimente la
+  table `listings` (monde radar mort), pas `market_properties`. Réactiver en l'état =
+  crédits brûlés sans effet sur le score. P0.1 doit donc créer/repointer un job qui itère
+  `monitored_zones` et lance le flux `/api/market/sync` par zone (détail dans « Prochaines Etapes »).
+- Fichiers : `docs/SUIVI_PROJET.md`.
+- Audit qualité : non applicable (cadrage).
+- Suite : implémenter P0.1 = job cron market-sync par zone (à coder, pas un simple flag), puis brancher `vercel.json`.
 
 ### 22/06/2026 - Tri/filtre par score mandat + breakdown des sous-scores
 - Base/branche : `preview` (local non commité).
