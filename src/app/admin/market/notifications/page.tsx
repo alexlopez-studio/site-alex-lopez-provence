@@ -110,6 +110,21 @@ export default function NotificationsPage() {
     }
   }
 
+  async function archive(id: string) {
+    const wasUnread = notifications.find((n) => n.id === id)?.status === 'unread'
+    setNotifications((prev) => prev.filter((n) => n.id !== id))
+    if (wasUnread) setUnreadCount((c) => Math.max(0, c - 1))
+    try {
+      await fetch(`/api/market/notifications/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'archived' }),
+      })
+    } finally {
+      loadCount()
+    }
+  }
+
   async function markAllRead() {
     setNotifications((prev) => prev.map((n) => ({ ...n, status: 'read' })))
     setUnreadCount(0)
@@ -196,6 +211,9 @@ export default function NotificationsPage() {
                           <Check className="h-3 w-3 mr-1" /> Marquer lu
                         </Button>
                       )}
+                      <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => archive(notif.id)}>
+                        <Archive className="h-3 w-3 mr-1" /> Archiver
+                      </Button>
                     </div>
                   </div>
                 </div>

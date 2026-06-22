@@ -34,6 +34,9 @@ export async function PATCH(
       if (body.status === 'read') {
         updateData.read_at = new Date().toISOString()
       }
+      if (body.status === 'archived') {
+        updateData.resolved_at = new Date().toISOString()
+      }
     }
 
     const { data: notification, error } = await supabaseAdmin

@@ -131,6 +131,27 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
 
 ## Journal de Bord
 
+### 22/06/2026 - Cloche notifications en header (haut droite) + archivage
+- Base/branche : `preview` (local non commité au moment de l'écriture).
+- Type : feature — accès direct aux notifications + action archiver.
+- Statut : **fait** (testé end-to-end, données de test nettoyées ; tsc OK).
+- Demande (Alexandre) : notification visible en haut à droite du dashboard + pouvoir
+  marquer lu **et** archiver.
+- Constat : `NotificationsSheet` n'était **montée nulle part** ; le shell `/app/*` (`MarketShell`)
+  n'avait **pas de header**.
+- Travail :
+  1. `MarketShell.tsx` : ajout d'une barre d'en-tête (`SidebarTrigger` + cloche `NotificationsSheet`
+     en haut à droite via `ml-auto`) → visible sur **toutes** les pages `/app` dont le dashboard.
+  2. Archivage : `PATCH /api/market/notifications/[id]` pose `resolved_at` quand `status='archived'` ;
+     `GET` exclut les archivées par défaut (`.neq('status','archived')` si aucun filtre statut).
+  3. Bouton **Archiver** ajouté dans la cloche **et** la page `/app/notifications` (+ marquer lu déjà présent).
+- Fichiers : `src/app/admin/market/MarketShell.tsx`, `src/components/admin/NotificationsSheet.tsx`,
+  `src/app/admin/market/notifications/page.tsx`, `src/app/api/market/notifications/route.ts`,
+  `src/app/api/market/notifications/[id]/route.ts`, `docs/SUIVI_PROJET.md`.
+- Audit qualité : `npx tsc --noEmit` OK ; `/app/dashboard` + `/app/notifications` 200 ; flux archive
+  testé (visible → `archived` + `resolved_at` → exclu du GET défaut) ; notif de test supprimée.
+- Suite : activer la sync nocturne ; P1.5 (auth admin).
+
 ### 22/06/2026 - Audit des écrans + page Notifications branchée au réel
 - Base/branche : `preview` (local non commité au moment de l'écriture).
 - Type : audit / nettoyage.

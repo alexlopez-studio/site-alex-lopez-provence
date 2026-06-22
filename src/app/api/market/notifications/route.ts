@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
 
     // Filtres
     if (status) query = query.eq('status', status)
+    else query = query.neq('status', 'archived') // par défaut, on masque les archivées
     if (priority) query = query.eq('priority', priority)
     if (type) query = query.eq('type', type)
 

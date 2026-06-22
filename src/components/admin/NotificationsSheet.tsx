@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { Bell, BellDot, Check, Loader2 } from 'lucide-react'
+import { Bell, BellDot, Check, Archive, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -107,6 +107,21 @@ export function NotificationsSheet() {
         body: JSON.stringify({ status: 'read' }),
       })
     } catch {
+      loadCount()
+    }
+  }
+
+  async function archive(id: string) {
+    const wasUnread = notifications.find((n) => n.id === id)?.status === 'unread'
+    setNotifications((prev) => prev.filter((n) => n.id !== id))
+    if (wasUnread) setUnreadCount((c) => Math.max(0, c - 1))
+    try {
+      await fetch(`/api/market/notifications/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'archived' }),
+      })
+    } finally {
       loadCount()
     }
   }
@@ -218,6 +233,15 @@ export function NotificationsSheet() {
                       <Check className="h-3.5 w-3.5" />
                     </Button>
                   )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    title="Archiver"
+                    onClick={() => archive(notif.id)}
+                  >
+                    <Archive className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
               </div>
             ))
