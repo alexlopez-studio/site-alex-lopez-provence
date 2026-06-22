@@ -100,9 +100,12 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
    migration. Détail : entrée journal 22/06. À valider sur données réelles quand la sync tourne.
 
 ### P1 — transformer la détection en action
-3. **Surfaçage « à contacter »** : écran/widget des vendeurs en phase chaud/golden +
-   alerte au franchissement de seuil (réutiliser `src/lib/mandat/alert-service.ts` +
-   `golden-alert-template`).
+3. **Surfaçage « à contacter »** :
+   - ✅ a. **Widget dashboard FAIT** (22/06) : `VendeursAContacter` (phases golden+hot, top 8).
+   - ⏳ b. **Alertes au franchissement de seuil** : à faire — nécessite de **persister le
+     score/phase** (colonne ou table) pour comparer entre deux syncs et émettre une
+     notification quand un bien passe en hot/golden (réutiliser `src/lib/mandat/alert-service.ts`
+     + `golden-alert-template`).
 4. **Workflow prospection → mandat** : depuis un bien chaud, capturer le contact vendeur
    et le statut de prise de contact, relié à l'opportunité, jusqu'au stage « mandat obtenu ».
 
@@ -124,6 +127,31 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
 - A maintenir : tenir `docs/START.md`, `docs/MEMOIRE_SESSION.md`, `docs/SUIVI_PROJET.md` et `docs/ROUTES.md` alignes avec les routes canoniques `/app/*`.
 
 ## Journal de Bord
+
+### 22/06/2026 - P1.a : widget « Vendeurs à contacter » sur le dashboard
+- Base/branche : `preview` (local non commité au moment de l'écriture).
+- Type : feature — transformer la détection en action (surfaçage).
+- Statut : **fait** (tsc OK ; dashboard 200 ; widget monté).
+- Contexte : le dashboard `/app/dashboard` (= `admin/market/page.tsx`) était encore le
+  template shadcn (SectionCards/Chart/DataTable sur `data.json` statique). On y ajoute un
+  premier bloc branché au réel : les vendeurs en fenêtre d'or à prospecter en priorité.
+- Travail :
+  1. **Nouveau** `src/app/admin/market/VendeursAContacter.tsx` (client) : fetch
+     `/api/market/properties?limit=100`, filtre les phases `golden`+`hot`, tri par score
+     décroissant, top 8. Chaque ligne : titre, ville (CP), motif (`X j en ligne · N baisses
+     (-Y%)`), prix, score + `SellerPhaseBadge`, lien vers la fiche bien. État vide explicite
+     (« les signaux émergent avec la sync récurrente »). Bouton refresh + « Voir le marché ».
+  2. `admin/market/page.tsx` : widget inséré en tête de `PageSection`.
+- Distinction importante : ce « à contacter » (vendeurs détectés par le score sur
+  `market_properties`) est **différent** de `liste-chaude` / `warm-contacts` (CRM de contacts
+  saisis manuellement, migration 006).
+- Fichiers : `src/app/admin/market/VendeursAContacter.tsx` (nouveau), `src/app/admin/market/page.tsx`, `docs/SUIVI_PROJET.md`.
+- Audit qualité : `npx tsc --noEmit` OK ; `/app/dashboard` 200 ; widget présent dans le HTML rendu ; aucun log d'erreur.
+- Point d'attention : actuellement tous les biens sont `cold` → le widget affiche l'état
+  vide (normal). Il se remplira quand la sync récurrente fera monter les scores. Filtrage/tri
+  côté client sur la page chargée (≤100 biens/zone), cohérent avec PropertiesTable.
+- Suite : P1.b — alertes au franchissement de seuil (nécessite de **persister le score/phase**
+  pour comparer entre deux syncs) ; puis P1 item 4 (workflow prospection → mandat).
 
 ### 22/06/2026 - P0.2 : baisses de prix + republication branchées au score
 - Base/branche : `preview` (local non commité au moment de l'écriture).

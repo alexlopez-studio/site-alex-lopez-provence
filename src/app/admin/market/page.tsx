@@ -5,6 +5,7 @@ import { SectionCards } from '@/components/section-cards'
 import { ChartAreaInteractive } from '@/components/chart-area-interactive'
 import { DataTable } from '@/components/data-table'
 import { PageHeader, PageShell, PageSection } from '@/components/pro'
+import { VendeursAContacter } from './VendeursAContacter'
 import data from './data.json'
 
 export default function MarketPage() {
@@ -29,6 +30,7 @@ export default function MarketPage() {
           }
         />
         <PageSection>
+          <VendeursAContacter />
           <SectionCards />
           <ChartAreaInteractive />
           <DataTable data={data} />
