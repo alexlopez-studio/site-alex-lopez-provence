@@ -452,6 +452,24 @@ export async function POST(req: NextRequest) {
             }).catch((err) =>
               console.error('[Sync] Erreur matching auto pour nouveau bien:', err)
             )
+
+            // Notification déterministe « nouveau bien » (push in-app, type new_listing).
+            const fmtPrice = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
+            const isPap = listing.sellerType === 'individual'
+            const where = [listing.city, listing.zipcode ?? zipcode].filter(Boolean).join(' ')
+            const sellerLabel = isPap ? ' · Particulier' : listing.sellerType === 'agency' ? ' · Agence' : ''
+            const { error: newListingNotifError } = await supabaseAdmin.from('notifications').insert({
+              type: 'new_listing',
+              title: `Nouveau bien : ${listing.title ?? 'annonce'}`,
+              message: `${where}${listing.price ? ` — ${fmtPrice.format(listing.price)}` : ''}${sellerLabel}`,
+              priority: isPap ? 'high' : 'medium',
+              market_property_id: newProperty.id,
+              status: 'unread',
+              action_label: 'Voir le bien',
+            } as never)
+            if (newListingNotifError) {
+              console.error(`[Sync] Notif nouveau bien ${externalId} impossible:`, newListingNotifError.message)
+            }
           }
 
           // Score initial persisté (alerte possible si déjà hot/golden à la 1re vue).

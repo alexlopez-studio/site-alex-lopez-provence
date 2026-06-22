@@ -131,6 +131,28 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
 
 ## Journal de Bord
 
+### 22/06/2026 - Push « nouveaux biens » dans la cloche in-app
+- Base/branche : `preview` (local non commité au moment de l'écriture).
+- Type : feature — notifier les nouveaux biens (canal retenu : cloche in-app).
+- Statut : **fait** (testé end-to-end, données de test nettoyées ; tsc OK).
+- Décision (Alexandre) : « push » = la **cloche in-app**, filtrée aux nouveaux biens (pas d'email/web-push).
+- Travail :
+  1. `sync/route.ts` (branche création) : émission d'une notification **déterministe**
+     `type='new_listing'` par bien réellement créé (titre, ville/CP/prix/PAP-agence, priorité
+     `high` si particulier, `market_property_id`, action « Voir le bien »).
+  2. `NotificationsSheet.tsx` : **branché au réel** (fin du mock) — `GET /api/market/notifications`
+     (filtre `type`), filtre **Nouveaux biens** (défaut) / **Tout**, badge non-lues réel,
+     marquer-lu via `PATCH /[id]`, action → `/app/properties/[id]`.
+- Constat : la règle seed « Nouveau bien » insère un type `rule_triggered` (pas `new_listing`) →
+  pas de conflit avec le filtre ; source fiable = l'émission déterministe à la découverte.
+- Fichiers : `src/app/api/market/sync/route.ts`, `src/components/admin/NotificationsSheet.tsx`, `docs/SUIVI_PROJET.md`.
+- Audit qualité : `npx tsc --noEmit` OK ; notif `new_listing` de test → visible via filtre API,
+  `PATCH {status:'read'}` → `read` + `read_at` posé ; **notif de test supprimée** ; `/app/dashboard` 200 ; plus de mock.
+- Point d'attention : ~132 notifications non lues héritées en base → la cloche affiche « 9+ »
+  (purge éventuelle hors périmètre). Les notifs `new_listing` n'arriveront automatiquement qu'aux
+  syncs de découverte (lundi / `?discover=1`).
+- Suite : activer la sync nocturne en prod ; P1.5 (auth admin).
+
 ### 22/06/2026 - KPI « Particuliers chauds » (PAP) au dashboard
 - Base/branche : `preview` (local non commité au moment de l'écriture).
 - Type : feature — valoriser la cible premium (PAP en fenêtre d'or).
