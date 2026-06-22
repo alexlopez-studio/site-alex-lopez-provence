@@ -2,10 +2,10 @@ import Link from 'next/link'
 import { MapPinIcon, Building2Icon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { ChartAreaInteractive } from '@/components/chart-area-interactive'
 import { PageHeader, PageShell, PageSection } from '@/components/pro'
 import { VendeursAContacter } from './VendeursAContacter'
 import { MandatKpiCards } from './MandatKpiCards'
+import { SyncDailyStats } from './SyncDailyStats'
 
 export default function MarketPage() {
   return (
@@ -35,7 +35,7 @@ export default function MarketPage() {
         <PageSection>
           <MandatKpiCards />
           <VendeursAContacter />
-          <ChartAreaInteractive />
+          <SyncDailyStats />
         </PageSection>
       </PageShell>
     </div>

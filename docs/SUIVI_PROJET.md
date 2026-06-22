@@ -131,6 +131,34 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
 
 ## Journal de Bord
 
+### 22/06/2026 - Dashboard : activité de sync Stream Estate par jour (téléchargés / mis à jour)
+- Base/branche : `preview` (local non commité au moment de l'écriture).
+- Type : feature — faire ressortir l'activité Stream Estate quotidienne.
+- Statut : **fait** (tsc OK ; dashboard 200 ; agrégation testée sur données réelles).
+- Demande (Alexandre) : le flux de prospection doit être connecté à l'API Stream Estate et
+  faire ressortir, **par jour**, le nombre de leads téléchargés et mis à jour.
+- Constat : la sync (`/api/market/sync`, branchée à Stream Estate) journalise déjà chaque run
+  dans `sync_runs` (`created_count`, `updated_count`, `external_item_count`, `estimated_cost_eur`,
+  `started_at`). Il manquait l'agrégation + l'affichage.
+- Travail :
+  1. **Nouveau** `GET /api/market/sync-daily-stats?days=14` : agrège `sync_runs` par jour
+     (clé de jour en Europe/Paris) → `today` + `daily[]` avec `downloaded` (=created_count),
+     `updated` (=updated_count), `items` (facturés), `cost`.
+  2. **Nouveau** `SyncDailyStats.tsx` : 2 compteurs du jour (Téléchargés / Mis à jour) + tableau
+     des 14 derniers jours (Jour | Téléchargés | Mis à jour | Items | Coût).
+  3. `page.tsx` : remplace le graphique placeholder `ChartAreaInteractive` par `SyncDailyStats`
+     → **plus aucun élément factice sur le dashboard**.
+- Mapping retenu : « téléchargés » = `created_count` (nouveaux leads importés), « mis à jour » = `updated_count`.
+- Fichiers : `src/app/api/market/sync-daily-stats/route.ts` (nouveau), `src/app/admin/market/SyncDailyStats.tsx`
+  (nouveau), `src/app/admin/market/page.tsx`, `docs/SUIVI_PROJET.md`.
+- Audit qualité : `npx tsc --noEmit` OK ; endpoint réel → 18/06 : 35 téléchargés ; 20/06 : 5 ;
+  22/06 : 5 mis à jour (~0,05 €) ; `/app/dashboard` 200, bloc présent.
+- ⚠️ Point clé : ces chiffres ne se remplissent **chaque jour** que si la **sync nocturne est
+  active**. Le cron `sync-zones` est codé mais OFF (`STREAM_ESTATE_CRON_ENABLED` non posé). Pour
+  un vrai « tous les jours » automatique → activer le cron (cf. entrée P0.1). Les données
+  actuelles viennent des syncs manuelles/test.
+- Suite : activer la sync nocturne en prod ; P1.5 (auth admin).
+
 ### 22/06/2026 - Dashboard : KPI réels + suppression de la démo template
 - Base/branche : `preview` (local non commité au moment de l'écriture).
 - Type : feature — brancher le dashboard sur les vraies données.
