@@ -14,6 +14,7 @@ import {
   recordStreamEstateUsageEvent,
 } from '@/lib/stream-estate-budget'
 import { rescoreAndPersist } from './mandate-score-persist'
+import { getMonitoringRecheckHours } from '@/lib/settings'
 
 export interface LeadMonitorResult {
   skipped: boolean
@@ -28,18 +29,7 @@ export interface LeadMonitorResult {
 const TERMINAL_STATUSES = ['expired', 'removed', 'sold', 'vendu']
 
 const HOUR = 60 * 60 * 1000
-const DAY = 24 * HOUR
 
-// Règles de cadence de re-vérification (sélection des biens à monitorer) :
-// plus un vendeur est proche de la fenêtre d'or, plus on le surveille souvent.
-// On évite de re-payer chaque nuit les biens froids qui bougent peu.
-const RECHECK_INTERVAL_MS: Record<string, number> = {
-  golden: 20 * HOUR, // quotidien
-  hot: 20 * HOUR,    // quotidien
-  warm: 20 * HOUR,   // quotidien
-  cold: 3 * DAY,     // en roulement (~tous les 3 jours)
-}
-const DEFAULT_INTERVAL_MS = 3 * DAY // phase inconnue / non encore scorée
 const PHASE_PRIORITY: Record<string, number> = { golden: 3, hot: 2, warm: 1, cold: 0 }
 
 interface LeadRow {
@@ -52,10 +42,13 @@ interface LeadRow {
   scored_at: string | null
 }
 
-/** Un lead est « à re-vérifier » si jamais scoré, ou si l'intervalle de sa phase est écoulé. */
-function isDue(lead: LeadRow, now: number): boolean {
+/**
+ * Un lead est « à re-vérifier » si jamais scoré, ou si l'intervalle de sa phase
+ * (réglages, ajustables) est écoulé. Phase inconnue → cadence des biens froids.
+ */
+function isDue(lead: LeadRow, now: number, intervalsMs: Record<string, number>): boolean {
   if (!lead.scored_at) return true
-  const interval = RECHECK_INTERVAL_MS[lead.mandate_phase ?? ''] ?? DEFAULT_INTERVAL_MS
+  const interval = intervalsMs[lead.mandate_phase ?? ''] ?? intervalsMs.cold
   const age = now - new Date(lead.scored_at).getTime()
   return Number.isNaN(age) || age >= interval
 }
@@ -78,6 +71,15 @@ export async function monitorKnownLeads(maxLeads = 200): Promise<LeadMonitorResu
   const available = getAvailableStreamEstateItems(snapshot)
   if (available < 1) return { ...empty, reason: 'stream_estate_budget_insufficient' }
 
+  // Cadence ajustable (réglages) → intervalles en ms par phase.
+  const hours = await getMonitoringRecheckHours()
+  const intervalsMs: Record<string, number> = {
+    golden: hours.golden * HOUR,
+    hot: hours.hot * HOUR,
+    warm: hours.warm * HOUR,
+    cold: hours.cold * HOUR,
+  }
+
   // On lit les candidats actifs puis on applique les règles de cadence en mémoire
   // (portefeuille modeste) pour décider qui est « dû » ce soir.
   const { data: candidates, error } = await supabaseAdmin
@@ -94,7 +96,7 @@ export async function monitorKnownLeads(maxLeads = 200): Promise<LeadMonitorResu
 
   const now = Date.now()
   const leads = (candidates as LeadRow[] ?? [])
-    .filter((l) => l.external_id && isDue(l, now))
+    .filter((l) => l.external_id && isDue(l, now, intervalsMs))
     .sort((a, b) => {
       // Priorité : phase la plus chaude d'abord, puis le plus anciennement scoré.
       const pa = PHASE_PRIORITY[a.mandate_phase ?? ''] ?? 0

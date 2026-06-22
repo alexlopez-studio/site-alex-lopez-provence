@@ -191,6 +191,13 @@ export default function SettingsPage() {
   const [resyncWindowMinutes, setResyncWindowMinutes] = useState('360')
   const [budgetSaving, setBudgetSaving] = useState(false)
 
+  // Cadence de monitoring (heures de re-vérification par phase) — règles ajustables.
+  const [cadGolden, setCadGolden] = useState('20')
+  const [cadHot, setCadHot] = useState('20')
+  const [cadWarm, setCadWarm] = useState('20')
+  const [cadCold, setCadCold] = useState('72')
+  const [cadenceSaving, setCadenceSaving] = useState(false)
+
   const load = useCallback(async () => {
     try {
       const [statsRes, runsRes] = await Promise.all([
@@ -241,6 +248,10 @@ export default function SettingsPage() {
         if (settings.stream_estate_resync_window_minutes !== undefined) {
           setResyncWindowMinutes(String(settings.stream_estate_resync_window_minutes))
         }
+        if (settings.monitoring_recheck_hours_golden !== undefined) setCadGolden(String(settings.monitoring_recheck_hours_golden))
+        if (settings.monitoring_recheck_hours_hot !== undefined) setCadHot(String(settings.monitoring_recheck_hours_hot))
+        if (settings.monitoring_recheck_hours_warm !== undefined) setCadWarm(String(settings.monitoring_recheck_hours_warm))
+        if (settings.monitoring_recheck_hours_cold !== undefined) setCadCold(String(settings.monitoring_recheck_hours_cold))
       })
       .catch((err) => console.error('Erreur chargement paramètres:', err))
       .finally(() => setPipelineLoading(false))
@@ -298,6 +309,35 @@ export default function SettingsPage() {
       toast.error('Impossible de mettre à jour le budget Stream Estate')
     } finally {
       setBudgetSaving(false)
+    }
+  }
+
+  async function saveMonitoringCadence() {
+    const h = (v: string, d: number) => Math.max(1, Math.floor(Number(v) || d))
+    const payload = {
+      monitoring_recheck_hours_golden: h(cadGolden, 20),
+      monitoring_recheck_hours_hot: h(cadHot, 20),
+      monitoring_recheck_hours_warm: h(cadWarm, 20),
+      monitoring_recheck_hours_cold: h(cadCold, 72),
+    }
+    setCadenceSaving(true)
+    try {
+      const res = await fetch('/api/market/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) throw new Error('Erreur API')
+      setCadGolden(String(payload.monitoring_recheck_hours_golden))
+      setCadHot(String(payload.monitoring_recheck_hours_hot))
+      setCadWarm(String(payload.monitoring_recheck_hours_warm))
+      setCadCold(String(payload.monitoring_recheck_hours_cold))
+      toast.success('Cadence de monitoring enregistrée')
+    } catch (err) {
+      console.error('Erreur mise à jour cadence monitoring:', err)
+      toast.error('Impossible de mettre à jour la cadence')
+    } finally {
+      setCadenceSaving(false)
     }
   }
 
@@ -463,6 +503,47 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </div>
+      </section>
+
+      {/* Section — Cadence de monitoring (règles ajustables) */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Clock className="h-4 w-4 text-brand" />
+          <h2 className="text-sm font-semibold">Cadence de monitoring</h2>
+        </div>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-[11px] text-muted-foreground mb-3">
+              Intervalle minimal entre deux re-vérifications d&apos;un lead (par-id, ~0,01 € chacune),
+              selon sa phase. Plus un vendeur est chaud, plus on le surveille souvent ; les biens froids
+              sont vérifiés en roulement pour économiser les crédits.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-4">
+              <label className="space-y-1">
+                <span className="text-[11px] font-medium">Fenêtre d&apos;or (h)</span>
+                <Input type="number" min="1" step="1" value={cadGolden} onChange={(e) => setCadGolden(e.target.value)} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-[11px] font-medium">Chaud (h)</span>
+                <Input type="number" min="1" step="1" value={cadHot} onChange={(e) => setCadHot(e.target.value)} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-[11px] font-medium">Tiède (h)</span>
+                <Input type="number" min="1" step="1" value={cadWarm} onChange={(e) => setCadWarm(e.target.value)} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-[11px] font-medium">Froid (h)</span>
+                <Input type="number" min="1" step="1" value={cadCold} onChange={(e) => setCadCold(e.target.value)} />
+              </label>
+            </div>
+            <div className="mt-3 flex justify-end">
+              <Button size="sm" onClick={saveMonitoringCadence} disabled={cadenceSaving}>
+                {cadenceSaving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
+                Enregistrer
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </section>
 
       {/* Section 2 — Fraîcheur par zone */}

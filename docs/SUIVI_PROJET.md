@@ -131,6 +131,27 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
 
 ## Journal de Bord
 
+### 22/06/2026 - Cadence de monitoring ajustable depuis les réglages
+- Base/branche : `preview` (local non commité au moment de l'écriture).
+- Type : feature — rendre les règles de cadence configurables (workflow efficient).
+- Statut : **fait** (round-trip testé sans dépense ; tsc OK).
+- Demande (Alexandre) : pouvoir ajuster les règles de cadence pour un workflow efficient.
+- Travail :
+  1. `settings.ts` : clés `monitoring_recheck_hours_{golden,hot,warm,cold}` + défauts
+     (20/20/20/72 h) + helper `getMonitoringRecheckHours()` (coercition, valeurs > 0).
+  2. `lead-monitor.ts` : `isDue` reçoit désormais les intervalles **lus depuis les réglages**
+     (plus de constantes en dur).
+  3. `settings/page.tsx` : nouvelle section « Cadence de monitoring » (4 champs heures par
+     phase + Enregistrer). L'API settings générique (`PATCH {clé:valeur}`) suffit.
+- Fichiers : `src/lib/settings.ts`, `src/lib/market/lead-monitor.ts`,
+  `src/app/admin/market/settings/page.tsx`, `docs/SUIVI_PROJET.md`.
+- Audit qualité : `npx tsc --noEmit` OK ; `/app/settings` 200. Round-trip live : PATCH
+  (12/18/24/96) → GET confirme la persistance → monitoring lit `cold=96h` → 0 dû, 0 € ;
+  **valeurs ensuite remises aux défauts (20/20/20/72)**.
+- Point d'attention : la cadence pilote la fréquence (donc le coût) ; baisser les intervalles
+  augmente la fraîcheur ET la dépense. Le budget reste le plafond dur.
+- Suite : activer la sync nocturne en prod ; P1.5 (auth admin).
+
 ### 22/06/2026 - Monitoring : sélection des biens par règles de cadence (coût sous-linéaire)
 - Base/branche : `preview` (local non commité au moment de l'écriture).
 - Type : feature — maîtriser le coût du monitoring quand le portefeuille grandit.
