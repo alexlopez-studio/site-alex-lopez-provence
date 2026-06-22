@@ -10,7 +10,7 @@ export const STREAM_ESTATE_MIN_BALANCE_KEY = 'stream_estate_min_balance_eur'
 const DEFAULT_SYNC_ENABLED = false
 const DEFAULT_MANUAL_BALANCE_EUR = 0
 const DEFAULT_COST_PER_REQUEST_EUR = 0.01
-const DEFAULT_MAX_REQUESTS_PER_SYNC = 1
+const DEFAULT_MAX_REQUESTS_PER_SYNC = 30
 const DEFAULT_MIN_BALANCE_EUR = 0
 
 export type StreamEstateBudgetSettings = {

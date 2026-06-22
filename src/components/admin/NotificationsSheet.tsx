@@ -83,6 +83,20 @@ export function NotificationsSheet() {
   useEffect(() => { loadCount() }, [loadCount])
   useEffect(() => { if (open) loadList(filter) }, [open, filter, loadList])
 
+  async function markAllRead() {
+    setNotifications((prev) => prev.map((n) => ({ ...n, status: 'read' })))
+    setUnreadCount(0)
+    try {
+      await fetch('/api/market/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ all: true, status: 'read' }),
+      })
+    } finally {
+      loadCount()
+    }
+  }
+
   async function markRead(id: string) {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, status: 'read' } : n)))
     setUnreadCount((c) => Math.max(0, c - 1))
@@ -145,6 +159,11 @@ export function NotificationsSheet() {
           >
             Tout
           </Button>
+          {unreadCount > 0 && (
+            <Button variant="ghost" size="sm" className="h-7 text-xs ml-auto" onClick={markAllRead}>
+              Tout marquer comme lu
+            </Button>
+          )}
         </div>
 
         <Separator className="my-4" />

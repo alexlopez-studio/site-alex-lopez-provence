@@ -131,6 +131,24 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
 
 ## Journal de Bord
 
+### 22/06/2026 - Polissages : « tout marquer comme lu » + défaut max items/sync
+- Base/branche : `preview` (local non commité au moment de l'écriture).
+- Type : amélioration / confort.
+- Statut : **fait** (tsc OK ; testé live).
+- Travail :
+  1. `api/market/notifications/route.ts` (PATCH groupé) : nouveau mode `{all:true, status, type?}`
+     en plus de `{ids, status}` → marque toutes les non-lues (optionnellement par type).
+  2. `NotificationsSheet.tsx` : bouton **« Tout marquer comme lu »** (visible si non-lues) →
+     PATCH `{all:true,status:'read'}`, MAJ optimiste + recompte.
+  3. `stream-estate-budget.ts` : défaut `DEFAULT_MAX_REQUESTS_PER_SYNC` 1 → **30** (= max page API)
+     pour les setups non configurés. (La valeur live d'Alexandre reste pilotée dans /app/settings.)
+- Fichiers : `src/app/api/market/notifications/route.ts`, `src/components/admin/NotificationsSheet.tsx`,
+  `src/lib/stream-estate-budget.ts`, `docs/SUIVI_PROJET.md`.
+- Audit qualité : `npx tsc --noEmit` OK ; PATCH `{all:true}` → 3 non-lues passées à 0 ; `/app/dashboard` 200.
+- Pour passer en live (actions Alexandre) : régler le budget dans /app/settings (monter
+  max items/sync, solde manuel) puis poser `STREAM_ESTATE_CRON_ENABLED=true` (+ `CRON_SECRET`) en prod Vercel.
+- Suite : P1.5 (auth admin) avant ouverture ; observer les premières données réelles une fois la sync active.
+
 ### 22/06/2026 - Neutralisation du moteur de règles (doublon + bruit) + réponses coût
 - Base/branche : `preview` (local non commité au moment de l'écriture).
 - Type : nettoyage / décision produit.

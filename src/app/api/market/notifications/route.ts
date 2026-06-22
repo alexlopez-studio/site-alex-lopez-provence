@@ -58,28 +58,32 @@ export async function GET(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json()
+    const status = body.status
 
-    if (!Array.isArray(body.ids) || body.ids.length === 0) {
-      return NextResponse.json({ error: 'ids requis (array non vide)' }, { status: 400 })
-    }
-    if (!body.status) {
+    if (!status) {
       return NextResponse.json({ error: 'status requis' }, { status: 400 })
     }
-
-    const updateData: NotificationsUpdate = {
-      status: body.status,
+    // Deux modes : ids explicites, ou `all:true` (tout marquer, ex. « tout lu »),
+    // optionnellement restreint à un `type` (ex. les non-lues uniquement).
+    if (body.all !== true && (!Array.isArray(body.ids) || body.ids.length === 0)) {
+      return NextResponse.json({ error: 'ids requis (array non vide) ou all:true' }, { status: 400 })
     }
 
-    // Si marqué comme "read", enregistrer read_at
-    if (body.status === 'read') {
+    const updateData: NotificationsUpdate = { status }
+    if (status === 'read') {
       updateData.read_at = new Date().toISOString()
     }
 
-    const { data, error } = await supabaseAdmin
-      .from('notifications')
-      .update(updateData)
-      .in('id', body.ids)
-      .select()
+    let query = supabaseAdmin.from('notifications').update(updateData)
+    if (body.all === true) {
+      // Marquer toutes les non-lues (optionnellement filtrées par type).
+      query = query.eq('status', 'unread')
+      if (body.type) query = query.eq('type', body.type)
+    } else {
+      query = query.in('id', body.ids)
+    }
+
+    const { data, error } = await query.select()
 
     if (error) {
       console.error('[API /market/notifications] PATCH error:', error)
