@@ -131,6 +131,37 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
 
 ## Journal de Bord
 
+### 22/06/2026 - Sync nocturne optimisée crédits : monitoring par-id + découverte hebdo
+- Base/branche : `preview` (local non commité au moment de l'écriture).
+- Type : feature — optimisation des crédits Stream Estate (cœur économique).
+- Statut : **fait** (monitoring testé end-to-end ; tsc OK).
+- Demande (Alexandre) : ne payer que pour l'info utile — télécharger seulement les nouveaux
+  leads, ne re-synchroniser que ceux qui changent (baisse de prix…), le tout la nuit.
+- Découvertes API (probe gratuit `itemsPerPage=0` + ~0,07 € de fetch, cf. mémoire
+  `stream-estate-credit-optimization`) :
+  - **Pas de filtre date** (`updatedAt[after]`/`publishedAt[after]` ignorés) ni **de tri**
+    (`order[...]` ignoré) côté recherche → impossible de demander « seulement ce qui a changé ».
+  - **Endpoint par-id** `/documents/properties/{id}` riche : `price`, `expired`, `adverts`
+    (republication), `publisherTypes` (agence/particulier). C'est le levier.
+- Stratégie retenue (Alexandre) : **monitoring quotidien + découverte hebdo**.
+- Travail :
+  1. `stream-estate.ts` : `fetchListingStatusById()` (prix + `expired`, 1 item facturé).
+  2. **Nouveau** `src/lib/market/lead-monitor.ts` : `monitorKnownLeads()` — re-fetch par-id de
+     nos leads actifs (plafonné par le budget via `getAvailableStreamEstateItems`), détecte
+     baisse de prix (→ `property_price_history`) et retrait (`expired` → status/expired_at),
+     journalise chaque item (`recordStreamEstateUsageEvent`), puis `rescoreAndPersist`.
+  3. `jobs/sync-zones` : **monitoring chaque nuit** + **découverte (scan de zone) seulement le
+     lundi** (Europe/Paris) ou `?discover=1` ; `?discover=0` force-saute. Réponse `{monitoring, discovery}`.
+- Économie : re-vérifier nos 5 leads = **0,05 €** vs re-scanner la zone (166 items ≈ **1,66 €**) → ~33×.
+- Fichiers : `src/lib/stream-estate.ts`, `src/lib/market/lead-monitor.ts` (nouveau),
+  `src/app/api/jobs/sync-zones/route.ts`, `docs/SUIVI_PROJET.md`.
+- Audit qualité : `npx tsc --noEmit` OK ; `GET /api/jobs/sync-zones?test=1&discover=0` →
+  `monitoring {checked:5, price_changes:0, expired:0, billed_items:5, ~0,05 €}`, discovery non lancée.
+- Point d'attention : monitoring plafonné au budget dispo (au-delà, les leads en trop sont
+  laissés au run suivant — tri par `scored_at` le plus ancien). `published_at`/`updated_at` de
+  l'endpoint liste peu fiables (champs réels dans `adverts`/`createdAt`) — à fiabiliser si besoin.
+- Suite : activer la sync nocturne en prod (`STREAM_ESTATE_CRON_ENABLED=true`) ; P1.5 (auth admin).
+
 ### 22/06/2026 - Dashboard : activité de sync Stream Estate par jour (téléchargés / mis à jour)
 - Base/branche : `preview` (local non commité au moment de l'écriture).
 - Type : feature — faire ressortir l'activité Stream Estate quotidienne.

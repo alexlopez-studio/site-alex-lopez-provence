@@ -17,6 +17,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { monitorKnownLeads } from '@/lib/market/lead-monitor'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -52,90 +53,82 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ success: true, skipped: true, reason: 'cron_disabled' })
   }
 
-  const { data: zones, error } = await supabaseAdmin
-    .from('monitored_zones')
-    .select('id, zipcode, insee_code, name, city, active')
-    .eq('active', true)
-    .order('last_synced_at', { ascending: true, nullsFirst: true })
-    .limit(MAX_ZONES_PER_RUN)
+  // ── 3. Monitoring quotidien : suivi ciblé des leads connus (pas cher) ──
+  // Re-fetch par-id de nos annonces actives → baisse de prix / retrait + re-score.
+  const monitoring = await monitorKnownLeads()
 
-  if (error) {
-    console.error('[Cron sync-zones] lecture zones impossible:', error.message)
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
-  }
+  // ── 4. Découverte des nouveaux leads (scan de zone, coûteux, non ciblable) ──
+  // Non ciblable → on l'espace : 1×/semaine (lundi, Europe/Paris) ou forcée via ?discover=1.
+  const weekdayParis = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Paris', weekday: 'short' }).format(new Date())
+  const discoverParam = new URL(req.url).searchParams.get('discover')
+  const isDiscoveryDay = discoverParam !== '0' && (weekdayParis === 'Mon' || discoverParam === '1')
 
-  if (!zones || zones.length === 0) {
-    return NextResponse.json({ success: true, zones: 0, results: [] })
-  }
+  const discovery: {
+    ran: boolean
+    zones: number
+    totals: { created: number; updated: number; billed_items: number; estimated_cost_eur: number }
+    results: Array<Record<string, unknown>>
+  } = { ran: false, zones: 0, totals: { created: 0, updated: 0, billed_items: 0, estimated_cost_eur: 0 }, results: [] }
 
-  const base = resolveBaseUrl(req)
-  const results: Array<Record<string, unknown>> = []
-  let totalCreated = 0
-  let totalUpdated = 0
-  let totalBilledItems = 0
-  let totalCostEur = 0
+  if (isDiscoveryDay) {
+    const { data: zones, error } = await supabaseAdmin
+      .from('monitored_zones')
+      .select('id, zipcode, insee_code, name, city, active')
+      .eq('active', true)
+      .order('last_synced_at', { ascending: true, nullsFirst: true })
+      .limit(MAX_ZONES_PER_RUN)
 
-  // Séquentiel : on respecte maxDuration et on laisse le budget se décrémenter
-  // proprement entre zones (chaque appel relit le snapshot budget).
-  for (const zone of zones) {
-    try {
-      const res = await fetch(`${base}/api/market/sync`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          zipcode: zone.zipcode,
-          insee_code: zone.insee_code,
-          name: zone.name,
-          city: zone.city,
-        }),
-      })
-      const payload = await res.json().catch(() => ({}))
-      const created = Number(payload?.created) || 0
-      const updated = Number(payload?.updated) || 0
-      const billed = Number(payload?.billed_items) || 0
-      const cost = Number(payload?.estimated_cost_eur) || 0
-      totalCreated += created
-      totalUpdated += updated
-      totalBilledItems += billed
-      totalCostEur += cost
-      results.push({
-        zone_id: zone.id,
-        zipcode: zone.zipcode,
-        insee_code: zone.insee_code,
-        status: res.status,
-        from_cache: payload?.from_cache ?? false,
-        skipped_reason: payload?.skipped_reason ?? payload?.blocked_reason ?? null,
-        created,
-        updated,
-        billed_items: billed,
-        estimated_cost_eur: cost,
-      })
-    } catch (e) {
-      console.error(`[Cron sync-zones] échec zone ${zone.zipcode}:`, e)
-      results.push({
-        zone_id: zone.id,
-        zipcode: zone.zipcode,
-        status: 'error',
-        error: e instanceof Error ? e.message : 'unknown',
-      })
+    if (error) {
+      console.error('[Cron sync-zones] lecture zones impossible:', error.message)
+    } else if (zones && zones.length > 0) {
+      discovery.ran = true
+      discovery.zones = zones.length
+      const base = resolveBaseUrl(req)
+      // Séquentiel : respecte maxDuration et laisse le budget se décrémenter entre zones.
+      for (const zone of zones) {
+        try {
+          const res = await fetch(`${base}/api/market/sync`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              zipcode: zone.zipcode,
+              insee_code: zone.insee_code,
+              name: zone.name,
+              city: zone.city,
+            }),
+          })
+          const payload = await res.json().catch(() => ({}))
+          discovery.totals.created += Number(payload?.created) || 0
+          discovery.totals.updated += Number(payload?.updated) || 0
+          discovery.totals.billed_items += Number(payload?.billed_items) || 0
+          discovery.totals.estimated_cost_eur += Number(payload?.estimated_cost_eur) || 0
+          discovery.results.push({
+            zone_id: zone.id,
+            zipcode: zone.zipcode,
+            status: res.status,
+            from_cache: payload?.from_cache ?? false,
+            skipped_reason: payload?.skipped_reason ?? payload?.blocked_reason ?? null,
+            created: Number(payload?.created) || 0,
+            billed_items: Number(payload?.billed_items) || 0,
+          })
+        } catch (e) {
+          console.error(`[Cron sync-zones] échec zone ${zone.zipcode}:`, e)
+          discovery.results.push({ zone_id: zone.id, zipcode: zone.zipcode, status: 'error', error: e instanceof Error ? e.message : 'unknown' })
+        }
+      }
+      discovery.totals.estimated_cost_eur = Math.round(discovery.totals.estimated_cost_eur * 100) / 100
     }
   }
 
   console.log(
-    `[Cron sync-zones] ${zones.length} zone(s) — ${totalCreated} créés, ${totalUpdated} MAJ, ` +
-      `${totalBilledItems} items facturés (~${totalCostEur.toFixed(2)} €)`,
+    `[Cron sync-zones] monitoring: ${monitoring.checked} vérifiés, ${monitoring.price_changes} baisses, ` +
+      `${monitoring.expired} retirés (~${monitoring.estimated_cost_eur} €) | découverte: ${discovery.ran ? `${discovery.zones} zone(s), ${discovery.totals.created} nouveaux` : 'non (hors jour)'}`,
   )
 
   return NextResponse.json({
     success: true,
     test: isTest,
-    zones: zones.length,
-    totals: {
-      created: totalCreated,
-      updated: totalUpdated,
-      billed_items: totalBilledItems,
-      estimated_cost_eur: Math.round(totalCostEur * 100) / 100,
-    },
-    results,
+    monitoring,
+    discovery,
   })
 }

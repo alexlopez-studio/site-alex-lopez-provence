@@ -312,6 +312,35 @@ export async function fetchListings(
   }
 }
 
+/** État courant d'une annonce, pour le suivi ciblé des leads connus. */
+export interface StreamEstateLeadStatus {
+  price?: number
+  expired: boolean
+}
+
+/**
+ * Récupère l'état courant d'une annonce par son ID externe (1 item facturé).
+ * Léger : sert au monitoring quotidien (prix + retrait) sans re-scanner la zone.
+ */
+export async function fetchListingStatusById(
+  externalId: string,
+): Promise<StreamEstateLeadStatus | null> {
+  const url = `${env.streamEstate.apiUrl}/documents/properties/${encodeURIComponent(externalId)}`
+  const res = await fetch(url, { method: 'GET', headers: getHeaders(), cache: 'no-store' })
+
+  if (!res.ok) {
+    if (res.status === 404) return null
+    const text = await res.text().catch(() => '')
+    throw new Error(`Stream Estate API error ${res.status}: ${text}`)
+  }
+
+  const data = (await res.json()) as Record<string, unknown>
+  const adverts = Array.isArray(data.adverts) ? (data.adverts as Record<string, unknown>[]) : []
+  const price = Number(adverts[0]?.price ?? data.price ?? data.prix ?? 0) || undefined
+  const expired = data.expired === true
+  return { price, expired }
+}
+
 /**
  * Récupère le détail d'une annonce par son ID externe.
  */
