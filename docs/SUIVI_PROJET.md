@@ -131,6 +131,31 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
 
 ## Journal de Bord
 
+### 22/06/2026 - Dashboard : KPI réels + suppression de la démo template
+- Base/branche : `preview` (local non commité au moment de l'écriture).
+- Type : feature — brancher le dashboard sur les vraies données.
+- Statut : **fait** (tsc OK ; dashboard 200 ; données réelles vérifiées).
+- Constat : `/app/dashboard` (= `admin/market/page.tsx`) était quasi entièrement le template
+  shadcn — KPI en dur (« 1 248 biens », « 37 chaudes »…), table de démo hors-sujet
+  (`data.json` : « Cover page / Eddie Lake »), boutons d'en-tête sans `onClick`. Seul le
+  widget « Vendeurs à contacter » (P1.a) était réel.
+- Décision (Alexandre) : KPI réels + virer la table de démo ; graphique laissé de côté (pas d'historique).
+- Travail :
+  1. **Nouveau** `GET /api/market/dashboard-stats` : `biens_surveilles`, `opportunites_chaudes`
+     (mandate_phase hot/golden), `alertes_mandat` (notifications mandate_* non lues),
+     `pipeline_actif` (opportunités hors Converti/Écarté), `zones_actives`.
+  2. **Nouveau** `MandatKpiCards.tsx` (client) : 4 cartes `MetricCard` branchées sur l'endpoint.
+     Composant dédié pour ne pas muter `SectionCards`/`DataTable` (partagés avec `app/dashboard`).
+  3. `page.tsx` : remplace SectionCards par MandatKpiCards, **supprime la DataTable + `data.json`**,
+     boutons d'en-tête → liens utiles (« Voir le marché » → /app/properties, « Gérer les zones » → /app/zones).
+- Fichiers : `src/app/api/market/dashboard-stats/route.ts` (nouveau), `src/app/admin/market/MandatKpiCards.tsx`
+  (nouveau), `src/app/admin/market/page.tsx`, `src/app/admin/market/data.json` (supprimé), `docs/SUIVI_PROJET.md`.
+- Audit qualité : `npx tsc --noEmit` OK ; `dashboard-stats` → `{biens:5, chaudes:0, alertes:0, pipeline:5, zones:1}` ;
+  `/app/dashboard` 200 ; HTML : KPI présents, démo (Eddie Lake/Cover page) absente.
+- Point d'attention : le **graphique** `ChartAreaInteractive` reste un placeholder template (laissé
+  de côté faute d'historique) — à retirer ou brancher plus tard. Design/layout pur = ressort de Codex.
+- Suite : P1.5 (réactiver l'auth admin) ; options graphique réel / notifications dans l'UI.
+
 ### 22/06/2026 - P1.4 : édition d'opportunité + journal de prospection (boucle fermée)
 - Base/branche : `preview` (local non commité au moment de l'écriture).
 - Type : feature — fermer la boucle détection → mandat.
