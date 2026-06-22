@@ -313,6 +313,9 @@ export type Database = {
           published_at: string | null
           expired_at: string | null
           raw_json: Json
+          mandate_score: number | null
+          mandate_phase: string | null
+          scored_at: string | null
           created_at: string
           updated_at: string
         }
@@ -343,6 +346,9 @@ export type Database = {
           published_at?: string | null
           expired_at?: string | null
           raw_json?: Json
+          mandate_score?: number | null
+          mandate_phase?: string | null
+          scored_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -373,6 +379,9 @@ export type Database = {
           published_at?: string | null
           expired_at?: string | null
           raw_json?: Json
+          mandate_score?: number | null
+          mandate_phase?: string | null
+          scored_at?: string | null
           created_at?: string
           updated_at?: string
         }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { fetchListings, StreamEstateRequestLimitError } from '@/lib/stream-estate'
 import { runMatchingForProperty } from '@/lib/market/matching-engine'
+import { rescoreAndPersist } from '@/lib/market/mandate-score-persist'
 import { getSetting } from '@/lib/settings'
 import {
   canSpendStreamEstateItems,
@@ -360,6 +361,9 @@ export async function POST(req: NextRequest) {
             }
           }
 
+          // Recalcul + persistance du score, alerte si passage hot/golden.
+          await rescoreAndPersist(existing.id)
+
           updatedCount++
         } else {
           // Création
@@ -446,6 +450,9 @@ export async function POST(req: NextRequest) {
               console.error('[Sync] Erreur matching auto pour nouveau bien:', err)
             )
           }
+
+          // Score initial persisté (alerte possible si déjà hot/golden à la 1re vue).
+          if (newProperty?.id) await rescoreAndPersist(newProperty.id)
 
           createdCount++
         }

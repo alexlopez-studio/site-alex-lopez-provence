@@ -102,10 +102,11 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
 ### P1 — transformer la détection en action
 3. **Surfaçage « à contacter »** :
    - ✅ a. **Widget dashboard FAIT** (22/06) : `VendeursAContacter` (phases golden+hot, top 8).
-   - ⏳ b. **Alertes au franchissement de seuil** : à faire — nécessite de **persister le
-     score/phase** (colonne ou table) pour comparer entre deux syncs et émettre une
-     notification quand un bien passe en hot/golden (réutiliser `src/lib/mandat/alert-service.ts`
-     + `golden-alert-template`).
+   - ✅ b. **Alertes au franchissement de seuil FAIT** (22/06) : score persisté sur
+     `market_properties` (migration 012), `rescoreAndPersist` à la sync → notification
+     `mandate_hot`/`mandate_golden` au passage à la hausse, anti-doublon. Endpoint rescore
+     pour backfill. Détail : entrée journal 22/06. Reste optionnel : surfacer ces
+     notifications dans l'UI + envoi email (`golden-alert-template`).
 4. **Workflow prospection → mandat** : depuis un bien chaud, capturer le contact vendeur
    et le statut de prise de contact, relié à l'opportunité, jusqu'au stage « mandat obtenu ».
 
@@ -127,6 +128,35 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
 - A maintenir : tenir `docs/START.md`, `docs/MEMOIRE_SESSION.md`, `docs/SUIVI_PROJET.md` et `docs/ROUTES.md` alignes avec les routes canoniques `/app/*`.
 
 ## Journal de Bord
+
+### 22/06/2026 - P1.b : score persisté + alerte au passage hot/golden
+- Base/branche : `preview` (local non commité au moment de l'écriture).
+- Type : feature — alertes de franchissement de seuil (détection → action).
+- Statut : **fait** (testé end-to-end sur la base live, données restaurées ; tsc OK).
+- Décision (Alexandre) : persister le score via **colonnes sur `market_properties`** (pas de table dédiée).
+- Travail :
+  1. **Migration 012** (`012_market_properties_mandate_score.sql`, appliquée) : colonnes
+     `mandate_score` / `mandate_phase` / `scored_at` + index score/phase. Types `supabase.ts` à jour.
+  2. **Nouveau** `src/lib/market/mandate-score-persist.ts` : `rescoreAndPersist(id)` recalcule le
+     score, écrit les colonnes, et insère une **notification** quand le bien passe (à la hausse)
+     en hot/golden (`mandate_hot`/`mandate_golden`, priorité medium/high, `market_property_id`,
+     `action_label`). Anti-doublon par comparaison stricte `rank(new) > rank(prev)` (golden→golden n'alerte pas).
+  3. **Sync** (`sync/route.ts`) : `rescoreAndPersist` appelé après upsert (branches update + create).
+  4. **Nouveau** `POST /api/market/properties/[id]/rescore` : re-score à la demande (backfill des
+     biens existants sans attendre la sync ; sert aussi de point de test).
+- Fichiers : `supabase/migrations/012_market_properties_mandate_score.sql`, `src/types/supabase.ts`,
+  `src/lib/market/mandate-score-persist.ts`, `src/app/api/market/sync/route.ts`,
+  `src/app/api/market/properties/[id]/rescore/route.ts`, `docs/SUIVI_PROJET.md`.
+- Audit qualité : `npx tsc --noEmit` OK. Test end-to-end (bien Pontevès `f773d231…`) :
+  baseline rescore → cold 5, pas d'alerte ; scénario crafté (first_seen −200 j + 3 baisses) →
+  **golden 100 + notification `mandate_golden` priorité high créée** ; 2e rescore → pas de doublon ;
+  **toutes les données de test supprimées/restaurées** (dates, historique, colonnes, notification).
+- Point d'attention : les biens existants ont `mandate_*` à `null` tant qu'ils n'ont pas été
+  re-scorés (prochaine sync ou endpoint rescore). Les routes de lecture (table, widget) calculent
+  toujours le score à la volée → affichage non impacté ; les colonnes servent à la comparaison
+  inter-sync et au futur tri/filtre serveur.
+- Suite : P1 item 4 — workflow prospection → mandat (capter le contact vendeur + statut, relié à
+  l'opportunité) ; éventuellement surfacer les notifications mandate dans l'UI + email (golden-alert-template).
 
 ### 22/06/2026 - P1.a : widget « Vendeurs à contacter » sur le dashboard
 - Base/branche : `preview` (local non commité au moment de l'écriture).
