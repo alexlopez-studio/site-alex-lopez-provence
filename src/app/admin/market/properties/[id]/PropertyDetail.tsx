@@ -31,6 +31,7 @@ import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import type { SellerPhase } from '@/lib/mandat/types'
 import { SellerPhaseBadge } from '@/app/dashboard/radar/_components/SellerPhaseBadge'
+import { DimensionBadges } from '../../DimensionBadges'
 
 // ── Types (réponse /api/market/properties/[id]) ─────────────
 
@@ -54,6 +55,7 @@ interface PropertyRow {
   last_seen_at: string | null
   published_at: string | null
   price_per_m2: number | null
+  seller_type: string | null
 }
 
 interface PriceHistoryRow {
@@ -68,12 +70,6 @@ interface PriceHistoryRow {
 interface TagRow { id: string; tag: string; source: string | null }
 interface NoteRow { id: string; note: string; created_at: string }
 interface LinkedOpportunity { id: string; title: string; stage: string | null; priority: string | null }
-interface Signal {
-  summary: string
-  interesting: string[]
-  concerns: string[]
-  recommendedAction: string
-}
 
 interface MandateScoreView {
   score: number
@@ -93,8 +89,8 @@ interface PropertyDetailData {
   tags: TagRow[]
   notes: NoteRow[]
   opportunity: LinkedOpportunity | null
-  signal: Signal | null
   mandate_score?: MandateScoreView | null
+  undervaluation_pct?: number | null
 }
 
 interface BuyerMatch {
@@ -277,7 +273,7 @@ export function PropertyDetail() {
     )
   }
 
-  const { property, price_history, tags, notes, opportunity, signal, mandate_score } = data
+  const { property, price_history, tags, notes, opportunity, mandate_score, undervaluation_pct } = data
   const originalPrice = originalPriceFrom(price_history)
   const dropPercent = originalPrice && property.price != null && originalPrice > property.price
     ? ((originalPrice - property.price) / originalPrice) * 100
@@ -573,42 +569,31 @@ export function PropertyDetail() {
             </Card>
           )}
 
-          {/* Signal métier (calculé côté API) */}
-          {signal && (
-            <Card className="border-brand/30 bg-brand/5">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-brand" />
-                  Lecture du signal
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-xs text-muted-foreground leading-relaxed">{signal.summary}</p>
-                {signal.interesting.length > 0 && (
-                  <div className="space-y-1">
-                    {signal.interesting.map((s, i) => (
-                      <div key={i} className="flex items-start gap-1.5 text-xs text-emerald-700">
-                        <CheckCircle2 className="h-3 w-3 mt-0.5 shrink-0" /> {s}
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {signal.concerns.length > 0 && (
-                  <div className="space-y-1">
-                    {signal.concerns.map((s, i) => (
-                      <div key={i} className="flex items-start gap-1.5 text-xs text-amber-700">
-                        <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0" /> {s}
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <div className="rounded-md bg-background border px-3 py-2">
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Action recommandée</p>
-                  <p className="text-xs font-medium mt-0.5">{signal.recommendedAction}</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {/* Profil du bien — dimensions de lecture (gagnabilité, valeur, contraintes) */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Tag className="h-4 w-4 text-brand" />
+                Profil du bien
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Type de vendeur, valorisation et contraintes — à lire à côté du score de motivation.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DimensionBadges
+                sellerType={property.seller_type}
+                undervaluationPct={undervaluation_pct}
+                dpe={property.dpe}
+                status={property.status}
+              />
+              {property.seller_type === 'agency' && (
+                <p className="text-[11px] text-muted-foreground mt-2">
+                  Annonce d&apos;agence : mandat déjà confié. Surveiller un retrait (mandat échu) pour re-pitcher.
+                </p>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Acquéreurs potentiels */}
           <Card>

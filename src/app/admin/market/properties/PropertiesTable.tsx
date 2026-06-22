@@ -41,6 +41,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { cn } from '@/lib/utils'
 import type { SellerPhase } from '@/lib/mandat/types'
 import { SellerPhaseBadge } from '@/app/dashboard/radar/_components/SellerPhaseBadge'
+import { DimensionBadges } from '../DimensionBadges'
 
 interface PropertyRow {
   id: string
@@ -59,6 +60,8 @@ interface PropertyRow {
   first_seen_at: string | null
   last_seen_at: string | null
   url: string | null
+  seller_type: string | null
+  undervaluation_pct?: number | null
   mandate_score?: {
     score: number
     phase: SellerPhase
@@ -152,6 +155,7 @@ export function PropertiesTable({ initialZipcode }: { initialZipcode?: string })
   const [cityFilter, setCityFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('all')
   const [phaseFilter, setPhaseFilter] = useState<'all' | SellerPhase>('all')
+  const [sellerFilter, setSellerFilter] = useState<'all' | 'individual' | 'agency'>('all')
   const [zipcodeFilter, setZipcodeFilter] = useState(initialZipcode ?? '')
   const [zoneContext, setZoneContext] = useState<ZoneContext | null>(null)
   const [sortBy, setSortBy] = useState<'price' | 'last_seen_at' | 'surface' | 'mandate_score'>('last_seen_at')
@@ -234,6 +238,7 @@ export function PropertiesTable({ initialZipcode }: { initialZipcode?: string })
     if (cityFilter   !== 'all' && p.city !== cityFilter)     return false
     if (typeFilter   !== 'all' && p.property_type !== typeFilter) return false
     if (phaseFilter  !== 'all' && p.mandate_score?.phase !== phaseFilter) return false
+    if (sellerFilter !== 'all' && p.seller_type !== sellerFilter) return false
     return true
   })
 
@@ -343,6 +348,16 @@ export function PropertiesTable({ initialZipcode }: { initialZipcode?: string })
                 <SelectItem value="cold">Froid</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={sellerFilter} onValueChange={(v) => setSellerFilter(v as 'all' | 'individual' | 'agency')}>
+              <SelectTrigger className="h-9 w-[160px]">
+                <SelectValue placeholder="Type de vendeur" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les vendeurs</SelectItem>
+                <SelectItem value="individual">Particulier</SelectItem>
+                <SelectItem value="agency">Agence</SelectItem>
+              </SelectContent>
+            </Select>
             <Button variant="ghost" size="sm" className="h-9">
               <SlidersHorizontal className="h-4 w-4 mr-1" />
               Filtres
@@ -431,6 +446,13 @@ export function PropertiesTable({ initialZipcode }: { initialZipcode?: string })
                             <span className="text-xs text-muted-foreground">{prop.rooms} pièces</span>
                           ) : null}
                         </div>
+                        <DimensionBadges
+                          className="mt-1.5"
+                          sellerType={prop.seller_type}
+                          undervaluationPct={prop.undervaluation_pct}
+                          dpe={prop.dpe}
+                          status={prop.status}
+                        />
                       </td>
                       <td className="p-4">
                         <div className="flex items-center gap-1 text-muted-foreground">

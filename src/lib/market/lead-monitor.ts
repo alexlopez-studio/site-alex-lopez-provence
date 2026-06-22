@@ -162,10 +162,9 @@ export async function monitorKnownLeads(maxLeads = 200): Promise<LeadMonitorResu
         })
         priceChanges++
       }
-      await supabaseAdmin
-        .from('market_properties')
-        .update({ price: newPrice ?? lead.price, last_seen_at: now })
-        .eq('id', lead.id)
+      const update: Record<string, unknown> = { price: newPrice ?? lead.price, last_seen_at: now }
+      if (detail.sellerType) update.seller_type = detail.sellerType
+      await supabaseAdmin.from('market_properties').update(update as never).eq('id', lead.id)
     }
 
     // Re-score + alerte éventuelle (passage hot/golden).

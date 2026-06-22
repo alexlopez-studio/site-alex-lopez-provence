@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { scoreMarketProperty } from '@/lib/market/mandate-score'
+import { median, undervaluationPct } from '@/lib/market/zone-valuation'
 
 /**
  * GET /api/market/properties/:id
@@ -66,8 +67,23 @@ export async function GET(
     // Score métier (MandateProbabilityScore) sur le bien réel
     const mandateScore = scoreMarketProperty(property, priceHistory ?? [])
 
-    // Déduction métier : lecture du signal (jours en ligne dérivés du score)
-    const signal = buildBusinessSignal(property, priceHistory ?? [], mandateScore.days_online)
+    // Sous-évaluation : médiane prix/m² de la zone (commune INSEE sinon CP).
+    const zoneFilter = property.insee_code
+      ? { col: 'insee_code' as const, val: property.insee_code }
+      : { col: 'zipcode' as const, val: property.zipcode }
+    let undervaluation = 0
+    if (zoneFilter.val) {
+      const { data: zoneRows } = await supabaseAdmin
+        .from('market_properties')
+        .select('price_per_m2, status')
+        .eq(zoneFilter.col, zoneFilter.val)
+        .limit(2000)
+      const ppms = (zoneRows ?? [])
+        .filter((r) => !['expired', 'removed', 'sold', 'vendu'].includes(String(r.status)))
+        .map((r) => Number(r.price_per_m2))
+        .filter((n) => Number.isFinite(n) && n > 0)
+      undervaluation = undervaluationPct(property.price_per_m2, median(ppms))
+    }
 
     return NextResponse.json({
       property,
@@ -76,8 +92,8 @@ export async function GET(
       notes: notes ?? [],
       opportunity: opportunity ?? null,
       notifications: notifications ?? [],
-      signal,
       mandate_score: mandateScore,
+      undervaluation_pct: undervaluation,
     })
   } catch (e) {
     console.error('[API /market/properties/:id]', e)
@@ -114,85 +130,3 @@ export async function PATCH(
   }
 }
 
-// ── Lecture métier ───────────────────────────────────────────
-
-function buildBusinessSignal(
-  property: Record<string, unknown>,
-  priceHistory: Array<Record<string, unknown>>,
-  daysOnline: number,
-): {
-  summary: string
-  interesting: string[]
-  concerns: string[]
-  recommendedAction: string
-} {
-  const interesting: string[] = []
-  const concerns: string[] = []
-
-  const price = Number(property.price) || 0
-  const surface = Number(property.surface) || 0
-  const pricePerM2 = Number(property.price_per_m2) || 0
-  const dpe = String(property.dpe ?? '')
-  const landSurface = Number(property.land_surface) || 0
-  const status = String(property.status ?? '')
-
-  // Durée en ligne
-  if (Number(daysOnline) > 90) {
-    concerns.push(`En ligne depuis ${daysOnline} jours, peut indiquer un positionnement prix inadapté`)
-  }
-
-  // DPE
-  if (dpe === 'F' || dpe === 'G') {
-    concerns.push('DPE F ou G — forte contrainte réglementaire')
-  } else if (dpe === 'A' || dpe === 'B') {
-    interesting.push('DPE performant (A/B)')
-  }
-
-  // Terrain
-  if (landSurface >= 500) {
-    interesting.push(`Terrain intéressant : ${landSurface} m²`)
-  }
-
-  // Prix / m²
-  if (pricePerM2 > 0 && surface > 0) {
-    interesting.push(`Prix / m² : ${pricePerM2} €`)
-  }
-
-  // Baisse de prix
-  if (priceHistory.length > 0) {
-    const lastVariation = priceHistory[0] as Record<string, unknown> | undefined
-    if (lastVariation) {
-      const variation = Number(lastVariation.variation_percent) || 0
-      if (variation < -5) {
-        interesting.push(`Baisse de ${Math.abs(variation)} %`)
-      }
-      if (variation < -10) {
-        concerns.push('Forte baisse de prix (> 10 %) — peut indiquer une urgence de vente')
-      }
-    }
-  }
-
-  // Synthèse
-  let summary = ''
-  if (daysOnline && Number(daysOnline) > 90 && priceHistory.length > 0) {
-    const variation = Number((priceHistory[0] as Record<string, unknown>)?.variation_percent) || 0
-    if (variation < 0) {
-      summary = `Ce bien est en ligne depuis ${daysOnline} jours et a baissé de ${Math.abs(variation)} %. Il peut indiquer une difficulté de positionnement prix sur ce segment.`
-    } else {
-      summary = `Ce bien est en ligne depuis ${daysOnline} jours sans baisse de prix.`
-    }
-  } else {
-    summary = `Bien ${property.title ?? ''} à ${property.city ?? property.zipcode ?? ''} — ${status}`
-  }
-
-  let recommendedAction = 'À surveiller'
-  if (priceHistory.length > 0 && Number((priceHistory[0] as Record<string, unknown>)?.variation_percent) < -10) {
-    recommendedAction = 'Opportunité à qualifier — forte baisse détectée'
-  } else if (dpe === 'F' || dpe === 'G') {
-    recommendedAction = 'Analyser le potentiel de rénovation'
-  } else if (Number(daysOnline) > 90) {
-    recommendedAction = 'Vérifier la marge de négociation possible'
-  }
-
-  return { summary, interesting, concerns, recommendedAction }
-}

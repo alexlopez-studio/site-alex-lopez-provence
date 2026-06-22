@@ -305,7 +305,7 @@ export async function POST(req: NextRequest) {
         // Vérifier si le bien existe déjà
         const { data: existing, error: existingError } = await supabaseAdmin
           .from('market_properties')
-          .select('id, price, published_at')
+          .select('id, price, published_at, seller_type')
           .eq('external_id', externalId)
           .eq('source', 'stream_estate')
           .maybeSingle()
@@ -333,6 +333,8 @@ export async function POST(req: NextRequest) {
               // published_at suit la date de publication courante (figée par
               // first_seen_at) : son avancée révèle une republication (axe Comportement).
               published_at: listing.publishedAt ?? existing.published_at ?? null,
+              // seller_type : ne pas écraser une valeur connue si la découverte ne l'a pas.
+              seller_type: listing.sellerType ?? existing.seller_type ?? null,
               url: listing.url ?? null,
               raw_json: (listing.raw ?? {}) as never,
             })
@@ -398,6 +400,7 @@ export async function POST(req: NextRequest) {
               first_seen_at: listing.publishedAt || new Date().toISOString(),
               last_seen_at: new Date().toISOString(),
               published_at: listing.publishedAt || null,
+              seller_type: listing.sellerType ?? null,
               raw_json: (listing.raw ?? {}) as never,
             })
             .select('id')

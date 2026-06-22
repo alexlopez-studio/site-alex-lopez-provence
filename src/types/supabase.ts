@@ -316,6 +316,7 @@ export type Database = {
           mandate_score: number | null
           mandate_phase: string | null
           scored_at: string | null
+          seller_type: string | null
           created_at: string
           updated_at: string
         }
@@ -349,6 +350,7 @@ export type Database = {
           mandate_score?: number | null
           mandate_phase?: string | null
           scored_at?: string | null
+          seller_type?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -382,6 +384,7 @@ export type Database = {
           mandate_score?: number | null
           mandate_phase?: string | null
           scored_at?: string | null
+          seller_type?: string | null
           created_at?: string
           updated_at?: string
         }

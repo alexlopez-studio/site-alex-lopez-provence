@@ -131,6 +131,44 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
 
 ## Journal de Bord
 
+### 22/06/2026 - Refonte du modèle de qualification : score motivation + dimensions lisibles
+- Base/branche : `preview` (local non commité au moment de l'écriture).
+- Type : feature — cœur métier (modèle de qualification des opportunités de mandat).
+- Statut : **fait** (testé end-to-end ; tsc OK). Plan validé : `~/.claude/plans/je-veux-qu-on-pense-cosmic-unicorn.md`.
+- Décisions (Alexandre) : garder UN score 0-100 = **motivation** (axes inchangés) ; afficher à côté
+  des **dimensions lisibles et filtrables** (type de vendeur PAP/agence — on garde les deux mais
+  on les différencie —, sous-évaluation, DPE F/G, retrait récent) ; **score = source de vérité**
+  pour détection+alertes, `management_rules` reste une couche optionnelle, **retrait du
+  `buildBusinessSignal` en prose**.
+- Découverte API (probe ~0,03 €) : `publisherTypes`/`adverts[].publisher` exposent le type de
+  vendeur. Mapping confirmé : `publisher.type=1` + catégorie « Agences… » + `contact.agency` →
+  **agence** ; catégorie particulier/propriétaire → **individual** ; sinon null. (Cf. mémoire
+  `stream-estate-credit-optimization`.) Filtres date/tri toujours non supportés.
+- Travail :
+  1. **Type de vendeur** : migration 013 `seller_type` (+ index) ; types supabase ; `mapSellerType()`
+     dans `stream-estate.ts` (exposé via `fetchListingStatusById` + `normalizeListing`) ; écriture
+     dans `lead-monitor.ts` (monitoring par-id) et `sync/route.ts` (découverte, sans écraser).
+  2. **Sous-évaluation** : `src/lib/market/zone-valuation.ts` (médiane prix/m² par zone INSEE/CP,
+     `undervaluationPct`) ; `undervaluation_pct` calculé à la lecture dans les routes liste + détail.
+  3. **Surfaçage** : `DimensionBadges.tsx` (PAP/Agence, Sous-évalué −X%, DPE F/G, Retiré) intégré
+     dans `PropertiesTable` (+ filtre type de vendeur), `PropertyDetail` (carte « Profil du bien »
+     remplace « Lecture du signal »), widget `VendeursAContacter` (badge PAP/agence).
+  4. **Retrait prose** : `buildBusinessSignal` + champ `signal` supprimés de l'API détail.
+  5. `management_rules` : inchangé (couche optionnelle, secondaire au score).
+- Fichiers : `supabase/migrations/013_*.sql`, `src/types/supabase.ts`, `src/lib/stream-estate.ts`,
+  `src/lib/market/lead-monitor.ts`, `src/lib/market/zone-valuation.ts` (nouveau),
+  `src/app/api/market/sync/route.ts`, `src/app/api/market/properties/route.ts`,
+  `src/app/api/market/properties/[id]/route.ts`, `src/app/admin/market/DimensionBadges.tsx` (nouveau),
+  `PropertiesTable.tsx`, `PropertyDetail.tsx`, `VendeursAContacter.tsx`, `docs/SUIVI_PROJET.md`.
+- Audit qualité : `npx tsc --noEmit` OK. Tests live : probe mapping (type=1=agence) ; backfill
+  monitoring → `seller_type=agency` ×5 ; liste → `undervaluation_pct` (médiane ~2915 €/m², bien
+  0d79f7bc à −5,5 %) + `seller_type` ; détail → `undervaluation_pct=5.5`, **plus de champ `signal`** ;
+  `/app/dashboard|properties|properties/[id]` → 200 ; grep `buildBusinessSignal` propre.
+- Point d'attention : pas encore d'échantillon PAP en base (zone d'agences) → le badge Particulier
+  ressortira quand un PAP sera capté ; sous-évaluation liste calculée sur la page (zone filtrée),
+  détail sur toute la zone.
+- Suite : activer la sync nocturne en prod ; P1.5 (auth admin) ; option KPI « PAP chauds » au dashboard.
+
 ### 22/06/2026 - Cadence de monitoring ajustable depuis les réglages
 - Base/branche : `preview` (local non commité au moment de l'écriture).
 - Type : feature — rendre les règles de cadence configurables (workflow efficient).

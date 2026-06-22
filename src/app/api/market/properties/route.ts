@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { purgeMarketPropertiesByIds } from '@/lib/market/property-cleanup'
 import { scoreMarketProperty, type PriceHistoryRow } from '@/lib/market/mandate-score'
+import { buildZoneMedians, undervaluationPct, zoneKey } from '@/lib/market/zone-valuation'
 
 /**
  * GET /api/market/properties
@@ -92,9 +93,13 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    // Sous-évaluation : médiane prix/m² par zone sur le set retourné (zone filtrée).
+    const zoneMedians = buildZoneMedians(filtered)
+
     const withScore = filtered.map((property) => ({
       ...property,
       mandate_score: scoreMarketProperty(property, historyByProperty.get(property.id) ?? []),
+      undervaluation_pct: undervaluationPct(property.price_per_m2, zoneMedians.get(zoneKey(property))),
     }))
 
     return NextResponse.json({

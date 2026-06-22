@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import type { SellerPhase } from '@/lib/mandat/types'
 import { SellerPhaseBadge } from '@/app/dashboard/radar/_components/SellerPhaseBadge'
+import { SellerTypeBadge } from './DimensionBadges'
 
 interface MandateScore {
   score: number
@@ -22,6 +23,7 @@ interface PropertyRow {
   city: string | null
   zipcode: string | null
   price: number | null
+  seller_type: string | null
   mandate_score?: MandateScore | null
 }
 
@@ -107,7 +109,10 @@ export function VendeursAContacter() {
                 className="flex items-center justify-between gap-3 py-3 hover:bg-accent/50 transition-colors -mx-2 px-2 rounded-md"
               >
                 <div className="min-w-0">
-                  <p className="font-medium truncate">{p.title || 'Bien sans titre'}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium truncate">{p.title || 'Bien sans titre'}</p>
+                    <SellerTypeBadge type={p.seller_type} />
+                  </div>
                   <p className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5">
                     <span>{p.city}{p.zipcode ? ` (${p.zipcode})` : ''}</span>
                     <span className="inline-flex items-center gap-1">

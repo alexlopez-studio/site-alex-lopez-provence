@@ -2,9 +2,13 @@ import { env } from './env'
 
 // ── Types Stream Estate ────────────────────────────────────
 
+/** Gagnabilité du mandat : 'individual' (PAP) | 'agency' | null (inconnu). */
+export type SellerType = 'individual' | 'agency' | null
+
 export interface StreamEstateListing {
   id: string
   externalId?: string
+  sellerType?: SellerType
   title?: string
   description?: string
   city?: string
@@ -316,6 +320,7 @@ export async function fetchListings(
 export interface StreamEstateLeadStatus {
   price?: number
   expired: boolean
+  sellerType: SellerType
 }
 
 /**
@@ -338,7 +343,7 @@ export async function fetchListingStatusById(
   const adverts = Array.isArray(data.adverts) ? (data.adverts as Record<string, unknown>[]) : []
   const price = Number(adverts[0]?.price ?? data.price ?? data.prix ?? 0) || undefined
   const expired = data.expired === true
-  return { price, expired }
+  return { price, expired, sellerType: mapSellerType(data) }
 }
 
 /**
@@ -380,6 +385,26 @@ const PROPERTY_TYPE_LABELS: Record<number, string> = {
   8: 'Immeuble',
   9: 'Parking',
   10: 'Autre',
+}
+
+/**
+ * Déduit le type de vendeur depuis adverts[].publisher / contact / publisherTypes.
+ * type 1 + catégorie « Agences… » + contact.agency = agence (confirmé terrain).
+ */
+export function mapSellerType(raw: Record<string, unknown>): SellerType {
+  const adverts = Array.isArray(raw.adverts) ? (raw.adverts as Record<string, unknown>[]) : []
+  for (const a of adverts) {
+    const pub = (a.publisher ?? {}) as Record<string, unknown>
+    const cat = String(pub.category ?? '').toLowerCase()
+    if (/particulier|propri[ée]taire|\bpap\b/.test(cat)) return 'individual'
+    if (/agence|professionnel|r[ée]seau|mandataire|promoteur/.test(cat)) return 'agency'
+    if (Number(pub.type) === 1) return 'agency'
+    const contact = (a.contact ?? {}) as Record<string, unknown>
+    if (contact.agency) return 'agency'
+  }
+  const pt = raw.publisherTypes
+  if (Array.isArray(pt) && pt.map(Number).includes(1)) return 'agency'
+  return null
 }
 
 function normalizeListing(raw: Record<string, unknown>): StreamEstateListing {
@@ -425,6 +450,7 @@ function normalizeListing(raw: Record<string, unknown>): StreamEstateListing {
   return {
     id: String(raw.uuid ?? raw.id ?? raw['@id'] ?? ''),
     externalId: String(raw.uuid ?? raw.id ?? raw.external_id ?? raw.externalId ?? ''),
+    sellerType: mapSellerType(raw),
     title: buildTitle(),
     description: String(firstAdvert.description ?? raw.description ?? ''),
     city: cityName,
