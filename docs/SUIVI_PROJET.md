@@ -131,6 +131,25 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
 
 ## Journal de Bord
 
+### 22/06/2026 - Masquage du Radar (écran mort, doublon de /app/properties)
+- Base/branche : `preview` (local non commité au moment de l'écriture).
+- Type : nettoyage / clarification UX.
+- Statut : **fait** (tsc OK).
+- Question (Alexandre) : « le radar ça sert à quoi ? » → vérifié : `/app/radar` lit les tables
+  `listings`/`seller_scores` **inexistantes en base** (`relation "listings" does not exist`),
+  son API `/api/radar/listings` renvoie « Erreur inconnue » → écran non fonctionnel. Sa capacité
+  (scoring vendeur) est reprise sur `market_properties` (table /app/properties + dimensions,
+  widget « Vendeurs à contacter », alertes). Doublon mort, comme le moteur de règles.
+- Décision : **masquer de la sidebar**, page/code conservés (réversible).
+- Travail : `app-sidebar.tsx` — entrée « Radar » retirée de `SELLER_ITEMS` + import `RadarIcon`.
+  Conservés : `src/app/dashboard/radar/*`, `src/app/api/radar/*`, `radar-queries.ts` ;
+  `SellerPhaseBadge` intact (réutilisé partout).
+- Fichiers : `src/components/app-sidebar.tsx`, `docs/SUIVI_PROJET.md`.
+- Audit qualité : `npx tsc --noEmit` OK ; sidebar sans « Radar » ; `/app/dashboard` 200 ;
+  `/app/radar` toujours 200 par URL (réversible).
+- Note : la sidebar est désormais nettoyée des deux doublons morts (Règles + Radar).
+- Suite : activer la sync nocturne en prod ; P1.5 (auth admin).
+
 ### 22/06/2026 - Polissages : « tout marquer comme lu » + défaut max items/sync
 - Base/branche : `preview` (local non commité au moment de l'écriture).
 - Type : amélioration / confort.

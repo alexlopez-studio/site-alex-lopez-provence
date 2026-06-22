@@ -8,7 +8,6 @@ import {
   GitCompareArrowsIcon,
   KanbanIcon,
   LayoutDashboardIcon,
-  RadarIcon,
   BellIcon,
   MapIcon,
   SettingsIcon,
@@ -38,7 +37,6 @@ const OVERVIEW_ITEMS = [
 ]
 
 const SELLER_ITEMS = [
-  { title: "Radar", url: "/app/radar", icon: RadarIcon },
   { title: "Leads", url: "/app/leads", icon: UserPlusIcon },
   { title: "Liste chaude", url: "/app/liste-chaude", icon: FlameIcon },
   { title: "Opportunités", url: "/app/opportunities", icon: KanbanIcon },
