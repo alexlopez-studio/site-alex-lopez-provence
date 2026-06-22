@@ -131,6 +131,22 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
 
 ## Journal de Bord
 
+### 23/06/2026 - Paramètres Stream Estate simplifiés
+- Base/branche : `preview`.
+- Type : UX / intégration Stream Estate.
+- Statut : fait.
+- Resume : simplification de l’onglet `API Stream Estate` dans `/app/settings` : retrait du bandeau en 3 étapes, du bloc budget après import et du panneau de réglages API/budget. Stream Estate est présenté comme actif par défaut, avec sélection de commune, prévisualisation, import, communes surveillées modifiables/supprimables et historique.
+- Point API : la prévisualisation conserve le comptage fournisseur `itemsPerPage=0` pour le plafond 10 000, mais le nombre affiché dans la page correspond désormais aux annonces encore en ligne après le même filtre que l’import.
+- Fichiers : `src/app/admin/market/settings/page.tsx`, `src/app/api/market/sync-preview/route.ts`, `src/lib/stream-estate.ts`, `docs/SUIVI_PROJET.md`.
+- Audit qualite : `npx tsc --noEmit --pretty false` OK ; `npm run lint` OK avec warnings préexistants ; `npm run build` OK ; Playwright local sur `/app/settings` desktop/mobile OK, sans overflow horizontal.
+
+### 22/06/2026 - Paramètres : onglet API Stream Estate + informations personnelles
+- Type : refonte UX admin branchée — simplification du cœur Stream Estate.
+- Résumé : remplacement de `/app/settings` par une page à deux onglets. Onglet **API Stream Estate** : recherche de commune via `/api/market/communes`, rattachement CP/INSEE, prévisualisation réelle via `/api/market/sync-preview`, import réel via `/api/market/sync`, édition/suppression des communes surveillées via `/api/market/zones`, réglages budget/sync via `/api/market/settings` et historique masqué. La règle fournisseur transmise par Alexandre est visible : `itemsPerPage=0` permet de compter sans récupérer les biens, avec limite de 10 000 résultats pour `/documents/properties`. Onglet **Informations personnelles** : champs nom, fonction, email, téléphone sauvegardés dans `app_settings`.
+- Fichiers : `src/app/admin/market/settings/page.tsx`, suppression de `src/app/admin/market/stream-estate-prototype/page.tsx`, `docs/SUIVI_PROJET.md`.
+- Audit qualité : `npx tsc --noEmit --pretty false` OK ; `npm run lint` OK avec warnings préexistants hors fichiers touchés ; `npm run build` OK après nettoyage `.next` ; Playwright local sur `/app/settings` desktop/mobile OK, onglets API Stream Estate + Informations personnelles OK, mention 10 000 visible, pas d'overflow horizontal.
+- Suite : tester avec une commune réelle et décider si la page `/app/zones` doit être réduite à un inventaire simple ou rester une vue opérationnelle secondaire.
+
 ### 22/06/2026 - Notifications : base cohérente + redesign du volet
 - Base/branche : `preview` (local non commité au moment de l'écriture).
 - Type : nettoyage données + amélioration UX du volet.
@@ -1042,5 +1058,5 @@ Deployment: Work, declenche un deployment Vercel pour la branche preview.
 - Progression globale: 0%
 
 ---
-Derniere mise a jour: 21/06/2026
+Derniere mise a jour: 23/06/2026
 Maintenu par: Claude Code (sur `preview`)

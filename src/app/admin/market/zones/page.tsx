@@ -47,6 +47,7 @@ interface StreamEstateBudget {
   manual_balance_eur: number
   cost_per_item_eur?: number
   max_items_per_sync?: number
+  unlimited_items?: boolean
   cost_per_request_eur: number
   max_requests_per_sync: number
   min_balance_eur: number
@@ -436,10 +437,13 @@ export default function ZonesPage() {
     }
     setPreviewLoading(true)
     try {
+      // En illimité, on n'envoie pas max_items : le serveur tire toute la base en ligne (borné budget).
+      const previewBody: Record<string, unknown> = { zipcode, insee_code: inseeCode }
+      if (!budget?.unlimited_items) previewBody.max_items = maxItems
       const res = await fetch('/api/market/sync-preview', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ zipcode, max_items: maxItems, insee_code: inseeCode }),
+        body: JSON.stringify(previewBody),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -482,10 +486,12 @@ export default function ZonesPage() {
     setConfirmingSync(true)
     setSyncing((prev) => ({ ...prev, [zipcode]: true }))
     try {
+      const syncBody: Record<string, unknown> = { zipcode, force, insee_code: inseeCode, name: syncDraft.communeName, city: syncDraft.communeName }
+      if (!budget?.unlimited_items) syncBody.max_items = maxItems
       const res = await fetch('/api/market/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ zipcode, max_items: maxItems, force, insee_code: inseeCode, name: syncDraft.communeName, city: syncDraft.communeName }),
+        body: JSON.stringify(syncBody),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -610,7 +616,9 @@ export default function ZonesPage() {
                 </Badge>
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
-                Une action synchronise uniquement le CP sélectionné. Plafond : {budget.max_items_per_sync ?? budget.max_requests_per_sync} item{(budget.max_items_per_sync ?? budget.max_requests_per_sync) > 1 ? 's' : ''} par sync.
+                Une action synchronise uniquement le CP sélectionné. Plafond : {budget.unlimited_items
+                  ? 'illimité (toute la base en ligne)'
+                  : `${budget.max_items_per_sync ?? budget.max_requests_per_sync} item${(budget.max_items_per_sync ?? budget.max_requests_per_sync) > 1 ? 's' : ''} par sync`}.
                 {typeof budget.resync_window_minutes === 'number' && ` Resync auto après ${formatResyncWindow(budget.resync_window_minutes)} (forçable).`}
               </p>
             </div>
@@ -721,7 +729,9 @@ export default function ZonesPage() {
                   type="number"
                   min="1"
                   step="1"
-                  value={syncDraft.maxItems}
+                  value={budget?.unlimited_items ? '' : syncDraft.maxItems}
+                  placeholder={budget?.unlimited_items ? 'Illimité' : undefined}
+                  disabled={budget?.unlimited_items}
                   onChange={(e) => {
                     setSyncDraft((current) => ({ ...current, maxItems: e.target.value }))
                     setSyncPreview(null)
@@ -732,7 +742,7 @@ export default function ZonesPage() {
             <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-background px-3 py-2 text-xs text-muted-foreground">
               {syncDraft.zipcode ? (
                 <>
-                  <span><strong className="text-foreground">{syncDraft.label || `CP ${syncDraft.zipcode}`}</strong> · plafond {syncDraft.maxItems || '1'} item(s)</span>
+                  <span><strong className="text-foreground">{syncDraft.label || `CP ${syncDraft.zipcode}`}</strong> · {budget?.unlimited_items ? 'toute la base en ligne' : `plafond ${syncDraft.maxItems || '1'} item(s)`}</span>
                   {syncDraft.insee ? (
                     <Badge variant="outline" className="text-[10px] bg-green-50 text-green-700 border-green-200" title={`Filtrage Stream Estate par code INSEE ${syncDraft.insee} : seuls les biens de cette commune sont récupérés.`}>
                       Commune exacte · INSEE {syncDraft.insee}

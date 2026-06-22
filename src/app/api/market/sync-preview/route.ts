@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { previewListings } from '@/lib/stream-estate'
-import { getAvailableStreamEstateItems, getStreamEstateBudgetSnapshot } from '@/lib/stream-estate-budget'
+import { getStreamEstateSyncItemCap, getStreamEstateBudgetSnapshot } from '@/lib/stream-estate-budget'
 
 const ZIPCODE_RE = /^\d{5}$/
 
@@ -22,12 +22,19 @@ export async function POST(req: NextRequest) {
     }
 
     const budget = await getStreamEstateBudgetSnapshot()
-    const requestedMaxItems = readMaxItems(body as Record<string, unknown>, budget.maxItemsPerSync)
-    const effectiveMaxItems = Math.min(requestedMaxItems, budget.maxItemsPerSync)
+    // Plafond effectif : en illimité, seul le budget borne (toute la base en ligne).
+    const syncCap = getStreamEstateSyncItemCap(budget)
+    const requestedMaxItems = readMaxItems(
+      body as Record<string, unknown>,
+      budget.unlimitedItems ? syncCap : budget.maxItemsPerSync,
+    )
+    const effectiveMaxItems = budget.unlimitedItems
+      ? Math.min(requestedMaxItems, syncCap)
+      : Math.min(requestedMaxItems, budget.maxItemsPerSync)
 
-    // Comptage via itemsPerPage=0 (gratuit en facturation à l'item). On prend l'INSEE fourni
-    // par le client (commune visée dans le panneau) en priorité, sinon on retombe sur la zone
-    // CP existante. On évite `.maybeSingle()` qui plante dès que deux communes partagent un CP.
+    // On prend l'INSEE fourni par le client (commune visée dans le panneau) en priorité,
+    // sinon on retombe sur la zone CP existante. On évite `.maybeSingle()` qui plante dès
+    // que deux communes partagent un CP.
     const rawInsee = (body as Record<string, unknown>)?.insee_code ?? (body as Record<string, unknown>)?.inseeCode
     let inseeCode: string | null =
       typeof rawInsee === 'string' && /^\d{5}$/.test(rawInsee) ? rawInsee : null
@@ -42,23 +49,28 @@ export async function POST(req: NextRequest) {
       inseeCode = (zoneRows?.[0]?.insee_code as string | null) ?? null
     }
 
-    const preview = await previewListings({ zipcode, inseeCode })
-    const estimatedItems = Math.min(preview.totalAvailable, effectiveMaxItems)
+    const preview = await previewListings({ zipcode, inseeCode, maxItems: effectiveMaxItems })
+    const estimatedItems = preview.estimatedItems
     const estimatedCostEur = estimatedItems * budget.costPerItemEur
-    const availableItems = Math.min(budget.maxItemsPerSync, getAvailableStreamEstateItems(budget))
+    const availableItems = syncCap
     const spendable = Math.max(0, budget.estimatedBalanceEur - budget.minBalanceEur)
-    const maxItemsBlocked = requestedMaxItems > budget.maxItemsPerSync
+    // En illimité, pas de plafond max_items → jamais bloqué pour dépassement de ce plafond.
+    const maxItemsBlocked = !budget.unlimitedItems && requestedMaxItems > budget.maxItemsPerSync
 
     return NextResponse.json({
       zipcode,
+      unlimited_items: budget.unlimitedItems,
       requested_max_items: requestedMaxItems,
       budget_max_items_per_sync: budget.maxItemsPerSync,
       effective_max_items: effectiveMaxItems,
       max_items: effectiveMaxItems,
       total_available: preview.totalAvailable,
+      provider_total_available: preview.providerTotalAvailable,
       estimated_items: estimatedItems,
       estimated_cost_eur: estimatedCostEur,
       estimated_balance_after: Math.max(0, budget.manualBalanceEur - budget.estimatedSpentTotalEur - estimatedCostEur),
+      preview_capped: preview.capped,
+      online_only: true,
       sync_enabled: budget.syncEnabled,
       can_confirm: budget.syncEnabled && availableItems >= 1 && estimatedCostEur <= spendable && !maxItemsBlocked,
       blocked_reason: !budget.syncEnabled

@@ -8,14 +8,12 @@ import {
   GitCompareArrowsIcon,
   KanbanIcon,
   LayoutDashboardIcon,
-  BellIcon,
   MapIcon,
   SettingsIcon,
   UsersIcon,
   PackageIcon,
   UserPlusIcon,
   FlameIcon,
-  ShieldIcon,
 } from "lucide-react"
 import type { AdminRole } from "@/types/supabase"
 
@@ -37,8 +35,8 @@ const OVERVIEW_ITEMS = [
 ]
 
 const SELLER_ITEMS = [
-  { title: "Leads", url: "/app/leads", icon: UserPlusIcon },
   { title: "Liste chaude", url: "/app/liste-chaude", icon: FlameIcon },
+  { title: "Leads", url: "/app/leads", icon: UserPlusIcon },
   { title: "Opportunités", url: "/app/opportunities", icon: KanbanIcon },
 ]
 
@@ -52,16 +50,8 @@ const MARKET_ITEMS = [
   { title: "Zones surveillées", url: "/app/zones", icon: MapIcon },
 ]
 
-const AUTOMATION_ITEMS = [
-  { title: "Notifications", url: "/app/notifications", icon: BellIcon },
-]
-
 const CONFIG_ITEMS = [
   { title: "Paramètres", url: "/app/settings", icon: SettingsIcon },
-]
-
-const SUPER_ADMIN_ITEMS = [
-  { title: "Utilisateurs", url: "/app/utilisateurs", icon: ShieldIcon },
 ]
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
@@ -71,9 +61,6 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
 
 export function AppSidebar({ role, email, ...props }: AppSidebarProps) {
   const pathname = usePathname()
-
-  const configItems =
-    role === "super_admin" ? [...CONFIG_ITEMS, ...SUPER_ADMIN_ITEMS] : CONFIG_ITEMS
 
   const isActive = (href: string) => {
     if (href === '/app/dashboard') return pathname === href
@@ -106,11 +93,10 @@ export function AppSidebar({ role, email, ...props }: AppSidebarProps) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain title="Vue d'ensemble" items={withActiveState(OVERVIEW_ITEMS)} />
+        <NavMain title="Marché" items={withActiveState(MARKET_ITEMS)} />
         <NavMain title="Vendeurs" items={withActiveState(SELLER_ITEMS)} />
         <NavMain title="Acquéreurs" items={withActiveState(BUYER_ITEMS)} />
-        <NavMain title="Marché" items={withActiveState(MARKET_ITEMS)} />
-        <NavMain title="Automatisation" items={withActiveState(AUTOMATION_ITEMS)} />
-        <NavMain title="Configuration" items={withActiveState(configItems)} />
+        <NavMain title="Configuration" items={withActiveState(CONFIG_ITEMS)} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser

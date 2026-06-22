@@ -6,7 +6,7 @@ import { rescoreAndPersist } from '@/lib/market/mandate-score-persist'
 import { getSetting } from '@/lib/settings'
 import {
   canSpendStreamEstateItems,
-  getAvailableStreamEstateItems,
+  getStreamEstateSyncItemCap,
   getStreamEstateBudgetSnapshot,
   recordStreamEstateUsageEvent,
 } from '@/lib/stream-estate-budget'
@@ -234,10 +234,8 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    const availableItems = Math.min(
-      budget.maxItemsPerSync,
-      getAvailableStreamEstateItems(budget),
-    )
+    // Plafond effectif : en mode illimité, seul le budget borne (toute la base en ligne).
+    const availableItems = getStreamEstateSyncItemCap(budget)
 
     if (availableItems < 1) {
       const syncId = await createSyncRun(zoneId, 'blocked', 'stream_estate_budget_insufficient')
@@ -254,10 +252,14 @@ export async function POST(req: NextRequest) {
     }
 
     // maxItems borné par le budget disponible → plus besoin d'un appel preview facturé séparé.
-    const requestedMaxItems = Math.min(
-      readMaxItems(body as Record<string, unknown>, budget.maxItemsPerSync),
-      budget.maxItemsPerSync,
-    )
+    // En illimité, on ne plafonne pas par max_items_per_sync : une demande explicite borne,
+    // sinon on prend tout ce que le budget permet (la boucle s'arrête à !hasMore).
+    const requestedMaxItems = budget.unlimitedItems
+      ? readMaxItems(body as Record<string, unknown>, availableItems)
+      : Math.min(
+          readMaxItems(body as Record<string, unknown>, budget.maxItemsPerSync),
+          budget.maxItemsPerSync,
+        )
     const maxItems = Math.min(requestedMaxItems, availableItems)
 
     const syncId = await createSyncRun(zoneId, 'running')

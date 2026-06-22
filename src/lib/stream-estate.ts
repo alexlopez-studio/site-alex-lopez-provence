@@ -58,6 +58,7 @@ export interface StreamEstatePreviewResult {
   totalAvailable: number
   estimatedItems: number
   capped: boolean
+  providerTotalAvailable: number
 }
 
 export type StreamEstateRequestContext = {
@@ -237,14 +238,23 @@ async function fetchTotalAvailable(
 }
 
 export async function previewListings(
-  params: Pick<StreamEstateSyncParams, 'zipcode' | 'inseeCode' | 'propertyTypes' | 'transactionType'>,
+  params: Pick<StreamEstateSyncParams, 'zipcode' | 'inseeCode' | 'propertyTypes' | 'transactionType' | 'maxItems'>,
 ): Promise<StreamEstatePreviewResult> {
   const { zipcode, inseeCode = null, propertyTypes = DEFAULT_PROPERTY_TYPES, transactionType = 0 } = params
-  const totalAvailable = await fetchTotalAvailable({ zipcode, inseeCode }, transactionType, propertyTypes)
+  const providerTotalAvailable = await fetchTotalAvailable({ zipcode, inseeCode }, transactionType, propertyTypes)
+  const previewItems = await fetchListings({
+    zipcode,
+    inseeCode,
+    propertyTypes,
+    transactionType,
+    maxItems: params.maxItems,
+  })
+
   return {
-    totalAvailable,
-    estimatedItems: totalAvailable,
-    capped: false,
+    totalAvailable: previewItems.total,
+    estimatedItems: previewItems.total,
+    capped: previewItems.truncated,
+    providerTotalAvailable,
   }
 }
 

@@ -6,12 +6,16 @@ export const STREAM_ESTATE_MANUAL_BALANCE_KEY = 'stream_estate_manual_balance_eu
 export const STREAM_ESTATE_COST_PER_REQUEST_KEY = 'stream_estate_cost_per_request_eur'
 export const STREAM_ESTATE_MAX_REQUESTS_PER_SYNC_KEY = 'stream_estate_max_requests_per_sync'
 export const STREAM_ESTATE_MIN_BALANCE_KEY = 'stream_estate_min_balance_eur'
+// Mode « illimité » : la sync manuelle tire toute la base en ligne d'une zone,
+// bornée uniquement par le budget disponible (ignore max_items_per_sync).
+export const STREAM_ESTATE_UNLIMITED_ITEMS_KEY = 'stream_estate_unlimited_items'
 
 const DEFAULT_SYNC_ENABLED = false
 const DEFAULT_MANUAL_BALANCE_EUR = 0
 const DEFAULT_COST_PER_REQUEST_EUR = 0.01
 const DEFAULT_MAX_REQUESTS_PER_SYNC = 30
 const DEFAULT_MIN_BALANCE_EUR = 0
+const DEFAULT_UNLIMITED_ITEMS = false
 
 export type StreamEstateBudgetSettings = {
   syncEnabled: boolean
@@ -19,6 +23,7 @@ export type StreamEstateBudgetSettings = {
   costPerItemEur: number
   maxItemsPerSync: number
   minBalanceEur: number
+  unlimitedItems: boolean
 }
 
 export type StreamEstateBudgetSnapshot = StreamEstateBudgetSettings & {
@@ -72,12 +77,14 @@ export async function getStreamEstateBudgetSettings(): Promise<StreamEstateBudge
     costPerRequest,
     maxRequests,
     minBalance,
+    unlimitedItems,
   ] = await Promise.all([
     getSetting<boolean>(STREAM_ESTATE_SYNC_ENABLED_KEY, DEFAULT_SYNC_ENABLED),
     getSetting<number>(STREAM_ESTATE_MANUAL_BALANCE_KEY, DEFAULT_MANUAL_BALANCE_EUR),
     getSetting<number>(STREAM_ESTATE_COST_PER_REQUEST_KEY, DEFAULT_COST_PER_REQUEST_EUR),
     getSetting<number>(STREAM_ESTATE_MAX_REQUESTS_PER_SYNC_KEY, DEFAULT_MAX_REQUESTS_PER_SYNC),
     getSetting<number>(STREAM_ESTATE_MIN_BALANCE_KEY, DEFAULT_MIN_BALANCE_EUR),
+    getSetting<boolean>(STREAM_ESTATE_UNLIMITED_ITEMS_KEY, DEFAULT_UNLIMITED_ITEMS),
   ])
 
   return {
@@ -86,6 +93,7 @@ export async function getStreamEstateBudgetSettings(): Promise<StreamEstateBudge
     costPerItemEur: Math.max(0, numericSetting(costPerRequest, DEFAULT_COST_PER_REQUEST_EUR)),
     maxItemsPerSync: Math.max(1, Math.floor(numericSetting(maxRequests, DEFAULT_MAX_REQUESTS_PER_SYNC))),
     minBalanceEur: Math.max(0, numericSetting(minBalance, DEFAULT_MIN_BALANCE_EUR)),
+    unlimitedItems: Boolean(unlimitedItems),
   }
 }
 
@@ -173,14 +181,30 @@ export async function getStreamEstateBudgetSnapshot(): Promise<StreamEstateBudge
   }
 }
 
+/**
+ * Nombre d'items que le budget peut financer (cap budgétaire pur).
+ * Le plafond `max_items_per_sync` est appliqué séparément par les routes via Math.min,
+ * sauf en mode illimité où on l'ignore. Quand le coût/item est nul, le budget est de
+ * facto infini → MAX_SAFE_INTEGER (les routes le re-bornent au besoin).
+ */
 export function getAvailableStreamEstateItems(snapshot: StreamEstateBudgetSnapshot): number {
-  if (snapshot.costPerItemEur <= 0) return snapshot.maxItemsPerSync
+  if (snapshot.costPerItemEur <= 0) return Number.MAX_SAFE_INTEGER
   const spendable = snapshot.estimatedBalanceEur - snapshot.minBalanceEur
   if (spendable <= 0) return 0
   return Math.floor(spendable / snapshot.costPerItemEur)
 }
 
 export const getAvailableStreamEstateRequests = getAvailableStreamEstateItems
+
+/**
+ * Plafond effectif d'items pour UNE synchronisation :
+ * - mode illimité → seul le budget borne (toute la base en ligne) ;
+ * - sinon → min(max_items_per_sync, budget disponible).
+ */
+export function getStreamEstateSyncItemCap(snapshot: StreamEstateBudgetSnapshot): number {
+  const budgetItems = getAvailableStreamEstateItems(snapshot)
+  return snapshot.unlimitedItems ? budgetItems : Math.min(snapshot.maxItemsPerSync, budgetItems)
+}
 
 export async function canSpendStreamEstateItems(): Promise<{ ok: true } | { ok: false; reason: string }> {
   const snapshot = await getStreamEstateBudgetSnapshot()

@@ -1,46 +1,83 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import { RefreshCw, Activity, Database, Clock, CheckCircle2, XCircle, Loader2, BarChart3, Satellite, WalletCards, Save } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  CheckCircle2,
+  ChevronDown,
+  Clock3,
+  Eye,
+  HelpCircle,
+  Import,
+  Loader2,
+  MapPin,
+  Pencil,
+  RefreshCw,
+  Save,
+  Search,
+  Trash2,
+  UserRound,
+  WalletCards,
+} from 'lucide-react'
 import { toast } from 'sonner'
 
-// ── Types ──────────────────────────────────────────────────────────────────
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-interface SparkPoint { date: string; syncs: number; fetched: number }
+type CommuneResult = {
+  nom: string
+  code: string
+  codesPostaux: string[]
+  departement: { code: string; nom: string }
+}
 
-interface ZoneStat {
-  zone_id: string
+type Zone = {
+  id: string
   name: string
   zipcode: string
   city: string | null
-  last_synced_at: string | null
+  insee_code: string | null
   active: boolean
-  last_sync_status: string | null
-  property_count: number
+  last_synced_at: string | null
+  property_count?: number
+  last_sync_status?: string | null
 }
 
-interface SyncStats {
-  total_syncs: number
-  syncs_today: number
-  syncs_this_month: number
-  properties_fetched_total: number
-  properties_fetched_today: number
-  properties_fetched_month: number
-  last_sync_at: string | null
-  sparkline: SparkPoint[]
-  zones: ZoneStat[]
-  stream_estate_budget?: StreamEstateBudget
+type SyncPreview = {
+  zipcode: string
+  requested_max_items: number
+  budget_max_items_per_sync: number
+  effective_max_items: number
+  max_items: number
+  total_available: number
+  provider_total_available?: number
+  estimated_items: number
+  estimated_cost_eur: number
+  preview_capped?: boolean
+  online_only?: boolean
+  sync_enabled: boolean
+  can_confirm: boolean
+  blocked_reason: string | null
+  cost_per_item_eur: number
+  min_balance_eur: number
+  estimated_balance_eur: number
 }
 
-interface StreamEstateBudget {
+type StreamEstateBudget = {
   sync_enabled: boolean
   manual_balance_eur: number
   cost_per_item_eur?: number
   max_items_per_sync?: number
+  unlimited_items?: boolean
   cost_per_request_eur: number
   max_requests_per_sync: number
   min_balance_eur: number
@@ -49,47 +86,53 @@ interface StreamEstateBudget {
   estimated_spent_total_eur: number
   estimated_spent_today_eur: number
   estimated_spent_month_eur: number
-  estimated_items_total?: number
-  estimated_items_today?: number
-  estimated_items_month?: number
-  external_items_total?: number
   external_items_today?: number
   external_items_month?: number
-  external_requests_total: number
   external_requests_today: number
   external_requests_month: number
   last_blocked_reason: string | null
 }
 
-interface SyncRun {
+type SyncStats = {
+  last_sync_at: string | null
+  zones: Array<{
+    zone_id: string
+    property_count: number
+    last_sync_status: string | null
+  }>
+  stream_estate_budget?: StreamEstateBudget
+}
+
+type SyncRun = {
   id: string
-  zone_id: string
-  provider: string
   status: string
   started_at: string | null
-  finished_at: string | null
   fetched_count: number | null
   created_count: number | null
   updated_count: number | null
-  external_request_count: number | null
   external_item_count: number | null
+  external_request_count: number | null
   estimated_cost_eur: number | null
   blocked_reason: string | null
   error_message: string | null
   monitored_zones: { name: string; zipcode: string; city: string | null } | null
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────
+type SyncTarget = {
+  name: string
+  zipcode: string
+  inseeCode: string | null
+}
+
+const PERSONAL_DEFAULTS = {
+  fullName: 'Alexandre Lopez',
+  email: 'local-preview@iad.fr',
+  phone: '06 13 18 01 68',
+  title: 'Conseiller immobilier iad',
+}
 
 function fmt(n: number): string {
   return new Intl.NumberFormat('fr-FR').format(n)
-}
-
-function formatResyncWindow(minutes: number): string {
-  if (minutes <= 0) return 'désactivée'
-  if (minutes < 60) return `${minutes} min`
-  const h = minutes / 60
-  return Number.isInteger(h) ? `${h} h` : `${h.toFixed(1)} h`
 }
 
 function fmtEur(n: number): string {
@@ -102,642 +145,758 @@ function fmtEur(n: number): string {
 }
 
 function relativeTime(iso: string | null): string {
-  if (!iso) return '—'
+  if (!iso) return 'Jamais'
   const diff = Date.now() - new Date(iso).getTime()
   const m = Math.floor(diff / 60000)
-  if (m < 1) return 'À l\'instant'
+  if (m < 1) return "À l'instant"
   if (m < 60) return `Il y a ${m} min`
   const h = Math.floor(m / 60)
-  if (h < 24) return `Il y a ${h}h`
-  return `Il y a ${Math.floor(h / 24)}j`
+  if (h < 24) return `Il y a ${h} h`
+  return `Il y a ${Math.floor(h / 24)} j`
 }
 
-function duration(started: string | null, finished: string | null): string {
-  if (!started || !finished) return '—'
-  const ms = new Date(finished).getTime() - new Date(started).getTime()
-  return ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`
-}
+function StatusBadge({
+  tone,
+  children,
+}: {
+  tone: 'success' | 'warning' | 'danger' | 'neutral'
+  children: React.ReactNode
+}) {
+  const classes = {
+    success: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+    warning: 'border-amber-200 bg-amber-50 text-amber-800',
+    danger: 'border-red-200 bg-red-50 text-red-700',
+    neutral: 'border-border bg-muted text-muted-foreground',
+  }
 
-// ── Sparkline SVG ──────────────────────────────────────────────────────────
-
-function Sparkline({ data }: { data: SparkPoint[] }) {
-  if (!data.length) return null
-  const values = data.map((d) => d.syncs)
-  const max = Math.max(...values, 1)
-  const w = 200
-  const h = 32
-  const points = values.map((v, i) => {
-    const x = (i / (values.length - 1)) * w
-    const y = h - (v / max) * h
-    return `${x},${y}`
-  })
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-8" preserveAspectRatio="none">
-      <polyline
-        points={points.join(' ')}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="text-brand"
-      />
-    </svg>
+    <Badge variant="outline" className={`h-auto rounded-md ${classes[tone]}`}>
+      {children}
+    </Badge>
   )
 }
 
-// ── Status badge ───────────────────────────────────────────────────────────
-
-function StatusBadge({ status }: { status: string }) {
-  if (status === 'success') return (
-    <span className="flex items-center gap-1 text-[10px] text-green-700 bg-green-50 border border-green-200 rounded-full px-2 py-0.5">
-      <CheckCircle2 className="h-3 w-3" /> Succès
-    </span>
-  )
-  if (status === 'error') return (
-    <span className="flex items-center gap-1 text-[10px] text-red-700 bg-red-50 border border-red-200 rounded-full px-2 py-0.5">
-      <XCircle className="h-3 w-3" /> Erreur
-    </span>
-  )
-  if (status === 'blocked') return (
-    <span className="flex items-center gap-1 text-[10px] text-amber-800 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">
-      <XCircle className="h-3 w-3" /> Bloquée
-    </span>
-  )
-  return (
-    <span className="flex items-center gap-1 text-[10px] text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">
-      <Loader2 className="h-3 w-3 animate-spin" /> En cours
-    </span>
-  )
+function RunStatus({ status }: { status: string }) {
+  if (status === 'success') return <StatusBadge tone="success">Succès</StatusBadge>
+  if (status === 'blocked') return <StatusBadge tone="warning">Bloquée</StatusBadge>
+  if (status === 'error') return <StatusBadge tone="danger">Erreur</StatusBadge>
+  return <StatusBadge tone="neutral">En cours</StatusBadge>
 }
 
-// ── Main page ──────────────────────────────────────────────────────────────
+function zoneStatusLabel(status: string | null | undefined): string {
+  if (status === 'success') return 'À jour'
+  if (status === 'blocked') return 'Bloquée'
+  if (status === 'error') return 'Erreur'
+  if (status === 'running') return 'En cours'
+  return 'À vérifier'
+}
 
 export default function SettingsPage() {
   const [stats, setStats] = useState<SyncStats | null>(null)
   const [runs, setRuns] = useState<SyncRun[]>([])
-  const [runsTotal, setRunsTotal] = useState(0)
+  const [zones, setZones] = useState<Zone[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
-  const [pipelineEnabled, setPipelineEnabled] = useState(true)
-  const [pipelineLoading, setPipelineLoading] = useState(true)
-  const [pipelineSaving, setPipelineSaving] = useState(false)
-  const [streamEstateSyncEnabled, setStreamEstateSyncEnabled] = useState(false)
-  const [manualBalanceEur, setManualBalanceEur] = useState('0')
-  const [costPerRequestEur, setCostPerRequestEur] = useState('0.01')
-  const [maxRequestsPerSync, setMaxRequestsPerSync] = useState('1')
-  const [minBalanceEur, setMinBalanceEur] = useState('0')
-  const [resyncWindowMinutes, setResyncWindowMinutes] = useState('360')
-  const [budgetSaving, setBudgetSaving] = useState(false)
+  const [maxItemsPerSync, setMaxItemsPerSync] = useState('30')
+  const [unlimitedItems, setUnlimitedItems] = useState(false)
 
-  // Cadence de monitoring (heures de re-vérification par phase) — règles ajustables.
-  const [cadGolden, setCadGolden] = useState('20')
-  const [cadHot, setCadHot] = useState('20')
-  const [cadWarm, setCadWarm] = useState('20')
-  const [cadCold, setCadCold] = useState('72')
-  const [cadenceSaving, setCadenceSaving] = useState(false)
+  const [communeQuery, setCommuneQuery] = useState('')
+  const [communes, setCommunes] = useState<CommuneResult[]>([])
+  const [communeLoading, setCommuneLoading] = useState(false)
+  const [selectedCommune, setSelectedCommune] = useState<CommuneResult | null>(null)
+  const [selectedZip, setSelectedZip] = useState('')
+  const [syncTarget, setSyncTarget] = useState<SyncTarget | null>(null)
+  const [syncPreview, setSyncPreview] = useState<SyncPreview | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const [editingZoneId, setEditingZoneId] = useState<string | null>(null)
+  const [zoneDraft, setZoneDraft] = useState({ name: '', zipcode: '', insee_code: '' })
+  const [zoneSaving, setZoneSaving] = useState<string | null>(null)
+  const [zoneDeleting, setZoneDeleting] = useState<string | null>(null)
+
+  const [personalFullName, setPersonalFullName] = useState(PERSONAL_DEFAULTS.fullName)
+  const [personalEmail, setPersonalEmail] = useState(PERSONAL_DEFAULTS.email)
+  const [personalPhone, setPersonalPhone] = useState(PERSONAL_DEFAULTS.phone)
+  const [personalTitle, setPersonalTitle] = useState(PERSONAL_DEFAULTS.title)
+  const [personalSaving, setPersonalSaving] = useState(false)
+
+  const budget = stats?.stream_estate_budget
+  const budgetBlocked = Boolean(budget && budget.estimated_balance_eur <= budget.min_balance_eur)
+  const defaultMaxItems = budget?.max_items_per_sync ?? budget?.max_requests_per_sync ?? 30
+  const countLimitReached = Boolean(syncPreview && (syncPreview.provider_total_available ?? syncPreview.total_available) >= 10000)
 
   const load = useCallback(async () => {
     try {
-      const [statsRes, runsRes] = await Promise.all([
+      const [statsRes, runsRes, zonesRes] = await Promise.all([
         fetch('/api/market/sync-stats'),
-        fetch('/api/market/sync-runs?limit=20'),
+        fetch('/api/market/sync-runs?limit=8'),
+        fetch('/api/market/zones?limit=100&sort=name.asc'),
       ])
+
       const statsData = await statsRes.json()
       const runsData = await runsRes.json()
+      const zonesData = await zonesRes.json()
+      const statsMap = new Map<string, SyncStats['zones'][number]>(
+        (statsData.zones ?? []).map((zone: SyncStats['zones'][number]) => [zone.zone_id, zone]),
+      )
+
       setStats(statsData)
       setRuns(runsData.runs ?? [])
-      setRunsTotal(runsData.total ?? 0)
+      setZones((zonesData.zones ?? []).map((zone: Zone) => ({
+        ...zone,
+        property_count: statsMap.get(zone.id)?.property_count ?? 0,
+        last_sync_status: statsMap.get(zone.id)?.last_sync_status ?? null,
+      })))
     } catch (err) {
-      console.error('Erreur chargement stats', err)
+      console.error('Erreur chargement paramètres', err)
+      toast.error('Impossible de charger les paramètres')
     } finally {
       setLoading(false)
       setRefreshing(false)
     }
   }, [])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    load()
+  }, [load])
 
   useEffect(() => {
     fetch('/api/market/settings')
       .then((res) => res.json())
       .then((data) => {
-        const value = data?.settings?.mandatfinder_pipeline_enabled
-        if (typeof value === 'boolean') setPipelineEnabled(value)
         const settings = data?.settings ?? {}
-        if (typeof settings.stream_estate_sync_enabled === 'boolean') {
-          setStreamEstateSyncEnabled(settings.stream_estate_sync_enabled)
-        }
-        if (settings.stream_estate_manual_balance_eur !== undefined) {
-          setManualBalanceEur(String(settings.stream_estate_manual_balance_eur))
-        }
-        if (settings.stream_estate_cost_per_item_eur !== undefined) {
-          setCostPerRequestEur(String(settings.stream_estate_cost_per_item_eur))
-        } else if (settings.stream_estate_cost_per_request_eur !== undefined) {
-          setCostPerRequestEur(String(settings.stream_estate_cost_per_request_eur))
-        }
+
+        setUnlimitedItems(Boolean(settings.stream_estate_unlimited_items))
+
         if (settings.stream_estate_max_items_per_sync !== undefined) {
-          setMaxRequestsPerSync(String(settings.stream_estate_max_items_per_sync))
+          setMaxItemsPerSync(String(settings.stream_estate_max_items_per_sync))
         } else if (settings.stream_estate_max_requests_per_sync !== undefined) {
-          setMaxRequestsPerSync(String(settings.stream_estate_max_requests_per_sync))
+          setMaxItemsPerSync(String(settings.stream_estate_max_requests_per_sync))
         }
-        if (settings.stream_estate_min_balance_eur !== undefined) {
-          setMinBalanceEur(String(settings.stream_estate_min_balance_eur))
-        }
-        if (settings.stream_estate_resync_window_minutes !== undefined) {
-          setResyncWindowMinutes(String(settings.stream_estate_resync_window_minutes))
-        }
-        if (settings.monitoring_recheck_hours_golden !== undefined) setCadGolden(String(settings.monitoring_recheck_hours_golden))
-        if (settings.monitoring_recheck_hours_hot !== undefined) setCadHot(String(settings.monitoring_recheck_hours_hot))
-        if (settings.monitoring_recheck_hours_warm !== undefined) setCadWarm(String(settings.monitoring_recheck_hours_warm))
-        if (settings.monitoring_recheck_hours_cold !== undefined) setCadCold(String(settings.monitoring_recheck_hours_cold))
+
+        setPersonalFullName(String(settings.personal_full_name ?? PERSONAL_DEFAULTS.fullName))
+        setPersonalEmail(String(settings.personal_email ?? PERSONAL_DEFAULTS.email))
+        setPersonalPhone(String(settings.personal_phone ?? PERSONAL_DEFAULTS.phone))
+        setPersonalTitle(String(settings.personal_title ?? PERSONAL_DEFAULTS.title))
       })
-      .catch((err) => console.error('Erreur chargement paramètres:', err))
-      .finally(() => setPipelineLoading(false))
+      .catch((err) => {
+        console.error('Erreur chargement app_settings:', err)
+        toast.error('Impossible de charger les réglages')
+      })
   }, [])
-
-  async function togglePipeline() {
-    const next = !pipelineEnabled
-    setPipelineSaving(true)
-    try {
-      const res = await fetch('/api/market/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mandatfinder_pipeline_enabled: next }),
-      })
-      if (!res.ok) throw new Error('Erreur API')
-      setPipelineEnabled(next)
-      toast.success(next ? 'Pipeline MandatFinder activé' : 'Pipeline MandatFinder désactivé')
-    } catch (err) {
-      console.error('Erreur mise à jour pipeline:', err)
-      toast.error('Impossible de mettre à jour ce paramètre')
-    } finally {
-      setPipelineSaving(false)
-    }
-  }
-
-  async function saveStreamEstateBudget() {
-    const payload = {
-      stream_estate_sync_enabled: streamEstateSyncEnabled,
-      stream_estate_manual_balance_eur: Math.max(0, Number(manualBalanceEur) || 0),
-      stream_estate_cost_per_item_eur: Math.max(0, Number(costPerRequestEur) || 0),
-      stream_estate_cost_per_request_eur: Math.max(0, Number(costPerRequestEur) || 0),
-      stream_estate_max_items_per_sync: Math.max(1, Math.floor(Number(maxRequestsPerSync) || 1)),
-      stream_estate_max_requests_per_sync: Math.max(1, Math.floor(Number(maxRequestsPerSync) || 1)),
-      stream_estate_min_balance_eur: Math.max(0, Number(minBalanceEur) || 0),
-      stream_estate_resync_window_minutes: Math.max(0, Math.floor(Number(resyncWindowMinutes) || 0)),
-    }
-
-    setBudgetSaving(true)
-    try {
-      const res = await fetch('/api/market/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      if (!res.ok) throw new Error('Erreur API')
-      setManualBalanceEur(String(payload.stream_estate_manual_balance_eur))
-      setCostPerRequestEur(String(payload.stream_estate_cost_per_request_eur))
-      setMaxRequestsPerSync(String(payload.stream_estate_max_requests_per_sync))
-      setMinBalanceEur(String(payload.stream_estate_min_balance_eur))
-      setResyncWindowMinutes(String(payload.stream_estate_resync_window_minutes))
-      toast.success('Budget Stream Estate enregistré')
-      await load()
-    } catch (err) {
-      console.error('Erreur mise à jour budget Stream Estate:', err)
-      toast.error('Impossible de mettre à jour le budget Stream Estate')
-    } finally {
-      setBudgetSaving(false)
-    }
-  }
-
-  async function saveMonitoringCadence() {
-    const h = (v: string, d: number) => Math.max(1, Math.floor(Number(v) || d))
-    const payload = {
-      monitoring_recheck_hours_golden: h(cadGolden, 20),
-      monitoring_recheck_hours_hot: h(cadHot, 20),
-      monitoring_recheck_hours_warm: h(cadWarm, 20),
-      monitoring_recheck_hours_cold: h(cadCold, 72),
-    }
-    setCadenceSaving(true)
-    try {
-      const res = await fetch('/api/market/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      if (!res.ok) throw new Error('Erreur API')
-      setCadGolden(String(payload.monitoring_recheck_hours_golden))
-      setCadHot(String(payload.monitoring_recheck_hours_hot))
-      setCadWarm(String(payload.monitoring_recheck_hours_warm))
-      setCadCold(String(payload.monitoring_recheck_hours_cold))
-      toast.success('Cadence de monitoring enregistrée')
-    } catch (err) {
-      console.error('Erreur mise à jour cadence monitoring:', err)
-      toast.error('Impossible de mettre à jour la cadence')
-    } finally {
-      setCadenceSaving(false)
-    }
-  }
 
   function refresh() {
     setRefreshing(true)
     load()
   }
 
+  function searchCommunes(value: string) {
+    setCommuneQuery(value)
+    setSelectedCommune(null)
+    setSelectedZip('')
+    setSyncPreview(null)
+
+    if (searchTimer.current) clearTimeout(searchTimer.current)
+    if (value.trim().length < 2) {
+      setCommunes([])
+      return
+    }
+
+    searchTimer.current = setTimeout(async () => {
+      setCommuneLoading(true)
+      try {
+        const isZip = /^\d{5}$/.test(value.trim())
+        const url = isZip
+          ? `/api/market/communes?codePostal=${value.trim()}`
+          : `/api/market/communes?q=${encodeURIComponent(value.trim())}`
+        const res = await fetch(url)
+        const data = await res.json()
+        setCommunes(data.communes ?? [])
+      } catch (err) {
+        console.error('Recherche commune impossible:', err)
+        setCommunes([])
+      } finally {
+        setCommuneLoading(false)
+      }
+    }, 250)
+  }
+
+  function pickCommune(commune: CommuneResult) {
+    setSelectedCommune(commune)
+    setCommuneQuery(commune.nom)
+    setCommunes([])
+    setSelectedZip(commune.codesPostaux.length === 1 ? commune.codesPostaux[0] : '')
+    setSyncPreview(null)
+  }
+
+  function attachCommune() {
+    if (!selectedCommune || !selectedZip) {
+      toast.error('Choisis une commune et un code postal avant de rattacher')
+      return
+    }
+
+    setSyncTarget({
+      name: selectedCommune.nom,
+      zipcode: selectedZip,
+      inseeCode: selectedCommune.code,
+    })
+    setSyncPreview(null)
+  }
+
+  function targetFromZone(zone: Zone): SyncTarget {
+    return {
+      name: zone.city ?? zone.name,
+      zipcode: zone.zipcode,
+      inseeCode: zone.insee_code,
+    }
+  }
+
+  async function previewTarget(target = syncTarget) {
+    if (!target) {
+      toast.error('Rattache une commune avant de prévisualiser')
+      return null
+    }
+
+    setPreviewLoading(true)
+    try {
+      const body: Record<string, unknown> = {
+        zipcode: target.zipcode,
+        insee_code: target.inseeCode,
+      }
+      if (!unlimitedItems) {
+        body.max_items = Math.max(1, Math.floor(Number(maxItemsPerSync) || defaultMaxItems))
+      }
+
+      const res = await fetch('/api/market/sync-preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Prévisualisation impossible')
+
+      setSyncTarget(target)
+      setSyncPreview(data)
+      return data as SyncPreview
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      toast.error(message)
+      setSyncPreview(null)
+      return null
+    } finally {
+      setPreviewLoading(false)
+    }
+  }
+
+  async function confirmImport() {
+    if (!syncTarget) {
+      toast.error('Rattache une commune avant d’importer')
+      return
+    }
+
+    const preview = syncPreview ?? await previewTarget(syncTarget)
+    if (!preview) return
+    if (!preview.can_confirm) {
+      toast.error('Import bloqué par le budget ou les garde-fous Stream Estate')
+      return
+    }
+
+    setImporting(true)
+    try {
+      const body: Record<string, unknown> = {
+        zipcode: syncTarget.zipcode,
+        insee_code: syncTarget.inseeCode,
+        name: syncTarget.name,
+        city: syncTarget.name,
+      }
+      if (!unlimitedItems) {
+        body.max_items = Math.max(1, Math.floor(Number(maxItemsPerSync) || defaultMaxItems))
+      }
+
+      const res = await fetch('/api/market/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Import impossible')
+
+      if (data.from_cache) {
+        toast(`${syncTarget.name} déjà à jour`, {
+          description: 'Aucun appel Stream Estate facturable lancé.',
+        })
+      } else {
+        toast.success(`${syncTarget.name} importée : ${data.fetched ?? 0} bien(s), ${fmtEur(Number(data.estimated_cost_eur ?? 0))}`)
+      }
+      setSyncPreview(null)
+      await load()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err))
+    } finally {
+      setImporting(false)
+    }
+  }
+
+  function startZoneEdit(zone: Zone) {
+    setEditingZoneId(zone.id)
+    setZoneDraft({
+      name: zone.name,
+      zipcode: zone.zipcode,
+      insee_code: zone.insee_code ?? '',
+    })
+  }
+
+  async function saveZone(zoneId: string) {
+    setZoneSaving(zoneId)
+    try {
+      const res = await fetch(`/api/market/zones/${zoneId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: zoneDraft.name.trim(),
+          zipcode: zoneDraft.zipcode.trim(),
+          city: zoneDraft.name.trim(),
+          insee_code: zoneDraft.insee_code.trim() || null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Mise à jour impossible')
+      toast.success('Commune mise à jour')
+      setEditingZoneId(null)
+      await load()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err))
+    } finally {
+      setZoneSaving(null)
+    }
+  }
+
+  async function deleteZone(zone: Zone) {
+    if (!confirm(`Supprimer ${zone.name} ?\n\nSi aucune autre zone ne surveille le CP ${zone.zipcode}, les biens associés peuvent être purgés.`)) {
+      return
+    }
+
+    setZoneDeleting(zone.id)
+    try {
+      const res = await fetch(`/api/market/zones/${zone.id}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Suppression impossible')
+      toast.success(`${zone.name} supprimée`)
+      await load()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err))
+    } finally {
+      setZoneDeleting(null)
+    }
+  }
+
+  async function savePersonalInfo() {
+    setPersonalSaving(true)
+    try {
+      const res = await fetch('/api/market/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          personal_full_name: personalFullName.trim(),
+          personal_email: personalEmail.trim(),
+          personal_phone: personalPhone.trim(),
+          personal_title: personalTitle.trim(),
+        }),
+      })
+      if (!res.ok) throw new Error('Enregistrement impossible')
+      toast.success('Informations personnelles enregistrées')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err))
+    } finally {
+      setPersonalSaving(false)
+    }
+  }
+
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-5">
+      <div className="flex flex-col gap-3 border-b pb-5 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Centre de contrôle</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Consommation API · Fraîcheur des données · Historique des syncs
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand">Paramètres</p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground md:text-3xl">Réglages Mandat OS</h1>
+          <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">
+            Piloter Stream Estate sans surprise de budget, puis centraliser les informations personnelles utilisées par l’application.
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={refresh} disabled={refreshing}>
-          <RefreshCw className={`mr-1 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+          <RefreshCw className={refreshing ? 'animate-spin' : ''} />
           Actualiser
         </Button>
       </div>
 
-      {/* Section 1 — Consommation API Stream Estate */}
-      <section className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Activity className="h-4 w-4 text-brand" />
-          <h2 className="text-sm font-semibold">API Stream Estate</h2>
-          <Badge variant="outline" className="text-[10px] text-green-700 border-green-200 bg-green-50">
-            ● Connectée
-          </Badge>
-        </div>
+      <Tabs defaultValue="stream-estate" className="gap-5">
+        <TabsList className="w-full justify-start overflow-x-auto" variant="line">
+          <TabsTrigger value="stream-estate">
+            <WalletCards />
+            API Stream Estate
+          </TabsTrigger>
+          <TabsTrigger value="personal">
+            <UserRound />
+            <span className="hidden sm:inline">Informations personnelles</span>
+            <span className="sm:hidden">Infos perso</span>
+          </TabsTrigger>
+        </TabsList>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {[
-            { label: "Items aujourd'hui", value: stats?.stream_estate_budget?.external_items_today ?? stats?.stream_estate_budget?.external_requests_today ?? '—' },
-            { label: 'Items ce mois', value: stats?.stream_estate_budget?.external_items_month ?? stats?.stream_estate_budget?.external_requests_month ?? '—' },
-            { label: 'Syncs total', value: stats ? fmt(stats.total_syncs) : '—' },
-            { label: "Biens récupérés aujourd'hui", value: stats ? fmt(stats.properties_fetched_today) : '—' },
-            { label: 'Biens récupérés ce mois', value: stats ? fmt(stats.properties_fetched_month) : '—' },
-            { label: 'Biens récupérés total', value: stats ? fmt(stats.properties_fetched_total) : '—' },
-          ].map((kpi) => (
-            <Card key={kpi.label}>
-              <CardContent className="p-3">
-                <p className="text-[10px] text-muted-foreground leading-tight">{kpi.label}</p>
-                <p className={`text-xl font-bold mt-1 ${loading ? 'text-muted animate-pulse' : ''}`}>
-                  {loading ? '…' : kpi.value}
-                </p>
+        <TabsContent value="stream-estate" className="space-y-4">
+          <div className="grid gap-3 md:grid-cols-3">
+            <Card className="border-emerald-200 bg-emerald-50/70">
+              <CardContent className="flex items-center gap-3 p-4">
+                <CheckCircle2 className="size-5 shrink-0 text-emerald-700" aria-hidden="true" />
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Stream Estate activé</p>
+                  <p className="text-xs text-muted-foreground">Les imports restent confirmés à la main.</p>
+                </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
+            <Card>
+              <CardContent className="flex items-center gap-3 p-4">
+                <WalletCards className="size-5 shrink-0 text-brand" aria-hidden="true" />
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Solde estimé : {budget ? fmtEur(budget.estimated_balance_eur) : '—'}</p>
+                  <p className="text-xs text-muted-foreground">Réserve minimale : {budget ? fmtEur(budget.min_balance_eur) : '—'}.</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="flex items-center gap-3 p-4">
+                <HelpCircle className="size-5 shrink-0 text-brand" aria-hidden="true" />
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{budget ? fmtEur(budget.cost_per_item_eur ?? budget.cost_per_request_eur) : '—'} par bien importé</p>
+                  <p className="text-xs text-muted-foreground">La prévisualisation ne crée aucune zone.</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-        {/* Sparkline */}
-        {stats?.sparkline && stats.sparkline.length > 0 && (
-          <Card>
-            <CardHeader className="pb-2 pt-4 px-4">
-              <div className="flex items-center justify-between">
-                <CardDescription className="text-xs">Items API — 30 derniers jours</CardDescription>
-                <span className="text-[10px] text-muted-foreground">
-                  Dernière sync : {relativeTime(stats.last_sync_at)}
-                </span>
-              </div>
+          <Card className="border-brand/20">
+            <CardHeader>
+              <CardTitle>Prévisualiser puis importer une commune</CardTitle>
+              <CardDescription>
+                Stream Estate permet un comptage via `itemsPerPage=0`; la page affiche uniquement les annonces encore en ligne.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="px-4 pb-4">
-              <Sparkline data={stats.sparkline} />
-              <div className="flex justify-between mt-1">
-                <span className="text-[9px] text-muted-foreground">{stats.sparkline[0]?.date}</span>
-                <span className="text-[9px] text-muted-foreground">{stats.sparkline[stats.sparkline.length - 1]?.date}</span>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </section>
-
-      {/* Section 2 — Budget Stream Estate */}
-      <section className="space-y-3">
-        <div className="flex items-center gap-2">
-          <WalletCards className="h-4 w-4 text-brand" />
-          <h2 className="text-sm font-semibold">Budget Stream Estate</h2>
-          <Badge
-            variant="outline"
-            className={`text-[10px] ${
-              stats?.stream_estate_budget?.sync_enabled
-                ? 'text-green-700 border-green-200 bg-green-50'
-                : 'text-amber-800 border-amber-200 bg-amber-50'
-            }`}
-          >
-            {stats?.stream_estate_budget?.sync_enabled ? 'Sync manuelle active' : 'Sync manuelle désactivée'}
-          </Badge>
-        </div>
-
-        <div className="grid gap-3 lg:grid-cols-[1fr_1.15fr]">
-          <Card>
-            <CardContent className="p-4">
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {[
-                  { label: 'Solde estimé', value: stats?.stream_estate_budget ? fmtEur(stats.stream_estate_budget.estimated_balance_eur) : '—' },
-                  { label: 'Dépensé aujourd’hui', value: stats?.stream_estate_budget ? fmtEur(stats.stream_estate_budget.estimated_spent_today_eur) : '—' },
-                  { label: 'Dépensé ce mois', value: stats?.stream_estate_budget ? fmtEur(stats.stream_estate_budget.estimated_spent_month_eur) : '—' },
-                  { label: 'Items ce mois', value: stats?.stream_estate_budget ? fmt(stats.stream_estate_budget.external_items_month ?? stats.stream_estate_budget.external_requests_month) : '—' },
-                ].map((item) => (
-                  <div key={item.label} className="rounded-md border bg-background px-3 py-2">
-                    <p className="text-[10px] text-muted-foreground leading-tight">{item.label}</p>
-                    <p className="mt-1 text-lg font-semibold tabular-nums">{loading ? '…' : item.value}</p>
+            <CardContent className="space-y-5">
+              <div className="rounded-lg border bg-background p-4">
+                <Label htmlFor="stream-estate-commune" className="text-xs font-medium uppercase text-muted-foreground">
+                  Nom de commune
+                </Label>
+                <div className="mt-2 grid gap-2 md:grid-cols-[minmax(0,1fr)_auto]">
+                  <div className="relative">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                    <Input
+                      id="stream-estate-commune"
+                      value={communeQuery}
+                      placeholder="Saisir une commune, ex : Barjols"
+                      className="pl-9"
+                      onChange={(event) => searchCommunes(event.target.value)}
+                    />
+                    {communeLoading ? (
+                      <Loader2 className="absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-muted-foreground" aria-hidden="true" />
+                    ) : null}
+                    {communes.length > 0 ? (
+                      <div className="absolute z-20 mt-1 max-h-72 w-full overflow-auto rounded-lg border bg-background shadow-lg">
+                        {communes.map((commune) => (
+                          <button
+                            key={commune.code}
+                            type="button"
+                            className="flex w-full items-start justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-muted"
+                            onClick={() => pickCommune(commune)}
+                          >
+                            <span>
+                              <span className="font-medium text-foreground">{commune.nom}</span>
+                              <span className="ml-2 text-xs text-muted-foreground">{commune.departement.nom}</span>
+                            </span>
+                            <span className="shrink-0 text-xs text-muted-foreground">{commune.codesPostaux.join(', ')}</span>
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
-                ))}
+                  <Button type="button" variant="outline" size="sm" onClick={attachCommune} disabled={!selectedCommune || !selectedZip}>
+                    <MapPin />
+                    Rattacher
+                  </Button>
+                </div>
+
+                {selectedCommune && selectedCommune.codesPostaux.length > 1 ? (
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <span className="text-xs text-muted-foreground">Code postal :</span>
+                    {selectedCommune.codesPostaux.map((zipcode) => (
+                      <button
+                        key={zipcode}
+                        type="button"
+                        onClick={() => setSelectedZip(zipcode)}
+                        className={`rounded-md border px-2 py-1 text-xs font-medium ${selectedZip === zipcode ? 'border-brand bg-brand text-white' : 'border-border bg-background text-foreground hover:bg-muted'}`}
+                      >
+                        {zipcode}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+
+                <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                  Cette commune devient le contexte de la prévisualisation et de l’import, avec son code postal et son code INSEE.
+                </p>
               </div>
-              <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-muted-foreground sm:grid-cols-4">
-                <span>Coût/item : {stats?.stream_estate_budget ? fmtEur(stats.stream_estate_budget.cost_per_item_eur ?? stats.stream_estate_budget.cost_per_request_eur) : '—'}</span>
-                <span>Max items/sync : {stats?.stream_estate_budget?.max_items_per_sync ?? stats?.stream_estate_budget?.max_requests_per_sync ?? '—'}</span>
-                <span>Réserve min. : {stats?.stream_estate_budget ? fmtEur(stats.stream_estate_budget.min_balance_eur) : '—'}</span>
-                <span>Resync auto : {stats?.stream_estate_budget?.resync_window_minutes != null ? formatResyncWindow(stats.stream_estate_budget.resync_window_minutes) : '—'}</span>
-                <span>Dernier blocage : {stats?.stream_estate_budget?.last_blocked_reason ?? '—'}</span>
+
+              <div className="rounded-lg border bg-muted/30 p-4">
+                <p className="text-xs font-medium uppercase text-muted-foreground">Commune rattachée aux actions</p>
+                {syncTarget ? (
+                  <>
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <p className="text-2xl font-semibold leading-tight text-foreground">{syncTarget.name}</p>
+                      {syncTarget.inseeCode ? (
+                        <Badge variant="outline" className="rounded-md border-emerald-200 bg-emerald-50 text-emerald-700">
+                          Commune exacte
+                        </Badge>
+                      ) : (
+                        <StatusBadge tone="warning">CP seul</StatusBadge>
+                      )}
+                      {syncTarget.inseeCode ? <Badge variant="outline" className="rounded-md">INSEE {syncTarget.inseeCode}</Badge> : null}
+                      <Badge variant="outline" className="rounded-md">CP {syncTarget.zipcode}</Badge>
+                    </div>
+                    <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+                      Le filtre commune exacte évite de récupérer les communes voisines du même code postal.
+                    </p>
+                  </>
+                ) : (
+                  <p className="mt-3 text-sm text-muted-foreground">Aucune commune rattachée pour l’instant.</p>
+                )}
               </div>
-              <p className="mt-3 text-[11px] text-muted-foreground">
-                Solde estimé calculé depuis le solde manuel et les items journalisés. Stream Estate ne fournit pas de solde public ici.
-              </p>
+
+              <div className={`rounded-lg border p-4 ${syncPreview?.can_confirm || !syncPreview ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'}`}>
+                <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className={`text-lg font-semibold ${syncPreview?.can_confirm || !syncPreview ? 'text-emerald-950' : 'text-amber-950'}`}>
+                        {syncPreview
+                          ? `${fmt(syncPreview.total_available)} annonce${syncPreview.total_available > 1 ? 's' : ''} en ligne trouvée${syncPreview.total_available > 1 ? 's' : ''}`
+                          : 'Prévisualisation en attente'}
+                      </p>
+                      <Badge
+                        variant="outline"
+                        className="h-auto max-w-full whitespace-normal rounded-md border-emerald-200 bg-emerald-50 px-2 py-1 text-left text-emerald-700"
+                      >
+                        Prévisualisation gratuite selon contrat à confirmer
+                      </Badge>
+                    </div>
+                    <p className={`mt-2 text-sm leading-6 ${syncPreview?.can_confirm || !syncPreview ? 'text-emerald-900' : 'text-amber-900'}`}>
+                      {syncPreview
+                        ? <>Coût si import : <strong>{fmtEur(syncPreview.estimated_cost_eur)}</strong>. Aucun bien hors ligne n’est inclus dans ce volume.</>
+                        : 'Rattache une commune puis prévisualise avant tout import.'}
+                    </p>
+                    {countLimitReached ? (
+                      <p className="mt-2 text-xs font-medium text-amber-900">
+                        Le compteur Stream Estate est plafonné à 10 000 résultats sur `/documents/properties`.
+                      </p>
+                    ) : null}
+                    {syncPreview?.blocked_reason ? (
+                      <p className="mt-2 text-xs font-medium text-amber-900">{syncPreview.blocked_reason}</p>
+                    ) : null}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button variant="outline" size="sm" onClick={() => void previewTarget()} disabled={previewLoading || !syncTarget}>
+                      {previewLoading ? <Loader2 className="animate-spin" /> : <Eye />}
+                      Prévisualiser
+                    </Button>
+                    <Button variant="primary" size="sm" onClick={() => void confirmImport()} disabled={importing || previewLoading || !syncPreview?.can_confirm || budgetBlocked}>
+                      {importing ? <Loader2 className="animate-spin" /> : <Import />}
+                      Importer ces biens
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-4">
-              <div className="grid gap-3 sm:grid-cols-6">
-                <label className="space-y-1 sm:col-span-1">
-                  <span className="text-[11px] font-medium">Sync</span>
-                  <button
-                    type="button"
-                    onClick={() => setStreamEstateSyncEnabled((v) => !v)}
-                    className={'relative block h-9 w-16 rounded-full transition-colors disabled:opacity-50 ' + (streamEstateSyncEnabled ? 'bg-brand' : 'bg-border')}
+            <CardHeader>
+              <CardTitle>Communes surveillées</CardTitle>
+              <CardDescription>
+                Les communes sont modifiables et supprimables. La preview reprend directement la commune choisie.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {loading ? (
+                <div className="h-24 animate-pulse rounded-lg bg-muted" />
+              ) : zones.length === 0 ? (
+                <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                  Aucune commune surveillée pour le moment.
+                </div>
+              ) : (
+                zones.map((zone) => (
+                  <div
+                    key={zone.id}
+                    className="flex flex-col gap-3 rounded-lg border p-3 md:flex-row md:items-center md:justify-between"
                   >
-                    <span className={'absolute left-1 top-1 h-7 w-7 rounded-full bg-white transition-transform shadow-sm ' + (streamEstateSyncEnabled ? 'translate-x-7' : '')} />
-                  </button>
+                    {editingZoneId === zone.id ? (
+                      <>
+                        <div className="grid flex-1 gap-2 md:grid-cols-3">
+                          <Input value={zoneDraft.name} onChange={(event) => setZoneDraft((current) => ({ ...current, name: event.target.value }))} aria-label="Nom de commune" />
+                          <Input value={zoneDraft.zipcode} onChange={(event) => setZoneDraft((current) => ({ ...current, zipcode: event.target.value }))} aria-label="Code postal" />
+                          <Input value={zoneDraft.insee_code} onChange={(event) => setZoneDraft((current) => ({ ...current, insee_code: event.target.value }))} placeholder="INSEE optionnel" aria-label="Code INSEE" />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="xs" variant="primary" onClick={() => void saveZone(zone.id)} disabled={zoneSaving === zone.id}>
+                            {zoneSaving === zone.id ? <Loader2 className="animate-spin" /> : <Save />}
+                            Enregistrer
+                          </Button>
+                          <Button size="xs" variant="outline" onClick={() => setEditingZoneId(null)}>Annuler</Button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex min-w-0 items-start gap-3">
+                          <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-md bg-brand-light/70 text-brand">
+                            <MapPin className="size-4" aria-hidden="true" />
+                          </span>
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="font-semibold text-foreground">{zone.name}</p>
+                              <Badge variant="outline" className="rounded-md">CP {zone.zipcode}</Badge>
+                              {zone.insee_code ? (
+                                <Badge variant="outline" className="rounded-md border-emerald-200 bg-emerald-50 text-emerald-700">
+                                  INSEE {zone.insee_code}
+                                </Badge>
+                              ) : (
+                                <StatusBadge tone="warning">CP seul</StatusBadge>
+                              )}
+                              {!zone.active ? <StatusBadge tone="neutral">Inactive</StatusBadge> : null}
+                            </div>
+                            <p className="mt-1 text-xs text-muted-foreground">Dernière sync : {relativeTime(zone.last_synced_at)}</p>
+                          </div>
+                        </div>
+
+                        <div className="grid gap-3 text-xs sm:grid-cols-[70px_120px_1fr] md:min-w-[440px] md:text-right">
+                          <div>
+                            <p className="text-muted-foreground">Biens</p>
+                            <p className="font-semibold tabular-nums text-foreground">{zone.property_count ?? 0}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Statut</p>
+                            <StatusBadge tone={zone.last_sync_status === 'error' ? 'danger' : zone.last_sync_status === 'blocked' ? 'warning' : 'success'}>
+                              {zoneStatusLabel(zone.last_sync_status)}
+                            </StatusBadge>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Actions</p>
+                            <div className="mt-1 flex flex-wrap gap-1 md:justify-end">
+                              <Button type="button" variant="outline" size="xs" onClick={() => void previewTarget(targetFromZone(zone))}>
+                                <Eye />
+                                Preview
+                              </Button>
+                              <Button type="button" variant="outline" size="xs" onClick={() => startZoneEdit(zone)}>
+                                <Pencil />
+                                Modifier
+                              </Button>
+                              <Button type="button" variant="destructive" size="xs" onClick={() => void deleteZone(zone)} disabled={zoneDeleting === zone.id}>
+                                {zoneDeleting === zone.id ? <Loader2 className="animate-spin" /> : <Trash2 />}
+                                Supprimer
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+
+          <details className="rounded-lg border bg-card p-4 text-sm">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-medium text-foreground">
+              <span className="flex items-center gap-2">
+                <Clock3 className="size-4 text-brand" aria-hidden="true" />
+                Historique récent
+              </span>
+              <ChevronDown className="size-4 text-muted-foreground" aria-hidden="true" />
+            </summary>
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b text-muted-foreground">
+                    <th className="px-3 py-2 text-left font-medium">Zone</th>
+                    <th className="px-3 py-2 text-left font-medium">Date</th>
+                    <th className="px-3 py-2 text-right font-medium">Biens</th>
+                    <th className="px-3 py-2 text-right font-medium">Items</th>
+                    <th className="px-3 py-2 text-right font-medium">Coût</th>
+                    <th className="px-3 py-2 text-left font-medium">Statut</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {runs.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">Aucun historique.</td>
+                    </tr>
+                  ) : runs.map((run) => (
+                    <tr key={run.id} className="border-b last:border-b-0">
+                      <td className="px-3 py-2 font-medium text-foreground">{run.monitored_zones?.name ?? '—'} <span className="text-muted-foreground">{run.monitored_zones?.zipcode}</span></td>
+                      <td className="px-3 py-2 text-muted-foreground">{run.started_at ? new Date(run.started_at).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+                      <td className="px-3 py-2 text-right tabular-nums">{run.fetched_count ?? 0}</td>
+                      <td className="px-3 py-2 text-right tabular-nums">{run.external_item_count ?? run.external_request_count ?? 0}</td>
+                      <td className="px-3 py-2 text-right tabular-nums">{fmtEur(Number(run.estimated_cost_eur ?? 0))}</td>
+                      <td className="px-3 py-2"><RunStatus status={run.status} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </details>
+        </TabsContent>
+
+        <TabsContent value="personal">
+          <Card>
+            <CardHeader>
+              <CardTitle>Informations personnelles</CardTitle>
+              <CardDescription>
+                Ces informations serviront aux prochains écrans de profil, signatures et points de contact.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="space-y-1">
+                  <span className="text-xs font-medium">Nom complet</span>
+                  <Input value={personalFullName} onChange={(event) => setPersonalFullName(event.target.value)} />
                 </label>
                 <label className="space-y-1">
-                  <span className="text-[11px] font-medium">Solde manuel (€)</span>
-                  <Input type="number" min="0" step="0.01" value={manualBalanceEur} onChange={(e) => setManualBalanceEur(e.target.value)} />
+                  <span className="text-xs font-medium">Fonction</span>
+                  <Input value={personalTitle} onChange={(event) => setPersonalTitle(event.target.value)} />
                 </label>
                 <label className="space-y-1">
-                  <span className="text-[11px] font-medium">Coût/item (€)</span>
-                  <Input type="number" min="0" step="0.001" value={costPerRequestEur} onChange={(e) => setCostPerRequestEur(e.target.value)} />
+                  <span className="text-xs font-medium">Email</span>
+                  <Input type="email" value={personalEmail} onChange={(event) => setPersonalEmail(event.target.value)} />
                 </label>
                 <label className="space-y-1">
-                  <span className="text-[11px] font-medium">Max items/sync</span>
-                  <Input type="number" min="1" step="1" value={maxRequestsPerSync} onChange={(e) => setMaxRequestsPerSync(e.target.value)} />
-                </label>
-                <label className="space-y-1">
-                  <span className="text-[11px] font-medium">Solde min. (€)</span>
-                  <Input type="number" min="0" step="0.01" value={minBalanceEur} onChange={(e) => setMinBalanceEur(e.target.value)} />
-                </label>
-                <label className="space-y-1">
-                  <span className="text-[11px] font-medium">Fenêtre resync (min)</span>
-                  <Input type="number" min="0" step="30" value={resyncWindowMinutes} onChange={(e) => setResyncWindowMinutes(e.target.value)} />
+                  <span className="text-xs font-medium">Téléphone</span>
+                  <Input value={personalPhone} onChange={(event) => setPersonalPhone(event.target.value)} />
                 </label>
               </div>
-              <div className="mt-3 flex justify-end">
-                <Button size="sm" onClick={saveStreamEstateBudget} disabled={budgetSaving}>
-                  {budgetSaving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
+
+              <div className="rounded-lg border bg-muted/30 p-4">
+                <p className="text-sm font-medium text-foreground">Aperçu</p>
+                <p className="mt-2 text-lg font-semibold text-foreground">{personalFullName || '—'}</p>
+                <p className="text-sm text-muted-foreground">{personalTitle || '—'}</p>
+                <p className="mt-2 text-sm text-muted-foreground">{personalEmail || '—'} · {personalPhone || '—'}</p>
+              </div>
+
+              <div className="flex justify-end">
+                <Button variant="primary" size="sm" onClick={savePersonalInfo} disabled={personalSaving}>
+                  {personalSaving ? <Loader2 className="animate-spin" /> : <Save />}
                   Enregistrer
                 </Button>
               </div>
             </CardContent>
           </Card>
-        </div>
-      </section>
-
-      {/* Section — Cadence de monitoring (règles ajustables) */}
-      <section className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4 text-brand" />
-          <h2 className="text-sm font-semibold">Cadence de monitoring</h2>
-        </div>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-[11px] text-muted-foreground mb-3">
-              Intervalle minimal entre deux re-vérifications d&apos;un lead (par-id, ~0,01 € chacune),
-              selon sa phase. Plus un vendeur est chaud, plus on le surveille souvent ; les biens froids
-              sont vérifiés en roulement pour économiser les crédits.
-            </p>
-            <div className="grid gap-3 sm:grid-cols-4">
-              <label className="space-y-1">
-                <span className="text-[11px] font-medium">Fenêtre d&apos;or (h)</span>
-                <Input type="number" min="1" step="1" value={cadGolden} onChange={(e) => setCadGolden(e.target.value)} />
-              </label>
-              <label className="space-y-1">
-                <span className="text-[11px] font-medium">Chaud (h)</span>
-                <Input type="number" min="1" step="1" value={cadHot} onChange={(e) => setCadHot(e.target.value)} />
-              </label>
-              <label className="space-y-1">
-                <span className="text-[11px] font-medium">Tiède (h)</span>
-                <Input type="number" min="1" step="1" value={cadWarm} onChange={(e) => setCadWarm(e.target.value)} />
-              </label>
-              <label className="space-y-1">
-                <span className="text-[11px] font-medium">Froid (h)</span>
-                <Input type="number" min="1" step="1" value={cadCold} onChange={(e) => setCadCold(e.target.value)} />
-              </label>
-            </div>
-            <div className="mt-3 flex justify-end">
-              <Button size="sm" onClick={saveMonitoringCadence} disabled={cadenceSaving}>
-                {cadenceSaving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
-                Enregistrer
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
-
-      {/* Section 2 — Fraîcheur par zone */}
-      {stats?.zones && stats.zones.length > 0 && (
-        <section className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Database className="h-4 w-4 text-brand" />
-            <h2 className="text-sm font-semibold">Fraîcheur des données par zone</h2>
-          </div>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {stats.zones.map((zone) => {
-              const ageH = zone.last_synced_at
-                ? (Date.now() - new Date(zone.last_synced_at).getTime()) / 3600000
-                : Infinity
-              const freshness = zone.last_sync_status === 'error'
-                ? 'error'
-                : !zone.last_synced_at ? 'never'
-                : ageH < 24 ? 'ok' : 'stale'
-
-              return (
-                <Card key={zone.zone_id} className={!zone.active ? 'opacity-50' : ''}>
-                  <CardContent className="p-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold truncate">{zone.name}</p>
-                        <p className="text-[10px] text-muted-foreground">{zone.zipcode}{zone.city ? ` · ${zone.city}` : ''}</p>
-                      </div>
-                      <span className={`shrink-0 text-[10px] rounded-full px-2 py-0.5 border font-medium ${
-                        freshness === 'ok' ? 'text-green-700 bg-green-50 border-green-200'
-                        : freshness === 'stale' ? 'text-amber-700 bg-amber-50 border-amber-200'
-                        : freshness === 'error' ? 'text-red-700 bg-red-50 border-red-200'
-                        : 'text-muted-foreground bg-muted border-border'
-                      }`}>
-                        {freshness === 'ok' ? '✓ À jour'
-                          : freshness === 'stale' ? '⚠ Ancien'
-                          : freshness === 'error' ? '✗ Erreur'
-                          : '— Jamais'}
-                      </span>
-                    </div>
-                    <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground">
-                      <span>{zone.property_count} bien{zone.property_count !== 1 ? 's' : ''}</span>
-                      <span>{relativeTime(zone.last_synced_at)}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
-        </section>
-      )}
-
-      {/* Section 3 — Historique des syncs */}
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-brand" />
-            <h2 className="text-sm font-semibold">Historique des synchronisations</h2>
-          </div>
-          {runsTotal > 20 && (
-            <span className="text-[10px] text-muted-foreground">{runsTotal} au total</span>
-          )}
-        </div>
-
-        <Card>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b text-muted-foreground">
-                  <th className="text-left px-4 py-2 font-medium">Zone</th>
-                  <th className="text-left px-4 py-2 font-medium">Date</th>
-                  <th className="text-right px-4 py-2 font-medium">Durée</th>
-                  <th className="text-right px-4 py-2 font-medium">Récupérés</th>
-                  <th className="text-right px-4 py-2 font-medium">Créés</th>
-                  <th className="text-right px-4 py-2 font-medium">MAJ</th>
-                  <th className="text-right px-4 py-2 font-medium">Items</th>
-                  <th className="text-right px-4 py-2 font-medium">Coût</th>
-                  <th className="text-left px-4 py-2 font-medium">Statut</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  [...Array(5)].map((_, i) => (
-                    <tr key={i} className="border-b">
-                      {[...Array(9)].map((__, j) => (
-                        <td key={j} className="px-4 py-2">
-                          <div className="h-3 rounded bg-muted animate-pulse" />
-                        </td>
-                      ))}
-                    </tr>
-                  ))
-                ) : runs.length === 0 ? (
-                  <tr>
-                    <td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">
-                      <BarChart3 className="mx-auto h-6 w-6 opacity-30 mb-2" />
-                      Aucune synchronisation enregistrée
-                    </td>
-                  </tr>
-                ) : (
-                  runs.map((run) => (
-                    <tr key={run.id} className="border-b hover:bg-muted/30 transition-colors">
-                      <td className="px-4 py-2">
-                        <span className="font-medium">{run.monitored_zones?.name ?? '—'}</span>
-                        <span className="text-muted-foreground ml-1">{run.monitored_zones?.zipcode}</span>
-                      </td>
-                      <td className="px-4 py-2 text-muted-foreground whitespace-nowrap">
-                        {run.started_at
-                          ? new Date(run.started_at).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
-                          : '—'}
-                      </td>
-                      <td className="px-4 py-2 text-right tabular-nums">
-                        {duration(run.started_at, run.finished_at)}
-                      </td>
-                      <td className="px-4 py-2 text-right tabular-nums">{run.fetched_count ?? '—'}</td>
-                      <td className="px-4 py-2 text-right tabular-nums text-green-700">{run.created_count ?? '—'}</td>
-                      <td className="px-4 py-2 text-right tabular-nums text-blue-700">{run.updated_count ?? '—'}</td>
-                      <td className="px-4 py-2 text-right tabular-nums">{run.external_item_count ?? run.external_request_count ?? 0}</td>
-                      <td className="px-4 py-2 text-right tabular-nums">{fmtEur(Number(run.estimated_cost_eur ?? 0))}</td>
-                      <td className="px-4 py-2">
-                        <StatusBadge status={run.status} />
-                        {(run.blocked_reason || run.error_message) && (
-                          <p className="text-[9px] text-red-600 mt-0.5 truncate max-w-[120px]" title={run.blocked_reason ?? run.error_message ?? ''}>
-                            {run.blocked_reason ?? run.error_message}
-                          </p>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      </section>
-
-      {/* Section 4 — Config */}
-      <section className="space-y-3">
-        <div className="flex items-center gap-2">
-          <RefreshCw className="h-4 w-4 text-brand" />
-          <h2 className="text-sm font-semibold">Configuration</h2>
-        </div>
-        <Card>
-          <CardContent className="divide-y p-0">
-            {/* Pipeline toggle */}
-            <div className="flex items-center justify-between px-4 py-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <Satellite className="h-4 w-4 text-brand" />
-                  <p className="text-sm font-medium">Pipeline MandatFinder</p>
-                </div>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Désactiver coupe les syncs Stream Estate sans toucher au cron
-                </p>
-              </div>
-              <button
-                onClick={togglePipeline}
-                disabled={pipelineLoading || pipelineSaving}
-                className={'relative h-6 w-11 rounded-full transition-colors disabled:opacity-50 ' + (pipelineEnabled ? 'bg-brand' : 'bg-border')}
-              >
-                <span className={'absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform shadow-sm ' + (pipelineEnabled ? 'translate-x-5' : '')} />
-              </button>
-            </div>
-            <div className="flex items-center justify-between px-4 py-3">
-              <div>
-                <p className="text-sm font-medium">Synchronisation automatique</p>
-                <p className="text-xs text-muted-foreground">Crons désactivés tant que le budget n’est pas validé</p>
-              </div>
-              <Badge variant="outline" className="text-amber-800 border-amber-200 bg-amber-50 text-[10px]">Désactivé</Badge>
-            </div>
-            <div className="flex items-center justify-between px-4 py-3">
-              <div>
-                <p className="text-sm font-medium">Source de données</p>
-                <p className="text-xs text-muted-foreground">Stream Estate API</p>
-              </div>
-              <span className="text-xs text-muted-foreground font-mono">stream_estate</span>
-            </div>
-            <div className="flex items-center justify-between px-4 py-3">
-              <div>
-                <p className="text-sm font-medium">Zones actives</p>
-                <p className="text-xs text-muted-foreground">Codes postaux synchronisés</p>
-              </div>
-              <span className="text-sm font-semibold">{stats?.zones.filter((z) => z.active).length ?? '—'}</span>
-            </div>
-            <div className="flex items-center justify-between px-4 py-3">
-              <div>
-                <p className="text-sm font-medium">Total biens en base</p>
-                <p className="text-xs text-muted-foreground">Toutes zones confondues</p>
-              </div>
-              <span className="text-sm font-semibold">
-                {stats ? fmt(stats.zones.reduce((s, z) => s + z.property_count, 0)) : '—'}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

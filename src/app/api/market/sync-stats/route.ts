@@ -181,6 +181,7 @@ export async function GET() {
         manual_balance_eur: budget.manualBalanceEur,
         cost_per_item_eur: budget.costPerItemEur,
         max_items_per_sync: budget.maxItemsPerSync,
+        unlimited_items: budget.unlimitedItems,
         cost_per_request_eur: budget.costPerItemEur,
         max_requests_per_sync: budget.maxItemsPerSync,
         min_balance_eur: budget.minBalanceEur,
