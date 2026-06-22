@@ -107,8 +107,10 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
      `mandate_hot`/`mandate_golden` au passage à la hausse, anti-doublon. Endpoint rescore
      pour backfill. Détail : entrée journal 22/06. Reste optionnel : surfacer ces
      notifications dans l'UI + envoi email (`golden-alert-template`).
-4. **Workflow prospection → mandat** : depuis un bien chaud, capturer le contact vendeur
-   et le statut de prise de contact, relié à l'opportunité, jusqu'au stage « mandat obtenu ».
+4. ✅ **Workflow prospection → mandat FAIT** (22/06) : édition d'opportunité (étape, prochaine
+   action, échéance) + journal de prospection (`note`) via panneau sur chaque carte du Kanban.
+   Contact vendeur dans le journal pour l'instant (champ structuré différé, dépend de la donnée
+   Stream Estate). Détail : entrée journal 22/06.
 
 ### P1.5 — fiabilité pour usage réel
 5. **Réactiver/sécuriser la garde auth admin** (actuellement neutralisée en local) avant
@@ -128,6 +130,30 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
 - A maintenir : tenir `docs/START.md`, `docs/MEMOIRE_SESSION.md`, `docs/SUIVI_PROJET.md` et `docs/ROUTES.md` alignes avec les routes canoniques `/app/*`.
 
 ## Journal de Bord
+
+### 22/06/2026 - P1.4 : édition d'opportunité + journal de prospection (boucle fermée)
+- Base/branche : `preview` (local non commité au moment de l'écriture).
+- Type : feature — fermer la boucle détection → mandat.
+- Statut : **fait** (tsc OK ; testé end-to-end, données restaurées).
+- Constat : le pipeline modélisait déjà tout le parcours (stages À qualifier → … → Mandat
+  potentiel → Converti/Écarté, drag&drop persistant) et l'opportunité portait déjà
+  `next_action`/`due_date`/`note`/`priority`. Manque réel : **aucune édition de carte après
+  création** → impossible de journaliser la prospection. Le PATCH `/opportunities/[id]`
+  acceptait déjà tous les champs → P1.4 = pur frontend, sans schéma.
+- Travail (`KanbanBoard.tsx`) : bouton crayon sur chaque carte (avec `pointer-events-auto`
+  + `stopPropagation` pour cohabiter avec le drag) → ouvre un **panneau d'édition** : étape,
+  priorité, prochaine action, échéance, et **journal de prospection** (`note`, textarea :
+  contact vendeur, comptes rendus d'appels, objections, RDV). Sauvegarde via PATCH + reload.
+  `note` ajouté au type/mapRow.
+- Choix : le **contact vendeur** est saisi dans le journal (`note`) pour l'instant. Un champ
+  contact structuré dépend de ce que fournit Stream Estate (souvent annonces d'agence) →
+  différé tant qu'on ne connaît pas la disponibilité réelle de la donnée.
+- Fichiers : `src/app/admin/market/opportunities/KanbanBoard.tsx`, `docs/SUIVI_PROJET.md`.
+- Audit qualité : `npx tsc --noEmit` OK ; `/app/opportunities` 200 ; PATCH testé (stage +
+  next_action + note persistés) puis **opportunité restaurée à son état d'origine**.
+- Suite : la boucle mandat MVP est fonctionnelle de bout en bout (sync → score → surfaçage →
+  alerte → suivi prospection). Restent P1.5 (réactiver l'auth admin) et options : surfacer
+  les notifications mandate dans l'UI, envoi email (golden-alert-template), contact structuré.
 
 ### 22/06/2026 - P1.b : score persisté + alerte au passage hot/golden
 - Base/branche : `preview` (local non commité au moment de l'écriture).

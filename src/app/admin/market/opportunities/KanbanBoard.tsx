@@ -11,6 +11,7 @@ import {
   Home,
   ArrowUpRight,
   Loader2,
+  Pencil,
 } from 'lucide-react'
 import {
   DndContext,
@@ -71,6 +72,7 @@ interface Opportunity {
   propertyPrice: number | null
   nextAction: string | null
   dueDate: string | null
+  note: string | null
   created_at: string
 }
 
@@ -84,6 +86,7 @@ interface OpportunityRow {
   signal_type: string | null
   next_action: string | null
   due_date: string | null
+  note: string | null
   created_at: string
   property: { title: string | null; city: string | null; price: number | null } | null
 }
@@ -165,13 +168,20 @@ function mapRow(row: OpportunityRow): Opportunity {
     propertyPrice: row.property?.price ?? null,
     nextAction: row.next_action,
     dueDate: row.due_date,
+    note: row.note,
     created_at: row.created_at,
   }
 }
 
 // ─── Sortable Card ─────────────────────────────────────────
 
-function SortableOpportunityCard({ opportunity }: { opportunity: Opportunity }) {
+function SortableOpportunityCard({
+  opportunity,
+  onEdit,
+}: {
+  opportunity: Opportunity
+  onEdit: (opp: Opportunity) => void
+}) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: opportunity.id,
   })
@@ -190,7 +200,19 @@ function SortableOpportunityCard({ opportunity }: { opportunity: Opportunity }) 
     <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
       <Card className="hover:shadow-md transition-shadow pointer-events-none">
         <CardContent className="p-3">
-          <div className="flex items-center justify-end mb-2">
+          <div className="flex items-center justify-between mb-2">
+            <button
+              type="button"
+              className="pointer-events-auto text-muted-foreground hover:text-foreground transition-colors"
+              title="Éditer / suivre la prospection"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                onEdit(opportunity)
+              }}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
             <div className="flex items-center gap-1.5">
               <Badge variant="outline" className={cn('text-[10px] px-1.5 py-0 h-5', typeCfg.class)}>
                 <TypeIcon className="h-3 w-3 mr-1" />
@@ -307,6 +329,16 @@ function emptyDraft(stage: string): CreateDraft {
   return { title: '', description: '', priority: 'medium', nextAction: '', dueDate: '', stage }
 }
 
+interface EditDraft {
+  id: string
+  title: string
+  stage: string
+  priority: Priority
+  nextAction: string
+  dueDate: string
+  note: string
+}
+
 // ─── Main Kanban Board ─────────────────────────────────────
 
 export function KanbanBoard() {
@@ -317,6 +349,10 @@ export function KanbanBoard() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [draft, setDraft] = useState<CreateDraft>(emptyDraft(DEFAULT_STAGE))
   const [saving, setSaving] = useState(false)
+
+  const [editOpen, setEditOpen] = useState(false)
+  const [editDraft, setEditDraft] = useState<EditDraft | null>(null)
+  const [editing, setEditing] = useState(false)
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -422,6 +458,52 @@ export function KanbanBoard() {
     }
   }
 
+  function openEdit(opp: Opportunity) {
+    setEditDraft({
+      id: opp.id,
+      title: opp.title,
+      stage: opp.stage,
+      priority: opp.priority,
+      nextAction: opp.nextAction ?? '',
+      dueDate: opp.dueDate ? opp.dueDate.slice(0, 10) : '',
+      note: opp.note ?? '',
+    })
+    setEditOpen(true)
+  }
+
+  async function submitEdit() {
+    if (!editDraft) return
+    const title = editDraft.title.trim()
+    if (!title) {
+      toast.error('Le titre est requis')
+      return
+    }
+    setEditing(true)
+    try {
+      const res = await fetch(`/api/market/opportunities/${editDraft.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          stage: editDraft.stage,
+          priority: editDraft.priority,
+          next_action: editDraft.nextAction.trim() || null,
+          due_date: editDraft.dueDate || null,
+          note: editDraft.note.trim() || null,
+        }),
+      })
+      if (!res.ok) throw new Error('Erreur API')
+      toast.success('Opportunité mise à jour')
+      setEditOpen(false)
+      await load()
+    } catch (err) {
+      console.error('Erreur mise à jour opportunité:', err)
+      toast.error('Impossible de mettre à jour l’opportunité')
+    } finally {
+      setEditing(false)
+    }
+  }
+
   const total = opportunities.length
 
   return (
@@ -466,7 +548,7 @@ export function KanbanBoard() {
                 <SortableContext items={stageOpps.map((o) => o.id)} strategy={verticalListSortingStrategy}>
                   <DroppableColumn stage={stage}>
                     {stageOpps.map((opp) => (
-                      <SortableOpportunityCard key={opp.id} opportunity={opp} />
+                      <SortableOpportunityCard key={opp.id} opportunity={opp} onEdit={openEdit} />
                     ))}
                     {stageOpps.length === 0 && (
                       <div className="flex items-center justify-center h-32 text-xs text-muted-foreground border-2 border-dashed border-border rounded-lg">
@@ -494,7 +576,7 @@ export function KanbanBoard() {
                 <SortableContext items={stageOpps.map((o) => o.id)} strategy={verticalListSortingStrategy}>
                   <DroppableColumn stage={stage}>
                     {stageOpps.map((opp) => (
-                      <SortableOpportunityCard key={opp.id} opportunity={opp} />
+                      <SortableOpportunityCard key={opp.id} opportunity={opp} onEdit={openEdit} />
                     ))}
                     {stageOpps.length === 0 && (
                       <div className="flex items-center justify-center h-16 text-xs text-muted-foreground border-2 border-dashed border-border rounded-lg">
@@ -588,6 +670,88 @@ export function KanbanBoard() {
             <Button onClick={submitCreate} disabled={saving}>
               {saving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Plus className="mr-1 h-4 w-4" />}
               Créer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog édition / suivi prospection */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Suivre l&apos;opportunité</DialogTitle>
+            <DialogDescription>
+              Faire avancer la piste vers le mandat : étape, prochaine action et journal de prospection.
+            </DialogDescription>
+          </DialogHeader>
+          {editDraft && (
+            <div className="space-y-3">
+              <label className="block space-y-1">
+                <span className="text-xs font-medium">Titre *</span>
+                <Input
+                  value={editDraft.title}
+                  onChange={(e) => setEditDraft((d) => (d ? { ...d, title: e.target.value } : d))}
+                />
+              </label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block space-y-1">
+                  <span className="text-xs font-medium">Étape</span>
+                  <Select value={editDraft.stage} onValueChange={(v) => setEditDraft((d) => (d ? { ...d, stage: v } : d))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {STAGES.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </label>
+                <label className="block space-y-1">
+                  <span className="text-xs font-medium">Priorité</span>
+                  <Select value={editDraft.priority} onValueChange={(v) => setEditDraft((d) => (d ? { ...d, priority: v as Priority } : d))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Basse</SelectItem>
+                      <SelectItem value="medium">Moyenne</SelectItem>
+                      <SelectItem value="high">Haute</SelectItem>
+                      <SelectItem value="critical">Urgente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </label>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block space-y-1">
+                  <span className="text-xs font-medium">Prochaine action</span>
+                  <Input
+                    value={editDraft.nextAction}
+                    onChange={(e) => setEditDraft((d) => (d ? { ...d, nextAction: e.target.value } : d))}
+                    placeholder="Ex. Rappeler le vendeur jeudi"
+                  />
+                </label>
+                <label className="block space-y-1">
+                  <span className="text-xs font-medium">Échéance</span>
+                  <Input
+                    type="date"
+                    value={editDraft.dueDate}
+                    onChange={(e) => setEditDraft((d) => (d ? { ...d, dueDate: e.target.value } : d))}
+                  />
+                </label>
+              </div>
+              <label className="block space-y-1">
+                <span className="text-xs font-medium">Journal de prospection</span>
+                <Textarea
+                  value={editDraft.note}
+                  onChange={(e) => setEditDraft((d) => (d ? { ...d, note: e.target.value } : d))}
+                  placeholder="Contact vendeur, comptes rendus d'appels, objections, RDV…"
+                  rows={5}
+                />
+              </label>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditOpen(false)} disabled={editing}>Annuler</Button>
+            <Button onClick={submitEdit} disabled={editing}>
+              {editing ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Pencil className="mr-1 h-4 w-4" />}
+              Enregistrer
             </Button>
           </DialogFooter>
         </DialogContent>
