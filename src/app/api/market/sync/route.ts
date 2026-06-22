@@ -13,6 +13,11 @@ import {
 
 const ZIPCODE_RE = /^\d{5}$/
 
+// Moteur de règles `management_rules` neutralisé : le mandate_score est la source de
+// vérité (motivation + dimensions + alertes). Les règles seed à conditions vides
+// généraient un bruit massif de notifications `rule_triggered`. Réversible : passer à true.
+const RULES_ENGINE_ENABLED = false
+
 // Fenêtre anti-re-sync : on ne re-synchronise pas une zone vue récemment (0 appel API).
 const STREAM_ESTATE_RESYNC_WINDOW_KEY = 'stream_estate_resync_window_minutes'
 const DEFAULT_RESYNC_WINDOW_MINUTES = 360 // 6 h
@@ -482,8 +487,10 @@ export async function POST(req: NextRequest) {
       // 5. Marquer les biens non vus comme expirés (sera fait par un job planifié)
       // Note MVP : les biens expirés sont détectés lors des synchronisations suivantes.
 
-      // 6. Exécuter les règles actives
-      await executeRulesForZone(zoneId)
+      // 6. Exécuter les règles actives (neutralisé — cf. RULES_ENGINE_ENABLED)
+      if (RULES_ENGINE_ENABLED) {
+        await executeRulesForZone(zoneId)
+      }
 
       // 7. Mettre à jour le journal
       const syncStatus = result.truncated ? 'blocked' : 'success'

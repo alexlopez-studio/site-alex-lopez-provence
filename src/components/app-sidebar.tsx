@@ -9,7 +9,6 @@ import {
   KanbanIcon,
   LayoutDashboardIcon,
   RadarIcon,
-  ScrollTextIcon,
   BellIcon,
   MapIcon,
   SettingsIcon,
@@ -56,7 +55,6 @@ const MARKET_ITEMS = [
 ]
 
 const AUTOMATION_ITEMS = [
-  { title: "Règles", url: "/app/rules", icon: ScrollTextIcon },
   { title: "Notifications", url: "/app/notifications", icon: BellIcon },
 ]
 

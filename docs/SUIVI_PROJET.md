@@ -131,6 +131,29 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
 
 ## Journal de Bord
 
+### 22/06/2026 - Neutralisation du moteur de règles (doublon + bruit) + réponses coût
+- Base/branche : `preview` (local non commité au moment de l'écriture).
+- Type : nettoyage / décision produit.
+- Statut : **fait** (tsc OK ; base purgée).
+- Questions (Alexandre) : (1) le push coûte-t-il des crédits ? → **non** (notifications = écritures
+  en base sur biens déjà fetchés ; moteur de règles = 0 appel API). Seul coût = la sync, déjà
+  plafonnée/cadencée. (2) la page des règles est-elle nécessaire ? → **non** : 128/133 notifications
+  étaient des `rule_triggered` générées par les règles seed à conditions vides ; le score est
+  désormais la source de vérité.
+- Décision : **neutraliser + masquer + purger**, code conservé (réversible).
+- Travail :
+  1. `sync/route.ts` : appel `executeRulesForZone` gardé derrière `RULES_ENGINE_ENABLED = false`
+     (en tête de module) → moteur coupé, fonction conservée.
+  2. `app-sidebar.tsx` : entrée « Règles » retirée de `AUTOMATION_ITEMS` + import `ScrollTextIcon`
+     supprimé. Page `/app/rules` + `RuleWizard` conservés (accessibles par URL, hors nav).
+  3. Purge SQL : `delete from notifications where type='rule_triggered'` → **128 supprimées**,
+     base passée de 133 à **5 notifications** (3 non lues). La cloche ne montre plus que les
+     signaux pertinents (new_listing / mandate_* / match).
+- Fichiers : `src/app/api/market/sync/route.ts`, `src/components/app-sidebar.tsx`, `docs/SUIVI_PROJET.md`.
+- Audit qualité : `npx tsc --noEmit` OK ; `/app/dashboard`, `/app/properties` 200 ; `/app/rules`
+  toujours 200 par URL (réversible) ; vérif base : 0 `rule_triggered`, 5 notifs restantes.
+- Suite : activer la sync nocturne en prod ; P1.5 (auth admin).
+
 ### 22/06/2026 - Push « nouveaux biens » dans la cloche in-app
 - Base/branche : `preview` (local non commité au moment de l'écriture).
 - Type : feature — notifier les nouveaux biens (canal retenu : cloche in-app).
