@@ -23,6 +23,7 @@ export interface ScorableProperty {
   price?: number | null
   first_seen_at?: string | null
   last_seen_at?: string | null
+  published_at?: string | null
   status?: string | null
 }
 
@@ -34,6 +35,19 @@ export type MandateScore = SellerScore & {
 }
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24
+
+// Republication : une annonce retirée puis remise en ligne reçoit une nouvelle
+// date de publication. Si `published_at` devient postérieur à `first_seen_at` de
+// plus d'un jour, on considère le bien comme republié (axe Comportement).
+const RELIST_MIN_GAP_MS = MS_PER_DAY
+
+function computeIsRelisted(firstSeenAt?: string | null, publishedAt?: string | null): boolean {
+  if (!firstSeenAt || !publishedAt) return false
+  const first = new Date(firstSeenAt).getTime()
+  const pub = new Date(publishedAt).getTime()
+  if (Number.isNaN(first) || Number.isNaN(pub)) return false
+  return pub - first >= RELIST_MIN_GAP_MS
+}
 
 /**
  * Nombre de jours depuis la première mise en ligne.
@@ -94,10 +108,9 @@ function deriveDropMetrics(
 /**
  * Calcule le MandateProbabilityScore d'un bien market_properties.
  *
- * Note : les axes « comportement » (republication) ne sont pas encore traçés
- * par la sync Stream Estate sur market_properties → isRelisted = false pour
- * l'instant (15 points max non encore exploités). À activer quand la sync
- * détectera les retraits/republications.
+ * Axe Comportement : la republication est dérivée du décalage entre
+ * `published_at` (mis à jour à chaque sync) et `first_seen_at` (figé). Une
+ * republication avec baisse de prix concomitante vaut le signal maximal.
  */
 export function scoreMarketProperty(
   property: ScorableProperty,
@@ -110,14 +123,16 @@ export function scoreMarketProperty(
     property.status,
   )
   const { priceDropsCount, totalDropPercent } = deriveDropMetrics(currentPrice, priceHistory)
+  const isRelisted = computeIsRelisted(property.first_seen_at, property.published_at)
+  const isRelistedWithNewPrice = isRelisted && totalDropPercent > 0
 
   const score = calculateScore({
     listingId: property.id,
     daysOnline,
     priceDropsCount,
     totalDropPercent,
-    isRelisted: false,
-    isRelistedWithNewPrice: false,
+    isRelisted,
+    isRelistedWithNewPrice,
   })
 
   return {

@@ -94,10 +94,10 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
    `vercel.json` mais **inerte** tant que `STREAM_ESTATE_CRON_ENABLED != 'true'`.
    **Pour activer en prod** : poser `STREAM_ESTATE_CRON_ENABLED=true` (+ `CRON_SECRET`)
    dans Vercel et vérifier le budget Stream Estate. Détail : entrée journal 22/06.
-2. **Détection baisse de prix + republication → score** : vérifier que
-   `property_price_history` s'accumule bien au fil des syncs, brancher la détection
-   retrait/republication pour réveiller l'axe Comportement (15 pts dormants dans
-   `mandate-score.ts`, `isRelisted=false`).
+2. ✅ **Détection baisse de prix + republication → score — FAIT** (22/06). Baisse de prix
+   déjà câblée (sync → `property_price_history` → axes Frustration/Intensité). Republication
+   dérivée de l'avancée de `published_at` vs `first_seen_at` (axe Comportement), sans
+   migration. Détail : entrée journal 22/06. À valider sur données réelles quand la sync tourne.
 
 ### P1 — transformer la détection en action
 3. **Surfaçage « à contacter »** : écran/widget des vendeurs en phase chaud/golden +
@@ -124,6 +124,39 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
 - A maintenir : tenir `docs/START.md`, `docs/MEMOIRE_SESSION.md`, `docs/SUIVI_PROJET.md` et `docs/ROUTES.md` alignes avec les routes canoniques `/app/*`.
 
 ## Journal de Bord
+
+### 22/06/2026 - P0.2 : baisses de prix + republication branchées au score
+- Base/branche : `preview` (local non commité au moment de l'écriture).
+- Type : feature — réveiller les axes Frustration/Intensité/Comportement du score.
+- Statut : **fait** (testé end-to-end ; tsc OK).
+- Constat préalable : la **baisse de prix → score était déjà câblée** : la sync insère une
+  ligne `property_price_history` à chaque changement de prix, et `mandate-score.ts` compte
+  les baisses (Frustration 30) + la baisse totale % (Intensité 15). Ces axes s'activent donc
+  d'eux-mêmes dès que la sync récurrente (P0.1) tourne dans le temps. Le seul manque réel
+  était l'**axe Comportement (republication, 15 pts)**, hardcodé `isRelisted=false`.
+- Contrainte : l'API Stream Estate **filtre les annonces hors-ligne** (`isOnlineListingStatus`)
+  → impossible de détecter un retrait par absence (d'autant que le budget plafonne le fetch).
+  Signal fiable retenu : **`published_at` qui avance**. Une annonce retirée puis remise en
+  ligne reçoit une nouvelle date de publication ; si elle devient postérieure à `first_seen_at`
+  (figé) de >1 j, c'est une republication. **Sans migration.**
+- Travail :
+  1. `mandate-score.ts` : `ScorableProperty` reçoit `published_at` ; `computeIsRelisted()`
+     (gap `published_at − first_seen_at ≥ 1 j) ; `isRelistedWithNewPrice = isRelisted &&
+     totalDropPercent > 0` ; branchés dans `calculateScore()`.
+  2. `sync/route.ts` : la branche update lit `published_at` existant et met à jour
+     `published_at = listing.publishedAt ?? existing` (first_seen_at reste figé) → l'avancée
+     révèle la republication aux syncs suivantes.
+- Fichiers : `src/lib/market/mandate-score.ts`, `src/app/api/market/sync/route.ts`, `docs/SUIVI_PROJET.md`.
+- Audit qualité : `npx tsc --noEmit` OK. Test end-to-end sur la base live (bien Pontevès
+  `f773d231…`) : published_at = first_seen → `is_relisted=false`, behavior 0, score 5 (non-régression) ;
+  published_at décalé +10 j (via SQL) → `is_relisted=true`, behavior 10, score 15 ; puis
+  **published_at restauré à sa valeur d'origine**. `with_new_price=false` ici (pas de baisse), cohérent.
+- Point d'attention : la détection de republication suppose que Stream Estate **renvoie une
+  nouvelle `published_at` lors d'une remise en ligne** (et non lors d'un simple changement de
+  prix — le mapping utilise published_at/date_publication/created_at, pas updatedAt). À
+  confirmer sur données réelles une fois la sync récurrente active. Si l'annonce republiée
+  reçoit un nouvel `external_id`, elle serait vue comme un nouveau bien (relist non détecté) — limite connue.
+- Suite : P1 — surfaçage « à contacter » (vendeurs hot/golden) + alertes au franchissement de seuil.
 
 ### 22/06/2026 - P0.1 : job cron de sync récurrente par zone (codé, gardé OFF)
 - Base/branche : `preview` (local non commité au moment de l'écriture).
