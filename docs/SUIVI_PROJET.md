@@ -131,6 +131,29 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
 
 ## Journal de Bord
 
+### 22/06/2026 - Audit des écrans + page Notifications branchée au réel
+- Base/branche : `preview` (local non commité au moment de l'écriture).
+- Type : audit / nettoyage.
+- Statut : **fait** (tsc OK ; page 200).
+- Audit complet de la sidebar (tables vérifiées en base) :
+  - ✅ Réels : Dashboard, Biens, Zones, Opportunités, Liste chaude (`warm_contacts` peuplée),
+    Leads (`leads`), Réglages, Utilisateurs (`admin_users`, gated 403), cloche Notifications.
+  - ❌ Cassés (tables absentes) : **Acquéreurs** + **Matching** (tables `buyers`/`match_results`
+    inexistantes → API 500). Module côté acheteurs, distinct de la boucle mandat.
+  - ⚠️ Mock : la **page** `/app/notifications` (≠ cloche).
+  - Déjà masqués : Radar, Règles.
+- Décisions (Alexandre) :
+  - Module Acquéreurs + Matching : **gardé** (à construire plus tard — tables à créer le moment
+    venu). Non modifié. NB : `runMatchingForProperty` est appelé à chaque nouveau bien dans la
+    sync mais échoue en silence (tables absentes) — à brancher quand le module sera construit.
+  - Page Notifications : **branchée au réel**.
+- Travail : `src/app/admin/market/notifications/page.tsx` réécrit (fin du mock) → `GET
+  /api/market/notifications` avec filtres **Toutes/Non lues** + **Tous types/Nouveaux biens/Alertes
+  mandat**, marquer lu (PATCH `/[id]`), **tout marquer lu** (PATCH `{all:true}`), action → fiche bien.
+- Fichiers : `src/app/admin/market/notifications/page.tsx`, `docs/SUIVI_PROJET.md`.
+- Audit qualité : `npx tsc --noEmit` OK ; `/app/notifications` 200 ; plus de mock.
+- Suite : activer la sync nocturne ; P1.5 (auth admin) ; (plus tard) construire le module acheteurs.
+
 ### 22/06/2026 - Masquage du Radar (écran mort, doublon de /app/properties)
 - Base/branche : `preview` (local non commité au moment de l'écriture).
 - Type : nettoyage / clarification UX.
