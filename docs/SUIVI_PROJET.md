@@ -131,6 +131,26 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
 
 ## Journal de Bord
 
+### 22/06/2026 - Notifications : base cohérente + redesign du volet
+- Base/branche : `preview` (local non commité au moment de l'écriture).
+- Type : nettoyage données + amélioration UX du volet.
+- Statut : **fait** (tsc OK ; table purgée ; pages 200).
+- Demande (Alexandre) : base notifications cohérente + volet latéral mieux designé.
+- Cohérence base : les notifications restantes (5) étaient **toutes des données de démo/seed**
+  (ids `0000…006x`, types de modules morts price_drop/match/system, biens fictifs sans
+  `market_property_id` réel). Purge des notifications **sans bien réel lié** → table à **0**.
+  Désormais seules les vraies notifs la peuplent (new_listing à la découverte, mandate_hot/golden).
+- Redesign du volet (`NotificationsSheet.tsx`), sobre/scannable (guidelines admin) :
+  - **icône + teinte par type** (`TYPE_META` : Nouveau bien=bleu/Home, Fenêtre d'or=rouge/Flame,
+    Vendeur chaud=orange/Flame, Acquéreur=violet/Users, Baisse=rose/TrendingDown) dans une pastille ;
+  - libellé de type en capitales discrètes + heure relative + pastille « non lu » ;
+  - distinction lu/non-lu nette (accent gauche brand) ; **actions visibles** (pas de hover-only) :
+    action vers la fiche, marquer lu, archiver ;
+  - suppression du badge priorité (bruit) ; états vides utiles ; loader discret.
+- Fichiers : `src/components/admin/NotificationsSheet.tsx`, purge SQL (MCP), `docs/SUIVI_PROJET.md`.
+- Audit qualité : `npx tsc --noEmit` OK ; `/app/dashboard` 200 ; API notifications = 0 (cohérent).
+- Suite : activer la sync nocturne ; P1.5 (auth admin).
+
 ### 22/06/2026 - Cloche notifications en header (haut droite) + archivage
 - Base/branche : `preview` (local non commité au moment de l'écriture).
 - Type : feature — accès direct aux notifications + action archiver.
