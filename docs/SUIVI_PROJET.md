@@ -131,6 +131,17 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
 
 ## Journal de Bord
 
+### 22/06/2026 - KPI « Particuliers chauds » (PAP) au dashboard
+- Base/branche : `preview` (local non commité au moment de l'écriture).
+- Type : feature — valoriser la cible premium (PAP en fenêtre d'or).
+- Statut : **fait** (tsc OK ; dashboard 200).
+- Travail : `GET /api/market/dashboard-stats` ajoute `pap_chauds` (= `seller_type='individual'`
+  ET `mandate_phase` in hot/golden) ; `MandatKpiCards` affiche une 5e carte « Particuliers chauds »
+  (vert, cible premium), grille passée à 5 colonnes en large.
+- Fichiers : `src/app/api/market/dashboard-stats/route.ts`, `src/app/admin/market/MandatKpiCards.tsx`, `docs/SUIVI_PROJET.md`.
+- Audit qualité : `npx tsc --noEmit` OK ; endpoint → `pap_chauds: 0` (cohérent : 5 biens agence/cold) ; `/app/dashboard` 200.
+- Suite : activer la sync nocturne en prod ; P1.5 (auth admin).
+
 ### 22/06/2026 - Refonte du modèle de qualification : score motivation + dimensions lisibles
 - Base/branche : `preview` (local non commité au moment de l'écriture).
 - Type : feature — cœur métier (modèle de qualification des opportunités de mandat).

@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { BellRingIcon, FlameIcon, HomeIcon, KanbanIcon } from 'lucide-react'
+import { BellRingIcon, FlameIcon, HomeIcon, KanbanIcon, UserIcon } from 'lucide-react'
 import { MetricCard } from '@/components/pro'
 
 interface DashboardStats {
   biens_surveilles: number
   opportunites_chaudes: number
+  pap_chauds: number
   alertes_mandat: number
   pipeline_actif: number
   zones_actives: number
@@ -44,6 +45,13 @@ export function MandatKpiCards() {
       tone: 'warning' as const,
     },
     {
+      label: 'Particuliers chauds',
+      value: v(stats?.pap_chauds),
+      detail: 'PAP chaud / fenêtre d’or — cible premium',
+      icon: UserIcon,
+      tone: 'success' as const,
+    },
+    {
       label: 'Alertes mandat',
       value: v(stats?.alertes_mandat),
       detail: 'Non lues (passage hot/golden)',
@@ -60,7 +68,7 @@ export function MandatKpiCards() {
   ]
 
   return (
-    <div className="@xl/main:grid-cols-2 @5xl/main:grid-cols-4 grid grid-cols-1 gap-3 md:gap-4">
+    <div className="@xl/main:grid-cols-2 @3xl/main:grid-cols-3 @5xl/main:grid-cols-5 grid grid-cols-1 gap-3 md:gap-4">
       {metrics.map((metric) => (
         <MetricCard key={metric.label} {...metric} />
       ))}

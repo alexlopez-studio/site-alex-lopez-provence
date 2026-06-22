@@ -15,6 +15,7 @@ export async function GET() {
     const [
       biensSurveilles,
       opportunitesChaudes,
+      papChauds,
       alertesMandat,
       opportunitesTotal,
       opportunitesTerminees,
@@ -27,6 +28,13 @@ export async function GET() {
         supabaseAdmin
           .from('market_properties')
           .select('id', { count: 'exact', head: true })
+          .in('mandate_phase', ['hot', 'golden']),
+      ),
+      countOf(() =>
+        supabaseAdmin
+          .from('market_properties')
+          .select('id', { count: 'exact', head: true })
+          .eq('seller_type', 'individual')
           .in('mandate_phase', ['hot', 'golden']),
       ),
       countOf(() =>
@@ -56,6 +64,7 @@ export async function GET() {
     return NextResponse.json({
       biens_surveilles: biensSurveilles,
       opportunites_chaudes: opportunitesChaudes,
+      pap_chauds: papChauds,
       alertes_mandat: alertesMandat,
       pipeline_actif: Math.max(0, opportunitesTotal - opportunitesTerminees),
       zones_actives: zonesActives,
