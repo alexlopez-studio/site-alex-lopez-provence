@@ -131,6 +131,28 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
 
 ## Journal de Bord
 
+### 22/06/2026 - Monitoring : sélection des biens par règles de cadence (coût sous-linéaire)
+- Base/branche : `preview` (local non commité au moment de l'écriture).
+- Type : feature — maîtriser le coût du monitoring quand le portefeuille grandit.
+- Statut : **fait** (testé des deux côtés ; tsc OK).
+- Problème soulevé (Alexandre) : avec 100 biens, re-vérifier tout chaque nuit = 100 items ≈
+  1 €/nuit (~30 €/mois). Or re-checker un bien froid récent n'apporte presque rien.
+- Solution : **sélectionner les biens à monitorer selon des règles de cadence** liées à leur
+  phase, dans `monitorKnownLeads` :
+  - golden / hot / warm → re-check **quotidien** (intervalle 20 h) ;
+  - cold / non scoré → re-check **en roulement** (~tous les 3 jours) ;
+  - un bien est « dû » s'il n'a jamais été scoré ou si l'intervalle de sa phase est écoulé
+    (`isDue` sur `scored_at`). Tri : phase la plus chaude d'abord, puis le plus anciennement scoré.
+  - Le tout reste plafonné par le budget (`getAvailableStreamEstateItems`).
+- Effet : ex. 100 biens dont ~20 chauds/tièdes → ~20 quotidiens + ~80/3 en roulement ≈ 40
+  items/nuit (~0,40 €) au lieu de 1 €, sans rater de baisse sur les biens qui comptent.
+- Fichiers : `src/lib/market/lead-monitor.ts`, `docs/SUIVI_PROJET.md`.
+- Audit qualité : `npx tsc --noEmit` OK. Tests live (`?test=1&discover=0`) :
+  - 5 leads cold scorés à l'instant → **0 dû, 0 €** (pas de re-check inutile) ;
+  - 1 lead cold vieilli de 4 j (SQL) → **1 dû, vérifié, 0,01 €** puis re-scoré.
+- Point d'attention : intervalles en dur (20 h / 3 j) — pourront devenir des réglages si besoin.
+- Suite : activer la sync nocturne en prod (`STREAM_ESTATE_CRON_ENABLED=true`) ; P1.5 (auth admin).
+
 ### 22/06/2026 - Sync nocturne optimisée crédits : monitoring par-id + découverte hebdo
 - Base/branche : `preview` (local non commité au moment de l'écriture).
 - Type : feature — optimisation des crédits Stream Estate (cœur économique).

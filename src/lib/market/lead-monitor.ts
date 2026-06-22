@@ -27,9 +27,45 @@ export interface LeadMonitorResult {
 
 const TERMINAL_STATUSES = ['expired', 'removed', 'sold', 'vendu']
 
+const HOUR = 60 * 60 * 1000
+const DAY = 24 * HOUR
+
+// Règles de cadence de re-vérification (sélection des biens à monitorer) :
+// plus un vendeur est proche de la fenêtre d'or, plus on le surveille souvent.
+// On évite de re-payer chaque nuit les biens froids qui bougent peu.
+const RECHECK_INTERVAL_MS: Record<string, number> = {
+  golden: 20 * HOUR, // quotidien
+  hot: 20 * HOUR,    // quotidien
+  warm: 20 * HOUR,   // quotidien
+  cold: 3 * DAY,     // en roulement (~tous les 3 jours)
+}
+const DEFAULT_INTERVAL_MS = 3 * DAY // phase inconnue / non encore scorée
+const PHASE_PRIORITY: Record<string, number> = { golden: 3, hot: 2, warm: 1, cold: 0 }
+
+interface LeadRow {
+  id: string
+  external_id: string | null
+  zipcode: string | null
+  price: number | null
+  status: string | null
+  mandate_phase: string | null
+  scored_at: string | null
+}
+
+/** Un lead est « à re-vérifier » si jamais scoré, ou si l'intervalle de sa phase est écoulé. */
+function isDue(lead: LeadRow, now: number): boolean {
+  if (!lead.scored_at) return true
+  const interval = RECHECK_INTERVAL_MS[lead.mandate_phase ?? ''] ?? DEFAULT_INTERVAL_MS
+  const age = now - new Date(lead.scored_at).getTime()
+  return Number.isNaN(age) || age >= interval
+}
+
 /**
  * Re-vérifie l'état des leads connus actifs (prix + retrait) via l'endpoint
  * par-id, dans la limite du budget Stream Estate. Best-effort, par bien.
+ *
+ * Sélection : seuls les biens « dus » selon leur cadence de phase sont vérifiés
+ * (chauds/golden quotidiens, froids en roulement) → coût sous-linéaire.
  */
 export async function monitorKnownLeads(maxLeads = 200): Promise<LeadMonitorResult> {
   const empty: LeadMonitorResult = {
@@ -42,20 +78,33 @@ export async function monitorKnownLeads(maxLeads = 200): Promise<LeadMonitorResu
   const available = getAvailableStreamEstateItems(snapshot)
   if (available < 1) return { ...empty, reason: 'stream_estate_budget_insufficient' }
 
-  const limit = Math.min(maxLeads, available)
-  const { data: leads, error } = await supabaseAdmin
+  // On lit les candidats actifs puis on applique les règles de cadence en mémoire
+  // (portefeuille modeste) pour décider qui est « dû » ce soir.
+  const { data: candidates, error } = await supabaseAdmin
     .from('market_properties')
-    .select('id, external_id, zipcode, price, status')
+    .select('id, external_id, zipcode, price, status, mandate_phase, scored_at')
     .eq('source', 'stream_estate')
     .not('status', 'in', `(${TERMINAL_STATUSES.join(',')})`)
-    .order('scored_at', { ascending: true, nullsFirst: true })
-    .limit(limit)
+    .limit(5000)
 
   if (error) {
     console.error('[monitorKnownLeads] lecture leads:', error.message)
     return { ...empty, reason: 'read_error' }
   }
-  if (!leads || leads.length === 0) {
+
+  const now = Date.now()
+  const leads = (candidates as LeadRow[] ?? [])
+    .filter((l) => l.external_id && isDue(l, now))
+    .sort((a, b) => {
+      // Priorité : phase la plus chaude d'abord, puis le plus anciennement scoré.
+      const pa = PHASE_PRIORITY[a.mandate_phase ?? ''] ?? 0
+      const pb = PHASE_PRIORITY[b.mandate_phase ?? ''] ?? 0
+      if (pa !== pb) return pb - pa
+      return new Date(a.scored_at ?? 0).getTime() - new Date(b.scored_at ?? 0).getTime()
+    })
+    .slice(0, Math.min(maxLeads, available))
+
+  if (leads.length === 0) {
     return { ...empty, skipped: false }
   }
 
