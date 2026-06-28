@@ -1,6 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
+const LEGACY_OPPORTUNITY_STAGE_MAP: Record<string, string> = {
+  'À qualifier': 'Nouveau contact',
+  'À analyser': 'Pré-estimation',
+  'À contacter': 'Nouveau contact',
+  Contacté: 'Pré-estimation',
+  'Rendez-vous à préparer': 'RDV / Visite',
+  'En suivi': 'Suivi moyen terme',
+  'Mandat potentiel': 'Décision vendeur',
+  Converti: 'Mandat signé',
+  Écarté: 'Perdu / Écarté',
+}
+
+function normalizeOpportunityStage(stage: string | undefined) {
+  return stage ? LEGACY_OPPORTUNITY_STAGE_MAP[stage] ?? stage : 'Nouveau contact'
+}
+
 /**
  * POST /api/market/rules/[id]/execute
  * Exécute manuellement une règle de gestion.
@@ -97,9 +113,15 @@ export async function POST(
               market_property_id: property.id,
               title: `${property.title ?? 'Bien'} — ${rule.name}`,
               description: `Créé automatiquement par la règle "${rule.name}"`,
-              stage: action.stage ?? 'À qualifier',
+              stage: normalizeOpportunityStage(action.stage),
               priority: action.priority ?? 'medium',
               signal_type: rule.trigger_type,
+              source_channel: 'annonce',
+              property_city: property.city,
+              property_zipcode: property.zipcode,
+              property_type: property.property_type,
+              estimated_price_min: property.price,
+              estimated_price_max: property.price,
               created_from: 'rule',
             } as never)
             actionCount++

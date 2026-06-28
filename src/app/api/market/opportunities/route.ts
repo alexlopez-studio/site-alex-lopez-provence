@@ -1,5 +1,157 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { createLead } from '@/lib/leads-repo'
+import {
+  asNumber,
+  asRecord,
+  asText,
+  resolveCommune,
+  upsertCrmProspect,
+  upsertSellerPropertyForLead,
+} from '@/lib/leads-crm'
+
+const DEFAULT_STAGE = 'Nouveau contact'
+const SELLER_OPPORTUNITY_FIELDS = [
+  'seller_name',
+  'seller_phone',
+  'seller_email',
+  'source_channel',
+  'property_address',
+  'property_city',
+  'property_zipcode',
+  'property_type',
+  'property_surface',
+  'property_land_surface',
+  'property_rooms',
+  'estimated_price_min',
+  'estimated_price_max',
+  'selling_timeline',
+  'pre_estimation_done_at',
+  'visit_at',
+  'report_delivered_at',
+  'follow_up_at',
+] as const
+
+function normalizeText(value: unknown) {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null
+}
+
+function normalizeNumber(value: unknown) {
+  if (value === '' || value === null || value === undefined) return null
+  const numberValue = Number(value)
+  return Number.isFinite(numberValue) ? numberValue : null
+}
+
+function buildSellerPayload(body: Record<string, unknown>) {
+  const payload: Record<string, string | number | null> = {}
+  for (const field of SELLER_OPPORTUNITY_FIELDS) {
+    if (!(field in body)) continue
+    if (
+      field === 'property_surface' ||
+      field === 'property_land_surface' ||
+      field === 'property_rooms' ||
+      field === 'estimated_price_min' ||
+      field === 'estimated_price_max'
+    ) {
+      payload[field] = normalizeNumber(body[field])
+    } else {
+      payload[field] = normalizeText(body[field])
+    }
+  }
+  return payload
+}
+
+async function getLeadSnapshot(leadId: string) {
+  const { data: lead, error } = await supabaseAdmin
+    .from('leads')
+    .select('*, prospect:prospects!leads_prospect_id_fkey (*)')
+    .eq('id', leadId)
+    .is('deleted_at', null)
+    .maybeSingle()
+
+  if (error) throw error
+  if (!lead) return null
+
+  const { data: sellerProperties } = await supabaseAdmin
+    .from('seller_properties')
+    .select('*')
+    .eq('lead_id', leadId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+
+  return {
+    lead,
+    prospect: lead.prospect as {
+      first_name?: string | null
+      last_name?: string | null
+      email?: string | null
+      phone?: string | null
+    } | null,
+    sellerProperty: sellerProperties?.[0] ?? null,
+  }
+}
+
+async function createLeadFromOpportunity(body: Record<string, unknown>) {
+  const leadInput = asRecord(body.lead)
+  const sellerName = asText(leadInput.seller_name) ?? asText(body.seller_name) ?? asText(body.title)
+  const firstName = asText(leadInput.first_name) ?? sellerName ?? ''
+  const lastName = asText(leadInput.last_name) ?? ''
+  const email = asText(leadInput.email) ?? asText(body.seller_email)
+  const phone = asText(leadInput.phone) ?? asText(body.seller_phone)
+  const commune = resolveCommune(leadInput) ?? asText(body.property_city)
+  const sourceChannel = asText(leadInput.source_channel) ?? asText(body.source_channel) ?? 'prospection'
+  const priority = asText(leadInput.priority) ?? asText(body.priority) ?? 'medium'
+  const formData = {
+    seller_name: sellerName,
+    phone,
+    email,
+    source_channel: sourceChannel,
+    commune,
+    adresse: asText(leadInput.adresse) ?? asText(body.property_address),
+    type_bien: asText(leadInput.type_bien) ?? asText(body.property_type),
+    surface: asNumber(leadInput.surface) ?? asNumber(body.property_surface),
+    surface_terrain: asNumber(leadInput.surface_terrain) ?? asNumber(body.property_land_surface),
+    nb_pieces: asNumber(leadInput.nb_pieces) ?? asNumber(body.property_rooms),
+    delai: asText(leadInput.delai) ?? asText(body.selling_timeline),
+    prix_estime: asNumber(leadInput.prix_estime) ?? asNumber(body.estimated_price_min),
+  }
+
+  if (!sellerName && !email && !phone) {
+    throw new Error('lead_contact_required')
+  }
+
+  const prospect = await upsertCrmProspect({ email, firstName, lastName, phone })
+  const lead = await createLead({
+    prospectId: prospect.id,
+    tool: 'vendre',
+    formData,
+    results: {},
+    commune,
+    sourceChannel,
+    priority,
+    nextAction: asText(body.next_action) ?? 'Qualifier le projet vendeur',
+    dueDate: asText(body.due_date),
+    followUpAt: asText(body.follow_up_at),
+  })
+  await upsertSellerPropertyForLead({ leadId: lead.id, prospectId: prospect.id, data: formData })
+  await supabaseAdmin.from('lead_events').insert({
+    lead_id: lead.id,
+    kind: 'system',
+    payload: { text: 'Lead créé depuis une opportunité' },
+    created_by: 'admin',
+  } as never)
+  return lead.id
+}
+
+function titleFromLead(snapshot: Awaited<ReturnType<typeof getLeadSnapshot>>) {
+  if (!snapshot) return 'Opportunité vendeur'
+  const name = [snapshot.prospect?.first_name, snapshot.prospect?.last_name].filter(Boolean).join(' ').trim()
+  const property = [snapshot.sellerProperty?.type_bien, snapshot.lead.commune].filter(Boolean).join(' ')
+  if (name && property) return `${name} - ${property}`
+  if (name) return `${name} - projet vendeur`
+  if (property) return `Vendeur - ${property}`
+  return 'Opportunité vendeur'
+}
 
 /**
  * GET /api/market/opportunities
@@ -91,26 +243,100 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
+    const body = asRecord(await req.json())
 
-    // Validation minimale
-    if (!body.title || typeof body.title !== 'string' || body.title.trim().length === 0) {
-      return NextResponse.json({ error: 'title requis (string non vide)' }, { status: 400 })
+    const marketPropertyId = typeof body.market_property_id === 'string' && body.market_property_id
+      ? body.market_property_id
+      : null
+    let leadId = typeof body.lead_id === 'string' && body.lead_id
+      ? body.lead_id
+      : null
+
+    if (!leadId && body.create_lead === true) {
+      try {
+        leadId = await createLeadFromOpportunity(body)
+      } catch (error) {
+        if (error instanceof Error && error.message === 'lead_contact_required') {
+          return NextResponse.json({ error: 'Contact lead requis' }, { status: 400 })
+        }
+        console.error('[API /market/opportunities] create lead error:', error)
+        return NextResponse.json({ error: 'Erreur création lead' }, { status: 500 })
+      }
     }
+
+    if (marketPropertyId) {
+      const { data: existing, error: existingError } = await supabaseAdmin
+        .from('opportunities')
+        .select('*')
+        .eq('market_property_id', marketPropertyId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (existingError) {
+        console.error('[API /market/opportunities] existing lookup error:', existingError)
+        return NextResponse.json({ error: 'Erreur lecture opportunité existante' }, { status: 500 })
+      }
+
+      if (existing?.[0]) {
+        return NextResponse.json({ opportunity: existing[0], existing: true }, { status: 200 })
+      }
+    }
+
+    if (leadId) {
+      const { data: existing, error: existingError } = await supabaseAdmin
+        .from('opportunities')
+        .select('*')
+        .eq('lead_id', leadId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (existingError) {
+        console.error('[API /market/opportunities] existing lead lookup error:', existingError)
+        return NextResponse.json({ error: 'Erreur lecture opportunité existante' }, { status: 500 })
+      }
+
+      if (existing?.[0]) {
+        return NextResponse.json({ opportunity: existing[0], existing: true }, { status: 200 })
+      }
+    }
+
+    const leadSnapshot = leadId ? await getLeadSnapshot(leadId) : null
+    if (leadId && !leadSnapshot) {
+      return NextResponse.json({ error: 'Lead introuvable' }, { status: 404 })
+    }
+    const title = asText(body.title) ?? titleFromLead(leadSnapshot)
+    const sellerName = [leadSnapshot?.prospect?.first_name, leadSnapshot?.prospect?.last_name].filter(Boolean).join(' ').trim()
 
     const { data: opportunity, error } = await supabaseAdmin
       .from('opportunities')
       .insert({
-        market_property_id: body.market_property_id ?? null,
-        title: body.title.trim(),
-        description: body.description ?? '',
-        stage: body.stage ?? 'À qualifier',
-        priority: body.priority ?? 'medium',
-        signal_type: body.signal_type ?? null,
-        next_action: body.next_action ?? null,
-        due_date: body.due_date ?? null,
-        note: body.note ?? null,
-        created_from: body.created_from ?? 'manual',
+        market_property_id: marketPropertyId,
+        lead_id: leadId,
+        title,
+        description: normalizeText(body.description) ?? '',
+        stage: normalizeText(body.stage) ?? DEFAULT_STAGE,
+        priority: normalizeText(body.priority) ?? 'medium',
+        signal_type: normalizeText(body.signal_type),
+        next_action: normalizeText(body.next_action),
+        due_date: normalizeText(body.due_date),
+        note: normalizeText(body.note),
+        created_from: normalizeText(body.created_from) ?? (leadId ? 'lead' : 'manual'),
+        ...(leadSnapshot ? {
+          seller_name: sellerName || null,
+          seller_phone: leadSnapshot.prospect?.phone ?? null,
+          seller_email: leadSnapshot.prospect?.email ?? null,
+          source_channel: leadSnapshot.lead.source_channel ?? null,
+          property_address: leadSnapshot.sellerProperty?.adresse ?? null,
+          property_city: leadSnapshot.lead.commune ?? null,
+          property_type: leadSnapshot.sellerProperty?.type_bien ?? null,
+          property_surface: leadSnapshot.sellerProperty?.surface ?? null,
+          property_land_surface: leadSnapshot.sellerProperty?.surface_terrain ?? null,
+          property_rooms: leadSnapshot.sellerProperty?.nb_pieces ?? null,
+          estimated_price_min: leadSnapshot.sellerProperty?.prix_estime ?? null,
+          estimated_price_max: leadSnapshot.sellerProperty?.prix_estime ?? null,
+          selling_timeline: leadSnapshot.sellerProperty?.delai ?? null,
+        } : {}),
+        ...buildSellerPayload(body),
       })
       .select()
       .single()

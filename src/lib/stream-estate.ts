@@ -38,8 +38,13 @@ export interface StreamEstateSyncParams {
   inseeCode?: string | null
   /** Codes numériques Stream Estate : Appartement 0, Maison 1, … Défaut : [0, 1]. */
   propertyTypes?: number[]
+  /** Type d'annonceur Stream Estate : Particulier 0, Professionnel 1. Défaut : [0] (PAP). */
+  publisherTypes?: number[]
   transactionType?: 0 | 1 | null  // 0 = vente, 1 = location
   maxItems?: number
+  fromDate?: string | null
+  fromUpdatedAt?: string | null
+  source?: 'manual' | 'reconcile' | 'webhook'
   beforeRequest?: (ctx: StreamEstateRequestContext) => Promise<void> | void
   onRequest?: (event: StreamEstateRequestEvent) => Promise<void> | void
 }
@@ -59,6 +64,17 @@ export interface StreamEstatePreviewResult {
   estimatedItems: number
   capped: boolean
   providerTotalAvailable: number
+  breakdown: StreamEstatePreviewBreakdown
+}
+
+/** Ventilation gratuite (itemsPerPage=0) pour vérifier l'exactitude d'un comptage. */
+export interface StreamEstatePreviewBreakdown {
+  /** Annonces en ligne (expired=false) sur la cible exacte (INSEE si dispo, sinon CP). */
+  onlineExact: number
+  /** Toutes les annonces (incl. expirées) sur la même cible. */
+  totalExact: number
+  /** En ligne par code postal seul (communes voisines incluses) ; null si pas d'INSEE. */
+  onlineByZipcode: number | null
 }
 
 export type StreamEstateRequestContext = {
@@ -89,6 +105,34 @@ export class StreamEstateRequestLimitError extends Error {
   }
 }
 
+export type StreamEstateEventType =
+  | 'ad.update.price'
+  | 'ad.update.surface'
+  | 'ad.update.pictures'
+  | 'ad.update.expired'
+  | 'property.ad.create'
+  | 'property.ad.update'
+
+export type StreamEstateSavedSearchInput = {
+  title: string
+  zipcode: string
+  inseeCode?: string | null
+  propertyTypes?: number[]
+  publisherTypes?: number[]
+  transactionType?: 0 | 1
+  endpointRecipient?: string | null
+  eventEndpoint?: string | null
+  subscribedEvents?: StreamEstateEventType[]
+  notificationEnabled?: boolean
+}
+
+export type StreamEstateSavedSearch = {
+  id: string
+  title?: string
+  token?: string
+  raw: Record<string, unknown>
+}
+
 // ── Client ──────────────────────────────────────────────────
 
 function getHeaders(accept = 'application/json'): Record<string, string> {
@@ -106,7 +150,8 @@ function getHeaders(accept = 'application/json'): Record<string, string> {
 const PAGE_SIZE = 30 // = itemsPerPage max autorisé par l'API → minimise le nombre de pages
 const PROPERTIES_ENDPOINT = '/documents/properties'
 // Codes Stream Estate : Appartement 0, Maison 1, Immeuble 2, Parking 3, Bureau 4, Terrain 5, Commerce 6
-const DEFAULT_PROPERTY_TYPES = [0, 1] // résidentiel uniquement : on ne paie pas terrains/parkings/commerces
+const DEFAULT_PROPERTY_TYPES = [0, 1, 5] // logements + terrains PAP, hors locaux pro/parkings/commerces
+const DEFAULT_PUBLISHER_TYPES = [0] // PAP uniquement : 0=particulier, 1=professionnel
 const OFFLINE_STATUSES = new Set(['expired', 'removed', 'inactive', 'deleted', 'archived', 'closed', 'sold'])
 
 type GeoTarget = { zipcode: string; inseeCode?: string | null }
@@ -130,6 +175,12 @@ function appendPropertyTypes(query: URLSearchParams, propertyTypes: number[]): v
   }
 }
 
+function appendPublisherTypes(query: URLSearchParams, publisherTypes: number[]): void {
+  for (const code of publisherTypes) {
+    query.append('publisherTypes[]', String(code))
+  }
+}
+
 /** Filtre client de sûreté : par INSEE si on a filtré par INSEE, sinon par CP. */
 function matchesGeoTarget(listing: StreamEstateListing, target: GeoTarget): boolean {
   if (target.inseeCode) return listing.inseeCode === target.inseeCode
@@ -147,16 +198,24 @@ async function fetchOnePage(
   page: number,
   transactionType: number | null,
   propertyTypes: number[],
+  publisherTypes: number[],
   itemsPerPage = PAGE_SIZE,
+  opts: { fromDate?: string | null; fromUpdatedAt?: string | null } = {},
 ): Promise<{ listings: StreamEstateListing[]; hasMore: boolean; totalAvailable: number }> {
   const query = new URLSearchParams()
   appendGeoFilter(query, target)
   if (transactionType !== null && transactionType !== undefined) {
     query.set('transactionType', String(transactionType))
   }
+  // expired=false : on ne récupère (et ne paie) que les annonces réellement en ligne.
+  // C'est le filtre « en ligne » officiel de l'API (le champ status n'existe pas côté Stream Estate).
+  query.set('expired', 'false')
+  if (opts.fromDate) query.set('fromDate', opts.fromDate)
+  if (opts.fromUpdatedAt) query.set('fromUpdatedAt', opts.fromUpdatedAt)
   query.set('page', String(page))
   query.set('itemsPerPage', String(itemsPerPage))
   appendPropertyTypes(query, propertyTypes)
+  appendPublisherTypes(query, publisherTypes)
 
   const url = `${env.streamEstate.apiUrl}${PROPERTIES_ENDPOINT}?${query.toString()}`
   const res = await fetch(url, { method: 'GET', headers: getHeaders('application/ld+json'), cache: 'no-store' })
@@ -194,17 +253,24 @@ async function fetchTotalAvailable(
   target: GeoTarget,
   transactionType: number | null,
   propertyTypes: number[],
+  publisherTypes: number[],
+  opts: { expired?: boolean | null } = {},
 ): Promise<number> {
   const query = new URLSearchParams()
   appendGeoFilter(query, target)
   if (transactionType !== null && transactionType !== undefined) {
     query.set('transactionType', String(transactionType))
   }
+  // expired=false → en ligne uniquement ; null/undefined → tous (incl. expirées).
+  if (opts.expired === true || opts.expired === false) {
+    query.set('expired', String(opts.expired))
+  }
   query.set('page', '1')
   // itemsPerPage=0 → l'API renvoie hydra:totalItems sans hydra:member : comptage gratuit
   // (facturation à l'item). Si l'API renvoyait quand même des biens, on les ignore.
   query.set('itemsPerPage', '0')
   appendPropertyTypes(query, propertyTypes)
+  appendPublisherTypes(query, publisherTypes)
 
   const url = `${env.streamEstate.apiUrl}${PROPERTIES_ENDPOINT}?${query.toString()}`
   const res = await fetch(url, {
@@ -237,24 +303,41 @@ async function fetchTotalAvailable(
   return rawListings.length
 }
 
+/**
+ * Prévisualisation 100% GRATUITE : uniquement des comptages `itemsPerPage=0`
+ * (aucun item facturé). Renvoie une ventilation pour vérifier l'exactitude :
+ * en ligne (expired=false) vs total (incl. expirées), et commune exacte (INSEE) vs CP.
+ */
 export async function previewListings(
-  params: Pick<StreamEstateSyncParams, 'zipcode' | 'inseeCode' | 'propertyTypes' | 'transactionType' | 'maxItems'>,
+  params: Pick<StreamEstateSyncParams, 'zipcode' | 'inseeCode' | 'propertyTypes' | 'publisherTypes' | 'transactionType' | 'maxItems'>,
 ): Promise<StreamEstatePreviewResult> {
-  const { zipcode, inseeCode = null, propertyTypes = DEFAULT_PROPERTY_TYPES, transactionType = 0 } = params
-  const providerTotalAvailable = await fetchTotalAvailable({ zipcode, inseeCode }, transactionType, propertyTypes)
-  const previewItems = await fetchListings({
+  const {
     zipcode,
-    inseeCode,
-    propertyTypes,
-    transactionType,
-    maxItems: params.maxItems,
-  })
+    inseeCode = null,
+    propertyTypes = DEFAULT_PROPERTY_TYPES,
+    publisherTypes = DEFAULT_PUBLISHER_TYPES,
+    transactionType = 0,
+  } = params
+  const exactTarget: GeoTarget = { zipcode, inseeCode }
+
+  const [onlineExact, totalExact, onlineByZipcode] = await Promise.all([
+    fetchTotalAvailable(exactTarget, transactionType, propertyTypes, publisherTypes, { expired: false }),
+    fetchTotalAvailable(exactTarget, transactionType, propertyTypes, publisherTypes, { expired: null }),
+    // Comparaison CP seul (communes voisines) seulement si on cible une commune par INSEE.
+    inseeCode
+      ? fetchTotalAvailable({ zipcode, inseeCode: null }, transactionType, propertyTypes, publisherTypes, { expired: false })
+      : Promise.resolve<number | null>(null),
+  ])
+
+  const maxItems = params.maxItems != null ? Math.max(1, Math.floor(params.maxItems)) : null
+  const estimatedItems = maxItems != null ? Math.min(onlineExact, maxItems) : onlineExact
 
   return {
-    totalAvailable: previewItems.total,
-    estimatedItems: previewItems.total,
-    capped: previewItems.truncated,
-    providerTotalAvailable,
+    totalAvailable: onlineExact,
+    estimatedItems,
+    capped: maxItems != null && onlineExact > maxItems,
+    providerTotalAvailable: totalExact,
+    breakdown: { onlineExact, totalExact, onlineByZipcode },
   }
 }
 
@@ -265,7 +348,15 @@ export async function previewListings(
 export async function fetchListings(
   params: StreamEstateSyncParams,
 ): Promise<StreamEstateSyncResult> {
-  const { zipcode, inseeCode = null, propertyTypes = DEFAULT_PROPERTY_TYPES, transactionType = 0 } = params
+  const {
+    zipcode,
+    inseeCode = null,
+    propertyTypes = DEFAULT_PROPERTY_TYPES,
+    publisherTypes = DEFAULT_PUBLISHER_TYPES,
+    transactionType = 0,
+    fromDate = null,
+    fromUpdatedAt = null,
+  } = params
   const target: GeoTarget = { zipcode, inseeCode }
   const maxItems = Math.max(1, Math.floor(params.maxItems ?? PAGE_SIZE))
   const listings: StreamEstateListing[] = []
@@ -281,7 +372,7 @@ export async function fetchListings(
 
     const startedAt = new Date().toISOString()
     try {
-      const result = await fetchOnePage(target, page, transactionType, propertyTypes, itemsPerPage)
+      const result = await fetchOnePage(target, page, transactionType, propertyTypes, publisherTypes, itemsPerPage, { fromDate, fromUpdatedAt })
       const finishedAt = new Date().toISOString()
       externalRequests++
       const remainingSlots = Math.max(0, maxItems - listings.length)
@@ -380,21 +471,112 @@ export async function fetchListingById(
   return normalizeListing(data)
 }
 
+function savedSearchId(raw: Record<string, unknown>): string {
+  const direct = raw.id ?? raw.uuid ?? raw.token
+  if (direct) return String(direct)
+  const iri = String(raw['@id'] ?? '')
+  return iri.replace(/^\/searches\//, '')
+}
+
+export async function createSavedSearch(input: StreamEstateSavedSearchInput): Promise<StreamEstateSavedSearch> {
+  const propertyTypes = input.propertyTypes ?? DEFAULT_PROPERTY_TYPES
+  const publisherTypes = input.publisherTypes ?? DEFAULT_PUBLISHER_TYPES
+  const subscribedEvents = input.subscribedEvents ?? [
+    'property.ad.create',
+    'ad.update.price',
+    'ad.update.expired',
+    'ad.update.surface',
+    'ad.update.pictures',
+    'property.ad.update',
+  ]
+
+  const body: Record<string, unknown> = {
+    title: input.title,
+    transactionType: input.transactionType ?? 0,
+    propertyTypes,
+    publisherTypes,
+    includedZipcodes: [input.zipcode],
+    notificationEnabled: input.notificationEnabled ?? Boolean(input.endpointRecipient || input.eventEndpoint),
+    withCoherentPrice: true,
+  }
+
+  if (input.inseeCode) body.includedZipcodesInsee = [input.inseeCode]
+  if (input.endpointRecipient) body.endpointRecipient = input.endpointRecipient
+  if (input.eventEndpoint) {
+    body.eventEndpoint = input.eventEndpoint
+    body.subscribedEvents = subscribedEvents
+  }
+
+  const res = await fetch(`${env.streamEstate.apiUrl}/searches`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify(body),
+    cache: 'no-store',
+  })
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(`Stream Estate saved search error ${res.status}: ${text}`)
+  }
+
+  const raw = await res.json() as Record<string, unknown>
+  return { id: savedSearchId(raw), title: String(raw.title ?? input.title), token: raw.token ? String(raw.token) : undefined, raw }
+}
+
+export async function listSavedSearches(): Promise<StreamEstateSavedSearch[]> {
+  const res = await fetch(`${env.streamEstate.apiUrl}/searches`, {
+    method: 'GET',
+    headers: getHeaders(),
+    cache: 'no-store',
+  })
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(`Stream Estate saved searches error ${res.status}: ${text}`)
+  }
+
+  const data = await res.json()
+  const rows: Record<string, unknown>[] = Array.isArray(data['hydra:member'])
+    ? data['hydra:member']
+    : Array.isArray(data)
+      ? data
+      : Array.isArray(data.searches)
+        ? data.searches
+        : []
+
+  return rows.map((raw) => ({
+    id: savedSearchId(raw),
+    title: raw.title ? String(raw.title) : undefined,
+    token: raw.token ? String(raw.token) : undefined,
+    raw,
+  }))
+}
+
+export async function deleteSavedSearch(searchId: string): Promise<void> {
+  const id = searchId.startsWith('/searches/') ? searchId : `/searches/${searchId}`
+  const res = await fetch(`${env.streamEstate.apiUrl}${id}`, {
+    method: 'DELETE',
+    headers: getHeaders(),
+    cache: 'no-store',
+  })
+
+  if (!res.ok && res.status !== 404) {
+    const text = await res.text().catch(() => '')
+    throw new Error(`Stream Estate delete saved search error ${res.status}: ${text}`)
+  }
+}
+
 // ── Normalisation ───────────────────────────────────────────
 
-// Codes numériques Stream Estate → labels lisibles
+// Codes numériques Stream Estate → labels lisibles (cf. doc /documents/properties)
 const PROPERTY_TYPE_LABELS: Record<number, string> = {
   0: 'Appartement',
   1: 'Maison',
-  2: 'Villa',
-  3: 'Studio',
-  4: 'Loft',
+  2: 'Immeuble',
+  3: 'Parking',
+  4: 'Bureau',
   5: 'Terrain',
   6: 'Commerce',
-  7: 'Bureau',
-  8: 'Immeuble',
-  9: 'Parking',
-  10: 'Autre',
 }
 
 /**
@@ -414,10 +596,11 @@ export function mapSellerType(raw: Record<string, unknown>): SellerType {
   }
   const pt = raw.publisherTypes
   if (Array.isArray(pt) && pt.map(Number).includes(1)) return 'agency'
+  if (Array.isArray(pt) && pt.map(Number).includes(0)) return 'individual'
   return null
 }
 
-function normalizeListing(raw: Record<string, unknown>): StreamEstateListing {
+export function normalizeListing(raw: Record<string, unknown>): StreamEstateListing {
   // stream.estate renvoie les photos dans adverts[0].photos ou directement photos
   const adverts = Array.isArray(raw.adverts) ? raw.adverts as Record<string, unknown>[] : []
   const firstAdvert = adverts[0] ?? {}
@@ -477,7 +660,7 @@ function normalizeListing(raw: Record<string, unknown>): StreamEstateListing {
     dpe: String(raw.dpeValue ?? raw.dpe ?? ''),
     ges: String(raw.gesValue ?? raw.ges ?? ''),
     url,
-    status: String(raw.status ?? raw.statut ?? 'active'),
+    status: raw.expired === true ? 'expired' : String(raw.status ?? raw.statut ?? 'active'),
     images,
     publishedAt: (raw.published_at ?? raw.date_publication ?? raw.created_at ?? raw.createdAt) as string | undefined || undefined,
     updatedAt: (raw.updated_at ?? raw.date_mise_a_jour ?? raw.updatedAt) as string | undefined || undefined,

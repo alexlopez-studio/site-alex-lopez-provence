@@ -18,14 +18,14 @@ export function MarketShell({
   return (
     <SidebarProvider>
       <AppSidebar role={role} email={email} />
-      <SidebarInset>
+      <SidebarInset className="min-w-0">
         <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4 lg:px-6">
           <SidebarTrigger className="-ml-1" />
           <div className="ml-auto">
             <NotificationsSheet />
           </div>
         </header>
-        <div className="p-4 lg:p-6">{children}</div>
+        <div className="min-w-0 overflow-x-hidden p-4 lg:p-6">{children}</div>
       </SidebarInset>
       <Toaster richColors position="top-right" />
     </SidebarProvider>

@@ -17,6 +17,91 @@ Decision : Codex reprend seul le developpement et le design pour le moment.
 
 Note : les lots Linear ci-dessous sont historiques et ne refletent plus l'etat reel du code. La memoire courante est dans `docs/MEMOIRE_SESSION.md`.
 
+### 28/06/2026 - Biens : diffusions multi-sites et rapprochement manuel des doublons
+- Base/branche : `preview` (local non commite au moment de l'ecriture).
+- Type : donnees + API + UX fiche Bien.
+- Statut : **fait**.
+- Demande (Alexandre) : detecter les annonces identiques publiees sur plusieurs sites, afficher
+  tous les sites d'annonces sur la fiche Bien, et permettre de rapprocher manuellement les
+  `doublons probables`.
+- Travail :
+  1. Migration `020_property_sources_duplicates.sql` ajoutee et appliquee :
+     `market_property_sources` pour historiser chaque diffusion d'un bien canonique, et
+     `market_property_duplicate_candidates` pour memoriser les doublons confirmes ou ecartes.
+  2. Ingestion Stream Estate : chaque annonce upsertee enregistre maintenant sa diffusion
+     (`portal`, `url`, `external_id`, prix, statut, dates, raw JSON). En cas de doublon detecte,
+     l'URL/source entrante est conservee comme diffusion du bien existant.
+  3. Detection v1 des doublons probables : scoring local par commune/INSEE ou CP, type, prix,
+     surface, terrain, pieces et titre. Seuil d'affichage : score >= 60, avec raisons visibles.
+  4. API fiche Bien enrichie : `sources` + `duplicate_candidates`.
+  5. Nouveau endpoint `POST /api/market/properties/[id]/duplicates` :
+     `action=merge` rapproche vers la fiche canonique, transfere les diffusions et references
+     utiles, puis marque l'autre bien en `status='duplicate'`; `action=reject` memorise l'ecart.
+  6. Liste Biens : les biens `duplicate` sont masques par defaut et un badge `n diffusions`
+     apparait quand plusieurs sites publient le meme bien.
+  7. Fiche Bien : card `Diffusions` avec les portails et liens d'annonces, card `Doublons
+     probables` avec boutons `Rapprocher`, `Ecarter`, `Ouvrir`.
+- Fichiers : `supabase/migrations/020_property_sources_duplicates.sql`,
+  `src/lib/market/property-deduplication.ts`, `src/lib/market/upsert-listing.ts`,
+  `src/app/api/market/properties/route.ts`,
+  `src/app/api/market/properties/[id]/route.ts`,
+  `src/app/api/market/properties/[id]/duplicates/route.ts`,
+  `src/app/admin/market/properties/PropertiesTable.tsx`,
+  `src/app/admin/market/properties/[id]/PropertyDetail.tsx`,
+  `src/types/supabase.ts`, `docs/SUIVI_PROJET.md`.
+- Audit qualite : `pnpm exec tsc --noEmit` OK ; `pnpm lint` OK avec warnings existants hors
+  changement ; `pnpm build` OK ; test API reel OK (doublon probable score 90, merge PAP+Leboncoin,
+  masquage du doublon, compteur `source_count=2`) ; test API `reject` OK ; Playwright desktop/mobile
+  OK avec captures `/tmp/property-duplicates-desktop.png` et `/tmp/property-duplicates-mobile.png`.
+- Cout API Stream Estate : aucun appel supplementaire ; le systeme exploite les donnees deja
+  importees et les futures synchronisations.
+
+### 28/06/2026 - Opportunites : pipeline revise, activites editables, miniatures et purge
+- Base/branche : `preview` (local non commite au moment de l'ecriture).
+- Type : refonte UX/API opportunites + nettoyage donnees.
+- Statut : **fait**.
+- Demande (Alexandre) : simplifier les jalons de la fiche opportunite, permettre de modifier
+  et supprimer les activites, corriger le changement de bien, afficher les miniatures, ajouter
+  la colonne `Vendu`, retirer le crayon des cards Kanban, puis supprimer toutes les opportunites
+  sans toucher aux leads ni aux biens.
+- Travail :
+  1. Pipeline vendeur mis a jour : `Nouveau contact`, `Pre-estimation`, `Visite d'estimation`,
+     `Remise de l'estimation`, `Decision vendeur`, `Suivi moyen terme`, `Mandat signe`,
+     `Vendu`, `Perdu / Ecarte`.
+  2. Migration `019_opportunity_pipeline_revision.sql` ajoutee et appliquee : anciens stages
+     `RDV / Visite` -> `Visite d'estimation`, `Rapport remis` -> `Remise de l'estimation`,
+     `Converti` -> `Mandat signe`.
+  3. Fiche opportunite allegee : seuls les jalons `Estimation realisee` et `Prochaine action`
+     restent visibles ; `Bien lead` retire de la card contacts.
+  4. Activites : ajout du `DELETE /api/market/opportunities/[id]/events/[eventId]` et
+     reutilisation du `PATCH` existant pour modifier titre, contenu, dates et statut termine.
+  5. Biens : bouton `Changer` disponible meme si un bien est deja rattache ; bouton `Modifier`
+     conserve seulement pour les biens `source = manual` ou `user`.
+  6. Miniatures : extraction locale depuis `raw_json.photos`, `raw_json.images`,
+     `raw_json.pictures` ou `raw_json.adverts[0].photos/images/pictures`, puis exposition
+     via `thumbnail_url` dans les API biens et opportunites.
+  7. Kanban : colonne `Vendu`, nouveaux libelles de pipeline, retrait du petit crayon des
+     cards, boutons principaux en bleu primaire.
+  8. Purge demandee executee sur la base : 6 opportunites et 12 `opportunity_events` supprimes.
+     Verification apres purge : `opportunities = 0`, `opportunity_events = 0`, `leads = 5`,
+     `prospects = 5`, `seller_properties = 2`, `market_properties = 5`.
+- Fichiers : `src/app/admin/market/opportunities/KanbanBoard.tsx`,
+  `src/app/admin/market/opportunities/[id]/page.tsx`,
+  `src/app/api/market/opportunities/[id]/route.ts`,
+  `src/app/api/market/opportunities/[id]/events/[eventId]/route.ts`,
+  `src/app/api/market/properties/route.ts`,
+  `src/app/api/market/properties/[id]/route.ts`,
+  `src/lib/market/property-thumbnail.ts`,
+  `src/types/supabase.ts`,
+  `supabase/migrations/019_opportunity_pipeline_revision.sql`,
+  `docs/SUIVI_PROJET.md`.
+- Audit qualite : `pnpm exec tsc --noEmit` OK ; `pnpm lint` OK avec warnings existants hors
+  changement ; `pnpm build` OK ; tests API reels OK (thumbnail liste/detail, changement de bien,
+  stage `Visite d'estimation`, ajout/modification/suppression activite, verrou edition
+  Stream Estate 403) ; Playwright desktop/mobile OK avec captures `/tmp/opportunity-desktop.png`
+  et `/tmp/opportunity-mobile.png`.
+- Serveur local : relance sur `http://localhost:3003`.
+
 ## Informations Generales
 - Nom du projet: Mandat OS MVP - Site Alexandre Lopez (Provence Verte & Verdon)
 - Client: Alexandre Lopez (conseiller immobilier iad)
@@ -87,11 +172,204 @@ Frustration + Intensité (45 pts, le signal le plus fort) et Comportement (15 pt
 déclenchent **que si on resynchronise dans le temps** (détection des baisses de prix et
 des republications). Sans sync récurrente → tout reste `cold` → aucun vendeur à contacter.
 
+### 27/06/2026 - Opportunités : fiche CRM type Brevo + activités
+- Base/branche : `preview` (local non commité au moment de l'écriture).
+- Type : refonte UX fiche opportunité + API CRM.
+- Statut : **fait**.
+- Demande (Alexandre) : transformer la fiche opportunité en vue CRM inspirée Brevo, avec cards
+  informatives `Bien` et `Contacts`, actions rapides, timeline d'activités, suppression de
+  `Contexte` et `Journal de prospection`, et édition des biens uniquement pour les biens créés
+  par l'utilisateur.
+- Travail :
+  1. Nouvelle table `opportunity_events` (`note`, `task`, `call`, `meeting`, `email`,
+     `stage_change`, `estimation`, `system`) via migration `018_opportunity_events_crm.sql`.
+     Migration appliquée sur la base Supabase locale/configurée pour tester le flux réel.
+  2. API `GET /api/market/opportunities/[id]` enrichie avec `events`, `POST /events` ajouté,
+     `PATCH /events/[eventId]` ajouté pour terminer/modifier une activité.
+  3. `PATCH /api/market/opportunities/[id]` protège aussi le rattachement `lead_id` contre les
+     doublons, comme pour `market_property_id`, et journalise les changements d'étape.
+  4. `PATCH /api/market/properties/[id]` refuse l'édition si `source` n'est pas `manual` ou `user`.
+  5. Fiche `/app/opportunities/[id]` refondue : header compact, onglets `Vue d'ensemble` /
+     `Historique`, carte `Étape en cours`, `Activités à venir`, `Historique récent`, cards `Bien`
+     et `Contacts`, menu `Ajouter` (note, tâche, appel, RDV, email loggé, étape estimation).
+  6. Les actions `Ajouter contact` et `Ajouter bien` ouvrent des sélecteurs dans la fiche, sans
+     appel Stream Estate ; les boutons `Modifier` renvoient vers les pages dédiées.
+- Fichiers : `src/app/admin/market/opportunities/[id]/page.tsx`,
+  `src/app/api/market/opportunities/[id]/route.ts`,
+  `src/app/api/market/opportunities/[id]/events/route.ts`,
+  `src/app/api/market/opportunities/[id]/events/[eventId]/route.ts`,
+  `src/app/api/market/properties/[id]/route.ts`,
+  `src/types/supabase.ts`, `supabase/migrations/018_opportunity_events_crm.sql`,
+  `docs/SUIVI_PROJET.md`.
+- Audit qualité : `pnpm exec tsc --noEmit` OK ; `pnpm lint` OK avec warnings existants hors
+  changement ; `pnpm build` OK ; test API réel OK (rattachement lead/bien, conflits `409`,
+  note/tâche/RDV/estimation, tâche terminée, jalon estimation, verrou édition Stream Estate) ;
+  Playwright desktop/mobile OK. Les anciens blocs `Contexte` et `Journal de prospection` sont absents.
+
+### 27/06/2026 - Opportunités : sélection du bien dès la création
+- Base/branche : `preview` (local non commité au moment de l'écriture).
+- Type : correction UX Kanban / création opportunité.
+- Statut : **fait**.
+- Demande (Alexandre) : le bouton `Nouvelle opportunité` doit rester visible en haut à droite
+  sans devoir scroller horizontalement, et la création d'une opportunité doit permettre de
+  sélectionner le bien en annonce à rattacher.
+- Travail :
+  1. Modale `Nouvelle opportunité vendeur` enrichie avec un bloc `Bien en annonce` :
+     recherche locale dans `market_properties`, affichage prix/surface/commune/statut/type vendeur,
+     sélection en un clic et retrait possible.
+  2. Les biens déjà liés à une opportunité sont affichés en `déjà lié` et non sélectionnables,
+     pour conserver le dédoublonnage.
+  3. `POST /api/market/opportunities` reçoit maintenant `market_property_id` depuis le Kanban
+     quand un bien est sélectionné, sans appel Stream Estate.
+  4. Shell admin + Kanban bornés en largeur (`min-w-0`, `overflow-x-hidden` côté shell, scroll
+     horizontal uniquement sur les colonnes), ce qui garde le bouton principal dans le viewport.
+- Fichiers : `src/app/admin/market/opportunities/KanbanBoard.tsx`,
+  `src/app/admin/market/MarketShell.tsx`, `docs/SUIVI_PROJET.md`.
+- Audit qualité : `pnpm exec tsc --noEmit` OK ; `pnpm lint` OK avec warnings existants hors
+  changement ; `pnpm build` OK ; Playwright local sur `localhost:3003` OK : bouton dans le viewport,
+  modale ouverte, recherche de bien, sélection d'un bien libre temporaire, cleanup OK.
+
+### 27/06/2026 - Opportunités : rapprochement Lead vendeur + Bien en annonce
+- Base/branche : `preview` (local non commité au moment de l'écriture).
+- Type : ajustement CRM vendeur / rapprochement opportunité.
+- Statut : **fait**.
+- Demande (Alexandre) : confirmer et implémenter l'opportunité comme croisement entre un lead vendeur
+  et un bien en annonce, afficher les deux sources d'information dans la fiche, et permettre de rattacher
+  un bien déjà présent en base si l'opportunité n'en a pas. Aucun appel Stream Estate ne doit être fait.
+- Travail :
+  1. API `GET /api/market/opportunities/[id]` enrichie avec `lead` (`prospect` + `seller_property`) et
+     `property` (`market_properties`) quand `lead_id` / `market_property_id` existent.
+  2. API `PATCH /api/market/opportunities/[id]` protège le rattachement d'un bien : si un autre
+     `opportunity` utilise déjà ce `market_property_id`, réponse `409` avec `existing_opportunity`.
+  3. API `GET /api/market/properties` accepte `q` pour rechercher dans les biens déjà importés
+     (titre, ville, code postal), sans consommation Stream Estate.
+  4. Fiche `/app/opportunities/[id]` : nouveaux blocs `Lead vendeur` et `Bien en annonce`, liens vers
+     fiche lead/bien, chiffres principaux du bien, et CTA `Rattacher` quand aucun bien n'est lié.
+  5. Modale `Rattacher un bien en annonce` : recherche + filtres type/statut, affichage des biens,
+     blocage visuel des biens déjà liés et bouton vers l'opportunité existante.
+- Fichiers : `src/app/api/market/opportunities/[id]/route.ts`,
+  `src/app/api/market/properties/route.ts`, `src/app/admin/market/opportunities/[id]/page.tsx`,
+  `docs/SUIVI_PROJET.md`.
+- Audit qualité : `pnpm exec tsc --noEmit` OK ; `pnpm lint` OK avec warnings existants hors changement ;
+  `pnpm build` OK ; test API réel sur `localhost:3003` : enrichissement lead+bien, rattachement d'un
+  bien libre, conflit `409` sur bien déjà lié, cleanup OK ; Playwright desktop/mobile sur fiche avec bien,
+  fiche sans bien + modale de rattachement OK. Seul 404 local observé : `_vercel/insights/script.js`,
+  attendu hors Vercel.
+
+### 27/06/2026 - Opportunités : rattachement lead + fiche dédiée
+- Base/branche : `preview` (local non commité au moment de l'écriture).
+- Type : ajustement workflow CRM vendeur / UX opportunités.
+- Statut : **fait**.
+- Demande (Alexandre) : lors de la création d'une opportunité, pouvoir la rattacher à un lead/contact
+  déjà créé ; si le lead n'existe pas, pouvoir créer ce contact depuis la création de l'opportunité.
+  Supprimer les champs précis de la pop-up et les reporter dans une vraie page dédiée.
+- Travail :
+  1. API `POST /api/market/opportunities` enrichie : rattachement par `lead_id`, idempotence par
+     `lead_id`, création optionnelle d'un lead vendeur via `create_lead=true`, puis création de
+     l'opportunité préremplie depuis `prospects` + `seller_properties`.
+  2. Kanban opportunités : la modale `Nouvelle opportunité` est simplifiée avec deux modes :
+     `Lead existant` (recherche/sélection des leads vendeurs) et `Nouveau lead` (contact minimum).
+     Les champs précis bien/estimation/dates/notes ne sont plus dans la pop-up.
+  3. Navigation : clic carte et bouton crayon ouvrent désormais la fiche dédiée
+     `/app/opportunities/[id]`.
+  4. Nouvelle fiche opportunité : édition complète contact vendeur, bien potentiel, estimation,
+     étapes, dates clés, prochaine action, contexte et journal de prospection.
+- Fichiers : `src/app/api/market/opportunities/route.ts`,
+  `src/app/admin/market/opportunities/KanbanBoard.tsx`,
+  `src/app/admin/market/opportunities/[id]/page.tsx`, `docs/SUIVI_PROJET.md`.
+- Audit qualité : `pnpm exec tsc --noEmit` OK ; `pnpm lint` OK avec warnings existants hors changement ;
+  `pnpm build` OK ; test API réel sur `localhost:3003` : opportunité depuis lead existant idempotente
+  + opportunité avec création de lead + cleanup OK ; Playwright desktop/mobile sur Kanban + modale
+  simplifiée + fiche dédiée OK. Seul 404 local observé : `_vercel/insights/script.js`, attendu hors Vercel.
+
+### 27/06/2026 - Leads CRM vendeur : prospection terrain + conversion opportunité
+- Base/branche : `preview` (local non commité au moment de l'écriture).
+- Type : feature CRM vendeur / API Leads / UI admin.
+- Statut : **fait**.
+- Demande (Alexandre) : recentrer la page Leads comme CRM vendeur avant opportunité, ajouter les leads
+  terrain ou issus d'une estimation site, afficher les biens comparables déjà en base, puis convertir
+  un lead en opportunité sans doublon.
+- Travail :
+  1. **Migrations appliquées sur la Supabase distante** : `017_seller_leads_crm.sql` ajoute
+     `source_channel`, `priority`, `next_action`, `due_date`, `follow_up_at` sur `leads`, rend
+     `prospects.email` nullable, et ajoute `opportunities.lead_id`. Le schéma matching historique
+     `004_matching_schema.sql` a aussi été appliqué car la base distante n'avait pas encore
+     `seller_properties`, `buyer_criteria` et `match_results`.
+  2. API Leads : `/api/leads` persiste désormais les estimations site dans `prospects`, `leads` et
+     `seller_properties`; correction du magic link pour qu'il pointe toujours vers le `leadId`
+     réellement sauvegardé. Ajout de `POST /api/leads/manual`, enrichissement de
+     `GET /api/leads/list` et `GET/PATCH /api/leads/[id]`.
+  3. Conversion : nouveau `POST /api/leads/[id]/opportunity`, idempotent via `opportunities.lead_id`;
+     l'opportunité récupère le contact vendeur, la source, la commune, le type de bien, surfaces,
+     timing, priorité et prochaine action.
+  4. Comparables : nouveau `GET /api/leads/[id]/comparables`, basé sur les biens déjà présents dans
+     `market_properties` de la commune, sans appel Stream Estate supplémentaire.
+  5. UI : liste `/app/leads` refondue en vue CRM vendeur avec filtres source/priorité/commune/statut,
+     bouton `Nouveau lead` et formulaire manuel. Fiche `/app/leads/[id]` refondue avec contact,
+     bien vendeur potentiel, prochaines actions, résultats d'estimation, comparables, historique,
+     note, renvoi du lien et CTA `Créer une opportunité` / `Voir l'opportunité`.
+- Fichiers : `supabase/migrations/017_seller_leads_crm.sql`, `src/types/supabase.ts`,
+  `src/lib/leads-crm.ts`, `src/lib/leads-repo.ts`, `src/app/api/leads/route.ts`,
+  `src/app/api/leads/manual/route.ts`, `src/app/api/leads/list/route.ts`,
+  `src/app/api/leads/[id]/route.ts`, `src/app/api/leads/[id]/comparables/route.ts`,
+  `src/app/api/leads/[id]/opportunity/route.ts`, `src/app/api/leads/[id]/resend/route.ts`,
+  `src/app/api/market/opportunities/route.ts`, `src/app/api/market/opportunities/[id]/route.ts`,
+  `src/app/admin/market/leads/page.tsx`, `src/app/admin/market/leads/[id]/page.tsx`.
+- Audit qualité : `pnpm exec tsc --noEmit` OK ; `pnpm vitest run src/app/api/leads/__tests__/route.test.ts
+  'src/app/resultats/[token]/__tests__/lookup.test.ts'` OK (17 tests) ; `pnpm lint` OK avec warnings
+  existants hors Leads ; `pnpm build` OK ; migration 017 + schéma matching vérifiés en base ; test API
+  réel sur `localhost:3003` : création lead manuel → fiche enrichie → comparables → création opportunité
+  → deuxième création idempotente → cleanup OK. Playwright desktop/mobile sur `/app/leads` et
+  `/app/leads/[id]` OK ; seul 404 local observé : `_vercel/insights/script.js`, attendu hors Vercel.
+- Point d'attention : sur mobile, la table Leads reste horizontalement scrollable. Le badge utilisateur
+  flottant du layout admin peut visuellement recouvrir le bord gauche en local ; ce point est transverse
+  au layout `/app/*`, pas spécifique à la refonte Leads.
+
+### 27/06/2026 - Opportunités vendeur : création manuelle + pipeline simplifié
+- Base/branche : `preview` (local non commité au moment de l'écriture).
+- Type : feature CRM vendeur / pipeline mandat.
+- Statut : **fait**.
+- Demande (Alexandre) : pouvoir créer une opportunité manuellement pour un vendeur sans annonce
+  en ligne, et simplifier le pipeline autour du workflow réel : appel/flyer → pré-estimation →
+  visite → rapport → décision → mandat ou suivi moyen terme.
+- Travail :
+  1. **Migration 016** (`016_seller_opportunities_pipeline.sql`, appliquée sur la Supabase distante)
+     : champs optionnels contact vendeur, origine, infos bien, estimation, dates clés
+     (`pre_estimation_done_at`, `visit_at`, `report_delivered_at`, `follow_up_at`) + migration des
+     anciens stages vers `Nouveau contact`, `Pré-estimation`, `RDV / Visite`, `Rapport remis`,
+     `Décision vendeur`, `Suivi moyen terme`, `Mandat signé`, `Perdu / Écarté`.
+  2. API opportunités : `POST /api/market/opportunities` et `PATCH /api/market/opportunities/[id]`
+     acceptent les nouveaux champs structurés ; l'idempotence par `market_property_id` est conservée.
+  3. `KanbanBoard.tsx` refondu : 6 colonnes actives + 2 issues, cartes centrées sur vendeur/commune/type
+     de bien/prochaine action, formulaire manuel “Contact + bien”, fiche d'édition complète.
+  4. Création depuis les biens et règles automatiques alignées sur `Nouveau contact`, avec enrichissement
+     minimum (`source_channel=annonce`, commune, CP, type, prix estimé). Dashboard stats mis à jour
+     pour exclure `Mandat signé` / `Perdu / Écarté` du pipeline actif.
+  5. Correction navigation CRM : clic sur une carte opportunité liée → fiche du bien
+     `/app/properties/[id]`; les opportunités manuelles sans bien ouvrent leur fiche de suivi.
+     La page Biens privilégie aussi l'action `Fiche CRM` plutôt qu'un retour générique au pipeline.
+- Fichiers : `supabase/migrations/016_seller_opportunities_pipeline.sql`, `src/types/supabase.ts`,
+  `src/app/api/market/opportunities/route.ts`, `src/app/api/market/opportunities/[id]/route.ts`,
+  `src/app/admin/market/opportunities/KanbanBoard.tsx`, `src/app/admin/market/properties/PropertiesTable.tsx`,
+  `src/app/admin/market/properties/[id]/PropertyDetail.tsx`, `src/app/api/market/dashboard-stats/route.ts`,
+  `src/app/api/market/sync/route.ts`, `src/app/api/market/rules/[id]/execute/route.ts`,
+  `src/components/admin/RuleWizard.tsx`, `docs/SUIVI_PROJET.md`.
+- Audit qualité : `pnpm exec tsc --noEmit` OK ; `pnpm build` OK ; `pnpm lint` OK avec warnings existants
+  du projet ; migration 016 vérifiée en base ; test API création manuelle → PATCH suivi moyen terme →
+  DELETE OK ; test idempotence création depuis bien OK ; Playwright sur `http://localhost:3003/app/opportunities`
+  desktop/mobile + dialog OK ; clic carte opportunité liée → `/app/properties/[id]` OK. Le seul 404
+  local observé est `_vercel/insights/script.js`, attendu hors Vercel.
+- Point d'attention : le serveur déjà présent sur `localhost:3002` répondait 500 sans logs accessibles ;
+  une instance fraîche a été lancée sur `localhost:3003` pour les vérifications.
+- Suite : utiliser le nouveau pipeline pour les prochains tests métier ; si besoin, ajouter ensuite une
+  vue “relances du jour” basée sur `due_date` / `follow_up_at`.
+
 ### P0 — sans ça, la boucle ne tourne pas
-1. ✅ **Sync récurrente contrôlée — CODÉE, gardée OFF** (22/06). Job
-   `/api/jobs/sync-zones` qui itère `monitored_zones` et lance `/api/market/sync` par zone
-   (alimente `market_properties`, pas le `listings` mort). Schedule `0 3 * * *` câblé dans
-   `vercel.json` mais **inerte** tant que `STREAM_ESTATE_CRON_ENABLED != 'true'`.
+1. ✅ **Sync récurrente contrôlée — CODÉE, gardée OFF** (22/06, optimisée 26/06). Job
+   `/api/jobs/sync-zones` qui fait le monitoring ciblé des biens connus puis un pull
+   incrémental `fromUpdatedAt` par zone déjà importée (alimente `market_properties`, pas le
+   `listings` mort). Schedule `0 3 * * *` câblé dans `vercel.json` mais **inerte** tant que
+   `STREAM_ESTATE_CRON_ENABLED != 'true'`.
    **Pour activer en prod** : poser `STREAM_ESTATE_CRON_ENABLED=true` (+ `CRON_SECRET`)
    dans Vercel et vérifier le budget Stream Estate. Détail : entrée journal 22/06.
 2. ✅ **Détection baisse de prix + republication → score — FAIT** (22/06). Baisse de prix
@@ -130,6 +408,110 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
 - A maintenir : tenir `docs/START.md`, `docs/MEMOIRE_SESSION.md`, `docs/SUIVI_PROJET.md` et `docs/ROUTES.md` alignes avec les routes canoniques `/app/*`.
 
 ## Journal de Bord
+
+### 26/06/2026 - Maîtrise budget Stream Estate : webhooks + reconcile incrémental
+- Base/branche : `preview`.
+- Type : backend / intégration Stream Estate / budget.
+- Statut : fait localement.
+- Résumé : implémentation du modèle économe validé : import initial volontaire par commune, webhooks Stream Estate en capteur primaire, pull incrémental `fromUpdatedAt` en filet de sécurité et monitoring ciblé par ID pour les biens connus. Le cron `/api/jobs/sync-zones` ne fait plus de découverte/scans complets en rythme normal : il traite les biens connus puis réconcilie seulement les zones déjà importées avec une fenêtre de recouvrement configurable.
+- Budget : ajout d’un plafond mensuel `stream_estate_monthly_budget_eur` (défaut 20 €), d’un coût event webhook `stream_estate_webhook_event_cost_eur` (défaut 0 €), du suivi `source`/`event_type` dans `stream_estate_usage_events`, et de compteurs events webhook exposés dans `/api/market/sync-stats`. Les webhooks sont journalisés avec `item_count=0` tant que la facturation fournisseur n’est pas confirmée.
+- Webhooks : nouveau `POST /api/market/webhooks/stream-estate`, protégé par `STREAM_ESTATE_WEBHOOK_SECRET` si présent, `stream_estate_webhook_enabled=false` par défaut. Le endpoint accepte les payloads event/match, extrait `propertyDocument`, upsert le bien, historise les prix, marque les expirés, notifie les nouveaux biens et re-score de façon idempotente.
+- Saved searches : helpers `createSavedSearch/listSavedSearches/deleteSavedSearch` + rattachement best-effort `monitored_zones.stream_estate_search_id` quand les webhooks sont activés et qu’une URL publique stable est configurée (`STREAM_ESTATE_PUBLIC_BASE_URL` ou `NEXT_PUBLIC_SITE_URL`).
+- Fichiers principaux : `supabase/migrations/014_stream_estate_webhooks_budget.sql`, `src/lib/stream-estate.ts`, `src/lib/stream-estate-budget.ts`, `src/lib/market/upsert-listing.ts`, `src/lib/market/stream-estate-searches.ts`, `src/app/api/market/webhooks/stream-estate/route.ts`, `src/app/api/jobs/sync-zones/route.ts`, `src/app/api/market/sync/route.ts`, `src/app/api/market/sync-stats/route.ts`, `src/types/supabase.ts`.
+- Audit qualité : `npx tsc --noEmit --pretty false` OK ; `npm run lint` OK avec warnings préexistants ; `npm run build` OK. Pas d’appel réel Stream Estate lancé pendant cette tâche.
+- À faire avant prod : appliquer la migration 014 sur Supabase ; définir `STREAM_ESTATE_WEBHOOK_SECRET`, `STREAM_ESTATE_PUBLIC_BASE_URL`, puis activer `stream_estate_webhook_enabled` seulement après validation de l’URL publique et de la facturation events avec Stream Estate ; garder `STREAM_ESTATE_CRON_ENABLED` OFF tant qu’Alexandre ne valide pas l’activation.
+
+### 26/06/2026 - Migration 014 appliquée + tests non dépensiers
+- Base/branche : `preview`.
+- Type : base distante / vérification API.
+- Statut : fait.
+- Résumé : application ciblée de `supabase/migrations/014_stream_estate_webhooks_budget.sql` sur la Supabase distante `byrsmbgfkvgxdtdyhrro` via connexion Postgres directe, car l’historique Supabase CLI distant est horodaté et ne correspond pas aux fichiers locaux `001…014` (pas de `supabase migration up` pour éviter de rejouer d’anciens fichiers).
+- Vérifications base : colonnes présentes `monitored_zones.stream_estate_search_id`, `monitored_zones.last_reconciled_at`, `sync_runs.source`, `stream_estate_usage_events.source`, `stream_estate_usage_events.event_type`; réglages présents `stream_estate_monthly_budget_eur=20`, `stream_estate_webhook_enabled=false`, `stream_estate_webhook_event_cost_eur=0`, `stream_estate_reconcile_window_days=1`.
+- Tests locaux sans dépense Stream Estate : serveur Next temporaire sur `http://localhost:3002`; `GET /api/market/sync-stats` OK (budget mensuel exposé, events webhook à 0) ; `POST /api/market/webhooks/stream-estate` retourne bien `403 stream_estate_webhook_disabled` ; `GET /api/jobs/sync-zones` retourne `skipped=true, reason=cron_disabled`. Serveur local arrêté après tests.
+- Suite : définir `STREAM_ESTATE_WEBHOOK_SECRET` + `STREAM_ESTATE_PUBLIC_BASE_URL`, puis tester un webhook simulé seulement après activation contrôlée de `stream_estate_webhook_enabled`.
+
+### 26/06/2026 - Budget Stream Estate : plafond centime par centime
+- Base/branche : `preview`.
+- Type : sécurité budget / réglage live.
+- Statut : fait.
+- Décision Alexandre : ne pas garder un plafond par défaut à 20 € ; le budget doit être piloté explicitement au centime près.
+- Travail : défaut applicatif `stream_estate_monthly_budget_eur` passé de `20` à `0`; la logique budget considère désormais `0 €` comme un vrai plafond bloquant (et non comme illimité). La migration 014 locale a été alignée sur ce défaut.
+- Base distante : `app_settings.stream_estate_monthly_budget_eur` mis à `0`. Vérification API locale : `monthly_budget_eur=0`, `estimated_month_remaining_eur=0`, solde manuel existant `4,72 €` conservé mais inutilisable tant qu’un plafond mensuel explicite n’est pas fixé.
+- Audit qualité : `npx tsc --noEmit --pretty false` OK ; serveur Next temporaire sur `http://localhost:3002` pour vérifier `/api/market/sync-stats`, puis arrêté.
+
+### 26/06/2026 - UX import Stream Estate : décision explicite après preview gratuite
+- Base/branche : `preview`.
+- Type : UX / garde-fou budget.
+- Statut : fait.
+- Décision Alexandre : le flux central doit être « je choisis une commune → je prévisualise gratuitement le nombre d’items → je valide ou refuse l’appel payant », puis seulement ensuite les updates/nouvelles annonces/expirations prennent le relais.
+- Travail : wording de `/app/settings` clarifié : la carte d’import parle de prévisualisation gratuite puis de décision ; le coût est libellé « Appel payant si validation » ; le bouton principal devient « Valider l’appel payant » ; ajout d’un bouton « Refuser » qui annule la décision et confirme qu’aucun item n’a été téléchargé ni facturé.
+- Audit qualité : `npx tsc --noEmit --pretty false` OK.
+
+### 26/06/2026 - Stream Estate : recherche PAP uniquement et biens en ligne
+- Base/branche : `preview`.
+- Type : filtrage fournisseur / maîtrise budget.
+- Statut : fait.
+- Décision Alexandre : la recherche doit se concentrer sur les annonces publiées en ligne actuellement, en excluant les biens de professionnels/agences, locaux professionnels, commerces, terrains, parkings et annonces expirées/hors ligne. Cible prioritaire : PAP.
+- Travail : le client Stream Estate filtre désormais par défaut `expired=false`, `propertyTypes=[0,1]` (maisons/appartements) et `publisherTypes=[0]` (particuliers/PAP) pour la prévisualisation, l’import, le reconcile incrémental et les saved searches. Le mapping vendeur reconnaît aussi `publisherTypes=[0]` comme `seller_type='individual'`.
+- UX : la prévisualisation dans `/app/settings` affiche les badges « PAP uniquement », « Annonces en ligne » et « Maisons & appartements ».
+- Budget live : solde manuel Stream Estate mis à `2,41 €`; plafond mensuel conservé à `0 €`, donc aucun appel payant ne peut partir tant qu’un plafond explicite n’est pas fixé.
+- Audit qualité : `npx tsc --noEmit --pretty false` OK ; `GET /api/market/sync-stats` confirme `manual_balance_eur=2.41`, `monthly_budget_eur=0`, `estimated_month_remaining_eur=0`, `cost_per_item_eur=0.01`.
+
+### 26/06/2026 - Stream Estate : terrains PAP + anti-doublon annonce
+- Base/branche : `preview`.
+- Type : filtrage fournisseur / qualité données.
+- Statut : fait.
+- Décision Alexandre : inclure les terrains, mais uniquement lorsqu’ils sont publiés par un particulier ; éviter les doublons d’annonces.
+- Travail : le filtre par défaut Stream Estate passe à `propertyTypes=[0,1,5]` (appartements, maisons, terrains), toujours avec `publisherTypes=[0]` et `expired=false`. Les saved searches, previews, imports et reconciliations héritent de ce périmètre. L’UI affiche désormais « Maisons, appartements & terrains ».
+- Anti-doublon : l’ingestion partagée cherche d’abord un bien existant par `external_id`, puis par URL exacte, puis par signature stricte (commune/CP, type, prix, surface ou terrain, pièces et titre si disponible). Si un doublon est détecté, le bien existant est mis à jour au lieu de créer une nouvelle fiche/notification.
+- Audit qualité : `npx tsc --noEmit --pretty false` OK ; `/app/settings` répond 200 sur le serveur local.
+
+### 26/06/2026 - Preview Stream Estate : filtres types de biens + budget non bloquant
+- Base/branche : `preview`.
+- Type : UX / filtrage preview / garde-fou budget.
+- Statut : fait.
+- Décision Alexandre : la prévisualisation gratuite suffit comme sécurité budget ; retirer le blocage par plafond mensuel à 0 et permettre de jouer avec les types de biens avant validation.
+- Travail : `stream_estate_monthly_budget_eur=0` signifie désormais « pas de plafond mensuel » au lieu de bloquer les appels ; le solde manuel/réserve reste le garde-fou dur. `/api/market/sync-preview` et `/api/market/sync` acceptent `property_types` et limitent les valeurs à `[0,1,5]`.
+- UX : ajout dans `/app/settings` d’un filtre multi-sélection `Appartement`, `Maison`, `Terrain`. La prévisualisation se relance automatiquement quand le filtre change, et l’import validé utilise exactement les mêmes types.
+- Audit qualité : `npx tsc --noEmit --pretty false` OK ; `/app/settings` répond 200 ; `/api/market/sync-stats` confirme `manual_balance_eur=2.41`, `monthly_budget_eur=0`.
+
+### 26/06/2026 - Stream Estate : retrait du plafond 5 items par appel
+- Base/branche : `preview`.
+- Type : réglage live / budget.
+- Statut : fait.
+- Décision Alexandre : la prévisualisation gratuite suffit pour décider ; retirer le plafond à 0,05 € qui limitait encore les appels validés.
+- Travail : `app_settings.stream_estate_unlimited_items` passé à `true`. Le réglage historique `stream_estate_max_items_per_sync=5` reste en base mais il est ignoré tant que le mode illimité est actif.
+- Vérification : `/api/market/sync-stats` confirme `unlimited_items=true`, solde estimé `2,13 €`, coût item `0,01 €`, soit environ 212 items finançables par le solde actuel.
+
+### 26/06/2026 - Page Biens : statut expiré/retiré et scoring mandat
+- Base/branche : `preview`.
+- Type : UX biens / ingestion Stream Estate / analyse scoring.
+- Statut : fait localement.
+- Décision Alexandre : sur la page Biens, les annonces retirées lors des updates doivent être visibles comme expirées/retirées.
+- Travail : la table Biens affiche maintenant les statuts `expired` et `removed` avec les libellés `Expiré` et `Retiré`, et le filtre Statut permet de les isoler. La carte normalise aussi ces statuts avec une couleur neutre. L'ingestion Stream Estate reconnaît désormais les events/statuts terminaux larges (`expired`, `removed`, `deleted`, `offline`, `inactive`, `archived`) : ils renseignent `expired_at`, deviennent non actifs, et ne déclenchent pas de fausse notification de nouvelle annonce.
+- Analyse scoring : la ressource IA Lab Immo sur l'analyse PAP confirme que le socle actuel est pertinent pour les signaux temporels/comportementaux (ancienneté, baisses, republication), mais qu'il faudra ajouter ensuite un axe d'écart prix marché/DVF et des signaux qualitatifs d'annonce (photos, description, DPE, contexte quartier) pour prioriser les vendeurs PAP les plus convertibles.
+- Audit qualité : `npx tsc --noEmit --pretty false` OK.
+
+### 27/06/2026 - Observatoire DVF : base locale + BI par commune
+- Base/branche : `preview`.
+- Type : data / BI / UX marché.
+- Statut : fait localement + migration appliquée sur Supabase distante.
+- Décision Alexandre : créer une base DVF reliée à la donnée gouvernementale, consultable dans Mandat OS, avec tableaux de bord BI, filtres par commune, ajout et suppression de communes.
+- Source : données DVF publiques DGFiP/data.gouv ; import technique depuis le flux Geo-DVF CSV compressé par département (`https://files.data.gouv.fr/geo-dvf/latest/csv/{année}/departements/{département}.csv.gz`) pour filtrer ensuite par code INSEE.
+- Travail : ajout de la migration `015_dvf_observatory.sql` avec `dvf_communes`, `dvf_transactions`, `dvf_import_runs`. Ajout des APIs `/api/market/dvf/zones`, `/api/market/dvf/zones/[id]`, `/api/market/dvf/import`, `/api/market/dvf/stats`, `/api/market/dvf/transactions`. Ajout de la page `/app/dvf` dans le groupe Marché : ajout de commune, import, suppression, filtres commune/année/type, KPI, répartition par type, évolution annuelle, tableau des mutations.
+- Base distante : migration 015 appliquée via Postgres direct. Test réel : commune Barjols (`83012`) ajoutée et import 2025 réussi, `320` lignes DVF importées après scan du fichier départemental du Var (`79 857` lignes scannées).
+- Audit qualité : `npx tsc --noEmit --pretty false` OK ; `npm run build` OK avec warnings préexistants ; `/app/dvf` répond 200 ; APIs DVF OK ; Playwright desktop/mobile OK, sans overflow horizontal. Test Vitest ciblé `src/lib/__tests__/dvf.test.ts` non exploitable en l'état car la config Vitest ne résout pas l'alias `@/lib/dvf`.
+- Suite : décider si l'import doit devenir multi-années automatique par commune (2021-2025) et ajouter ensuite le rapprochement scoring PAP ↔ comparables DVF.
+
+### 27/06/2026 - Navigation Marché : retrait Zones + opportunités depuis Biens
+- Base/branche : `preview`.
+- Type : UX navigation / workflow opportunités.
+- Statut : fait localement.
+- Décision Alexandre : retirer la page visible `Zones surveillées`, car la gestion des communes est maintenant disponible dans `/app/settings`.
+- Travail navigation : retrait de `Zones surveillées` du menu Marché, remplacement du raccourci dashboard par `Gérer les communes`, support du deep-link `/app/settings?section=communes`, et redirection `/app/zones` vers cette section pour ne pas casser les anciens liens.
+- Travail opportunités : `/api/market/properties` expose l'opportunité liée par bien ; la table Biens affiche `Voir l’opportunité` quand elle existe déjà, sinon `Créer une opportunité`. Le POST `/api/market/opportunities` est idempotent sur `market_property_id` : il renvoie l'opportunité existante au lieu de créer un doublon. Le détail bien lit aussi la plus récente opportunité liée pour éviter les erreurs si des doublons historiques existent.
+- Vérification workflow : test API sur le bien `0d79f7bc-d4d7-4245-afc7-fcc96da581b7` : `POST /api/market/opportunities` retourne `200`, `existing=true`, même `opportunity_id`, et aucun doublon n'est créé (`existing_before=1`, `existing_after=1`).
+- Audit qualité : `npx tsc --noEmit --pretty false` OK ; `npm run build` OK avec warnings préexistants ; Playwright `/app/properties` desktop/mobile sans overflow ; `/app/zones` redirige vers `/app/settings?section=communes`.
 
 ### 23/06/2026 - Paramètres Stream Estate simplifiés
 - Base/branche : `preview`.
@@ -1058,5 +1440,5 @@ Deployment: Work, declenche un deployment Vercel pour la branche preview.
 - Progression globale: 0%
 
 ---
-Derniere mise a jour: 23/06/2026
+Derniere mise a jour: 28/06/2026
 Maintenu par: Claude Code (sur `preview`)

@@ -128,6 +128,8 @@ export async function monitorKnownLeads(maxLeads = 200): Promise<LeadMonitorResu
         page: 1, requestStatus: 'error', itemCount: 0, estimatedCostEur: 0,
         startedAt, finishedAt: new Date().toISOString(),
         errorMessage: e instanceof Error ? e.message : 'unknown',
+        source: 'monitoring',
+        eventType: 'property.status.check',
       })
       continue
     }
@@ -138,6 +140,8 @@ export async function monitorKnownLeads(maxLeads = 200): Promise<LeadMonitorResu
       syncRunId: null, zipcode: lead.zipcode ?? '', endpoint: '/documents/properties/{id}',
       page: 1, requestStatus: 'success', itemCount: 1, estimatedCostEur: cost,
       startedAt, finishedAt: new Date().toISOString(),
+      source: 'monitoring',
+      eventType: 'property.status.check',
     })
 
     const now = new Date().toISOString()

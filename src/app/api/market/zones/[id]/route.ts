@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import type { Database } from '@/types/supabase'
 import { purgeMarketPropertiesByZipcode } from '@/lib/market/property-cleanup'
+import {
+  deleteStreamEstateSavedSearchForZone,
+  ensureStreamEstateSavedSearchForZone,
+} from '@/lib/market/stream-estate-searches'
 
 type ZonesUpdate = Database['public']['Tables']['monitored_zones']['Update']
 
@@ -28,6 +32,16 @@ export async function GET(
       }
       console.error('[API /market/zones/[id]] GET error:', error)
       return NextResponse.json({ error: 'Erreur base de données' }, { status: 500 })
+    }
+
+    if (zone?.active) {
+      await ensureStreamEstateSavedSearchForZone(zone)
+    } else if (zone?.stream_estate_search_id) {
+      await deleteStreamEstateSavedSearchForZone(zone.stream_estate_search_id)
+      await supabaseAdmin
+        .from('monitored_zones')
+        .update({ stream_estate_search_id: null } as never)
+        .eq('id', id)
     }
 
     return NextResponse.json({ zone })
@@ -102,7 +116,7 @@ export async function DELETE(
 
     const { data: existing, error: fetchError } = await supabaseAdmin
       .from('monitored_zones')
-      .select('id, zipcode')
+      .select('id, zipcode, stream_estate_search_id')
       .eq('id', id)
       .single()
 
@@ -111,6 +125,7 @@ export async function DELETE(
     }
 
     const zipcode = existing.zipcode
+    const searchId = (existing as { stream_estate_search_id?: string | null }).stream_estate_search_id ?? null
 
     // Supprimer la zone
     const { error } = await supabaseAdmin
@@ -122,6 +137,8 @@ export async function DELETE(
       console.error('[API /market/zones/[id]] DELETE error:', error)
       return NextResponse.json({ error: 'Erreur suppression' }, { status: 500 })
     }
+
+    await deleteStreamEstateSavedSearchForZone(searchId)
 
     // Vérifier si d'autres zones actives utilisent le même code postal
     const { count: remainingZones } = await supabaseAdmin

@@ -31,6 +31,41 @@ vi.mock('@/lib/leads/compute-results', () => ({
   computeLeadResults: vi.fn(),
 }))
 
+vi.mock('@/lib/leads-crm', () => ({
+  asNumber: (value: unknown) => {
+    if (value === null || value === undefined || value === '') return null
+    const numberValue = Number(value)
+    return Number.isFinite(numberValue) ? numberValue : null
+  },
+  asStringArray: (value: unknown) => Array.isArray(value) ? value : null,
+  resolveCommune: (data: Record<string, unknown>) => typeof data.commune === 'string' ? data.commune : null,
+  upsertSellerPropertyForLead: vi.fn().mockResolvedValue({ id: 'seller-property-1' }),
+}))
+
+vi.mock('@/lib/notion-estimations', () => ({
+  saveEstimationToNotion: vi.fn().mockResolvedValue({ ok: false, skipped: true }),
+}))
+
+vi.mock('@/lib/attio', () => ({
+  syncLeadToAttio: vi.fn().mockResolvedValue({ ok: false, skipped: true }),
+}))
+
+vi.mock('@/lib/server-analytics', () => ({
+  logServerConversionEvent: vi.fn(),
+}))
+
+vi.mock('@/lib/market/matching-engine', () => ({
+  runMatchingForBuyer: vi.fn().mockResolvedValue(undefined),
+}))
+
+vi.mock('@/lib/supabase', () => ({
+  supabaseAdmin: {
+    from: vi.fn(() => ({
+      upsert: vi.fn().mockResolvedValue({ error: null }),
+    })),
+  },
+}))
+
 import { POST } from '../route'
 import {
   upsertProspect,
@@ -75,6 +110,11 @@ const FAKE_LEAD = {
   form_data: {},
   results: {},
   commune: 'Brignoles',
+  source_channel: 'estimation_site',
+  priority: 'medium' as const,
+  next_action: 'Qualifier la demande d’estimation',
+  due_date: null,
+  follow_up_at: null,
   magic_link_expires_at: '2026-06-02T12:00:00.000Z',
   magic_link_sent_at: null,
   deleted_at: null,
@@ -216,7 +256,7 @@ describe('POST /api/leads (v2)', () => {
     expect(json.success).toBe(false)
   })
 
-  it('continues when computeLeadResults throws (best-effort)', async () => {
+  it('500 when computeLeadResults throws', async () => {
     mockedComputeLeadResults.mockRejectedValueOnce(new Error('DVF down'))
     const res = await POST(
       makeRequest({
@@ -226,9 +266,8 @@ describe('POST /api/leads (v2)', () => {
         opt_in: true,
       }),
     )
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(500)
     const json = await res.json()
-    expect(json.success).toBe(true)
-    expect(json.leadId).toBe('lead-uuid-1')
+    expect(json.success).toBe(false)
   })
 })

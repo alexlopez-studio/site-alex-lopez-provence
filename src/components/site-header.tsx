@@ -7,12 +7,12 @@ const PAGE_TITLES: Record<string, string> = {
   '/app/leads': 'Leads',
   '/app/dashboard': 'Dashboard',
   '/app/properties': 'Marché',
+  '/app/dvf': 'DVF',
   '/app/acheteurs': 'Acquéreurs',
   '/app/matching': 'Matching',
   '/app/opportunities': 'Opportunités',
   '/app/rules': 'Règles',
   '/app/notifications': 'Notifications',
-  '/app/zones': 'Zones surveillées',
   '/app/settings': 'Paramètres',
 }
 

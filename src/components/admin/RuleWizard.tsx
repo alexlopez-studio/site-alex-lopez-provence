@@ -113,7 +113,7 @@ export function RuleWizard() {
   }
 
   const addAction = (type: string) => {
-    setActions([...actions, { type, value: '', stage: 'À qualifier', priority: 'medium' }])
+    setActions([...actions, { type, value: '', stage: 'Nouveau contact', priority: 'medium' }])
   }
 
   const updateAction = (index: number, updates: Partial<Action>) => {
@@ -154,7 +154,7 @@ export function RuleWizard() {
             type: a.type,
             ...(a.type === 'add_tag' ? { value: a.value || 'Signal' } : {}),
             ...(a.type === 'create_notification' ? { value: a.value || 'Bien détecté', priority: a.priority } : {}),
-            ...(a.type === 'create_opportunity' ? { stage: a.stage || 'À qualifier', priority: a.priority } : {}),
+            ...(a.type === 'create_opportunity' ? { stage: a.stage || 'Nouveau contact', priority: a.priority } : {}),
           }))},
           priority,
         }),
@@ -380,14 +380,14 @@ export function RuleWizard() {
                         {action.type === 'create_opportunity' && (
                           <div className="flex gap-2">
                             <select
-                              value={action.stage || 'À qualifier'}
+                              value={action.stage || 'Nouveau contact'}
                               onChange={(e) => updateAction(index, { stage: e.target.value })}
                               className="h-9 rounded-md border border-input bg-background px-3 text-sm flex-1"
                             >
-                              <option value="À qualifier">À qualifier</option>
-                              <option value="À analyser">À analyser</option>
-                              <option value="À contacter">À contacter</option>
-                              <option value="Contacté">Contacté</option>
+                              <option value="Nouveau contact">Nouveau contact</option>
+                              <option value="Pré-estimation">Pré-estimation</option>
+                              <option value="RDV / Visite">RDV / Visite</option>
+                              <option value="Décision vendeur">Décision vendeur</option>
                             </select>
                             <select
                               value={action.priority || 'medium'}

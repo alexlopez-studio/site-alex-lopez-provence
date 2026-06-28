@@ -48,11 +48,15 @@ export type NotificationStatus = 'unread' | 'read' | 'processed' | 'ignored'
 export type NotificationPriority = 'low' | 'medium' | 'high' | 'critical'
 
 export type OpportunityStage =
-  | 'À qualifier' | 'À analyser' | 'À contacter' | 'Contacté'
-  | 'Rendez-vous à préparer' | 'En suivi' | 'Mandat potentiel'
-  | 'Converti' | 'Écarté'
+  | 'Nouveau contact' | 'Pré-estimation' | "Visite d'estimation"
+  | "Remise de l'estimation" | 'Décision vendeur' | 'Suivi moyen terme'
+  | 'Mandat signé' | 'Vendu' | 'Perdu / Écarté'
 
 export type OpportunityPriority = 'low' | 'medium' | 'high' | 'critical'
+
+export type OpportunityEventType =
+  | 'note' | 'task' | 'call' | 'meeting'
+  | 'email' | 'stage_change' | 'estimation' | 'system'
 
 export type SyncStatus = 'running' | 'success' | 'error'
 
@@ -75,7 +79,7 @@ export type Database = {
       prospects: {
         Row: {
           id: string
-          email: string
+          email: string | null
           first_name: string
           last_name: string
           phone: string | null
@@ -85,7 +89,7 @@ export type Database = {
         }
         Insert: {
           id?: string
-          email: string
+          email?: string | null
           first_name?: string
           last_name?: string
           phone?: string | null
@@ -95,7 +99,7 @@ export type Database = {
         }
         Update: {
           id?: string
-          email?: string
+          email?: string | null
           first_name?: string
           last_name?: string
           phone?: string | null
@@ -114,6 +118,11 @@ export type Database = {
           form_data: Json
           results: Json
           commune: string | null
+          source_channel: string | null
+          priority: string
+          next_action: string | null
+          due_date: string | null
+          follow_up_at: string | null
           magic_link_expires_at: string
           magic_link_sent_at: string | null
           deleted_at: string | null
@@ -128,6 +137,11 @@ export type Database = {
           form_data?: Json
           results?: Json
           commune?: string | null
+          source_channel?: string | null
+          priority?: string
+          next_action?: string | null
+          due_date?: string | null
+          follow_up_at?: string | null
           magic_link_expires_at?: string
           magic_link_sent_at?: string | null
           deleted_at?: string | null
@@ -142,6 +156,11 @@ export type Database = {
           form_data?: Json
           results?: Json
           commune?: string | null
+          source_channel?: string | null
+          priority?: string
+          next_action?: string | null
+          due_date?: string | null
+          follow_up_at?: string | null
           magic_link_expires_at?: string
           magic_link_sent_at?: string | null
           deleted_at?: string | null
@@ -256,6 +275,8 @@ export type Database = {
           active: boolean
           sync_frequency: string
           last_synced_at: string | null
+          stream_estate_search_id: string | null
+          last_reconciled_at: string | null
           created_at: string
           updated_at: string
         }
@@ -268,6 +289,8 @@ export type Database = {
           active?: boolean
           sync_frequency?: string
           last_synced_at?: string | null
+          stream_estate_search_id?: string | null
+          last_reconciled_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -280,6 +303,8 @@ export type Database = {
           active?: boolean
           sync_frequency?: string
           last_synced_at?: string | null
+          stream_estate_search_id?: string | null
+          last_reconciled_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -389,6 +414,122 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      market_property_sources: {
+        Row: {
+          id: string
+          market_property_id: string
+          source: string
+          portal: string | null
+          external_id: string | null
+          url: string | null
+          title: string | null
+          price: number | null
+          status: string
+          published_at: string | null
+          first_seen_at: string
+          last_seen_at: string
+          raw_json: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          market_property_id: string
+          source?: string
+          portal?: string | null
+          external_id?: string | null
+          url?: string | null
+          title?: string | null
+          price?: number | null
+          status?: string
+          published_at?: string | null
+          first_seen_at?: string
+          last_seen_at?: string
+          raw_json?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          market_property_id?: string
+          source?: string
+          portal?: string | null
+          external_id?: string | null
+          url?: string | null
+          title?: string | null
+          price?: number | null
+          status?: string
+          published_at?: string | null
+          first_seen_at?: string
+          last_seen_at?: string
+          raw_json?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'market_property_sources_market_property_id_fkey'
+            columns: ['market_property_id']
+            isOneToOne: false
+            referencedRelation: 'market_properties'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      market_property_duplicate_candidates: {
+        Row: {
+          id: string
+          property_id: string
+          candidate_property_id: string
+          status: string
+          score: number
+          reasons: Json
+          resolved_at: string | null
+          resolved_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          property_id: string
+          candidate_property_id: string
+          status?: string
+          score?: number
+          reasons?: Json
+          resolved_at?: string | null
+          resolved_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          property_id?: string
+          candidate_property_id?: string
+          status?: string
+          score?: number
+          reasons?: Json
+          resolved_at?: string | null
+          resolved_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'market_property_duplicate_candidates_property_id_fkey'
+            columns: ['property_id']
+            isOneToOne: false
+            referencedRelation: 'market_properties'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'market_property_duplicate_candidates_candidate_property_id_fkey'
+            columns: ['candidate_property_id']
+            isOneToOne: false
+            referencedRelation: 'market_properties'
+            referencedColumns: ['id']
+          },
+        ]
       }
       property_price_history: {
         Row: {
@@ -575,6 +716,7 @@ export type Database = {
         Row: {
           id: string
           market_property_id: string | null
+          lead_id: string | null
           title: string
           description: string
           stage: string
@@ -583,6 +725,24 @@ export type Database = {
           next_action: string | null
           due_date: string | null
           note: string | null
+          seller_name: string | null
+          seller_phone: string | null
+          seller_email: string | null
+          source_channel: string | null
+          property_address: string | null
+          property_city: string | null
+          property_zipcode: string | null
+          property_type: string | null
+          property_surface: number | null
+          property_land_surface: number | null
+          property_rooms: number | null
+          estimated_price_min: number | null
+          estimated_price_max: number | null
+          selling_timeline: string | null
+          pre_estimation_done_at: string | null
+          visit_at: string | null
+          report_delivered_at: string | null
+          follow_up_at: string | null
           created_from: string
           created_at: string
           updated_at: string
@@ -590,6 +750,7 @@ export type Database = {
         Insert: {
           id?: string
           market_property_id?: string | null
+          lead_id?: string | null
           title: string
           description?: string
           stage?: string
@@ -598,6 +759,24 @@ export type Database = {
           next_action?: string | null
           due_date?: string | null
           note?: string | null
+          seller_name?: string | null
+          seller_phone?: string | null
+          seller_email?: string | null
+          source_channel?: string | null
+          property_address?: string | null
+          property_city?: string | null
+          property_zipcode?: string | null
+          property_type?: string | null
+          property_surface?: number | null
+          property_land_surface?: number | null
+          property_rooms?: number | null
+          estimated_price_min?: number | null
+          estimated_price_max?: number | null
+          selling_timeline?: string | null
+          pre_estimation_done_at?: string | null
+          visit_at?: string | null
+          report_delivered_at?: string | null
+          follow_up_at?: string | null
           created_from?: string
           created_at?: string
           updated_at?: string
@@ -605,6 +784,7 @@ export type Database = {
         Update: {
           id?: string
           market_property_id?: string | null
+          lead_id?: string | null
           title?: string
           description?: string
           stage?: string
@@ -613,6 +793,24 @@ export type Database = {
           next_action?: string | null
           due_date?: string | null
           note?: string | null
+          seller_name?: string | null
+          seller_phone?: string | null
+          seller_email?: string | null
+          source_channel?: string | null
+          property_address?: string | null
+          property_city?: string | null
+          property_zipcode?: string | null
+          property_type?: string | null
+          property_surface?: number | null
+          property_land_surface?: number | null
+          property_rooms?: number | null
+          estimated_price_min?: number | null
+          estimated_price_max?: number | null
+          selling_timeline?: string | null
+          pre_estimation_done_at?: string | null
+          visit_at?: string | null
+          report_delivered_at?: string | null
+          follow_up_at?: string | null
           created_from?: string
           created_at?: string
           updated_at?: string
@@ -623,6 +821,66 @@ export type Database = {
             columns: ['market_property_id']
             isOneToOne: false
             referencedRelation: 'market_properties'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'opportunities_lead_id_fkey'
+            columns: ['lead_id']
+            isOneToOne: false
+            referencedRelation: 'leads'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      opportunity_events: {
+        Row: {
+          id: string
+          opportunity_id: string
+          type: OpportunityEventType
+          title: string | null
+          content: string | null
+          due_at: string | null
+          occurred_at: string
+          completed_at: string | null
+          metadata: Json
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          opportunity_id: string
+          type?: OpportunityEventType
+          title?: string | null
+          content?: string | null
+          due_at?: string | null
+          occurred_at?: string
+          completed_at?: string | null
+          metadata?: Json
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          opportunity_id?: string
+          type?: OpportunityEventType
+          title?: string | null
+          content?: string | null
+          due_at?: string | null
+          occurred_at?: string
+          completed_at?: string | null
+          metadata?: Json
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'opportunity_events_opportunity_id_fkey'
+            columns: ['opportunity_id']
+            isOneToOne: false
+            referencedRelation: 'opportunities'
             referencedColumns: ['id']
           },
         ]
@@ -856,6 +1114,7 @@ export type Database = {
           external_item_count: number
           estimated_cost_eur: number
           blocked_reason: string | null
+          source: string
         }
         Insert: {
           id?: string
@@ -872,6 +1131,7 @@ export type Database = {
           external_item_count?: number
           estimated_cost_eur?: number
           blocked_reason?: string | null
+          source?: string
         }
         Update: {
           id?: string
@@ -888,6 +1148,7 @@ export type Database = {
           external_item_count?: number
           estimated_cost_eur?: number
           blocked_reason?: string | null
+          source?: string
         }
         Relationships: [
           {
@@ -913,6 +1174,8 @@ export type Database = {
           finished_at: string | null
           error_message: string | null
           created_at: string
+          source: string
+          event_type: string | null
         }
         Insert: {
           id?: string
@@ -927,6 +1190,8 @@ export type Database = {
           finished_at?: string | null
           error_message?: string | null
           created_at?: string
+          source?: string
+          event_type?: string | null
         }
         Update: {
           id?: string
@@ -941,6 +1206,8 @@ export type Database = {
           finished_at?: string | null
           error_message?: string | null
           created_at?: string
+          source?: string
+          event_type?: string | null
         }
         Relationships: [
           {
@@ -1051,6 +1318,7 @@ export type Database = {
       lead_event_kind: LeadEventKind
       warm_contact_status: WarmContactStatus
       warm_event_type: WarmEventType
+      opportunity_event_type: OpportunityEventType
       admin_role: AdminRole
     }
     CompositeTypes: {

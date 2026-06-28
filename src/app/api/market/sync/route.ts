@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { fetchListings, StreamEstateRequestLimitError } from '@/lib/stream-estate'
-import { runMatchingForProperty } from '@/lib/market/matching-engine'
-import { rescoreAndPersist } from '@/lib/market/mandate-score-persist'
+import { upsertStreamEstateListing, type StreamEstateIngestSource } from '@/lib/market/upsert-listing'
 import { getSetting } from '@/lib/settings'
 import {
   canSpendStreamEstateItems,
@@ -12,6 +11,8 @@ import {
 } from '@/lib/stream-estate-budget'
 
 const ZIPCODE_RE = /^\d{5}$/
+const ALLOWED_PROPERTY_TYPES = new Set([0, 1, 5])
+const DEFAULT_PROPERTY_TYPES = [0, 1, 5]
 
 // Moteur de règles `management_rules` neutralisé : le mandate_score est la source de
 // vérité (motivation + dimensions + alertes). Les règles seed à conditions vides
@@ -21,6 +22,21 @@ const RULES_ENGINE_ENABLED = false
 // Fenêtre anti-re-sync : on ne re-synchronise pas une zone vue récemment (0 appel API).
 const STREAM_ESTATE_RESYNC_WINDOW_KEY = 'stream_estate_resync_window_minutes'
 const DEFAULT_RESYNC_WINDOW_MINUTES = 360 // 6 h
+const LEGACY_OPPORTUNITY_STAGE_MAP: Record<string, string> = {
+  'À qualifier': 'Nouveau contact',
+  'À analyser': 'Pré-estimation',
+  'À contacter': 'Nouveau contact',
+  Contacté: 'Pré-estimation',
+  'Rendez-vous à préparer': 'RDV / Visite',
+  'En suivi': 'Suivi moyen terme',
+  'Mandat potentiel': 'Décision vendeur',
+  Converti: 'Mandat signé',
+  Écarté: 'Perdu / Écarté',
+}
+
+function normalizeOpportunityStage(stage: string | undefined) {
+  return stage ? LEGACY_OPPORTUNITY_STAGE_MAP[stage] ?? stage : 'Nouveau contact'
+}
 
 async function getResyncWindowMinutes(): Promise<number> {
   const raw = await getSetting<number>(STREAM_ESTATE_RESYNC_WINDOW_KEY, DEFAULT_RESYNC_WINDOW_MINUTES)
@@ -48,7 +64,7 @@ async function updateSyncRun(syncId: string | undefined, payload: Record<string,
   }
 }
 
-async function createSyncRun(zoneId: string, status: 'running' | 'blocked', blockedReason?: string) {
+async function createSyncRun(zoneId: string, status: 'running' | 'blocked', blockedReason?: string, source: StreamEstateIngestSource = 'manual') {
   const now = new Date().toISOString()
 
   const fullPayload = {
@@ -65,6 +81,7 @@ async function createSyncRun(zoneId: string, status: 'running' | 'blocked', bloc
     estimated_cost_eur: 0,
     blocked_reason: blockedReason ?? null,
     error_message: blockedReason ?? null,
+    source,
   }
 
   const legacyPayload = {
@@ -107,6 +124,15 @@ function readMaxItems(body: Record<string, unknown> | null | undefined, fallback
   const parsed = typeof raw === 'number' ? raw : Number(raw)
   if (!Number.isFinite(parsed)) return fallback
   return Math.max(1, Math.floor(parsed))
+}
+
+function readPropertyTypes(body: Record<string, unknown> | null | undefined): number[] {
+  const raw = body?.property_types ?? body?.propertyTypes
+  const values = Array.isArray(raw) ? raw : []
+  const parsed = values
+    .map((value) => Number(value))
+    .filter((value) => ALLOWED_PROPERTY_TYPES.has(value))
+  return parsed.length > 0 ? Array.from(new Set(parsed)) : DEFAULT_PROPERTY_TYPES
 }
 
 type ZoneInfo = { id: string; inseeCode: string | null; lastSyncedAt: string | null }
@@ -178,6 +204,13 @@ export async function POST(req: NextRequest) {
 
     const budget = await getStreamEstateBudgetSnapshot()
     const force = (body as Record<string, unknown>)?.force === true
+    const propertyTypes = readPropertyTypes(body as Record<string, unknown>)
+    const rawSource = (body as Record<string, unknown>)?.source
+    const source: StreamEstateIngestSource = rawSource === 'reconcile' || rawSource === 'webhook' ? rawSource : 'manual'
+    const rawFromDate = (body as Record<string, unknown>)?.fromDate ?? (body as Record<string, unknown>)?.from_date
+    const rawFromUpdatedAt = (body as Record<string, unknown>)?.fromUpdatedAt ?? (body as Record<string, unknown>)?.from_updated_at
+    const fromDate = typeof rawFromDate === 'string' && rawFromDate ? rawFromDate : null
+    const fromUpdatedAt = typeof rawFromUpdatedAt === 'string' && rawFromUpdatedAt ? rawFromUpdatedAt : null
     const rawInsee = (body as Record<string, unknown>)?.insee_code ?? (body as Record<string, unknown>)?.inseeCode
     const inseeCode = typeof rawInsee === 'string' && /^\d{5}$/.test(rawInsee) ? rawInsee : null
     const rawName = (body as Record<string, unknown>)?.name
@@ -221,7 +254,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!budget.syncEnabled) {
-      const syncId = await createSyncRun(zoneId, 'blocked', 'stream_estate_sync_disabled')
+      const syncId = await createSyncRun(zoneId, 'blocked', 'stream_estate_sync_disabled', source)
       return errorResponse('Synchronisation Stream Estate désactivée', 403, {
         sync_id: syncId,
         blocked_reason: 'stream_estate_sync_disabled',
@@ -238,7 +271,7 @@ export async function POST(req: NextRequest) {
     const availableItems = getStreamEstateSyncItemCap(budget)
 
     if (availableItems < 1) {
-      const syncId = await createSyncRun(zoneId, 'blocked', 'stream_estate_budget_insufficient')
+      const syncId = await createSyncRun(zoneId, 'blocked', 'stream_estate_budget_insufficient', source)
       return errorResponse('Budget Stream Estate insuffisant', 402, {
         sync_id: syncId,
         blocked_reason: 'stream_estate_budget_insufficient',
@@ -262,7 +295,7 @@ export async function POST(req: NextRequest) {
         )
     const maxItems = Math.min(requestedMaxItems, availableItems)
 
-    const syncId = await createSyncRun(zoneId, 'running')
+    const syncId = await createSyncRun(zoneId, 'running', undefined, source)
     let externalRequestCount = 0
     let estimatedCostEur = 0
     let billedItemCount = 0
@@ -272,7 +305,11 @@ export async function POST(req: NextRequest) {
       const result = await fetchListings({
         zipcode,
         inseeCode: zone.inseeCode,
+        propertyTypes,
         maxItems,
+        fromDate,
+        fromUpdatedAt,
+        source,
         beforeRequest: async () => {
           const allowed = await canSpendStreamEstateItems()
           if (!allowed.ok) {
@@ -294,6 +331,7 @@ export async function POST(req: NextRequest) {
             startedAt: event.startedAt,
             finishedAt: event.finishedAt,
             errorMessage: event.errorMessage ?? null,
+            source,
           })
         },
       })
@@ -307,183 +345,13 @@ export async function POST(req: NextRequest) {
 
       // 4. Upsert des biens dans market_properties
       for (const listing of listings) {
-        const externalId = listing.externalId || listing.id
-
-        // Vérifier si le bien existe déjà
-        const { data: existing, error: existingError } = await supabaseAdmin
-          .from('market_properties')
-          .select('id, price, published_at, seller_type')
-          .eq('external_id', externalId)
-          .eq('source', 'stream_estate')
-          .maybeSingle()
-
-        if (existingError) {
-          throw new Error(`Lecture bien ${externalId} impossible: ${existingError.message}`)
-        }
-
-        if (existing) {
-          // Mise à jour
-          const { error: updateError } = await supabaseAdmin
-            .from('market_properties')
-            .update({
-              title: listing.title ?? null,
-              description: listing.description ?? null,
-              price: listing.price ?? null,
-              surface: listing.surface ?? null,
-              land_surface: listing.landSurface ?? null,
-              rooms: listing.rooms ?? null,
-              bedrooms: listing.bedrooms ?? null,
-              dpe: listing.dpe ?? null,
-              ges: listing.ges ?? null,
-              status: listing.status ?? 'active',
-              last_seen_at: new Date().toISOString(),
-              // published_at suit la date de publication courante (figée par
-              // first_seen_at) : son avancée révèle une republication (axe Comportement).
-              published_at: listing.publishedAt ?? existing.published_at ?? null,
-              // seller_type : ne pas écraser une valeur connue si la découverte ne l'a pas.
-              seller_type: listing.sellerType ?? existing.seller_type ?? null,
-              url: listing.url ?? null,
-              raw_json: (listing.raw ?? {}) as never,
-            })
-            .eq('id', existing.id)
-
-          if (updateError) {
-            throw new Error(`Mise à jour bien ${externalId} impossible: ${updateError.message}`)
-          }
-
-          // Détection variation de prix
-          if (existing.price != null && listing.price != null && existing.price !== listing.price) {
-            const { error: historyError } = await supabaseAdmin
-              .from('property_price_history')
-              .insert({
-                market_property_id: existing.id,
-                old_price: existing.price,
-                new_price: listing.price,
-                variation_amount: listing.price - existing.price,
-                variation_percent: existing.price > 0
-                  ? Math.round(((listing.price - existing.price) / existing.price) * 10000) / 100
-                  : 0,
-              })
-
-            if (historyError) {
-              throw new Error(`Historique prix ${externalId} impossible: ${historyError.message}`)
-            }
-          }
-
-          // Recalcul + persistance du score, alerte si passage hot/golden.
-          await rescoreAndPersist(existing.id)
-
-          updatedCount++
-        } else {
-          // Création
-          const pricePerM2 =
-            listing.price && listing.surface && listing.surface > 0
-              ? Math.round(listing.price / listing.surface)
-              : null
-
-          const { data: newProperty, error: insertError } = await supabaseAdmin
-            .from('market_properties')
-            .insert({
-              external_id: externalId,
-              source: 'stream_estate',
-              title: listing.title ?? null,
-              description: listing.description ?? null,
-              city: listing.city ?? null,
-              zipcode: listing.zipcode ?? zipcode,
-              insee_code: listing.inseeCode ?? null,
-              lat: listing.lat ?? null,
-              lon: listing.lon ?? null,
-              property_type: listing.propertyType ?? null,
-              price: listing.price ?? null,
-              surface: listing.surface ?? null,
-              price_per_m2: pricePerM2,
-              land_surface: listing.landSurface ?? null,
-              rooms: listing.rooms ?? null,
-              bedrooms: listing.bedrooms ?? null,
-              dpe: listing.dpe ?? null,
-              ges: listing.ges ?? null,
-              url: listing.url ?? null,
-              status: listing.status ?? 'active',
-              first_seen_at: listing.publishedAt || new Date().toISOString(),
-              last_seen_at: new Date().toISOString(),
-              published_at: listing.publishedAt || null,
-              seller_type: listing.sellerType ?? null,
-              raw_json: (listing.raw ?? {}) as never,
-            })
-            .select('id')
-            .single()
-
-          if (insertError) {
-            throw new Error(`Création bien ${externalId} impossible: ${insertError.message}`)
-          }
-
-          // Tag automatique "Nouvelle annonce"
-          if (newProperty?.id) {
-            const { error: tagError } = await supabaseAdmin
-              .from('property_tags')
-              .insert({
-                market_property_id: newProperty.id,
-                tag: 'Nouvelle annonce',
-                source: 'system',
-              })
-
-            if (tagError) {
-              throw new Error(`Tag bien ${externalId} impossible: ${tagError.message}`)
-            }
-
-            // Lancer le matching automatique contre les acheteurs
-            runMatchingForProperty(newProperty.id, 'market').then(async (matches) => {
-              // Créer des notifications pour les bons matchs (score ≥ 60)
-              const goodMatches = matches.filter((m) => m.score >= 60)
-              if (goodMatches.length === 0) return
-
-              const { data: propertyInfo } = await supabaseAdmin
-                .from('market_properties')
-                .select('title, city, price')
-                .eq('id', newProperty.id)
-                .single()
-
-              const formatter = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
-
-              for (const match of goodMatches) {
-                await supabaseAdmin.from('notifications').insert({
-                  type: 'matching_buyer',
-                  title: `Nouveau bien matché pour un acheteur`,
-                  message: `${propertyInfo?.title ?? 'Nouveau bien'} à ${propertyInfo?.city ?? ''} — ${propertyInfo?.price ? formatter.format(propertyInfo.price) : ''} — Score: ${match.score}%`,
-                  priority: match.score >= 80 ? 'high' : 'medium',
-                  market_property_id: newProperty.id,
-                  status: 'unread',
-                  action_label: 'Voir le matching',
-                } as never)
-              }
-            }).catch((err) =>
-              console.error('[Sync] Erreur matching auto pour nouveau bien:', err)
-            )
-
-            // Notification déterministe « nouveau bien » (push in-app, type new_listing).
-            const fmtPrice = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
-            const isPap = listing.sellerType === 'individual'
-            const where = [listing.city, listing.zipcode ?? zipcode].filter(Boolean).join(' ')
-            const sellerLabel = isPap ? ' · Particulier' : listing.sellerType === 'agency' ? ' · Agence' : ''
-            const { error: newListingNotifError } = await supabaseAdmin.from('notifications').insert({
-              type: 'new_listing',
-              title: `Nouveau bien : ${listing.title ?? 'annonce'}`,
-              message: `${where}${listing.price ? ` — ${fmtPrice.format(listing.price)}` : ''}${sellerLabel}`,
-              priority: isPap ? 'high' : 'medium',
-              market_property_id: newProperty.id,
-              status: 'unread',
-              action_label: 'Voir le bien',
-            } as never)
-            if (newListingNotifError) {
-              console.error(`[Sync] Notif nouveau bien ${externalId} impossible:`, newListingNotifError.message)
-            }
-          }
-
-          // Score initial persisté (alerte possible si déjà hot/golden à la 1re vue).
-          if (newProperty?.id) await rescoreAndPersist(newProperty.id)
-
-          createdCount++
-        }
+        const upsert = await upsertStreamEstateListing({
+          listing,
+          fallbackZipcode: zipcode,
+          source,
+        })
+        if (upsert.created) createdCount++
+        if (upsert.updated) updatedCount++
       }
 
       // 5. Marquer les biens non vus comme expirés (sera fait par un job planifié)
@@ -512,10 +380,12 @@ export async function POST(req: NextRequest) {
         })
       }
 
-      // 8. Mettre à jour last_synced_at de la zone
+      // 8. Mettre à jour la fraîcheur de la zone.
+      const zoneFreshnessUpdate: Record<string, unknown> = { last_synced_at: new Date().toISOString() }
+      if (source === 'reconcile') zoneFreshnessUpdate.last_reconciled_at = zoneFreshnessUpdate.last_synced_at
       await supabaseAdmin
         .from('monitored_zones')
-        .update({ last_synced_at: new Date().toISOString() })
+        .update(zoneFreshnessUpdate as never)
         .eq('id', zoneId)
 
       return NextResponse.json({
@@ -524,6 +394,9 @@ export async function POST(req: NextRequest) {
         blocked_reason: blockedReason,
         zone_id: zoneId,
         sync_id: syncId,
+        source,
+        from_date: fromDate,
+        from_updated_at: fromUpdatedAt,
         fetched: listings.length,
         skipped: skippedCount,
         created: createdCount,
@@ -638,9 +511,15 @@ async function executeRulesForZone(zoneId: string) {
                 market_property_id: property.id,
                 title: `${property.title ?? 'Bien'} — ${rule.name}`,
                 description: `Créé automatiquement par la règle "${rule.name}"`,
-                stage: action.stage ?? 'À qualifier',
+                stage: normalizeOpportunityStage(action.stage),
                 priority: action.priority ?? 'medium',
                 signal_type: rule.trigger_type,
+                source_channel: 'annonce',
+                property_city: property.city,
+                property_zipcode: property.zipcode,
+                property_type: property.property_type,
+                estimated_price_min: property.price,
+                estimated_price_max: property.price,
                 created_from: 'rule',
               } as never)
               break

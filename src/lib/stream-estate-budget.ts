@@ -6,6 +6,8 @@ export const STREAM_ESTATE_MANUAL_BALANCE_KEY = 'stream_estate_manual_balance_eu
 export const STREAM_ESTATE_COST_PER_REQUEST_KEY = 'stream_estate_cost_per_request_eur'
 export const STREAM_ESTATE_MAX_REQUESTS_PER_SYNC_KEY = 'stream_estate_max_requests_per_sync'
 export const STREAM_ESTATE_MIN_BALANCE_KEY = 'stream_estate_min_balance_eur'
+export const STREAM_ESTATE_MONTHLY_BUDGET_KEY = 'stream_estate_monthly_budget_eur'
+export const STREAM_ESTATE_WEBHOOK_EVENT_COST_KEY = 'stream_estate_webhook_event_cost_eur'
 // Mode « illimité » : la sync manuelle tire toute la base en ligne d'une zone,
 // bornée uniquement par le budget disponible (ignore max_items_per_sync).
 export const STREAM_ESTATE_UNLIMITED_ITEMS_KEY = 'stream_estate_unlimited_items'
@@ -16,13 +18,17 @@ const DEFAULT_COST_PER_REQUEST_EUR = 0.01
 const DEFAULT_MAX_REQUESTS_PER_SYNC = 30
 const DEFAULT_MIN_BALANCE_EUR = 0
 const DEFAULT_UNLIMITED_ITEMS = false
+const DEFAULT_MONTHLY_BUDGET_EUR = 0
+const DEFAULT_WEBHOOK_EVENT_COST_EUR = 0
 
 export type StreamEstateBudgetSettings = {
   syncEnabled: boolean
   manualBalanceEur: number
   costPerItemEur: number
+  webhookEventCostEur: number
   maxItemsPerSync: number
   minBalanceEur: number
+  monthlyBudgetEur: number
   unlimitedItems: boolean
 }
 
@@ -30,6 +36,7 @@ export type StreamEstateBudgetSnapshot = StreamEstateBudgetSettings & {
   estimatedSpentTotalEur: number
   estimatedSpentTodayEur: number
   estimatedSpentMonthEur: number
+  estimatedMonthRemainingEur: number
   estimatedBalanceEur: number
   costPerRequestEur: number
   maxRequestsPerSync: number
@@ -39,6 +46,9 @@ export type StreamEstateBudgetSnapshot = StreamEstateBudgetSettings & {
   externalRequestsTotal: number
   externalRequestsToday: number
   externalRequestsMonth: number
+  webhookEventsTotal: number
+  webhookEventsToday: number
+  webhookEventsMonth: number
   lastBlockedReason: string | null
 }
 
@@ -53,6 +63,8 @@ export type StreamEstateUsageEventInput = {
   startedAt: string
   finishedAt: string
   errorMessage?: string | null
+  source?: 'manual' | 'reconcile' | 'webhook' | 'monitoring'
+  eventType?: string | null
 }
 
 function numericSetting(value: unknown, fallback: number): number {
@@ -77,6 +89,8 @@ export async function getStreamEstateBudgetSettings(): Promise<StreamEstateBudge
     costPerRequest,
     maxRequests,
     minBalance,
+    monthlyBudget,
+    webhookEventCost,
     unlimitedItems,
   ] = await Promise.all([
     getSetting<boolean>(STREAM_ESTATE_SYNC_ENABLED_KEY, DEFAULT_SYNC_ENABLED),
@@ -84,6 +98,8 @@ export async function getStreamEstateBudgetSettings(): Promise<StreamEstateBudge
     getSetting<number>(STREAM_ESTATE_COST_PER_REQUEST_KEY, DEFAULT_COST_PER_REQUEST_EUR),
     getSetting<number>(STREAM_ESTATE_MAX_REQUESTS_PER_SYNC_KEY, DEFAULT_MAX_REQUESTS_PER_SYNC),
     getSetting<number>(STREAM_ESTATE_MIN_BALANCE_KEY, DEFAULT_MIN_BALANCE_EUR),
+    getSetting<number>(STREAM_ESTATE_MONTHLY_BUDGET_KEY, DEFAULT_MONTHLY_BUDGET_EUR),
+    getSetting<number>(STREAM_ESTATE_WEBHOOK_EVENT_COST_KEY, DEFAULT_WEBHOOK_EVENT_COST_EUR),
     getSetting<boolean>(STREAM_ESTATE_UNLIMITED_ITEMS_KEY, DEFAULT_UNLIMITED_ITEMS),
   ])
 
@@ -91,17 +107,19 @@ export async function getStreamEstateBudgetSettings(): Promise<StreamEstateBudge
     syncEnabled: Boolean(syncEnabled),
     manualBalanceEur: Math.max(0, numericSetting(manualBalance, DEFAULT_MANUAL_BALANCE_EUR)),
     costPerItemEur: Math.max(0, numericSetting(costPerRequest, DEFAULT_COST_PER_REQUEST_EUR)),
+    webhookEventCostEur: Math.max(0, numericSetting(webhookEventCost, DEFAULT_WEBHOOK_EVENT_COST_EUR)),
     maxItemsPerSync: Math.max(1, Math.floor(numericSetting(maxRequests, DEFAULT_MAX_REQUESTS_PER_SYNC))),
     minBalanceEur: Math.max(0, numericSetting(minBalance, DEFAULT_MIN_BALANCE_EUR)),
+    monthlyBudgetEur: Math.max(0, numericSetting(monthlyBudget, DEFAULT_MONTHLY_BUDGET_EUR)),
     unlimitedItems: Boolean(unlimitedItems),
   }
 }
 
-async function sumUsageSince(since?: string): Promise<{ items: number; cost: number }> {
+async function sumUsageSince(since?: string): Promise<{ items: number; cost: number; webhookEvents: number }> {
   try {
     let query = supabaseAdmin
       .from('stream_estate_usage_events')
-      .select('estimated_cost_eur, item_count')
+      .select('estimated_cost_eur, item_count, source')
 
     if (since) query = query.gte('created_at', since)
 
@@ -116,24 +134,26 @@ async function sumUsageSince(since?: string): Promise<{ items: number; cost: num
       const legacy = await legacyQuery.limit(5000)
       if (legacy.error) {
         console.error('[stream-estate-budget] usage summary unavailable:', legacy.error.message)
-        return { items: 0, cost: 0 }
+        return { items: 0, cost: 0, webhookEvents: 0 }
       }
 
       const legacyRows = legacy.data ?? []
       return {
         items: legacyRows.length,
         cost: legacyRows.reduce((sum, row) => sum + Number(row.estimated_cost_eur ?? 0), 0),
+        webhookEvents: 0,
       }
     }
 
     const rows = data ?? []
     return {
-      items: rows.reduce((sum, row) => sum + Math.max(1, Math.floor(Number(row.item_count ?? 1) || 1)), 0),
+      items: rows.reduce((sum, row) => sum + Math.max(0, Math.floor(Number(row.item_count ?? 0) || 0)), 0),
       cost: rows.reduce((sum, row) => sum + Number(row.estimated_cost_eur ?? 0), 0),
+      webhookEvents: rows.filter((row) => row.source === 'webhook').length,
     }
   } catch (err) {
     console.error('[stream-estate-budget] usage summary failed:', err)
-    return { items: 0, cost: 0 }
+    return { items: 0, cost: 0, webhookEvents: 0 }
   }
 }
 
@@ -168,6 +188,7 @@ export async function getStreamEstateBudgetSnapshot(): Promise<StreamEstateBudge
     estimatedSpentTotalEur: total.cost,
     estimatedSpentTodayEur: today.cost,
     estimatedSpentMonthEur: month.cost,
+    estimatedMonthRemainingEur: Math.max(0, settings.monthlyBudgetEur - month.cost),
     estimatedBalanceEur: Math.max(0, settings.manualBalanceEur - total.cost),
     costPerRequestEur: settings.costPerItemEur,
     maxRequestsPerSync: settings.maxItemsPerSync,
@@ -177,6 +198,9 @@ export async function getStreamEstateBudgetSnapshot(): Promise<StreamEstateBudge
     externalRequestsTotal: total.items,
     externalRequestsToday: today.items,
     externalRequestsMonth: month.items,
+    webhookEventsTotal: total.webhookEvents,
+    webhookEventsToday: today.webhookEvents,
+    webhookEventsMonth: month.webhookEvents,
     lastBlockedReason,
   }
 }
@@ -189,7 +213,9 @@ export async function getStreamEstateBudgetSnapshot(): Promise<StreamEstateBudge
  */
 export function getAvailableStreamEstateItems(snapshot: StreamEstateBudgetSnapshot): number {
   if (snapshot.costPerItemEur <= 0) return Number.MAX_SAFE_INTEGER
-  const spendable = snapshot.estimatedBalanceEur - snapshot.minBalanceEur
+  const balanceSpendable = snapshot.estimatedBalanceEur - snapshot.minBalanceEur
+  const monthlySpendable = snapshot.monthlyBudgetEur > 0 ? snapshot.estimatedMonthRemainingEur : Number.MAX_SAFE_INTEGER
+  const spendable = Math.min(balanceSpendable, monthlySpendable)
   if (spendable <= 0) return 0
   return Math.floor(spendable / snapshot.costPerItemEur)
 }
@@ -237,10 +263,28 @@ export async function recordStreamEstateUsageEvent(input: StreamEstateUsageEvent
         started_at: input.startedAt,
         finished_at: input.finishedAt,
         error_message: input.errorMessage ?? null,
+        source: input.source ?? 'manual',
+        event_type: input.eventType ?? null,
       })
 
     if (error) {
-      console.error('[stream-estate-budget] usage event insert failed:', error.message)
+      const retry = await supabaseAdmin
+        .from('stream_estate_usage_events')
+        .insert({
+          sync_run_id: input.syncRunId,
+          zipcode: input.zipcode,
+          endpoint: input.endpoint,
+          page: input.page,
+          request_status: input.requestStatus,
+          item_count: input.itemCount,
+          estimated_cost_eur: input.estimatedCostEur,
+          started_at: input.startedAt,
+          finished_at: input.finishedAt,
+          error_message: input.errorMessage ?? null,
+        })
+      if (retry.error) {
+        console.error('[stream-estate-budget] usage event insert failed:', retry.error.message)
+      }
     }
   } catch (err) {
     console.error('[stream-estate-budget] usage event insert crashed:', err)

@@ -21,6 +21,8 @@ const STATUS_COLORS: Record<string, string> = {
     prix_en_baisse: '#EF4444',
     opportunite: '#F59E0B',
     stagne: '#6B7280',
+    expire: '#64748B',
+    retire: '#64748B',
 }
 
 interface PropertiesMapProps {

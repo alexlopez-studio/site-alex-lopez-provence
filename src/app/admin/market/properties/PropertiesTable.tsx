@@ -61,7 +61,9 @@ interface PropertyRow {
   last_seen_at: string | null
   url: string | null
   seller_type: string | null
+  source_count?: number | null
   undervaluation_pct?: number | null
+  opportunity?: { id: string; title: string; stage: string | null; priority: string | null } | null
   mandate_score?: {
     score: number
     phase: SellerPhase
@@ -101,6 +103,8 @@ const STATUS_BADGES: Record<string, { label: string; variant: 'default' | 'secon
   opportunite:     { label: 'Opportunité',    variant: 'default' },
   stagnant:        { label: 'Stagne',         variant: 'outline' },
   stagne:          { label: 'Stagne',         variant: 'outline' },
+  expired:         { label: 'Expiré',         variant: 'outline' },
+  removed:         { label: 'Retiré',         variant: 'outline' },
 }
 
 const DPE_COLORS: Record<string, string> = {
@@ -202,17 +206,25 @@ export function PropertiesTable({ initialZipcode }: { initialZipcode?: string })
         body: JSON.stringify({
           market_property_id: prop.id,
           title,
-          stage: 'À qualifier',
+          stage: 'Nouveau contact',
           priority: isPriceDrop ? 'high' : 'medium',
           signal_type: isPriceDrop ? 'price_drop' : 'new_listing',
+          source_channel: 'annonce',
+          property_city: prop.city,
+          property_zipcode: prop.zipcode,
+          property_type: prop.property_type,
+          estimated_price_min: prop.price,
+          estimated_price_max: prop.price,
           created_from: 'manual',
         }),
       })
-      if (!res.ok) throw new Error('Erreur API')
-      toast.success('Opportunité créée', {
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error ?? 'Erreur API')
+      toast.success(data.existing ? 'Opportunité déjà existante' : 'Opportunité créée', {
         description: title,
-        action: { label: 'Voir le pipeline', onClick: () => router.push('/app/opportunities') },
+        action: { label: 'Voir la fiche', onClick: () => router.push(`/app/properties/${prop.id}`) },
       })
+      await load()
     } catch (err) {
       console.error('Erreur création opportunité:', err)
       toast.error('Impossible de créer l’opportunité')
@@ -316,6 +328,8 @@ export function PropertiesTable({ initialZipcode }: { initialZipcode?: string })
                 <SelectItem value="new">Nouveau</SelectItem>
                 <SelectItem value="opportunity">Opportunité</SelectItem>
                 <SelectItem value="stagnant">Stagne</SelectItem>
+                <SelectItem value="expired">Expiré</SelectItem>
+                <SelectItem value="removed">Retiré</SelectItem>
               </SelectContent>
             </Select>
             <Select value={cityFilter} onValueChange={setCityFilter}>
@@ -445,6 +459,11 @@ export function PropertiesTable({ initialZipcode }: { initialZipcode?: string })
                           {prop.rooms ? (
                             <span className="text-xs text-muted-foreground">{prop.rooms} pièces</span>
                           ) : null}
+                          {(prop.source_count ?? 1) > 1 && (
+                            <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">
+                              {prop.source_count} diffusions
+                            </Badge>
+                          )}
                         </div>
                         <DimensionBadges
                           className="mt-1.5"
@@ -556,12 +575,20 @@ export function PropertiesTable({ initialZipcode }: { initialZipcode?: string })
                                 </a>
                               </DropdownMenuItem>
                             )}
-                            <DropdownMenuItem
-                              onClick={() => createOpportunity(prop)}
-                              disabled={creatingOppId === prop.id}
-                            >
-                              <Building2 className="h-4 w-4 mr-2" /> Créer une opportunité
-                            </DropdownMenuItem>
+                            {prop.opportunity ? (
+                              <DropdownMenuItem asChild>
+                                <Link href={`/app/properties/${prop.id}`}>
+                                  <Building2 className="h-4 w-4 mr-2" /> Fiche CRM
+                                </Link>
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem
+                                onClick={() => createOpportunity(prop)}
+                                disabled={creatingOppId === prop.id}
+                              >
+                                <Building2 className="h-4 w-4 mr-2" /> Créer une opportunité
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem>
                               <Star className="h-4 w-4 mr-2" /> Marquer
                             </DropdownMenuItem>

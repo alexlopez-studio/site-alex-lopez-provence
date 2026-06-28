@@ -2,30 +2,57 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
-import { EyeIcon, Search, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { EyeIcon, Search, ChevronLeft, ChevronRight, RefreshCw, Plus, Loader2, Phone, MapPin } from 'lucide-react'
+import { toast } from 'sonner'
 import { LeadStatsCards } from '@/components/admin/LeadStatsCards'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog'
 
 interface Prospect {
     id: string
-    email: string
+    email: string | null
     first_name: string
     last_name: string
     phone: string | null
+}
+
+interface SellerProperty {
+    adresse: string | null
+    type_bien: string | null
+    surface: number | null
+    surface_terrain: number | null
+    nb_pieces: number | null
+    delai: string | null
+    prix_estime: number | null
 }
 
 interface LeadRow {
     id: string
     tool: string
     status: string
-    form_data: Record<string, unknown>
+    source_channel: string | null
+    priority: string
+    next_action: string | null
+    due_date: string | null
+    follow_up_at: string | null
     commune: string | null
     magic_link_sent_at: string | null
     created_at: string
     updated_at: string
     prospect: Prospect
+    seller_property: SellerProperty | null
+    opportunity: { id: string; title: string; stage: string | null; priority: string | null } | null
 }
 
 interface Pagination {
@@ -33,6 +60,26 @@ interface Pagination {
     pageSize: number
     total: number
     totalPages: number
+}
+
+interface CreateDraft {
+    sellerName: string
+    phone: string
+    email: string
+    sourceChannel: string
+    priority: string
+    commune: string
+    adresse: string
+    typeBien: string
+    surface: string
+    surfaceTerrain: string
+    nbPieces: string
+    delai: string
+    prixEstime: string
+    nextAction: string
+    dueDate: string
+    followUpAt: string
+    note: string
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -55,22 +102,72 @@ const STATUS_COLORS: Record<string, string> = {
     perdu: 'bg-gray-100 text-gray-500 border-gray-200',
 }
 
-const TOOL_LABELS: Record<string, string> = {
-    vendre: 'Vendre',
-    acheter: 'Acheter',
-    audit: 'Audit',
+const PRIORITY_LABELS: Record<string, string> = {
+    low: 'Basse',
+    medium: 'Moyenne',
+    high: 'Haute',
+    critical: 'Urgente',
 }
 
-function formatDate(iso: string): string {
-    return new Date(iso).toLocaleDateString('fr-FR', {
-        day: 'numeric',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-    })
+const PRIORITY_CLASSES: Record<string, string> = {
+    low: 'bg-gray-50 text-gray-600 border-gray-200',
+    medium: 'bg-blue-50 text-blue-700 border-blue-200',
+    high: 'bg-orange-50 text-orange-700 border-orange-200',
+    critical: 'bg-red-50 text-red-700 border-red-200',
+}
+
+const SOURCE_LABELS: Record<string, string> = {
+    flyer: 'Flyer',
+    porte_a_porte: 'Porte-à-porte',
+    appel_entrant: 'Appel entrant',
+    prospection: 'Prospection',
+    recommandation: 'Recommandation',
+    estimation_site: 'Estimation site',
+    autre: 'Autre',
+}
+
+const PROPERTY_TYPES = [
+    { value: 'maison', label: 'Maison' },
+    { value: 'appartement', label: 'Appartement' },
+    { value: 'terrain', label: 'Terrain' },
+    { value: 'immeuble', label: 'Immeuble' },
+    { value: 'autre', label: 'Autre' },
+]
+
+function emptyDraft(): CreateDraft {
+    return {
+        sellerName: '',
+        phone: '',
+        email: '',
+        sourceChannel: 'prospection',
+        priority: 'medium',
+        commune: '',
+        adresse: '',
+        typeBien: 'maison',
+        surface: '',
+        surfaceTerrain: '',
+        nbPieces: '',
+        delai: '',
+        prixEstime: '',
+        nextAction: 'Qualifier le projet vendeur',
+        dueDate: '',
+        followUpAt: '',
+        note: '',
+    }
+}
+
+function formatShortDate(value: string | null) {
+    if (!value) return '—'
+    return new Date(value).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+}
+
+function formatPrice(value: number | null) {
+    if (value == null) return null
+    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value)
 }
 
 export default function LeadsListPage() {
+    const router = useRouter()
     const [leads, setLeads] = useState<LeadRow[]>([])
     const [pagination, setPagination] = useState<Pagination>({
         page: 1,
@@ -81,7 +178,13 @@ export default function LeadsListPage() {
     const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState('')
     const [statusFilter, setStatusFilter] = useState('')
-    const [toolFilter, setToolFilter] = useState('')
+    const [sourceFilter, setSourceFilter] = useState('')
+    const [priorityFilter, setPriorityFilter] = useState('')
+    const [communeFilter, setCommuneFilter] = useState('')
+    const [toolFilter, setToolFilter] = useState('vendre')
+    const [createOpen, setCreateOpen] = useState(false)
+    const [draft, setDraft] = useState<CreateDraft>(emptyDraft())
+    const [creating, setCreating] = useState(false)
 
     const fetchLeads = useCallback(async () => {
         setLoading(true)
@@ -91,6 +194,9 @@ export default function LeadsListPage() {
             params.set('page_size', '20')
             if (statusFilter) params.set('status', statusFilter)
             if (toolFilter) params.set('tool', toolFilter)
+            if (sourceFilter) params.set('source', sourceFilter)
+            if (priorityFilter) params.set('priority', priorityFilter)
+            if (communeFilter.trim()) params.set('commune', communeFilter.trim())
             if (search.trim()) params.set('q', search.trim())
 
             const res = await fetch('/api/leads/list?' + params.toString())
@@ -101,10 +207,11 @@ export default function LeadsListPage() {
             }
         } catch (err) {
             console.error('[LeadsListPage] fetch error:', err)
+            toast.error('Impossible de charger les leads')
         } finally {
             setLoading(false)
         }
-    }, [pagination.page, statusFilter, toolFilter, search])
+    }, [pagination.page, statusFilter, toolFilter, sourceFilter, priorityFilter, communeFilter, search])
 
     useEffect(() => {
         const timer = setTimeout(() => fetchLeads(), 300)
@@ -115,51 +222,102 @@ export default function LeadsListPage() {
         setPagination((p) => ({ ...p, page }))
     }
 
+    function openCreate() {
+        setDraft(emptyDraft())
+        setCreateOpen(true)
+    }
+
+    async function submitCreate() {
+        if (!draft.sellerName.trim() && !draft.phone.trim() && !draft.email.trim()) {
+            toast.error('Ajoute au moins un nom, un téléphone ou un email')
+            return
+        }
+        setCreating(true)
+        try {
+            const res = await fetch('/api/leads/manual', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    seller_name: draft.sellerName,
+                    phone: draft.phone,
+                    email: draft.email,
+                    source_channel: draft.sourceChannel,
+                    priority: draft.priority,
+                    commune: draft.commune,
+                    adresse: draft.adresse,
+                    type_bien: draft.typeBien,
+                    surface: draft.surface,
+                    surface_terrain: draft.surfaceTerrain,
+                    nb_pieces: draft.nbPieces,
+                    delai: draft.delai,
+                    prix_estime: draft.prixEstime,
+                    next_action: draft.nextAction,
+                    due_date: draft.dueDate || null,
+                    follow_up_at: draft.followUpAt || null,
+                    note: draft.note,
+                }),
+            })
+            const json = await res.json()
+            if (!res.ok || !json.success) throw new Error(json.error ?? 'Erreur API')
+            toast.success('Lead vendeur créé')
+            setCreateOpen(false)
+            router.push(`/app/leads/${json.data.lead.id}`)
+        } catch (err) {
+            console.error('[LeadsListPage] create error:', err)
+            toast.error('Impossible de créer le lead')
+        } finally {
+            setCreating(false)
+        }
+    }
+
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Leads</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">Leads vendeurs</h1>
                     <p className="text-sm text-muted-foreground mt-1">
-                        Gestion des prospects
+                        Contacts terrain, estimations site et projets vendeurs à qualifier
                     </p>
                 </div>
+                <Button onClick={openCreate} className="w-full sm:w-auto">
+                    <Plus className="mr-2 size-4" /> Nouveau lead
+                </Button>
             </div>
             <LeadStatsCards />
 
             <div className="flex flex-col gap-4 px-4 lg:px-6">
                 <div className="flex flex-wrap items-center gap-3">
-                    <div className="relative min-w-[200px] max-w-sm flex-1">
+                    <div className="relative min-w-[220px] max-w-sm flex-1">
                         <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
-                            placeholder="Rechercher (email, nom...)"
+                            placeholder="Rechercher nom, téléphone, email..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="pl-9"
                         />
                     </div>
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="h-10 rounded-lg border border-input bg-background px-3 text-sm"
-                    >
-                        <option value="">Tous les statuts</option>
-                        <option value="nouveau">Nouveau</option>
-                        <option value="contacte">Contacté</option>
-                        <option value="r1">R1</option>
-                        <option value="mandat">Mandat</option>
-                        <option value="sous_compromis">Sous compromis</option>
-                        <option value="vendu">Vendu</option>
-                        <option value="perdu">Perdu</option>
+                    <Input
+                        value={communeFilter}
+                        onChange={(e) => setCommuneFilter(e.target.value)}
+                        placeholder="Commune"
+                        className="w-36"
+                    />
+                    <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="h-10 rounded-lg border border-input bg-background px-3 text-sm">
+                        <option value="">Tous statuts</option>
+                        {Object.entries(STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                     </select>
-                    <select
-                        value={toolFilter}
-                        onChange={(e) => setToolFilter(e.target.value)}
-                        className="h-10 rounded-lg border border-input bg-background px-3 text-sm"
-                    >
-                        <option value="">Tous les outils</option>
-                        <option value="vendre">Vente</option>
-                        <option value="acheter">Achat</option>
+                    <select value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)} className="h-10 rounded-lg border border-input bg-background px-3 text-sm">
+                        <option value="">Toutes sources</option>
+                        {Object.entries(SOURCE_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                    </select>
+                    <select value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)} className="h-10 rounded-lg border border-input bg-background px-3 text-sm">
+                        <option value="">Toutes priorités</option>
+                        {Object.entries(PRIORITY_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                    </select>
+                    <select value={toolFilter} onChange={(e) => setToolFilter(e.target.value)} className="h-10 rounded-lg border border-input bg-background px-3 text-sm">
+                        <option value="vendre">Vendeurs</option>
+                        <option value="">Tous types</option>
+                        <option value="acheter">Acheteurs</option>
                         <option value="audit">Audit</option>
                     </select>
                     <Button variant="outline" size="sm" onClick={() => fetchLeads()}>
@@ -174,13 +332,13 @@ export default function LeadsListPage() {
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b bg-muted/50">
-                                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Prospect</th>
-                                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Outil</th>
+                                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Contact</th>
+                                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Source</th>
+                                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Projet vendeur</th>
                                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Statut</th>
-                                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Commune</th>
-                                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Magic link</th>
-                                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Date</th>
-                                    <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
+                                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Action</th>
+                                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Relance</th>
+                                    <th className="px-4 py-3 text-right font-medium text-muted-foreground">Fiche</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -190,39 +348,58 @@ export default function LeadsListPage() {
                                     </tr>
                                 ) : leads.length === 0 ? (
                                     <tr>
-                                        <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">Aucun lead trouvé</td>
+                                        <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">Aucun lead vendeur trouvé</td>
                                     </tr>
                                 ) : (
-                                    leads.map((lead) => (
-                                        <tr key={lead.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                                            <td className="px-4 py-3">
-                                                <div className="font-medium text-foreground">{lead.prospect.first_name} {lead.prospect.last_name}</div>
-                                                <div className="text-xs text-muted-foreground">{lead.prospect.email}{lead.prospect.phone ? ` · ${lead.prospect.phone}` : ''}</div>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <Badge variant="outline" className="font-medium">{TOOL_LABELS[lead.tool] ?? lead.tool}</Badge>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <span className={'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ' + (STATUS_COLORS[lead.status] ?? 'bg-gray-100 text-gray-700')}>
-                                                    {STATUS_LABELS[lead.status] ?? lead.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3 text-muted-foreground">{lead.commune ?? '—'}</td>
-                                            <td className="px-4 py-3">
-                                                {lead.magic_link_sent_at ? (
-                                                    <span className="text-xs font-medium text-green-600">Envoyé</span>
-                                                ) : (
-                                                    <span className="text-xs text-muted-foreground">Non envoyé</span>
-                                                )}
-                                            </td>
-                                            <td className="whitespace-nowrap px-4 py-3 text-xs text-muted-foreground">{formatDate(lead.created_at)}</td>
-                                            <td className="px-4 py-3 text-right">
-                                                <Link href={'/app/leads/' + lead.id} className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent">
-                                                    <EyeIcon className="size-3.5" /> Détail
-                                                </Link>
-                                            </td>
-                                        </tr>
-                                    ))
+                                    leads.map((lead) => {
+                                        const contactName = [lead.prospect.first_name, lead.prospect.last_name].filter(Boolean).join(' ').trim() || 'Contact sans nom'
+                                        const seller = lead.seller_property
+                                        const price = formatPrice(seller?.prix_estime ?? null)
+                                        return (
+                                            <tr key={lead.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                                                <td className="px-4 py-3">
+                                                    <div className="font-medium text-foreground">{contactName}</div>
+                                                    <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                                                        {lead.prospect.phone && <span className="inline-flex items-center gap-1"><Phone className="size-3" />{lead.prospect.phone}</span>}
+                                                        {lead.prospect.email && <span>{lead.prospect.email}</span>}
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <div className="flex flex-col gap-1">
+                                                        <Badge variant="outline" className="w-fit">{SOURCE_LABELS[lead.source_channel ?? ''] ?? '—'}</Badge>
+                                                        <span className={'inline-flex w-fit rounded-full border px-2 py-0.5 text-[10px] font-semibold ' + (PRIORITY_CLASSES[lead.priority] ?? PRIORITY_CLASSES.medium)}>
+                                                            {PRIORITY_LABELS[lead.priority] ?? lead.priority}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <div className="font-medium">{seller?.type_bien ?? 'Bien à qualifier'}</div>
+                                                    <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                                                        {lead.commune && <span className="inline-flex items-center gap-1"><MapPin className="size-3" />{lead.commune}</span>}
+                                                        {seller?.surface != null && <span>{seller.surface} m²</span>}
+                                                        {price && <span>{price}</span>}
+                                                        {lead.opportunity && <span className="text-brand">Opportunité créée</span>}
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <span className={'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ' + (STATUS_COLORS[lead.status] ?? 'bg-gray-100 text-gray-700')}>
+                                                        {STATUS_LABELS[lead.status] ?? lead.status}
+                                                    </span>
+                                                </td>
+                                                <td className="max-w-[220px] px-4 py-3 text-muted-foreground">
+                                                    <span className="line-clamp-2">{lead.next_action ?? '—'}</span>
+                                                </td>
+                                                <td className="whitespace-nowrap px-4 py-3 text-xs text-muted-foreground">
+                                                    {formatShortDate(lead.due_date ?? lead.follow_up_at)}
+                                                </td>
+                                                <td className="px-4 py-3 text-right">
+                                                    <Link href={'/app/leads/' + lead.id} className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent">
+                                                        <EyeIcon className="size-3.5" /> Ouvrir
+                                                    </Link>
+                                                </td>
+                                            </tr>
+                                        )
+                                    })
                                 )}
                             </tbody>
                         </table>
@@ -245,6 +422,107 @@ export default function LeadsListPage() {
                     )}
                 </div>
             </div>
+
+            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Nouveau lead vendeur</DialogTitle>
+                        <DialogDescription>Ajoute un contact issu du terrain, d’un appel ou d’une recommandation.</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <div className="grid gap-3 sm:grid-cols-3">
+                            <label className="block space-y-1 sm:col-span-2">
+                                <span className="text-xs font-medium">Vendeur</span>
+                                <Input value={draft.sellerName} onChange={(e) => setDraft((d) => ({ ...d, sellerName: e.target.value }))} placeholder="Nom du contact" />
+                            </label>
+                            <label className="block space-y-1">
+                                <span className="text-xs font-medium">Source</span>
+                                <select value={draft.sourceChannel} onChange={(e) => setDraft((d) => ({ ...d, sourceChannel: e.target.value }))} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+                                    {Object.entries(SOURCE_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                                </select>
+                            </label>
+                            <label className="block space-y-1">
+                                <span className="text-xs font-medium">Téléphone</span>
+                                <Input value={draft.phone} onChange={(e) => setDraft((d) => ({ ...d, phone: e.target.value }))} placeholder="06..." />
+                            </label>
+                            <label className="block space-y-1 sm:col-span-2">
+                                <span className="text-xs font-medium">Email</span>
+                                <Input type="email" value={draft.email} onChange={(e) => setDraft((d) => ({ ...d, email: e.target.value }))} placeholder="optionnel" />
+                            </label>
+                        </div>
+
+                        <div className="grid gap-3 sm:grid-cols-4">
+                            <label className="block space-y-1 sm:col-span-2">
+                                <span className="text-xs font-medium">Commune</span>
+                                <Input value={draft.commune} onChange={(e) => setDraft((d) => ({ ...d, commune: e.target.value }))} placeholder="Barjols" />
+                            </label>
+                            <label className="block space-y-1">
+                                <span className="text-xs font-medium">Type</span>
+                                <select value={draft.typeBien} onChange={(e) => setDraft((d) => ({ ...d, typeBien: e.target.value }))} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+                                    {PROPERTY_TYPES.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
+                                </select>
+                            </label>
+                            <label className="block space-y-1">
+                                <span className="text-xs font-medium">Priorité</span>
+                                <select value={draft.priority} onChange={(e) => setDraft((d) => ({ ...d, priority: e.target.value }))} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+                                    {Object.entries(PRIORITY_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                                </select>
+                            </label>
+                            <label className="block space-y-1 sm:col-span-2">
+                                <span className="text-xs font-medium">Adresse / secteur</span>
+                                <Input value={draft.adresse} onChange={(e) => setDraft((d) => ({ ...d, adresse: e.target.value }))} />
+                            </label>
+                            <label className="block space-y-1">
+                                <span className="text-xs font-medium">Surface</span>
+                                <Input type="number" min="0" value={draft.surface} onChange={(e) => setDraft((d) => ({ ...d, surface: e.target.value }))} />
+                            </label>
+                            <label className="block space-y-1">
+                                <span className="text-xs font-medium">Terrain</span>
+                                <Input type="number" min="0" value={draft.surfaceTerrain} onChange={(e) => setDraft((d) => ({ ...d, surfaceTerrain: e.target.value }))} />
+                            </label>
+                            <label className="block space-y-1">
+                                <span className="text-xs font-medium">Pièces</span>
+                                <Input type="number" min="0" value={draft.nbPieces} onChange={(e) => setDraft((d) => ({ ...d, nbPieces: e.target.value }))} />
+                            </label>
+                            <label className="block space-y-1">
+                                <span className="text-xs font-medium">Prix estimé</span>
+                                <Input type="number" min="0" value={draft.prixEstime} onChange={(e) => setDraft((d) => ({ ...d, prixEstime: e.target.value }))} />
+                            </label>
+                            <label className="block space-y-1 sm:col-span-2">
+                                <span className="text-xs font-medium">Timing</span>
+                                <Input value={draft.delai} onChange={(e) => setDraft((d) => ({ ...d, delai: e.target.value }))} placeholder="3 mois, moyen terme..." />
+                            </label>
+                        </div>
+
+                        <div className="grid gap-3 sm:grid-cols-4">
+                            <label className="block space-y-1 sm:col-span-2">
+                                <span className="text-xs font-medium">Prochaine action</span>
+                                <Input value={draft.nextAction} onChange={(e) => setDraft((d) => ({ ...d, nextAction: e.target.value }))} />
+                            </label>
+                            <label className="block space-y-1">
+                                <span className="text-xs font-medium">Échéance</span>
+                                <Input type="date" value={draft.dueDate} onChange={(e) => setDraft((d) => ({ ...d, dueDate: e.target.value }))} />
+                            </label>
+                            <label className="block space-y-1">
+                                <span className="text-xs font-medium">Relance</span>
+                                <Input type="date" value={draft.followUpAt} onChange={(e) => setDraft((d) => ({ ...d, followUpAt: e.target.value }))} />
+                            </label>
+                        </div>
+
+                        <label className="block space-y-1">
+                            <span className="text-xs font-medium">Note</span>
+                            <Textarea value={draft.note} onChange={(e) => setDraft((d) => ({ ...d, note: e.target.value }))} rows={3} placeholder="Contexte de prospection, objection, urgence..." />
+                        </label>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="ghost" onClick={() => setCreateOpen(false)} disabled={creating}>Annuler</Button>
+                        <Button onClick={submitCreate} disabled={creating}>
+                            {creating ? <Loader2 className="mr-1 size-4 animate-spin" /> : <Plus className="mr-1 size-4" />}
+                            Créer
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

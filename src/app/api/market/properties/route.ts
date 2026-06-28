@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { purgeMarketPropertiesByIds } from '@/lib/market/property-cleanup'
 import { scoreMarketProperty, type PriceHistoryRow } from '@/lib/market/mandate-score'
 import { buildZoneMedians, undervaluationPct, zoneKey } from '@/lib/market/zone-valuation'
+import { propertyThumbnailUrl } from '@/lib/market/property-thumbnail'
 
 /**
  * GET /api/market/properties
@@ -13,6 +14,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const zipcode = searchParams.get('zipcode')
     const city = searchParams.get('city')
+    const q = searchParams.get('q')
     const propertyType = searchParams.get('property_type')
     const dpe = searchParams.get('dpe')
     const status = searchParams.get('status')
@@ -34,9 +36,14 @@ export async function GET(req: NextRequest) {
     // Filtres
     if (zipcode) query = query.eq('zipcode', zipcode)
     if (city) query = query.ilike('city', `%${city}%`)
+    if (q?.trim()) {
+      const term = q.trim().replace(/[%(),]/g, ' ')
+      query = query.or(`title.ilike.%${term}%,city.ilike.%${term}%,zipcode.ilike.%${term}%`)
+    }
     if (propertyType) query = query.eq('property_type', propertyType)
     if (dpe) query = query.eq('dpe', dpe)
     if (status) query = query.eq('status', status)
+    if (!status) query = query.neq('status', 'duplicate')
     if (priceMin) query = query.gte('price', Number(priceMin))
     if (priceMax) query = query.lte('price', Number(priceMax))
     if (surfaceMin) query = query.gte('surface', Number(surfaceMin))
@@ -81,6 +88,8 @@ export async function GET(req: NextRequest) {
     // un seul appel groupé sur l'historique de prix, puis scoring en mémoire.
     const ids = filtered.map((p) => p.id)
     const historyByProperty = new Map<string, PriceHistoryRow[]>()
+    const opportunityByProperty = new Map<string, { id: string; title: string; stage: string | null; priority: string | null }>()
+    const sourceCountByProperty = new Map<string, number>()
     if (ids.length > 0) {
       const { data: history } = await supabaseAdmin
         .from('property_price_history')
@@ -91,6 +100,33 @@ export async function GET(req: NextRequest) {
         if (!historyByProperty.has(key)) historyByProperty.set(key, [])
         historyByProperty.get(key)!.push(row as PriceHistoryRow)
       }
+
+      const { data: opportunities } = await supabaseAdmin
+        .from('opportunities')
+        .select('id, market_property_id, title, stage, priority, created_at')
+        .in('market_property_id', ids)
+        .order('created_at', { ascending: false })
+
+      for (const opportunity of opportunities ?? []) {
+        const key = opportunity.market_property_id as string | null
+        if (!key || opportunityByProperty.has(key)) continue
+        opportunityByProperty.set(key, {
+          id: opportunity.id as string,
+          title: opportunity.title as string,
+          stage: (opportunity.stage as string | null) ?? null,
+          priority: (opportunity.priority as string | null) ?? null,
+        })
+      }
+
+      const { data: sources } = await supabaseAdmin
+        .from('market_property_sources')
+        .select('market_property_id')
+        .in('market_property_id', ids)
+
+      for (const source of sources ?? []) {
+        const key = source.market_property_id as string
+        sourceCountByProperty.set(key, (sourceCountByProperty.get(key) ?? 0) + 1)
+      }
     }
 
     // Sous-évaluation : médiane prix/m² par zone sur le set retourné (zone filtrée).
@@ -98,8 +134,11 @@ export async function GET(req: NextRequest) {
 
     const withScore = filtered.map((property) => ({
       ...property,
+      thumbnail_url: propertyThumbnailUrl(property.raw_json),
       mandate_score: scoreMarketProperty(property, historyByProperty.get(property.id) ?? []),
       undervaluation_pct: undervaluationPct(property.price_per_m2, zoneMedians.get(zoneKey(property))),
+      opportunity: opportunityByProperty.get(property.id) ?? null,
+      source_count: Math.max(1, sourceCountByProperty.get(property.id) ?? 0),
     }))
 
     return NextResponse.json({

@@ -8,6 +8,8 @@ import { supabaseAdmin } from '@/lib/supabase'
  *   - status    : filtre par statut (ex: "nouveau,contacte")
  *   - tool      : filtre par outil (ex: "vendre,acheter")
  *   - q         : recherche texte (email, nom, prénom)
+ *   - source    : filtre source CRM
+ *   - priority  : filtre priorité CRM
  *   - from      : date début ISO (created_at >=)
  *   - to        : date fin ISO (created_at <=)
  *   - page      : numéro de page (défaut: 1)
@@ -20,6 +22,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const statusFilter = searchParams.get('status')       // "nouveau,contacte"
     const toolFilter = searchParams.get('tool')           // "vendre,acheter"
     const q = searchParams.get('q')                       // recherche texte
+    const sourceFilter = searchParams.get('source')
+    const priorityFilter = searchParams.get('priority')
+    const communeFilter = searchParams.get('commune')
     const dateFrom = searchParams.get('from')             // ISO date
     const dateTo = searchParams.get('to')                 // ISO date
     const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10) || 1)
@@ -39,6 +44,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         status,
         form_data,
         commune,
+        source_channel,
+        priority,
+        next_action,
+        due_date,
+        follow_up_at,
         magic_link_sent_at,
         created_at,
         updated_at,
@@ -69,6 +79,20 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         }
     }
 
+    if (sourceFilter) {
+        const sources = sourceFilter.split(',').map((s) => s.trim()).filter(Boolean)
+        if (sources.length > 0) query = query.in('source_channel', sources as never)
+    }
+
+    if (priorityFilter) {
+        const priorities = priorityFilter.split(',').map((p) => p.trim()).filter(Boolean)
+        if (priorities.length > 0) query = query.in('priority', priorities as never)
+    }
+
+    if (communeFilter?.trim()) {
+        query = query.ilike('commune', `%${communeFilter.trim()}%`)
+    }
+
     if (dateFrom) {
         query = query.gte('created_at', dateFrom)
     }
@@ -89,7 +113,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
             .from('prospects')
             .select('id')
             .or(
-                `email.ilike.%${searchTerm}%,first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%`,
+                `email.ilike.%${searchTerm}%,first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%`,
             )
             .limit(100)
 
@@ -108,7 +132,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
 
     // Tri
-    const allowedSortFields = ['created_at', 'updated_at', 'status', 'tool', 'magic_link_sent_at']
+    const allowedSortFields = ['created_at', 'updated_at', 'status', 'tool', 'magic_link_sent_at', 'priority', 'due_date', 'follow_up_at']
     const sortField = allowedSortFields.includes(sortBy) ? sortBy : 'created_at'
     query = query.order(sortField, { ascending: sortDir === 'asc' })
 
@@ -126,9 +150,42 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     leads = data ?? []
     totalCount = count ?? 0
 
+    const leadIds = (leads as Array<{ id: string }>).map((lead) => lead.id)
+    const sellerByLead = new Map<string, unknown>()
+    const opportunityByLead = new Map<string, unknown>()
+
+    if (leadIds.length > 0) {
+        const [{ data: sellerProperties }, { data: opportunities }] = await Promise.all([
+            supabaseAdmin
+                .from('seller_properties')
+                .select('*')
+                .in('lead_id', leadIds),
+            supabaseAdmin
+                .from('opportunities')
+                .select('id, lead_id, title, stage, priority, created_at')
+                .in('lead_id', leadIds)
+                .order('created_at', { ascending: false }),
+        ])
+
+        for (const sellerProperty of sellerProperties ?? []) {
+            const key = (sellerProperty as { lead_id?: string }).lead_id
+            if (key && !sellerByLead.has(key)) sellerByLead.set(key, sellerProperty)
+        }
+        for (const opportunity of opportunities ?? []) {
+            const key = (opportunity as { lead_id?: string | null }).lead_id
+            if (key && !opportunityByLead.has(key)) opportunityByLead.set(key, opportunity)
+        }
+    }
+
+    const enriched = (leads as Array<{ id: string }>).map((lead) => ({
+        ...lead,
+        seller_property: sellerByLead.get(lead.id) ?? null,
+        opportunity: opportunityByLead.get(lead.id) ?? null,
+    }))
+
     return NextResponse.json({
         success: true,
-        data: leads,
+        data: enriched,
         pagination: {
             page,
             pageSize,

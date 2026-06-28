@@ -1,7 +1,8 @@
 // ═══════════════════════════════════════════════════════════════
-// Cron : sync récurrente des zones surveillées (pipeline market_properties)
-// Itère monitored_zones et déclenche /api/market/sync par zone, en
-// réutilisant TOUS les garde-fous existants (budget, fenêtre anti-re-sync).
+// Cron : suivi récurrent Stream Estate (pipeline market_properties)
+// 1) monitoring ciblé par ID pour les biens connus ;
+// 2) pull incrémental de sécurité par zone via fromUpdatedAt.
+// Chaque appel réutilise TOUS les garde-fous existants (budget, fenêtre anti-re-sync).
 //
 // Contrairement à /api/jobs/import-stream-estate (qui alimente la table
 // `listings` du monde radar mort), ce job alimente `market_properties`,
@@ -18,6 +19,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { monitorKnownLeads } from '@/lib/market/lead-monitor'
+import { getSetting } from '@/lib/settings'
+import { ensureStreamEstateSavedSearchForZone } from '@/lib/market/stream-estate-searches'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -25,6 +28,8 @@ export const maxDuration = 60 // limite plan Hobby Vercel
 
 // Plafond de zones traitées par exécution (évite de dépasser maxDuration).
 const MAX_ZONES_PER_RUN = 20
+const STREAM_ESTATE_RECONCILE_WINDOW_DAYS_KEY = 'stream_estate_reconcile_window_days'
+const DEFAULT_RECONCILE_WINDOW_DAYS = 1
 
 function resolveBaseUrl(req: NextRequest): string {
   if (process.env.SYNC_CRON_BASE_URL) return process.env.SYNC_CRON_BASE_URL.replace(/\/$/, '')
@@ -57,36 +62,44 @@ export async function GET(req: NextRequest) {
   // Re-fetch par-id de nos annonces actives → baisse de prix / retrait + re-score.
   const monitoring = await monitorKnownLeads()
 
-  // ── 4. Découverte des nouveaux leads (scan de zone, coûteux, non ciblable) ──
-  // Non ciblable → on l'espace : 1×/semaine (lundi, Europe/Paris) ou forcée via ?discover=1.
-  const weekdayParis = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Paris', weekday: 'short' }).format(new Date())
-  const discoverParam = new URL(req.url).searchParams.get('discover')
-  const isDiscoveryDay = discoverParam !== '0' && (weekdayParis === 'Mon' || discoverParam === '1')
+  // ── 4. Filet de sécurité incrémental ──
+  // Pas de scan complet quotidien : seules les propriétés créées/modifiées depuis la
+  // dernière réconciliation (avec une fenêtre de recouvrement) sont demandées.
+  const reconcileParam = new URL(req.url).searchParams.get('reconcile')
+  const shouldReconcile = reconcileParam !== '0'
+  const windowDaysRaw = await getSetting<number>(STREAM_ESTATE_RECONCILE_WINDOW_DAYS_KEY, DEFAULT_RECONCILE_WINDOW_DAYS)
+  const windowDays = Number.isFinite(Number(windowDaysRaw))
+    ? Math.max(1, Math.floor(Number(windowDaysRaw)))
+    : DEFAULT_RECONCILE_WINDOW_DAYS
 
-  const discovery: {
+  const reconcile: {
     ran: boolean
     zones: number
     totals: { created: number; updated: number; billed_items: number; estimated_cost_eur: number }
     results: Array<Record<string, unknown>>
   } = { ran: false, zones: 0, totals: { created: 0, updated: 0, billed_items: 0, estimated_cost_eur: 0 }, results: [] }
 
-  if (isDiscoveryDay) {
+  if (shouldReconcile) {
     const { data: zones, error } = await supabaseAdmin
       .from('monitored_zones')
-      .select('id, zipcode, insee_code, name, city, active')
+      .select('id, zipcode, insee_code, name, city, active, last_synced_at, last_reconciled_at, stream_estate_search_id')
       .eq('active', true)
-      .order('last_synced_at', { ascending: true, nullsFirst: true })
+      .not('last_synced_at', 'is', null)
+      .order('last_reconciled_at', { ascending: true, nullsFirst: true })
       .limit(MAX_ZONES_PER_RUN)
 
     if (error) {
       console.error('[Cron sync-zones] lecture zones impossible:', error.message)
     } else if (zones && zones.length > 0) {
-      discovery.ran = true
-      discovery.zones = zones.length
+      reconcile.ran = true
+      reconcile.zones = zones.length
       const base = resolveBaseUrl(req)
       // Séquentiel : respecte maxDuration et laisse le budget se décrémenter entre zones.
       for (const zone of zones) {
         try {
+          await ensureStreamEstateSavedSearchForZone(zone)
+          const anchor = zone.last_reconciled_at ?? zone.last_synced_at ?? new Date().toISOString()
+          const fromUpdatedAt = new Date(new Date(anchor).getTime() - windowDays * 86400000).toISOString()
           const res = await fetch(`${base}/api/market/sync`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -95,40 +108,44 @@ export async function GET(req: NextRequest) {
               insee_code: zone.insee_code,
               name: zone.name,
               city: zone.city,
+              source: 'reconcile',
+              fromUpdatedAt,
             }),
           })
           const payload = await res.json().catch(() => ({}))
-          discovery.totals.created += Number(payload?.created) || 0
-          discovery.totals.updated += Number(payload?.updated) || 0
-          discovery.totals.billed_items += Number(payload?.billed_items) || 0
-          discovery.totals.estimated_cost_eur += Number(payload?.estimated_cost_eur) || 0
-          discovery.results.push({
+          reconcile.totals.created += Number(payload?.created) || 0
+          reconcile.totals.updated += Number(payload?.updated) || 0
+          reconcile.totals.billed_items += Number(payload?.billed_items) || 0
+          reconcile.totals.estimated_cost_eur += Number(payload?.estimated_cost_eur) || 0
+          reconcile.results.push({
             zone_id: zone.id,
             zipcode: zone.zipcode,
             status: res.status,
             from_cache: payload?.from_cache ?? false,
             skipped_reason: payload?.skipped_reason ?? payload?.blocked_reason ?? null,
             created: Number(payload?.created) || 0,
+            updated: Number(payload?.updated) || 0,
             billed_items: Number(payload?.billed_items) || 0,
+            from_updated_at: fromUpdatedAt,
           })
         } catch (e) {
           console.error(`[Cron sync-zones] échec zone ${zone.zipcode}:`, e)
-          discovery.results.push({ zone_id: zone.id, zipcode: zone.zipcode, status: 'error', error: e instanceof Error ? e.message : 'unknown' })
+          reconcile.results.push({ zone_id: zone.id, zipcode: zone.zipcode, status: 'error', error: e instanceof Error ? e.message : 'unknown' })
         }
       }
-      discovery.totals.estimated_cost_eur = Math.round(discovery.totals.estimated_cost_eur * 100) / 100
+      reconcile.totals.estimated_cost_eur = Math.round(reconcile.totals.estimated_cost_eur * 100) / 100
     }
   }
 
   console.log(
     `[Cron sync-zones] monitoring: ${monitoring.checked} vérifiés, ${monitoring.price_changes} baisses, ` +
-      `${monitoring.expired} retirés (~${monitoring.estimated_cost_eur} €) | découverte: ${discovery.ran ? `${discovery.zones} zone(s), ${discovery.totals.created} nouveaux` : 'non (hors jour)'}`,
+      `${monitoring.expired} retirés (~${monitoring.estimated_cost_eur} €) | reconcile: ${reconcile.ran ? `${reconcile.zones} zone(s), ${reconcile.totals.created} nouveaux, ${reconcile.totals.updated} maj` : 'non'}`,
   )
 
   return NextResponse.json({
     success: true,
     test: isTest,
     monitoring,
-    discovery,
+    reconcile,
   })
 }

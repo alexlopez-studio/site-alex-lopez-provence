@@ -51,7 +51,7 @@ export async function GET() {
         supabaseAdmin
           .from('opportunities')
           .select('id', { count: 'exact', head: true })
-          .in('stage', ['Converti', 'Écarté']),
+          .in('stage', ['Mandat signé', 'Perdu / Écarté']),
       ),
       countOf(() =>
         supabaseAdmin

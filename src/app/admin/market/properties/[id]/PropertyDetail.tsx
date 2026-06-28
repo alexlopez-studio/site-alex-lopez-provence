@@ -21,6 +21,8 @@ import {
   Tag,
   Users,
   Loader2,
+  Link2,
+  XCircle,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -70,6 +72,39 @@ interface PriceHistoryRow {
 interface TagRow { id: string; tag: string; source: string | null }
 interface NoteRow { id: string; note: string; created_at: string }
 interface LinkedOpportunity { id: string; title: string; stage: string | null; priority: string | null }
+interface PropertySourceRow {
+  id: string
+  portal: string | null
+  source: string
+  external_id: string | null
+  url: string | null
+  title: string | null
+  price: number | null
+  status: string
+  published_at: string | null
+  first_seen_at: string
+  last_seen_at: string
+}
+interface DuplicateCandidateRow {
+  property: {
+    id: string
+    title: string | null
+    city: string | null
+    zipcode: string | null
+    property_type: string | null
+    price: number | null
+    surface: number | null
+    land_surface: number | null
+    rooms: number | null
+    status: string | null
+    url: string | null
+    first_seen_at: string | null
+    last_seen_at: string | null
+  }
+  score: number
+  reasons: string[]
+  status: 'pending' | 'confirmed' | 'rejected'
+}
 
 interface MandateScoreView {
   score: number
@@ -88,6 +123,8 @@ interface PropertyDetailData {
   price_history: PriceHistoryRow[]
   tags: TagRow[]
   notes: NoteRow[]
+  sources: PropertySourceRow[]
+  duplicate_candidates: DuplicateCandidateRow[]
   opportunity: LinkedOpportunity | null
   mandate_score?: MandateScoreView | null
   undervaluation_pct?: number | null
@@ -123,6 +160,7 @@ const STATUS_LABELS: Record<string, { label: string; variant: 'default' | 'secon
   removed: { label: 'Retiré', variant: 'outline' },
   expired: { label: 'Expiré', variant: 'outline' },
   relisted: { label: 'Remise en vente', variant: 'default' },
+  duplicate: { label: 'Doublon', variant: 'outline' },
 }
 
 function formatPrice(price: number | null | undefined): string {
@@ -166,6 +204,7 @@ export function PropertyDetail() {
   const [loadingMatches, setLoadingMatches] = useState(false)
 
   const [creatingOpp, setCreatingOpp] = useState(false)
+  const [resolvingDuplicateId, setResolvingDuplicateId] = useState<string | null>(null)
   const [noteDraft, setNoteDraft] = useState('')
   const [savingNote, setSavingNote] = useState(false)
 
@@ -211,16 +250,23 @@ export function PropertyDetail() {
         body: JSON.stringify({
           market_property_id: p.id,
           title,
-          stage: 'À qualifier',
+          stage: 'Nouveau contact',
           priority: isPriceDrop ? 'high' : 'medium',
           signal_type: isPriceDrop ? 'price_drop' : 'new_listing',
+          source_channel: 'annonce',
+          property_city: p.city,
+          property_zipcode: p.zipcode,
+          property_type: p.property_type,
+          estimated_price_min: p.price,
+          estimated_price_max: p.price,
           created_from: 'manual',
         }),
       })
-      if (!res.ok) throw new Error('Erreur API')
-      toast.success('Opportunité créée', {
+      const responseData = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(responseData.error ?? 'Erreur API')
+      toast.success(responseData.existing ? 'Opportunité déjà existante' : 'Opportunité créée', {
         description: title,
-        action: { label: 'Voir le pipeline', onClick: () => router.push('/app/opportunities') },
+        action: { label: 'Voir la fiche', onClick: () => router.push(`/app/properties/${p.id}`) },
       })
       await load()
     } catch (err) {
@@ -253,6 +299,35 @@ export function PropertyDetail() {
     }
   }
 
+  async function resolveDuplicate(candidate: DuplicateCandidateRow, action: 'merge' | 'reject') {
+    const candidateId = candidate.property.id
+    if (action === 'merge') {
+      const ok = window.confirm('Rapprocher ce doublon ? La fiche actuelle deviendra la fiche principale et les diffusions seront regroupées.')
+      if (!ok) return
+    }
+
+    setResolvingDuplicateId(candidateId + action)
+    try {
+      const res = await fetch(`/api/market/properties/${propertyId}/duplicates`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          candidate_property_id: candidateId,
+          action,
+        }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(json.error ?? 'Erreur API')
+      toast.success(action === 'merge' ? 'Biens rapprochés' : 'Doublon écarté')
+      await load()
+    } catch (err) {
+      console.error('Erreur rapprochement doublon:', err)
+      toast.error(action === 'merge' ? 'Impossible de rapprocher ce bien' : 'Impossible d’écarter ce doublon')
+    } finally {
+      setResolvingDuplicateId(null)
+    }
+  }
+
   // ── États de page ──────────────────────────────────────────
 
   if (loading) {
@@ -273,7 +348,7 @@ export function PropertyDetail() {
     )
   }
 
-  const { property, price_history, tags, notes, opportunity, mandate_score, undervaluation_pct } = data
+  const { property, price_history, tags, notes, sources, duplicate_candidates, opportunity, mandate_score, undervaluation_pct } = data
   const originalPrice = originalPriceFrom(price_history)
   const dropPercent = originalPrice && property.price != null && originalPrice > property.price
     ? ((originalPrice - property.price) / originalPrice) * 100
@@ -512,6 +587,110 @@ export function PropertyDetail() {
                 <span className="text-sm text-muted-foreground">Dernière mise à jour</span>
                 <span className="text-sm">{formatDate(property.last_seen_at)}</span>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Diffusions */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Link2 className="h-4 w-4 text-brand" />
+                Diffusions
+              </CardTitle>
+              <CardDescription className="text-[11px]">
+                Sites d&apos;annonces qui publient ce même bien
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {sources.length === 0 ? (
+                <p className="text-xs text-muted-foreground">Aucune diffusion historisée pour ce bien.</p>
+              ) : (
+                <div className="space-y-2">
+                  {sources.map((source) => (
+                    <div key={source.id} className="rounded-lg border p-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-sm font-medium">{source.portal ?? source.source}</p>
+                            <Badge variant="outline" className="text-[10px]">{source.status}</Badge>
+                          </div>
+                          <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                            <span>{formatPrice(source.price)}</span>
+                            <span>Vu le {formatDate(source.last_seen_at)}</span>
+                          </div>
+                        </div>
+                        {source.url && (
+                          <Button variant="outline" size="sm" asChild>
+                            <a href={source.url} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="h-3.5 w-3.5" />
+                            </a>
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Doublons probables */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-amber-500" />
+                Doublons probables
+              </CardTitle>
+              <CardDescription className="text-[11px]">
+                Biens proches à rapprocher seulement après vérification
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {duplicate_candidates.length === 0 ? (
+                <p className="text-xs text-muted-foreground">Aucun doublon probable détecté.</p>
+              ) : (
+                <div className="space-y-3">
+                  {duplicate_candidates.map((candidate) => {
+                    const merging = resolvingDuplicateId === candidate.property.id + 'merge'
+                    const rejecting = resolvingDuplicateId === candidate.property.id + 'reject'
+                    return (
+                      <div key={candidate.property.id} className="rounded-lg border p-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="line-clamp-2 text-sm font-medium">{candidate.property.title ?? 'Bien sans titre'}</p>
+                            <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                              {candidate.property.city && <span>{candidate.property.city}</span>}
+                              <span>{formatPrice(candidate.property.price)}</span>
+                              {candidate.property.surface != null && <span>{candidate.property.surface} m²</span>}
+                            </div>
+                          </div>
+                          <Badge variant="outline" className="shrink-0 text-[10px]">{candidate.score}%</Badge>
+                        </div>
+                        {candidate.reasons.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {candidate.reasons.map((reason) => (
+                              <Badge key={reason} variant="secondary" className="text-[10px]">{reason}</Badge>
+                            ))}
+                          </div>
+                        )}
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <Button size="sm" className="bg-brand hover:bg-brand-hover" onClick={() => resolveDuplicate(candidate, 'merge')} disabled={merging || rejecting}>
+                            {merging ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-1 h-4 w-4" />}
+                            Rapprocher
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => resolveDuplicate(candidate, 'reject')} disabled={merging || rejecting}>
+                            {rejecting ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <XCircle className="mr-1 h-4 w-4" />}
+                            Écarter
+                          </Button>
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link href={`/app/properties/${candidate.property.id}`}>Ouvrir</Link>
+                          </Button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
 

@@ -17,6 +17,13 @@ import { syncLeadToAttio } from '@/lib/attio'
 import { logServerConversionEvent } from '@/lib/server-analytics'
 import { supabaseAdmin } from '@/lib/supabase'
 import { runMatchingForBuyer } from '@/lib/market/matching-engine'
+import { createLead, markMagicLinkSent, upsertProspect } from '@/lib/leads-repo'
+import {
+  asNumber,
+  asStringArray,
+  resolveCommune,
+  upsertSellerPropertyForLead,
+} from '@/lib/leads-crm'
 
 function isLeadType(value: unknown): value is LeadType {
   return value === 'vendre' || value === 'acheter' || value === 'audit'
@@ -108,20 +115,65 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     )
   }
 
-  const magicLinkUrl = `${siteUrl}/resultats/${token}`
+  let magicLinkUrl = `${siteUrl}/resultats/${token}`
+
+  if (dryRun) {
+    return NextResponse.json({
+      success: true,
+      dryRun: true,
+      token,
+      leadId: token,
+      magicLinkUrl,
+      emailSent: false,
+      notionBackup: { ok: false, skipped: true, reason: 'dry_run' },
+      attioSync: { ok: false, skipped: true, reason: 'dry_run' },
+      results,
+    })
+  }
+
+  let leadId = token
+  let prospectId: string | null = null
+  try {
+    const prospect = await upsertProspect({
+      email,
+      firstName: prenom,
+      lastName: nom,
+      phone: telephone ?? null,
+    })
+    prospectId = prospect.id
+
+    const lead = await createLead({
+      id: token,
+      prospectId: prospect.id,
+      tool,
+      formData,
+      results,
+      commune: resolveCommune(formData),
+      sourceChannel: 'estimation_site',
+      priority: 'medium',
+      nextAction: tool === 'vendre' ? 'Qualifier la demande d’estimation' : null,
+    })
+    leadId = lead.id
+    magicLinkUrl = `${siteUrl}/resultats/${leadId}`
+  } catch (err) {
+    console.error('[API /leads] sauvegarde Supabase échouée :', err)
+    return NextResponse.json(
+      { success: false, error: 'sauvegarde lead échouée' },
+      { status: 500 },
+    )
+  }
 
   // ── Matching : stocker les critères acheteur/vendeur ────────
   if (tool === 'acheter') {
     const buyerData = {
-      lead_id: token,
+      lead_id: leadId,
+      prospect_id: prospectId,
       type_bien: typeof formData.type_bien === 'string' ? formData.type_bien : null,
-      communes: Array.isArray(formData.communes) ? formData.communes
-        : typeof formData.communes === 'string' ? formData.communes.split(',').map((s: string) => s.trim())
-        : null,
-      budget_max: typeof formData.budget_max === 'number' ? formData.budget_max : null,
-      surface_min: typeof formData.surface_min === 'number' ? formData.surface_min : null,
-      pieces_min: typeof formData.nb_pieces_min === 'number' ? formData.nb_pieces_min : null,
-      criteres: Array.isArray(formData.criteres) ? formData.criteres : null,
+      communes: asStringArray(formData.communes),
+      budget_max: asNumber(formData.budget_max),
+      surface_min: asNumber(formData.surface_min),
+      pieces_min: asNumber(formData.nb_pieces_min),
+      criteres: asStringArray(formData.criteres),
     }
 
     const { error: bcError } = await supabaseAdmin
@@ -139,56 +191,23 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   if (tool === 'vendre') {
-    const sellerData = {
-      lead_id: token,
-      adresse: typeof formData.adresse === 'string' ? formData.adresse : null,
-      lat: typeof formData.lat === 'number' ? formData.lat : null,
-      lon: typeof formData.lng === 'number' ? formData.lng : null,
-      type_bien: typeof formData.type_bien === 'string' ? formData.type_bien : null,
-      sous_type: typeof formData.sous_type === 'string' ? formData.sous_type : null,
-      surface: typeof formData.surface === 'number' ? formData.surface : null,
-      surface_terrain: typeof formData.surface_terrain === 'number' ? formData.surface_terrain : null,
-      nb_pieces: typeof formData.nb_pieces === 'number' ? formData.nb_pieces : null,
-      etat: typeof formData.etat === 'string' ? formData.etat : null,
-      dpe: typeof formData.dpe === 'string' ? formData.dpe : null,
-      annee_construction: typeof formData.annee_construction === 'number' ? formData.annee_construction : null,
-      equipements: Array.isArray(formData.equipements) ? formData.equipements : null,
-      delai: typeof formData.delai === 'string' ? formData.delai : null,
+    try {
+      await upsertSellerPropertyForLead({ leadId, prospectId, data: formData })
+    } catch (err) {
+      console.error('[API /leads] Erreur sauvegarde seller_properties:', err)
     }
-
-    const { error: spError } = await supabaseAdmin
-      .from('seller_properties')
-      .upsert(sellerData, { onConflict: 'lead_id', ignoreDuplicates: false })
-
-    if (spError) {
-      console.error('[API /leads] Erreur sauvegarde seller_properties:', spError)
-    }
-  }
-
-  if (dryRun) {
-    return NextResponse.json({
-      success: true,
-      dryRun: true,
-      token,
-      leadId: token,
-      magicLinkUrl,
-      emailSent: false,
-      notionBackup: { ok: false, skipped: true, reason: 'dry_run' },
-      attioSync: { ok: false, skipped: true, reason: 'dry_run' },
-      results,
-    })
   }
 
   const [emailSent, notionBackup, attioSync] = await Promise.all([
     sendMagicLinkEmail({
       to: email,
       prenom: prenom ?? null,
-      token,
+      token: leadId,
       type: tool,
       siteUrl,
     }),
     saveEstimationToNotion({
-      token,
+      token: leadId,
       type: tool,
       email,
       prenom,
@@ -199,7 +218,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       magicLinkUrl,
     }),
     syncLeadToAttio({
-      token,
+      token: leadId,
       type: tool,
       email,
       prenom,
@@ -219,6 +238,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     console.error('[API /leads] synchronisation Attio échouée :', attioSync.error)
   }
 
+  if (emailSent) {
+    try {
+      await markMagicLinkSent(leadId)
+    } catch (err) {
+      console.error('[API /leads] markMagicLinkSent échoué :', err)
+    }
+  }
+
   logServerConversionEvent('lead_submit', {
     lead_type: tool,
     email_sent: Boolean(emailSent),
@@ -230,8 +257,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   return NextResponse.json({
     success: true,
-    token,
-    leadId: token,
+    token: leadId,
+    leadId,
     magicLinkUrl,
     emailSent,
     notionBackup,

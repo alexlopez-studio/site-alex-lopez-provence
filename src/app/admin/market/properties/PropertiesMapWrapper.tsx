@@ -36,6 +36,8 @@ function normalizeStatus(status: string | null): string {
   if (status === 'new') return 'nouveau'
   if (status === 'opportunity') return 'opportunite'
   if (status === 'stagnant') return 'stagne'
+  if (status === 'expired') return 'expire'
+  if (status === 'removed') return 'retire'
   return status
 }
 

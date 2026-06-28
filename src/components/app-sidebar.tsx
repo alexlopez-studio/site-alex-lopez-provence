@@ -5,10 +5,10 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   Building2Icon,
+  BarChart3Icon,
   GitCompareArrowsIcon,
   KanbanIcon,
   LayoutDashboardIcon,
-  MapIcon,
   SettingsIcon,
   UsersIcon,
   PackageIcon,
@@ -47,7 +47,7 @@ const BUYER_ITEMS = [
 
 const MARKET_ITEMS = [
   { title: "Biens", url: "/app/properties", icon: Building2Icon },
-  { title: "Zones surveillées", url: "/app/zones", icon: MapIcon },
+  { title: "DVF", url: "/app/dvf", icon: BarChart3Icon },
 ]
 
 const CONFIG_ITEMS = [

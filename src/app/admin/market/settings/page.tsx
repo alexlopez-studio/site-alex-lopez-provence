@@ -1,12 +1,10 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import {
   CheckCircle2,
-  ChevronDown,
   Clock3,
-  Eye,
-  HelpCircle,
   Import,
   Loader2,
   MapPin,
@@ -17,6 +15,7 @@ import {
   Trash2,
   UserRound,
   WalletCards,
+  X,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -31,7 +30,6 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 type CommuneResult = {
   nom: string
@@ -58,8 +56,12 @@ type SyncPreview = {
   budget_max_items_per_sync: number
   effective_max_items: number
   max_items: number
+  property_types?: number[]
   total_available: number
   provider_total_available?: number
+  online_exact?: number
+  total_exact?: number
+  online_by_zipcode?: number | null
   estimated_items: number
   estimated_cost_eur: number
   preview_capped?: boolean
@@ -81,6 +83,9 @@ type StreamEstateBudget = {
   cost_per_request_eur: number
   max_requests_per_sync: number
   min_balance_eur: number
+  monthly_budget_eur?: number
+  estimated_month_remaining_eur?: number
+  webhook_event_cost_eur?: number
   resync_window_minutes?: number
   estimated_balance_eur: number
   estimated_spent_total_eur: number
@@ -90,6 +95,8 @@ type StreamEstateBudget = {
   external_items_month?: number
   external_requests_today: number
   external_requests_month: number
+  webhook_events_today?: number
+  webhook_events_month?: number
   last_blocked_reason: string | null
 }
 
@@ -123,6 +130,21 @@ type SyncTarget = {
   zipcode: string
   inseeCode: string | null
 }
+
+type SettingsSection = 'import' | 'communes' | 'consommation' | 'profil'
+
+const SECTIONS: Array<{ id: SettingsSection; label: string; icon: typeof Import; hint: string }> = [
+  { id: 'import', label: 'Importer une commune', icon: Import, hint: 'Rechercher et importer' },
+  { id: 'communes', label: 'Communes surveillées', icon: MapPin, hint: 'Gérer les zones' },
+  { id: 'consommation', label: 'Consommation', icon: WalletCards, hint: 'Items du mois & historique' },
+  { id: 'profil', label: 'Informations personnelles', icon: UserRound, hint: 'Profil & contact' },
+]
+
+const PROPERTY_TYPE_OPTIONS = [
+  { value: 0, label: 'Appartement' },
+  { value: 1, label: 'Maison' },
+  { value: 5, label: 'Terrain' },
+]
 
 const PERSONAL_DEFAULTS = {
   fullName: 'Alexandre Lopez',
@@ -192,6 +214,8 @@ function zoneStatusLabel(status: string | null | undefined): string {
 }
 
 export default function SettingsPage() {
+  const searchParams = useSearchParams()
+  const [section, setSection] = useState<SettingsSection>('import')
   const [stats, setStats] = useState<SyncStats | null>(null)
   const [runs, setRuns] = useState<SyncRun[]>([])
   const [zones, setZones] = useState<Zone[]>([])
@@ -208,6 +232,7 @@ export default function SettingsPage() {
   const [selectedZip, setSelectedZip] = useState('')
   const [syncTarget, setSyncTarget] = useState<SyncTarget | null>(null)
   const [syncPreview, setSyncPreview] = useState<SyncPreview | null>(null)
+  const [selectedPropertyTypes, setSelectedPropertyTypes] = useState<number[]>([0, 1, 5])
   const [previewLoading, setPreviewLoading] = useState(false)
   const [importing, setImporting] = useState(false)
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -227,6 +252,14 @@ export default function SettingsPage() {
   const budgetBlocked = Boolean(budget && budget.estimated_balance_eur <= budget.min_balance_eur)
   const defaultMaxItems = budget?.max_items_per_sync ?? budget?.max_requests_per_sync ?? 30
   const countLimitReached = Boolean(syncPreview && (syncPreview.provider_total_available ?? syncPreview.total_available) >= 10000)
+
+  const monthItems = budget?.external_items_month ?? budget?.external_requests_month ?? 0
+  const monthCost = budget?.estimated_spent_month_eur ?? 0
+  const todayItems = budget?.external_items_today ?? budget?.external_requests_today ?? 0
+  const monthWebhookEvents = budget?.webhook_events_month ?? 0
+  const costPerItem = budget?.cost_per_item_eur ?? budget?.cost_per_request_eur ?? 0
+  const onlineCount = syncPreview?.online_exact ?? syncPreview?.total_available ?? 0
+  const totalWithExpired = syncPreview?.total_exact ?? syncPreview?.provider_total_available ?? null
 
   const load = useCallback(async () => {
     try {
@@ -262,6 +295,13 @@ export default function SettingsPage() {
   useEffect(() => {
     load()
   }, [load])
+
+  useEffect(() => {
+    const requestedSection = searchParams.get('section')
+    if (requestedSection === 'import' || requestedSection === 'communes' || requestedSection === 'consommation' || requestedSection === 'profil') {
+      setSection(requestedSection)
+    }
+  }, [searchParams])
 
   useEffect(() => {
     fetch('/api/market/settings')
@@ -328,22 +368,30 @@ export default function SettingsPage() {
     setSelectedCommune(commune)
     setCommuneQuery(commune.nom)
     setCommunes([])
-    setSelectedZip(commune.codesPostaux.length === 1 ? commune.codesPostaux[0] : '')
     setSyncPreview(null)
+
+    // Un seul CP → on rattache et on prévisualise immédiatement (la preview est gratuite).
+    // Plusieurs CP → on attend que l'utilisateur choisisse le bon code postal.
+    if (commune.codesPostaux.length === 1) {
+      const zip = commune.codesPostaux[0]
+      setSelectedZip(zip)
+      void attachAndPreview(commune, zip)
+    } else {
+      setSelectedZip('')
+      setSyncTarget(null)
+    }
   }
 
-  function attachCommune() {
-    if (!selectedCommune || !selectedZip) {
-      toast.error('Choisis une commune et un code postal avant de rattacher')
-      return
-    }
+  function chooseZip(commune: CommuneResult, zip: string) {
+    setSelectedZip(zip)
+    void attachAndPreview(commune, zip)
+  }
 
-    setSyncTarget({
-      name: selectedCommune.nom,
-      zipcode: selectedZip,
-      inseeCode: selectedCommune.code,
-    })
+  async function attachAndPreview(commune: CommuneResult, zip: string) {
+    const target: SyncTarget = { name: commune.nom, zipcode: zip, inseeCode: commune.code }
+    setSyncTarget(target)
     setSyncPreview(null)
+    await previewTarget(target)
   }
 
   function targetFromZone(zone: Zone): SyncTarget {
@@ -354,7 +402,16 @@ export default function SettingsPage() {
     }
   }
 
-  async function previewTarget(target = syncTarget) {
+  function previewZoneInImport(zone: Zone) {
+    const target = targetFromZone(zone)
+    setSection('import')
+    setSelectedCommune(null)
+    setCommuneQuery(target.name)
+    setSelectedZip(target.zipcode)
+    void previewTarget(target)
+  }
+
+  async function previewTarget(target = syncTarget, propertyTypes = selectedPropertyTypes) {
     if (!target) {
       toast.error('Rattache une commune avant de prévisualiser')
       return null
@@ -365,6 +422,7 @@ export default function SettingsPage() {
       const body: Record<string, unknown> = {
         zipcode: target.zipcode,
         insee_code: target.inseeCode,
+        property_types: propertyTypes,
       }
       if (!unlimitedItems) {
         body.max_items = Math.max(1, Math.floor(Number(maxItemsPerSync) || defaultMaxItems))
@@ -391,6 +449,21 @@ export default function SettingsPage() {
     }
   }
 
+  function togglePropertyType(value: number) {
+    const next = selectedPropertyTypes.includes(value)
+      ? selectedPropertyTypes.filter((item) => item !== value)
+      : [...selectedPropertyTypes, value].sort((a, b) => a - b)
+
+    if (next.length === 0) {
+      toast.error('Garde au moins un type de bien')
+      return
+    }
+
+    setSelectedPropertyTypes(next)
+    setSyncPreview(null)
+    if (syncTarget) void previewTarget(syncTarget, next)
+  }
+
   async function confirmImport() {
     if (!syncTarget) {
       toast.error('Rattache une commune avant d’importer')
@@ -411,6 +484,7 @@ export default function SettingsPage() {
         insee_code: syncTarget.inseeCode,
         name: syncTarget.name,
         city: syncTarget.name,
+        property_types: selectedPropertyTypes,
       }
       if (!unlimitedItems) {
         body.max_items = Math.max(1, Math.floor(Number(maxItemsPerSync) || defaultMaxItems))
@@ -438,6 +512,16 @@ export default function SettingsPage() {
     } finally {
       setImporting(false)
     }
+  }
+
+  function declineImport() {
+    setSyncPreview(null)
+    setSyncTarget(null)
+    setSelectedCommune(null)
+    setSelectedZip('')
+    toast('Appel Stream Estate refusé', {
+      description: 'Aucun item n’a été téléchargé ni facturé.',
+    })
   }
 
   function startZoneEdit(zone: Zone) {
@@ -522,7 +606,7 @@ export default function SettingsPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand">Paramètres</p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground md:text-3xl">Réglages Mandat OS</h1>
           <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">
-            Piloter Stream Estate sans surprise de budget, puis centraliser les informations personnelles utilisées par l’application.
+            Importer une commune, surveiller les zones, suivre la consommation Stream Estate, et gérer le profil.
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={refresh} disabled={refreshing}>
@@ -531,64 +615,48 @@ export default function SettingsPage() {
         </Button>
       </div>
 
-      <Tabs defaultValue="stream-estate" className="gap-5">
-        <TabsList className="w-full justify-start overflow-x-auto" variant="line">
-          <TabsTrigger value="stream-estate">
-            <WalletCards />
-            API Stream Estate
-          </TabsTrigger>
-          <TabsTrigger value="personal">
-            <UserRound />
-            <span className="hidden sm:inline">Informations personnelles</span>
-            <span className="sm:hidden">Infos perso</span>
-          </TabsTrigger>
-        </TabsList>
+      <div className="grid gap-5 md:grid-cols-[230px_minmax(0,1fr)]">
+        {/* Menu latéral */}
+        <nav className="flex gap-2 overflow-x-auto pb-1 md:flex-col md:gap-1 md:overflow-visible md:pb-0">
+          {SECTIONS.map((item) => {
+            const Icon = item.icon
+            const active = section === item.id
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setSection(item.id)}
+                className={`flex shrink-0 items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors md:w-full ${
+                  active ? 'border-brand bg-brand-light/60 text-foreground' : 'border-transparent text-muted-foreground hover:bg-muted'
+                }`}
+              >
+                <Icon className="size-4 shrink-0" aria-hidden="true" />
+                <span>
+                  <span className="block whitespace-nowrap text-sm font-medium md:whitespace-normal">{item.label}</span>
+                  <span className="hidden text-xs text-muted-foreground md:block">{item.hint}</span>
+                </span>
+              </button>
+            )
+          })}
+        </nav>
 
-        <TabsContent value="stream-estate" className="space-y-4">
-          <div className="grid gap-3 md:grid-cols-3">
-            <Card className="border-emerald-200 bg-emerald-50/70">
-              <CardContent className="flex items-center gap-3 p-4">
-                <CheckCircle2 className="size-5 shrink-0 text-emerald-700" aria-hidden="true" />
-                <div>
-                  <p className="text-sm font-semibold text-foreground">Stream Estate activé</p>
-                  <p className="text-xs text-muted-foreground">Les imports restent confirmés à la main.</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="flex items-center gap-3 p-4">
-                <WalletCards className="size-5 shrink-0 text-brand" aria-hidden="true" />
-                <div>
-                  <p className="text-sm font-semibold text-foreground">Solde estimé : {budget ? fmtEur(budget.estimated_balance_eur) : '—'}</p>
-                  <p className="text-xs text-muted-foreground">Réserve minimale : {budget ? fmtEur(budget.min_balance_eur) : '—'}.</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="flex items-center gap-3 p-4">
-                <HelpCircle className="size-5 shrink-0 text-brand" aria-hidden="true" />
-                <div>
-                  <p className="text-sm font-semibold text-foreground">{budget ? fmtEur(budget.cost_per_item_eur ?? budget.cost_per_request_eur) : '—'} par bien importé</p>
-                  <p className="text-xs text-muted-foreground">La prévisualisation ne crée aucune zone.</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card className="border-brand/20">
-            <CardHeader>
-              <CardTitle>Prévisualiser puis importer une commune</CardTitle>
-              <CardDescription>
-                Stream Estate permet un comptage via `itemsPerPage=0`; la page affiche uniquement les annonces encore en ligne.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              <div className="rounded-lg border bg-background p-4">
-                <Label htmlFor="stream-estate-commune" className="text-xs font-medium uppercase text-muted-foreground">
-                  Nom de commune
-                </Label>
-                <div className="mt-2 grid gap-2 md:grid-cols-[minmax(0,1fr)_auto]">
-                  <div className="relative">
+        {/* Contenu de la section active */}
+        <div className="min-w-0 space-y-4">
+          {section === 'import' ? (
+            <Card className="border-brand/20">
+              <CardHeader>
+                <CardTitle>Importer une commune</CardTitle>
+                <CardDescription>
+                  Saisis une commune, regarde gratuitement le nombre d’annonces en ligne, puis valide ou refuse l’appel payant.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                {/* Champ unique : nom de commune */}
+                <div className="rounded-lg border bg-background p-4">
+                  <Label htmlFor="stream-estate-commune" className="text-xs font-medium uppercase text-muted-foreground">
+                    Nom de commune
+                  </Label>
+                  <div className="relative mt-2">
                     <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
                     <Input
                       id="stream-estate-commune"
@@ -619,37 +687,54 @@ export default function SettingsPage() {
                       </div>
                     ) : null}
                   </div>
-                  <Button type="button" variant="outline" size="sm" onClick={attachCommune} disabled={!selectedCommune || !selectedZip}>
-                    <MapPin />
-                    Rattacher
-                  </Button>
+
+                  {selectedCommune && selectedCommune.codesPostaux.length > 1 ? (
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <span className="text-xs text-muted-foreground">Choisir le code postal :</span>
+                      {selectedCommune.codesPostaux.map((zipcode) => (
+                        <button
+                          key={zipcode}
+                          type="button"
+                          onClick={() => chooseZip(selectedCommune, zipcode)}
+                          className={`rounded-md border px-2 py-1 text-xs font-medium ${selectedZip === zipcode ? 'border-brand bg-brand text-white' : 'border-border bg-background text-foreground hover:bg-muted'}`}
+                        >
+                          {zipcode}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
 
-                {selectedCommune && selectedCommune.codesPostaux.length > 1 ? (
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <span className="text-xs text-muted-foreground">Code postal :</span>
-                    {selectedCommune.codesPostaux.map((zipcode) => (
-                      <button
-                        key={zipcode}
-                        type="button"
-                        onClick={() => setSelectedZip(zipcode)}
-                        className={`rounded-md border px-2 py-1 text-xs font-medium ${selectedZip === zipcode ? 'border-brand bg-brand text-white' : 'border-border bg-background text-foreground hover:bg-muted'}`}
-                      >
-                        {zipcode}
-                      </button>
-                    ))}
+                <div className="rounded-lg border bg-background p-4">
+                  <Label className="text-xs font-medium uppercase text-muted-foreground">
+                    Types de biens
+                  </Label>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {PROPERTY_TYPE_OPTIONS.map((option) => {
+                      const active = selectedPropertyTypes.includes(option.value)
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          aria-pressed={active}
+                          onClick={() => togglePropertyType(option.value)}
+                          className={`rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+                            active
+                              ? 'border-brand bg-brand text-white'
+                              : 'border-border bg-background text-foreground hover:bg-muted'
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      )
+                    })}
                   </div>
-                ) : null}
+                </div>
 
-                <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                  Cette commune devient le contexte de la prévisualisation et de l’import, avec son code postal et son code INSEE.
-                </p>
-              </div>
-
-              <div className="rounded-lg border bg-muted/30 p-4">
-                <p className="text-xs font-medium uppercase text-muted-foreground">Commune rattachée aux actions</p>
+                {/* Commune rattachée (apparaît dès qu'une commune + CP sont choisis) */}
                 {syncTarget ? (
-                  <>
+                  <div className="rounded-lg border bg-muted/30 p-4">
+                    <p className="text-xs font-medium uppercase text-muted-foreground">Commune rattachée aux actions</p>
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       <p className="text-2xl font-semibold leading-tight text-foreground">{syncTarget.name}</p>
                       {syncTarget.inseeCode ? (
@@ -663,240 +748,295 @@ export default function SettingsPage() {
                       <Badge variant="outline" className="rounded-md">CP {syncTarget.zipcode}</Badge>
                     </div>
                     <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-                      Le filtre commune exacte évite de récupérer les communes voisines du même code postal.
+                      Le filtre commune exacte (INSEE) évite de récupérer les communes voisines du même code postal.
                     </p>
-                  </>
-                ) : (
-                  <p className="mt-3 text-sm text-muted-foreground">Aucune commune rattachée pour l’instant.</p>
-                )}
-              </div>
-
-              <div className={`rounded-lg border p-4 ${syncPreview?.can_confirm || !syncPreview ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'}`}>
-                <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className={`text-lg font-semibold ${syncPreview?.can_confirm || !syncPreview ? 'text-emerald-950' : 'text-amber-950'}`}>
-                        {syncPreview
-                          ? `${fmt(syncPreview.total_available)} annonce${syncPreview.total_available > 1 ? 's' : ''} en ligne trouvée${syncPreview.total_available > 1 ? 's' : ''}`
-                          : 'Prévisualisation en attente'}
-                      </p>
-                      <Badge
-                        variant="outline"
-                        className="h-auto max-w-full whitespace-normal rounded-md border-emerald-200 bg-emerald-50 px-2 py-1 text-left text-emerald-700"
-                      >
-                        Prévisualisation gratuite selon contrat à confirmer
-                      </Badge>
-                    </div>
-                    <p className={`mt-2 text-sm leading-6 ${syncPreview?.can_confirm || !syncPreview ? 'text-emerald-900' : 'text-amber-900'}`}>
-                      {syncPreview
-                        ? <>Coût si import : <strong>{fmtEur(syncPreview.estimated_cost_eur)}</strong>. Aucun bien hors ligne n’est inclus dans ce volume.</>
-                        : 'Rattache une commune puis prévisualise avant tout import.'}
-                    </p>
-                    {countLimitReached ? (
-                      <p className="mt-2 text-xs font-medium text-amber-900">
-                        Le compteur Stream Estate est plafonné à 10 000 résultats sur `/documents/properties`.
-                      </p>
-                    ) : null}
-                    {syncPreview?.blocked_reason ? (
-                      <p className="mt-2 text-xs font-medium text-amber-900">{syncPreview.blocked_reason}</p>
-                    ) : null}
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Button variant="outline" size="sm" onClick={() => void previewTarget()} disabled={previewLoading || !syncTarget}>
-                      {previewLoading ? <Loader2 className="animate-spin" /> : <Eye />}
-                      Prévisualiser
-                    </Button>
-                    <Button variant="primary" size="sm" onClick={() => void confirmImport()} disabled={importing || previewLoading || !syncPreview?.can_confirm || budgetBlocked}>
-                      {importing ? <Loader2 className="animate-spin" /> : <Import />}
-                      Importer ces biens
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                ) : null}
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Communes surveillées</CardTitle>
-              <CardDescription>
-                Les communes sont modifiables et supprimables. La preview reprend directement la commune choisie.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {loading ? (
-                <div className="h-24 animate-pulse rounded-lg bg-muted" />
-              ) : zones.length === 0 ? (
-                <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                  Aucune commune surveillée pour le moment.
-                </div>
-              ) : (
-                zones.map((zone) => (
-                  <div
-                    key={zone.id}
-                    className="flex flex-col gap-3 rounded-lg border p-3 md:flex-row md:items-center md:justify-between"
-                  >
-                    {editingZoneId === zone.id ? (
-                      <>
-                        <div className="grid flex-1 gap-2 md:grid-cols-3">
-                          <Input value={zoneDraft.name} onChange={(event) => setZoneDraft((current) => ({ ...current, name: event.target.value }))} aria-label="Nom de commune" />
-                          <Input value={zoneDraft.zipcode} onChange={(event) => setZoneDraft((current) => ({ ...current, zipcode: event.target.value }))} aria-label="Code postal" />
-                          <Input value={zoneDraft.insee_code} onChange={(event) => setZoneDraft((current) => ({ ...current, insee_code: event.target.value }))} placeholder="INSEE optionnel" aria-label="Code INSEE" />
-                        </div>
-                        <div className="flex gap-2">
-                          <Button size="xs" variant="primary" onClick={() => void saveZone(zone.id)} disabled={zoneSaving === zone.id}>
-                            {zoneSaving === zone.id ? <Loader2 className="animate-spin" /> : <Save />}
-                            Enregistrer
-                          </Button>
-                          <Button size="xs" variant="outline" onClick={() => setEditingZoneId(null)}>Annuler</Button>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="flex min-w-0 items-start gap-3">
-                          <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-md bg-brand-light/70 text-brand">
-                            <MapPin className="size-4" aria-hidden="true" />
-                          </span>
-                          <div className="min-w-0">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <p className="font-semibold text-foreground">{zone.name}</p>
-                              <Badge variant="outline" className="rounded-md">CP {zone.zipcode}</Badge>
-                              {zone.insee_code ? (
-                                <Badge variant="outline" className="rounded-md border-emerald-200 bg-emerald-50 text-emerald-700">
-                                  INSEE {zone.insee_code}
+                {/* Prévisualisation + ventilation */}
+                {syncTarget ? (
+                  <div className={`rounded-lg border p-4 ${!syncPreview || syncPreview.can_confirm ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'}`}>
+                    {previewLoading ? (
+                      <p className="flex items-center gap-2 text-sm text-emerald-900">
+                        <Loader2 className="size-4 animate-spin" aria-hidden="true" /> Comptage des annonces en ligne…
+                      </p>
+                    ) : syncPreview ? (
+                      <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
+                        <div>
+                          <p className={`text-lg font-semibold ${syncPreview.can_confirm ? 'text-emerald-950' : 'text-amber-950'}`}>
+                            {fmt(onlineCount)} annonce{onlineCount > 1 ? 's' : ''} en ligne
+                          </p>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            {totalWithExpired != null ? <>Total incl. expirées : <strong>{fmt(totalWithExpired)}</strong>. </> : null}
+                            {syncPreview.online_by_zipcode != null ? <>Sur tout le CP {syncPreview.zipcode} : <strong>{fmt(syncPreview.online_by_zipcode)}</strong> en ligne. </> : null}
+                          </p>
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            <Badge variant="outline" className="rounded-md border-emerald-200 bg-white/70 text-emerald-800">PAP uniquement</Badge>
+                            <Badge variant="outline" className="rounded-md border-emerald-200 bg-white/70 text-emerald-800">Annonces en ligne</Badge>
+                            {PROPERTY_TYPE_OPTIONS
+                              .filter((option) => selectedPropertyTypes.includes(option.value))
+                              .map((option) => (
+                                <Badge key={option.value} variant="outline" className="rounded-md border-emerald-200 bg-white/70 text-emerald-800">
+                                  {option.label}
                                 </Badge>
-                              ) : (
-                                <StatusBadge tone="warning">CP seul</StatusBadge>
-                              )}
-                              {!zone.active ? <StatusBadge tone="neutral">Inactive</StatusBadge> : null}
-                            </div>
-                            <p className="mt-1 text-xs text-muted-foreground">Dernière sync : {relativeTime(zone.last_synced_at)}</p>
+                              ))}
                           </div>
+                          <p className="mt-2 text-sm text-foreground">
+                            Appel payant si validation : <strong>{fmtEur(syncPreview.estimated_cost_eur)}</strong>
+                            {syncPreview.preview_capped ? <> (plafonné à {fmt(syncPreview.estimated_items)} items)</> : null}.
+                          </p>
+                          <p className="mt-1 text-xs text-emerald-700">Prévisualisation gratuite — aucun item facturé.</p>
+                          {countLimitReached ? (
+                            <p className="mt-1 text-xs font-medium text-amber-900">Compteur Stream Estate plafonné à 10 000 résultats.</p>
+                          ) : null}
+                          {syncPreview.blocked_reason ? (
+                            <p className="mt-1 text-xs font-medium text-amber-900">{syncPreview.blocked_reason}</p>
+                          ) : null}
                         </div>
-
-                        <div className="grid gap-3 text-xs sm:grid-cols-[70px_120px_1fr] md:min-w-[440px] md:text-right">
-                          <div>
-                            <p className="text-muted-foreground">Biens</p>
-                            <p className="font-semibold tabular-nums text-foreground">{zone.property_count ?? 0}</p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">Statut</p>
-                            <StatusBadge tone={zone.last_sync_status === 'error' ? 'danger' : zone.last_sync_status === 'blocked' ? 'warning' : 'success'}>
-                              {zoneStatusLabel(zone.last_sync_status)}
-                            </StatusBadge>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">Actions</p>
-                            <div className="mt-1 flex flex-wrap gap-1 md:justify-end">
-                              <Button type="button" variant="outline" size="xs" onClick={() => void previewTarget(targetFromZone(zone))}>
-                                <Eye />
-                                Preview
-                              </Button>
-                              <Button type="button" variant="outline" size="xs" onClick={() => startZoneEdit(zone)}>
-                                <Pencil />
-                                Modifier
-                              </Button>
-                              <Button type="button" variant="destructive" size="xs" onClick={() => void deleteZone(zone)} disabled={zoneDeleting === zone.id}>
-                                {zoneDeleting === zone.id ? <Loader2 className="animate-spin" /> : <Trash2 />}
-                                Supprimer
-                              </Button>
-                            </div>
-                          </div>
+                        <div className="flex flex-wrap gap-2 md:justify-end">
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={() => void confirmImport()}
+                            disabled={importing || previewLoading || !syncPreview.can_confirm || budgetBlocked}
+                          >
+                            {importing ? <Loader2 className="animate-spin" /> : <Import />}
+                            Valider l’appel payant
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={declineImport}
+                            disabled={importing || previewLoading}
+                          >
+                            <X />
+                            Refuser
+                          </Button>
                         </div>
-                      </>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-emerald-900">Prévisualisation indisponible — réessaie.</p>
                     )}
                   </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Commence par saisir une commune ci-dessus : le nombre d’annonces en ligne s’affichera automatiquement.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          ) : null}
 
-          <details className="rounded-lg border bg-card p-4 text-sm">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-medium text-foreground">
-              <span className="flex items-center gap-2">
-                <Clock3 className="size-4 text-brand" aria-hidden="true" />
-                Historique récent
-              </span>
-              <ChevronDown className="size-4 text-muted-foreground" aria-hidden="true" />
-            </summary>
-            <div className="mt-4 overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="border-b text-muted-foreground">
-                    <th className="px-3 py-2 text-left font-medium">Zone</th>
-                    <th className="px-3 py-2 text-left font-medium">Date</th>
-                    <th className="px-3 py-2 text-right font-medium">Biens</th>
-                    <th className="px-3 py-2 text-right font-medium">Items</th>
-                    <th className="px-3 py-2 text-right font-medium">Coût</th>
-                    <th className="px-3 py-2 text-left font-medium">Statut</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {runs.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">Aucun historique.</td>
-                    </tr>
-                  ) : runs.map((run) => (
-                    <tr key={run.id} className="border-b last:border-b-0">
-                      <td className="px-3 py-2 font-medium text-foreground">{run.monitored_zones?.name ?? '—'} <span className="text-muted-foreground">{run.monitored_zones?.zipcode}</span></td>
-                      <td className="px-3 py-2 text-muted-foreground">{run.started_at ? new Date(run.started_at).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'}</td>
-                      <td className="px-3 py-2 text-right tabular-nums">{run.fetched_count ?? 0}</td>
-                      <td className="px-3 py-2 text-right tabular-nums">{run.external_item_count ?? run.external_request_count ?? 0}</td>
-                      <td className="px-3 py-2 text-right tabular-nums">{fmtEur(Number(run.estimated_cost_eur ?? 0))}</td>
-                      <td className="px-3 py-2"><RunStatus status={run.status} /></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {section === 'communes' ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Communes surveillées</CardTitle>
+                <CardDescription>
+                  Les communes sont modifiables et supprimables. « Preview » ouvre l’écran d’import sur la commune choisie.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {loading ? (
+                  <div className="h-24 animate-pulse rounded-lg bg-muted" />
+                ) : zones.length === 0 ? (
+                  <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                    Aucune commune surveillée pour le moment.
+                  </div>
+                ) : (
+                  zones.map((zone) => (
+                    <div
+                      key={zone.id}
+                      className="flex flex-col gap-3 rounded-lg border p-3 md:flex-row md:items-center md:justify-between"
+                    >
+                      {editingZoneId === zone.id ? (
+                        <>
+                          <div className="grid flex-1 gap-2 md:grid-cols-3">
+                            <Input value={zoneDraft.name} onChange={(event) => setZoneDraft((current) => ({ ...current, name: event.target.value }))} aria-label="Nom de commune" />
+                            <Input value={zoneDraft.zipcode} onChange={(event) => setZoneDraft((current) => ({ ...current, zipcode: event.target.value }))} aria-label="Code postal" />
+                            <Input value={zoneDraft.insee_code} onChange={(event) => setZoneDraft((current) => ({ ...current, insee_code: event.target.value }))} placeholder="INSEE optionnel" aria-label="Code INSEE" />
+                          </div>
+                          <div className="flex gap-2">
+                            <Button size="xs" variant="primary" onClick={() => void saveZone(zone.id)} disabled={zoneSaving === zone.id}>
+                              {zoneSaving === zone.id ? <Loader2 className="animate-spin" /> : <Save />}
+                              Enregistrer
+                            </Button>
+                            <Button size="xs" variant="outline" onClick={() => setEditingZoneId(null)}>Annuler</Button>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-md bg-brand-light/70 text-brand">
+                              <MapPin className="size-4" aria-hidden="true" />
+                            </span>
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="font-semibold text-foreground">{zone.name}</p>
+                                <Badge variant="outline" className="rounded-md">CP {zone.zipcode}</Badge>
+                                {zone.insee_code ? (
+                                  <Badge variant="outline" className="rounded-md border-emerald-200 bg-emerald-50 text-emerald-700">
+                                    INSEE {zone.insee_code}
+                                  </Badge>
+                                ) : (
+                                  <StatusBadge tone="warning">CP seul</StatusBadge>
+                                )}
+                                {!zone.active ? <StatusBadge tone="neutral">Inactive</StatusBadge> : null}
+                              </div>
+                              <p className="mt-1 text-xs text-muted-foreground">Dernière sync : {relativeTime(zone.last_synced_at)}</p>
+                            </div>
+                          </div>
+
+                          <div className="grid gap-3 text-xs sm:grid-cols-[70px_120px_1fr] md:min-w-[440px] md:text-right">
+                            <div>
+                              <p className="text-muted-foreground">Biens</p>
+                              <p className="font-semibold tabular-nums text-foreground">{zone.property_count ?? 0}</p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground">Statut</p>
+                              <StatusBadge tone={zone.last_sync_status === 'error' ? 'danger' : zone.last_sync_status === 'blocked' ? 'warning' : 'success'}>
+                                {zoneStatusLabel(zone.last_sync_status)}
+                              </StatusBadge>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground">Actions</p>
+                              <div className="mt-1 flex flex-wrap gap-1 md:justify-end">
+                                <Button type="button" variant="outline" size="xs" onClick={() => previewZoneInImport(zone)}>
+                                  <Search />
+                                  Preview
+                                </Button>
+                                <Button type="button" variant="outline" size="xs" onClick={() => startZoneEdit(zone)}>
+                                  <Pencil />
+                                  Modifier
+                                </Button>
+                                <Button type="button" variant="destructive" size="xs" onClick={() => void deleteZone(zone)} disabled={zoneDeleting === zone.id}>
+                                  {zoneDeleting === zone.id ? <Loader2 className="animate-spin" /> : <Trash2 />}
+                                  Supprimer
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {section === 'consommation' ? (
+            <div className="space-y-4">
+              <div className="grid gap-3 md:grid-cols-3">
+                <Card className="border-brand/20">
+                  <CardContent className="p-4">
+                    <p className="text-xs font-medium uppercase text-muted-foreground">Items consommés ce mois</p>
+                    <p className="mt-2 text-2xl font-semibold tabular-nums text-foreground">{fmt(monthItems)}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      soit <strong>{fmtEur(monthCost)}</strong>{(budget?.monthly_budget_eur ?? 0) > 0 ? <> / {fmtEur(budget?.monthly_budget_eur ?? 0)}</> : ' · pas de plafond mensuel'}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-xs font-medium uppercase text-muted-foreground">Items aujourd’hui</p>
+                    <p className="mt-2 text-2xl font-semibold tabular-nums text-foreground">{fmt(todayItems)}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">Dernière activité : {relativeTime(stats?.last_sync_at ?? null)}</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="flex items-center gap-3 p-4">
+                    <CheckCircle2 className="size-5 shrink-0 text-emerald-700" aria-hidden="true" />
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{fmtEur(costPerItem)} par bien importé</p>
+                      <p className="text-xs text-muted-foreground">{fmt(monthWebhookEvents)} events webhook ce mois · coût event {fmtEur(budget?.webhook_event_cost_eur ?? 0)}.</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Clock3 className="size-4 text-brand" aria-hidden="true" />
+                    Historique récent
+                  </CardTitle>
+                  <CardDescription>Les dernières synchronisations Stream Estate.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="border-b text-muted-foreground">
+                          <th className="px-3 py-2 text-left font-medium">Zone</th>
+                          <th className="px-3 py-2 text-left font-medium">Date</th>
+                          <th className="px-3 py-2 text-right font-medium">Biens</th>
+                          <th className="px-3 py-2 text-right font-medium">Items</th>
+                          <th className="px-3 py-2 text-right font-medium">Coût</th>
+                          <th className="px-3 py-2 text-left font-medium">Statut</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {runs.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">Aucun historique.</td>
+                          </tr>
+                        ) : runs.map((run) => (
+                          <tr key={run.id} className="border-b last:border-b-0">
+                            <td className="px-3 py-2 font-medium text-foreground">{run.monitored_zones?.name ?? '—'} <span className="text-muted-foreground">{run.monitored_zones?.zipcode}</span></td>
+                            <td className="px-3 py-2 text-muted-foreground">{run.started_at ? new Date(run.started_at).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+                            <td className="px-3 py-2 text-right tabular-nums">{run.fetched_count ?? 0}</td>
+                            <td className="px-3 py-2 text-right tabular-nums">{run.external_item_count ?? run.external_request_count ?? 0}</td>
+                            <td className="px-3 py-2 text-right tabular-nums">{fmtEur(Number(run.estimated_cost_eur ?? 0))}</td>
+                            <td className="px-3 py-2"><RunStatus status={run.status} /></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </details>
-        </TabsContent>
+          ) : null}
 
-        <TabsContent value="personal">
-          <Card>
-            <CardHeader>
-              <CardTitle>Informations personnelles</CardTitle>
-              <CardDescription>
-                Ces informations serviront aux prochains écrans de profil, signatures et points de contact.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="space-y-1">
-                  <span className="text-xs font-medium">Nom complet</span>
-                  <Input value={personalFullName} onChange={(event) => setPersonalFullName(event.target.value)} />
-                </label>
-                <label className="space-y-1">
-                  <span className="text-xs font-medium">Fonction</span>
-                  <Input value={personalTitle} onChange={(event) => setPersonalTitle(event.target.value)} />
-                </label>
-                <label className="space-y-1">
-                  <span className="text-xs font-medium">Email</span>
-                  <Input type="email" value={personalEmail} onChange={(event) => setPersonalEmail(event.target.value)} />
-                </label>
-                <label className="space-y-1">
-                  <span className="text-xs font-medium">Téléphone</span>
-                  <Input value={personalPhone} onChange={(event) => setPersonalPhone(event.target.value)} />
-                </label>
-              </div>
+          {section === 'profil' ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Informations personnelles</CardTitle>
+                <CardDescription>
+                  Ces informations serviront aux prochains écrans de profil, signatures et points de contact.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <label className="space-y-1">
+                    <span className="text-xs font-medium">Nom complet</span>
+                    <Input value={personalFullName} onChange={(event) => setPersonalFullName(event.target.value)} />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-xs font-medium">Fonction</span>
+                    <Input value={personalTitle} onChange={(event) => setPersonalTitle(event.target.value)} />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-xs font-medium">Email</span>
+                    <Input type="email" value={personalEmail} onChange={(event) => setPersonalEmail(event.target.value)} />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-xs font-medium">Téléphone</span>
+                    <Input value={personalPhone} onChange={(event) => setPersonalPhone(event.target.value)} />
+                  </label>
+                </div>
 
-              <div className="rounded-lg border bg-muted/30 p-4">
-                <p className="text-sm font-medium text-foreground">Aperçu</p>
-                <p className="mt-2 text-lg font-semibold text-foreground">{personalFullName || '—'}</p>
-                <p className="text-sm text-muted-foreground">{personalTitle || '—'}</p>
-                <p className="mt-2 text-sm text-muted-foreground">{personalEmail || '—'} · {personalPhone || '—'}</p>
-              </div>
-
-              <div className="flex justify-end">
-                <Button variant="primary" size="sm" onClick={savePersonalInfo} disabled={personalSaving}>
-                  {personalSaving ? <Loader2 className="animate-spin" /> : <Save />}
-                  Enregistrer
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                <div className="flex justify-end">
+                  <Button variant="primary" size="sm" onClick={savePersonalInfo} disabled={personalSaving}>
+                    {personalSaving ? <Loader2 className="animate-spin" /> : <Save />}
+                    Enregistrer
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
+        </div>
+      </div>
     </div>
   )
 }

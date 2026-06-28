@@ -16,10 +16,11 @@ type SyncRunStat = {
   external_item_count?: number | null
   estimated_cost_eur?: number | null
   blocked_reason?: string | null
+  source?: string | null
 }
 
 async function fetchSyncRuns(): Promise<SyncRunStat[]> {
-  const fullSelect = 'id, zone_id, started_at, fetched_count, status, external_request_count, external_item_count, estimated_cost_eur, blocked_reason'
+  const fullSelect = 'id, zone_id, started_at, fetched_count, status, external_request_count, external_item_count, estimated_cost_eur, blocked_reason, source'
   const legacySelect = 'id, zone_id, started_at, fetched_count, status'
 
   const full = await supabaseAdmin
@@ -92,7 +93,7 @@ export async function GET() {
     // Zones avec statut de fraîcheur et nombre de biens
     const { data: zones } = await supabaseAdmin
       .from('monitored_zones')
-      .select('id, name, zipcode, city, insee_code, last_synced_at, active, sync_frequency')
+      .select('id, name, zipcode, city, insee_code, last_synced_at, last_reconciled_at, stream_estate_search_id, active, sync_frequency')
       .order('created_at', { ascending: true })
 
     const monitoredZipcodes = new Set((zones ?? []).map((zone) => zone.zipcode).filter(Boolean))
@@ -145,6 +146,8 @@ export async function GET() {
           zipcode: zone.zipcode,
           city: zone.city,
           last_synced_at: zone.last_synced_at,
+          last_reconciled_at: (zone as { last_reconciled_at?: string | null }).last_reconciled_at ?? null,
+          stream_estate_search_id: (zone as { stream_estate_search_id?: string | null }).stream_estate_search_id ?? null,
           active: zone.active,
           sync_frequency: zone.sync_frequency,
           last_sync_status: lastRun?.status ?? null,
@@ -185,6 +188,9 @@ export async function GET() {
         cost_per_request_eur: budget.costPerItemEur,
         max_requests_per_sync: budget.maxItemsPerSync,
         min_balance_eur: budget.minBalanceEur,
+        monthly_budget_eur: budget.monthlyBudgetEur,
+        estimated_month_remaining_eur: budget.estimatedMonthRemainingEur,
+        webhook_event_cost_eur: budget.webhookEventCostEur,
         resync_window_minutes: resyncWindowMinutes,
         estimated_balance_eur: budget.estimatedBalanceEur,
         estimated_spent_total_eur: budget.estimatedSpentTotalEur,
@@ -199,6 +205,9 @@ export async function GET() {
         external_requests_total: budget.externalRequestsTotal,
         external_requests_today: budget.externalRequestsToday,
         external_requests_month: budget.externalRequestsMonth,
+        webhook_events_total: budget.webhookEventsTotal,
+        webhook_events_today: budget.webhookEventsToday,
+        webhook_events_month: budget.webhookEventsMonth,
         last_blocked_reason: budget.lastBlockedReason,
       },
     })

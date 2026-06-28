@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { scoreMarketProperty } from '@/lib/market/mandate-score'
 import { median, undervaluationPct } from '@/lib/market/zone-valuation'
+import { propertyThumbnailUrl } from '@/lib/market/property-thumbnail'
+import { ensurePropertySourceFromProperty, findDuplicateCandidates } from '@/lib/market/property-deduplication'
 
 /**
  * GET /api/market/properties/:id
@@ -28,6 +30,8 @@ export async function GET(
       return NextResponse.json({ error: 'Erreur base de données' }, { status: 500 })
     }
 
+    await ensurePropertySourceFromProperty(id)
+
     // Historique des prix
     const { data: priceHistory } = await supabaseAdmin
       .from('property_price_history')
@@ -50,11 +54,12 @@ export async function GET(
       .order('created_at', { ascending: false })
 
     // Opportunité liée
-    const { data: opportunity } = await supabaseAdmin
+    const { data: opportunities } = await supabaseAdmin
       .from('opportunities')
       .select('*')
       .eq('market_property_id', id)
-      .maybeSingle()
+      .order('created_at', { ascending: false })
+      .limit(1)
 
     // Notifications liées
     const { data: notifications } = await supabaseAdmin
@@ -63,6 +68,14 @@ export async function GET(
       .eq('market_property_id', id)
       .order('created_at', { ascending: false })
       .limit(10)
+
+    const { data: sources } = await supabaseAdmin
+      .from('market_property_sources')
+      .select('*')
+      .eq('market_property_id', id)
+      .order('last_seen_at', { ascending: false })
+
+    const duplicateCandidates = await findDuplicateCandidates(id)
 
     // Score métier (MandateProbabilityScore) sur le bien réel
     const mandateScore = scoreMarketProperty(property, priceHistory ?? [])
@@ -86,11 +99,16 @@ export async function GET(
     }
 
     return NextResponse.json({
-      property,
+      property: {
+        ...property,
+        thumbnail_url: propertyThumbnailUrl(property.raw_json),
+      },
       price_history: priceHistory ?? [],
       tags: tags ?? [],
       notes: notes ?? [],
-      opportunity: opportunity ?? null,
+      sources: sources ?? [],
+      duplicate_candidates: duplicateCandidates,
+      opportunity: opportunities?.[0] ?? null,
       notifications: notifications ?? [],
       mandate_score: mandateScore,
       undervaluation_pct: undervaluation,
@@ -113,6 +131,23 @@ export async function PATCH(
     const { id } = await params
     const body = await req.json()
 
+    const { data: existing, error: fetchError } = await supabaseAdmin
+      .from('market_properties')
+      .select('id, source')
+      .eq('id', id)
+      .single()
+
+    if (fetchError || !existing) {
+      return NextResponse.json({ error: 'Bien introuvable' }, { status: 404 })
+    }
+
+    if (!['manual', 'user'].includes(existing.source)) {
+      return NextResponse.json(
+        { error: 'Modification autorisée uniquement pour les biens créés par l’utilisateur' },
+        { status: 403 },
+      )
+    }
+
     const { error } = await supabaseAdmin
       .from('market_properties')
       .update(body)
@@ -129,4 +164,3 @@ export async function PATCH(
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }
-

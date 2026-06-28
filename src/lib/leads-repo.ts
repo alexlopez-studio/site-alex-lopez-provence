@@ -32,11 +32,17 @@ export type UpsertProspectInput = {
 }
 
 export type CreateLeadInput = {
+  id?: string
   prospectId: string
   tool: LeadTool
   formData?: Record<string, unknown> | null
   results?: Record<string, unknown> | null
   commune?: string | null
+  sourceChannel?: string | null
+  priority?: string | null
+  nextAction?: string | null
+  dueDate?: string | null
+  followUpAt?: string | null
   /** Override expiration ISO 8601. Défaut = now() + 30 jours côté DB. */
   magicLinkExpiresAt?: string
 }
@@ -106,11 +112,17 @@ export async function upsertProspect(
  */
 export async function createLead(input: CreateLeadInput): Promise<LeadRow> {
   const payload = {
+    ...(input.id ? { id: input.id } : {}),
     prospect_id: input.prospectId,
     tool: input.tool,
     form_data: (input.formData ?? {}) as Json,
     results: (input.results ?? {}) as Json,
     commune: input.commune ?? null,
+    source_channel: input.sourceChannel ?? null,
+    priority: input.priority ?? 'medium',
+    next_action: input.nextAction ?? null,
+    due_date: input.dueDate ?? null,
+    follow_up_at: input.followUpAt ?? null,
     ...(input.magicLinkExpiresAt
       ? { magic_link_expires_at: input.magicLinkExpiresAt }
       : {}),

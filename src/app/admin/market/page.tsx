@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { MapPinIcon, Building2Icon } from 'lucide-react'
+import { Building2Icon, SettingsIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { PageHeader, PageShell, PageSection } from '@/components/pro'
@@ -24,9 +24,9 @@ export default function MarketPage() {
                 </Link>
               </Button>
               <Button variant="primary" size="sm" asChild>
-                <Link href="/app/zones">
-                  <MapPinIcon />
-                  Gérer les zones
+                <Link href="/app/settings?section=communes">
+                  <SettingsIcon />
+                  Gérer les communes
                 </Link>
               </Button>
             </>

@@ -1,12 +1,14 @@
-/**
- * API DVF — données de valeurs foncières.
- *
- * La source primaire reste configurable pour éviter de dépendre en dur d'un
- * endpoint de préproduction. En cas d'indisponibilité, le module peut tenter
- * une source secondaire puis laisser le moteur d'estimation basculer sur son
- * fallback métier.
- */
+import { createGunzip } from 'node:zlib'
+import { createInterface } from 'node:readline'
+import { Readable } from 'node:stream'
+import { supabaseAdmin } from '@/lib/supabase'
 
+/**
+ * API DVF historique utilisée par le moteur d'estimation.
+ *
+ * Conservée pour les comparables autour d'une coordonnée. Le nouveau module
+ * Observatoire DVF plus bas importe, lui, les fichiers publics par commune.
+ */
 const CEREMA_DVF_API = 'https://apidf-preprod.cerema.fr/dvf_opendata/geomutations/'
 const CQUEST_DVF_API = 'https://api.cquest.org/dvf'
 
@@ -62,7 +64,6 @@ function coordinatesFromFeature(feature: Record<string, unknown>): { lat: number
     return { lng: coords[0], lat: coords[1] }
   }
 
-  // Certains GeoJSON peuvent exposer un MultiPoint ou une géométrie imbriquée.
   if (Array.isArray(coords) && Array.isArray(coords[0]) && typeof coords[0][0] === 'number' && typeof coords[0][1] === 'number') {
     return { lng: coords[0][0], lat: coords[0][1] }
   }
@@ -99,6 +100,12 @@ function normalizeMutation(raw: Record<string, unknown>, origin: { lat: number; 
   }
 }
 
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {}
+}
+
 function normalizeDvfResponse(data: unknown, origin: { lat: number; lng: number }): DvfMutation[] {
   if (Array.isArray(data)) {
     return data
@@ -126,12 +133,6 @@ function normalizeDvfResponse(data: unknown, origin: { lat: number; lng: number 
   }
 
   return []
-}
-
-function asRecord(value: unknown): Record<string, unknown> {
-  return value && typeof value === 'object' && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : {}
 }
 
 function providerFromEnv(): DvfProvider {
@@ -240,4 +241,299 @@ export async function fetchDvfMutations(
     rayonMetres,
     dateMinStr,
   })
+}
+
+export const DVF_DATASET_URL = 'https://www.data.gouv.fr/datasets/demandes-de-valeurs-foncieres'
+export const DVF_DATASET_API_URL = 'https://www.data.gouv.fr/api/1/datasets/demandes-de-valeurs-foncieres/'
+const GEO_DVF_BASE_URL = process.env.DVF_GEO_CSV_BASE_URL ?? 'https://files.data.gouv.fr/geo-dvf/latest/csv'
+
+type Db = {
+  from: (table: string) => any
+}
+
+const db = supabaseAdmin as unknown as Db
+
+export type DvfImportResult = {
+  runId: string
+  inseeCode: string
+  year: number
+  sourceUrl: string
+  scannedRows: number
+  importedRows: number
+  skippedRows: number
+}
+
+type DvfRow = Record<string, string>
+
+function parseInteger(value?: string | null): number | null {
+  if (!value) return null
+  const normalized = value.trim()
+  if (!normalized) return null
+  const parsed = Number.parseInt(normalized, 10)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+function parseNumber(value?: string | null): number | null {
+  if (!value) return null
+  const normalized = value.trim().replace(',', '.')
+  if (!normalized) return null
+  const parsed = Number.parseFloat(normalized)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+function splitCsvLine(line: string): string[] {
+  const cells: string[] = []
+  let current = ''
+  let quoted = false
+
+  for (let i = 0; i < line.length; i += 1) {
+    const char = line[i]
+    const next = line[i + 1]
+
+    if (char === '"' && quoted && next === '"') {
+      current += '"'
+      i += 1
+      continue
+    }
+    if (char === '"') {
+      quoted = !quoted
+      continue
+    }
+    if (char === ',' && !quoted) {
+      cells.push(current)
+      current = ''
+      continue
+    }
+    current += char
+  }
+
+  cells.push(current)
+  return cells
+}
+
+function rowFromCsv(headers: string[], line: string): DvfRow {
+  const values = splitCsvLine(line)
+  return Object.fromEntries(headers.map((header, index) => [header, values[index] ?? '']))
+}
+
+function currentDvfYear(): number {
+  // Les fichiers DVF publiés en année N couvrent au plus N-1.
+  return new Date().getFullYear() - 1
+}
+
+export function normalizeDvfYear(year?: number | string | null): number {
+  const parsed = typeof year === 'number' ? year : Number.parseInt(String(year ?? ''), 10)
+  const fallback = currentDvfYear()
+  if (!Number.isFinite(parsed)) return fallback
+  return Math.min(fallback, Math.max(2019, parsed))
+}
+
+export function departmentFromInsee(inseeCode: string): string {
+  if (inseeCode.startsWith('2A') || inseeCode.startsWith('2B')) return inseeCode.slice(0, 2)
+  return inseeCode.slice(0, 2)
+}
+
+export function dvfDepartmentCsvUrl(year: number, departmentCode: string): string {
+  return `${GEO_DVF_BASE_URL}/${year}/departements/${departmentCode}.csv.gz`
+}
+
+function toTransaction(row: DvfRow, sourceRowId: string, sourceFileYear: number) {
+  const value = parseNumber(row.valeur_fonciere)
+  const builtSurface = parseNumber(row.surface_reelle_bati)
+  const pricePerM2 = value && builtSurface && builtSurface > 0
+    ? Math.round((value / builtSurface) * 100) / 100
+    : null
+
+  return {
+    source_row_id: sourceRowId,
+    mutation_id: row.id_mutation,
+    disposition_number: parseInteger(row.numero_disposition),
+    mutation_date: row.date_mutation || null,
+    mutation_year: row.date_mutation ? Number.parseInt(row.date_mutation.slice(0, 4), 10) : sourceFileYear,
+    nature_mutation: row.nature_mutation || null,
+    value,
+    address_number: row.adresse_numero || null,
+    address_suffix: row.adresse_suffixe || null,
+    street_name: row.adresse_nom_voie || null,
+    postal_code: row.code_postal || null,
+    insee_code: row.code_commune,
+    city_name: row.nom_commune || null,
+    department_code: row.code_departement || null,
+    parcel_id: row.id_parcelle || null,
+    lot_count: parseInteger(row.nombre_lots),
+    local_type_code: row.code_type_local || null,
+    local_type: row.type_local || null,
+    built_surface: builtSurface,
+    rooms: parseInteger(row.nombre_pieces_principales),
+    land_nature: row.nature_culture || null,
+    land_surface: parseNumber(row.surface_terrain),
+    longitude: parseNumber(row.longitude),
+    latitude: parseNumber(row.latitude),
+    price_per_m2: pricePerM2,
+    source_file_year: sourceFileYear,
+    raw_json: row,
+  }
+}
+
+async function upsertBatch(rows: ReturnType<typeof toTransaction>[]) {
+  if (rows.length === 0) return
+  const { error } = await db
+    .from('dvf_transactions')
+    .upsert(rows, { onConflict: 'source_row_id' })
+
+  if (error) {
+    throw new Error(`Import DVF impossible: ${error.message}`)
+  }
+}
+
+export async function importDvfCommune({
+  inseeCode,
+  communeName,
+  zipcode,
+  year,
+}: {
+  inseeCode: string
+  communeName?: string | null
+  zipcode?: string | null
+  year?: number | string | null
+}): Promise<DvfImportResult> {
+  const normalizedInsee = inseeCode.trim()
+  if (!/^[0-9AB]{2}[0-9]{3}$/i.test(normalizedInsee)) {
+    throw new Error('Code INSEE invalide')
+  }
+
+  const sourceFileYear = normalizeDvfYear(year)
+  const departmentCode = departmentFromInsee(normalizedInsee)
+  const sourceUrl = dvfDepartmentCsvUrl(sourceFileYear, departmentCode)
+
+  const { data: run, error: runError } = await db
+    .from('dvf_import_runs')
+    .insert({
+      insee_code: normalizedInsee,
+      commune_name: communeName ?? null,
+      department_code: departmentCode,
+      source_file_year: sourceFileYear,
+      source_url: sourceUrl,
+      status: 'running',
+    })
+    .select('id')
+    .single()
+
+  if (runError || !run?.id) {
+    throw new Error(`Création run DVF impossible: ${runError?.message ?? 'id manquant'}`)
+  }
+
+  const runId = run.id as string
+  let scannedRows = 0
+  let importedRows = 0
+  let skippedRows = 0
+
+  try {
+    const res = await fetch(sourceUrl, { headers: { Accept: 'application/gzip,text/csv,*/*' } })
+    if (!res.ok || !res.body) {
+      throw new Error(`Source DVF indisponible (${res.status})`)
+    }
+
+    const input = Readable.fromWeb(res.body as any)
+    const lines = createInterface({ input: input.pipe(createGunzip()), crlfDelay: Infinity })
+    let headers: string[] | null = null
+    const batch: ReturnType<typeof toTransaction>[] = []
+    let sourceLine = 0
+    let detectedCommuneName = communeName ?? null
+    let detectedZipcode = zipcode ?? null
+
+    for await (const line of lines) {
+      sourceLine += 1
+      if (!headers) {
+        headers = splitCsvLine(line)
+        continue
+      }
+      if (!line.trim()) continue
+
+      scannedRows += 1
+      const row = rowFromCsv(headers, line)
+      if (row.code_commune !== normalizedInsee) continue
+
+      const value = parseNumber(row.valeur_fonciere)
+      if (!row.id_mutation || !row.date_mutation || !value || value <= 0) {
+        skippedRows += 1
+        continue
+      }
+
+      detectedCommuneName ||= row.nom_commune || null
+      detectedZipcode ||= row.code_postal || null
+      batch.push(toTransaction(row, `${sourceFileYear}:${sourceLine}`, sourceFileYear))
+
+      if (batch.length >= 500) {
+        await upsertBatch(batch.splice(0, batch.length))
+      }
+    }
+
+    await upsertBatch(batch)
+
+    const countResult = await db
+      .from('dvf_transactions')
+      .select('id', { count: 'exact', head: true })
+      .eq('insee_code', normalizedInsee)
+      .eq('source_file_year', sourceFileYear)
+
+    importedRows = countResult.count ?? 0
+
+    await db
+      .from('dvf_communes')
+      .upsert({
+        insee_code: normalizedInsee,
+        name: detectedCommuneName ?? communeName ?? normalizedInsee,
+        zipcode: detectedZipcode ?? zipcode ?? null,
+        department_code: departmentCode,
+        active: true,
+        last_imported_at: new Date().toISOString(),
+        last_import_year: sourceFileYear,
+        last_import_status: 'success',
+        last_import_error: null,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'insee_code' })
+
+    await db
+      .from('dvf_import_runs')
+      .update({
+        status: 'success',
+        scanned_rows: scannedRows,
+        imported_rows: importedRows,
+        skipped_rows: skippedRows,
+        finished_at: new Date().toISOString(),
+      })
+      .eq('id', runId)
+
+    return { runId, inseeCode: normalizedInsee, year: sourceFileYear, sourceUrl, scannedRows, importedRows, skippedRows }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erreur import DVF'
+    await db
+      .from('dvf_import_runs')
+      .update({
+        status: 'error',
+        scanned_rows: scannedRows,
+        imported_rows: importedRows,
+        skipped_rows: skippedRows,
+        error: message,
+        finished_at: new Date().toISOString(),
+      })
+      .eq('id', runId)
+
+    await db
+      .from('dvf_communes')
+      .upsert({
+        insee_code: normalizedInsee,
+        name: communeName ?? normalizedInsee,
+        zipcode: zipcode ?? null,
+        department_code: departmentCode,
+        active: true,
+        last_import_year: sourceFileYear,
+        last_import_status: 'error',
+        last_import_error: message,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'insee_code' })
+
+    throw error
+  }
 }

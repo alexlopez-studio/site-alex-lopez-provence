@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { ensureStreamEstateSavedSearchForZone } from '@/lib/market/stream-estate-searches'
 
 /**
  * GET /api/market/zones
@@ -86,6 +87,8 @@ export async function POST(req: NextRequest) {
       console.error('[API /market/zones] POST error:', error)
       return NextResponse.json({ error: 'Erreur création zone' }, { status: 500 })
     }
+
+    if (zone?.active) await ensureStreamEstateSavedSearchForZone(zone)
 
     return NextResponse.json({ zone }, { status: 201 })
   } catch (e) {

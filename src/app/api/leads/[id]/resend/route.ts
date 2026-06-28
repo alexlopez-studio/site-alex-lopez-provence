@@ -50,10 +50,18 @@ export async function POST(
 
     const siteUrl = resolveSiteUrl()
     const magicLinkUrl = `${siteUrl}/resultats/${id}`
+    const email = lead.prospect?.email
+
+    if (!email) {
+        return NextResponse.json(
+            { success: false, error: 'Aucun email renseigné pour ce lead' },
+            { status: 400 },
+        )
+    }
 
     // Envoyer l'email
     const emailSent = await sendMagicLinkEmail({
-        to: lead.prospect.email,
+        to: email,
         prenom: lead.prospect.first_name ?? null,
         token: id,
         type: lead.tool,

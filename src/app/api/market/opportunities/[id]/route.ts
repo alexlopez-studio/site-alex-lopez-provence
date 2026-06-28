@@ -1,8 +1,115 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { propertyThumbnailUrl } from '@/lib/market/property-thumbnail'
 import type { Database } from '@/types/supabase'
 
 type OpportunitiesUpdate = Database['public']['Tables']['opportunities']['Update']
+type OpportunityEventInsert = Database['public']['Tables']['opportunity_events']['Insert']
+
+const SELLER_OPPORTUNITY_FIELDS = [
+  'seller_name',
+  'seller_phone',
+  'seller_email',
+  'source_channel',
+  'property_address',
+  'property_city',
+  'property_zipcode',
+  'property_type',
+  'property_surface',
+  'property_land_surface',
+  'property_rooms',
+  'estimated_price_min',
+  'estimated_price_max',
+  'selling_timeline',
+  'pre_estimation_done_at',
+  'visit_at',
+  'report_delivered_at',
+  'follow_up_at',
+] as const
+
+function normalizeText(value: unknown) {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null
+}
+
+function normalizeNumber(value: unknown) {
+  if (value === '' || value === null || value === undefined) return null
+  const numberValue = Number(value)
+  return Number.isFinite(numberValue) ? numberValue : null
+}
+
+async function enrichOpportunity(opportunity: Database['public']['Tables']['opportunities']['Row']) {
+  const [propertyResponse, leadResponse] = await Promise.all([
+    opportunity.market_property_id
+      ? supabaseAdmin
+        .from('market_properties')
+        .select('id, external_id, title, description, price, surface, land_surface, rooms, bedrooms, price_per_m2, city, zipcode, property_type, status, source, url, seller_type, published_at, first_seen_at, last_seen_at, raw_json')
+        .eq('id', opportunity.market_property_id)
+        .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+    opportunity.lead_id
+      ? supabaseAdmin
+        .from('leads')
+        .select('*, prospect:prospects!leads_prospect_id_fkey (*)')
+        .eq('id', opportunity.lead_id)
+        .is('deleted_at', null)
+        .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+  ])
+
+  if (propertyResponse.error) throw propertyResponse.error
+  if (leadResponse.error) throw leadResponse.error
+
+  let sellerProperty = null
+  if (opportunity.lead_id) {
+    const { data, error } = await supabaseAdmin
+      .from('seller_properties')
+      .select('*')
+      .eq('lead_id', opportunity.lead_id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+    if (error) throw error
+    sellerProperty = data?.[0] ?? null
+  }
+
+  let events: Database['public']['Tables']['opportunity_events']['Row'][] = []
+  const { data: eventRows, error: eventError } = await supabaseAdmin
+    .from('opportunity_events')
+    .select('*')
+    .eq('opportunity_id', opportunity.id)
+    .order('occurred_at', { ascending: false })
+    .order('created_at', { ascending: false })
+
+  if (eventError) {
+    if (eventError.code !== 'PGRST205' && eventError.code !== '42P01') throw eventError
+  } else {
+    events = eventRows ?? []
+  }
+
+  return {
+    ...opportunity,
+    property: propertyResponse.data
+      ? {
+        ...propertyResponse.data,
+        thumbnail_url: propertyThumbnailUrl(propertyResponse.data.raw_json),
+      }
+      : null,
+    lead: leadResponse.data
+      ? {
+        ...leadResponse.data,
+        seller_property: sellerProperty,
+      }
+      : null,
+    events,
+  }
+}
+
+async function createOpportunityEvent(input: OpportunityEventInsert) {
+  const { error } = await supabaseAdmin
+    .from('opportunity_events')
+    .insert(input)
+
+  if (error && error.code !== 'PGRST205' && error.code !== '42P01') throw error
+}
 
 /**
  * GET /api/market/opportunities/[id]
@@ -29,7 +136,7 @@ export async function GET(
       return NextResponse.json({ error: 'Erreur base de données' }, { status: 500 })
     }
 
-    return NextResponse.json({ opportunity })
+    return NextResponse.json({ opportunity: await enrichOpportunity(opportunity) })
   } catch (e) {
     console.error('[API /market/opportunities/[id]] GET', e)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
@@ -51,7 +158,7 @@ export async function PATCH(
     // Vérifier que l'opportunité existe
     const { data: existing, error: fetchError } = await supabaseAdmin
       .from('opportunities')
-      .select('id')
+      .select('*')
       .eq('id', id)
       .single()
 
@@ -60,7 +167,8 @@ export async function PATCH(
     }
 
     const updateData: OpportunitiesUpdate = {}
-    if (body.market_property_id !== undefined) updateData.market_property_id = body.market_property_id
+    if (body.market_property_id !== undefined) updateData.market_property_id = body.market_property_id || null
+    if (body.lead_id !== undefined) updateData.lead_id = body.lead_id || null
     if (body.title !== undefined) updateData.title = body.title
     if (body.description !== undefined) updateData.description = body.description
     if (body.stage !== undefined) updateData.stage = body.stage
@@ -69,6 +177,70 @@ export async function PATCH(
     if (body.next_action !== undefined) updateData.next_action = body.next_action
     if (body.due_date !== undefined) updateData.due_date = body.due_date
     if (body.note !== undefined) updateData.note = body.note
+    for (const field of SELLER_OPPORTUNITY_FIELDS) {
+      if (!(field in body)) continue
+      if (
+        field === 'property_surface' ||
+        field === 'property_land_surface' ||
+        field === 'property_rooms' ||
+        field === 'estimated_price_min' ||
+        field === 'estimated_price_max'
+      ) {
+        updateData[field] = normalizeNumber(body[field]) as never
+      } else {
+        updateData[field] = normalizeText(body[field]) as never
+      }
+    }
+
+    if (body.market_property_id !== undefined && body.market_property_id) {
+      const { data: alreadyLinked, error: linkedError } = await supabaseAdmin
+        .from('opportunities')
+        .select('id, title, stage, priority, market_property_id')
+        .eq('market_property_id', body.market_property_id)
+        .neq('id', id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (linkedError) {
+        console.error('[API /market/opportunities/[id]] linked property lookup:', linkedError)
+        return NextResponse.json({ error: 'Erreur vérification bien lié' }, { status: 500 })
+      }
+
+      if (alreadyLinked?.[0]) {
+        return NextResponse.json(
+          {
+            error: 'Ce bien est déjà rattaché à une opportunité',
+            existing_opportunity: alreadyLinked[0],
+          },
+          { status: 409 },
+        )
+      }
+    }
+
+    if (body.lead_id !== undefined && body.lead_id) {
+      const { data: alreadyLinked, error: linkedError } = await supabaseAdmin
+        .from('opportunities')
+        .select('id, title, stage, priority, lead_id')
+        .eq('lead_id', body.lead_id)
+        .neq('id', id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (linkedError) {
+        console.error('[API /market/opportunities/[id]] linked lead lookup:', linkedError)
+        return NextResponse.json({ error: 'Erreur vérification contact lié' }, { status: 500 })
+      }
+
+      if (alreadyLinked?.[0]) {
+        return NextResponse.json(
+          {
+            error: 'Ce contact est déjà rattaché à une opportunité',
+            existing_opportunity: alreadyLinked[0],
+          },
+          { status: 409 },
+        )
+      }
+    }
 
     const { data: opportunity, error } = await supabaseAdmin
       .from('opportunities')
@@ -82,7 +254,18 @@ export async function PATCH(
       return NextResponse.json({ error: 'Erreur mise à jour' }, { status: 500 })
     }
 
-    return NextResponse.json({ opportunity })
+    if (body.stage !== undefined && body.stage && body.stage !== existing.stage) {
+      await createOpportunityEvent({
+        opportunity_id: id,
+        type: 'stage_change',
+        title: 'Étape modifiée',
+        content: `${existing.stage ?? '—'} → ${body.stage}`,
+        metadata: { from: existing.stage, to: body.stage },
+        created_by: 'admin',
+      })
+    }
+
+    return NextResponse.json({ opportunity: await enrichOpportunity(opportunity) })
   } catch (e) {
     console.error('[API /market/opportunities/[id]] PATCH', e)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })

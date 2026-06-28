@@ -23,6 +23,11 @@ const nextConfig: NextConfig = {
         permanent: false,
       },
       {
+        source: '/app/zones',
+        destination: '/app/settings?section=communes',
+        permanent: false,
+      },
+      {
         source: '/app/dashboard/:path+',
         destination: '/app/:path*',
         permanent: false,
