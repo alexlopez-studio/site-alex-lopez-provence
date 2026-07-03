@@ -65,11 +65,11 @@ export function SyncDailyStats() {
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-lg border p-3">
             <p className="text-xs text-muted-foreground">Téléchargés aujourd&apos;hui</p>
-            <p className="text-2xl font-bold tabular-nums">{today ? today.downloaded : '—'}</p>
+            <p className="text-2xl font-semibold tabular-nums">{today ? today.downloaded : '—'}</p>
           </div>
           <div className="rounded-lg border p-3">
             <p className="text-xs text-muted-foreground">Mis à jour aujourd&apos;hui</p>
-            <p className="text-2xl font-bold tabular-nums">{today ? today.updated : '—'}</p>
+            <p className="text-2xl font-semibold tabular-nums">{today ? today.updated : '—'}</p>
           </div>
         </div>
 

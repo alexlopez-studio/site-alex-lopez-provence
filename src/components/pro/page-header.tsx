@@ -32,7 +32,7 @@ function PageHeader({
           </p>
         ) : null}
         <div className="space-y-1">
-          <h1 className="text-balance text-2xl font-semibold leading-tight text-foreground md:text-3xl">
+          <h1 className="text-balance text-2xl font-medium leading-tight text-foreground">
             {title}
           </h1>
           {description ? (
