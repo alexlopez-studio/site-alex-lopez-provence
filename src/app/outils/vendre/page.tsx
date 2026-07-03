@@ -73,6 +73,7 @@ const rgpdErrTxt: CSSProperties = { fontSize: '11px', fontWeight: 600, color: wa
 const infoCardGray: CSSProperties = { display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 14px', borderRadius: '12px', backgroundColor: '#f1f5f9', marginTop: '8px' }
 const infoCardYellow: CSSProperties = { display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 14px', borderRadius: '12px', backgroundColor: '#fefce8', border: '1px solid #fde047', marginTop: '6px' }
 const infoTxt: CSSProperties = { fontSize: '13px', fontWeight: 500, color: fg }
+const errorCard: CSSProperties = { display: 'flex', alignItems: 'flex-start', gap: '8px', padding: '12px 14px', borderRadius: '12px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', fontSize: '12px', fontWeight: 600, lineHeight: 1.45, marginTop: '8px' }
 const dpeBadgeSt: CSSProperties = { fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '999px', marginLeft: 'auto', backgroundColor: '#dbeafe', color: brand }
 const ignBadgeSt: CSSProperties = { fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '999px', marginLeft: 'auto', backgroundColor: '#fef9c3', color: '#854d0e' }
 const overlayStyle: CSSProperties = { position: 'fixed', inset: 0, backgroundColor: 'rgba(15,23,42,0.45)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }
@@ -305,6 +306,7 @@ function ts() { return new Date().toLocaleTimeString('fr-FR', { hour: '2-digit',
 function Avatar() { return <div style={avatarSt}>AL</div> }
 
 type UiState = 'chat' | 'calcul' | 'verification'
+type SubmissionStatus = 'idle' | 'pending' | 'success'
 
 export default function VendrePage() {
   const router = useRouter()
@@ -313,10 +315,13 @@ export default function VendrePage() {
   const [uiState, setUiState] = useState<UiState>('chat')
   const [token, setToken] = useState('')
   const [showModal, setShowModal] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [submissionStatus, setSubmissionStatus] = useState<SubmissionStatus>('idle')
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, currentQuestion])
 
   function handleAnswer(key: keyof VendreAnswers, value: VendreAnswers[keyof VendreAnswers], display: string) {
+    if (key === 'adresse' || key === 'lat' || key === 'lng') setSubmitError(null)
     const newA = { ...answers, [key]: value }
     setAnswer(key, value)
     if (!display) return
@@ -337,6 +342,8 @@ export default function VendrePage() {
     addMessage({ from: 'user', text: prenom + ' ' + nom, timestamp: ts() })
     const t = crypto.randomUUID()
     setToken(t)
+    setSubmitError(null)
+    setSubmissionStatus('pending')
     setUiState('calcul')
 
     try {
@@ -348,8 +355,15 @@ export default function VendrePage() {
       const payload = await safeJson(res)
       if (!res.ok || payload?.success === false) throw new Error(typeof payload?.error === 'string' ? payload.error : 'soumission échouée')
       persistLeadResult(t, finalAnswers, payload?.results)
+      setSubmissionStatus('success')
     } catch (err) {
       console.error('[outil vendre] soumission impossible :', err)
+      const message = 'Impossible de générer l’estimation, vérifiez l’adresse puis réessayez.'
+      setSubmissionStatus('idle')
+      setSubmitError(message)
+      addMessage({ from: 'al', text: message, timestamp: ts() })
+      setQuestion('adresse')
+      setUiState('chat')
     }
   }
 
@@ -364,9 +378,9 @@ export default function VendrePage() {
   }, [answers, token, router])
 
   function handleVerifComplete(chosen: number) { setAnswer('surface_terrain', chosen); router.push('/resultats/' + token) }
-  function confirmRestart() { reset(); setUiState('chat'); setShowModal(false) }
+  function confirmRestart() { reset(); setSubmissionStatus('idle'); setUiState('chat'); setShowModal(false) }
 
-  if (uiState === 'calcul') return <CalculLoading onComplete={handleCalculComplete} />
+  if (uiState === 'calcul') return <CalculLoading ready={submissionStatus === 'success'} onComplete={handleCalculComplete} />
   if (uiState === 'verification') return <VerificationDonnees userSurface={answers.surface_terrain ?? 0} cadastreSurface={answers.cadastre_surface ?? 0} onComplete={handleVerifComplete} />
 
   return (
@@ -399,7 +413,8 @@ export default function VendrePage() {
         ))}
         {currentQuestion !== 'done' && (
           <div style={inlineZone}>
-            <InputZone question={currentQuestion} answers={answers} onAnswer={handleAnswer} onFinalSubmit={handleFinalSubmit} onRestart={() => setShowModal(true)} onAlMessage={handleAlMessage} />
+            {submitError && <div style={errorCard}>{submitError}</div>}
+            <InputZone question={currentQuestion} onAnswer={handleAnswer} onFinalSubmit={handleFinalSubmit} onRestart={() => setShowModal(true)} onAlMessage={handleAlMessage} />
           </div>
         )}
         <div ref={bottomRef} />
@@ -409,12 +424,12 @@ export default function VendrePage() {
 }
 
 function InputZone(props: {
-  question: QuestionId; answers: VendreAnswers
+  question: QuestionId
   onAnswer: (key: keyof VendreAnswers, value: VendreAnswers[keyof VendreAnswers], display: string) => void
   onFinalSubmit: (p: string, n: string, t: string, e: string, c: 'monsieur' | 'madame') => void
   onRestart: () => void; onAlMessage: (text: string) => void
 }) {
-  const { question, answers, onAnswer, onFinalSubmit, onRestart, onAlMessage } = props
+  const { question, onAnswer, onFinalSubmit, onRestart, onAlMessage } = props
   if (question === 'adresse') return <AdresseInput onAnswer={onAnswer} onAlMessage={onAlMessage} />
   if (question === 'type_bien') return <Cards options={TYPE_BIEN} cols={2} onSelect={(v, l) => onAnswer('type_bien', v, l)} />
   if (question === 'sous_type_maison') return <Cards options={[{ value: 'mitoyenne', label: 'Mitoyenne', emoji: '🏘️' }, { value: 'individuelle', label: 'Individuelle', emoji: '🏡' }]} cols={2} onSelect={(v, l) => onAnswer('sous_type', v, l)} />
@@ -426,7 +441,7 @@ function InputZone(props: {
   if (question === 'equipements') return <MultiSelect options={EQUIPEMENTS} onValidate={(sel) => onAnswer('equipements', sel, sel.length ? sel.join(', ') : 'Aucun équipement')} />
   if (question === 'delai') return <Cards options={DELAI} cols={2} onSelect={(v, l) => onAnswer('delai', v, l)} />
   if (question === 'recapitulatif') return <RecapInput onConfirm={() => onAnswer('recapitulatif' as keyof VendreAnswers, true, "C'est correct ✅")} onRestart={onRestart} />
-  if (question === 'coordonnees') return <Coordonnees answers={answers} onFinalSubmit={onFinalSubmit} />
+  if (question === 'coordonnees') return <Coordonnees onFinalSubmit={onFinalSubmit} />
   return null
 }
 
@@ -444,34 +459,44 @@ function AdresseInput({ onAnswer, onAlMessage }: {
   const [selected, setSelected] = useState<Suggestion | null>(null)
   const [infos, setInfos] = useState<AdresseInfos>({})
   const [fetching, setFetching] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  async function fetchSuggestions(q: string): Promise<Suggestion[]> {
+    if (q.length < 3) return []
+    const res = await fetch(API_ADRESSE_URL + '?q=' + encodeURIComponent(q) + '&limit=5')
+    const data = await res.json()
+    if (!Array.isArray(data.features)) return []
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return data.features.map((f: any) => ({ label: f.properties.label, lat: f.geometry.coordinates[1], lng: f.geometry.coordinates[0] }))
+  }
 
   async function fetchSug(q: string) {
     if (q.length < 3) { setSug([]); return }
     setLoading(true)
     try {
-      const res = await fetch(API_ADRESSE_URL + '?q=' + encodeURIComponent(q) + '&limit=5')
-      const data = await res.json()
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      setSug(data.features.map((f: any) => ({ label: f.properties.label, lat: f.geometry.coordinates[1], lng: f.geometry.coordinates[0] })))
+      setSug(await fetchSuggestions(q))
     } catch { setSug([]) } finally { setLoading(false) }
   }
 
+  async function fetchAddressInfos(s: Suggestion): Promise<AdresseInfos> {
+    const res = await fetch('/api/adresse-infos?lat=' + s.lat + '&lng=' + s.lng + '&q=' + encodeURIComponent(s.label))
+    return await res.json()
+  }
+
   async function pickSuggestion(s: Suggestion) {
-    setSug([]); setVal(s.label); setSelected(s); setFetching(true)
+    setSug([]); setVal(s.label); setSelected(s); setFetching(true); setError(null)
     try {
-      const res = await fetch('/api/adresse-infos?lat=' + s.lat + '&lng=' + s.lng + '&q=' + encodeURIComponent(s.label))
-      const data = await res.json()
+      const data = await fetchAddressInfos(s)
       setInfos(data)
       if (data.parcelle?.surface) onAnswer('cadastre_surface', data.parcelle.surface, '')
     } catch { setInfos({}) } finally { setFetching(false) }
   }
 
-  function validate(currentInfos: AdresseInfos) {
-    if (!selected) return
-    onAnswer('lat', selected.lat, '')
-    onAnswer('lng', selected.lng, '')
-    onAnswer('adresse', selected.label, selected.label)
+  function validateSuggestion(s: Suggestion, currentInfos: AdresseInfos) {
+    onAnswer('lat', s.lat, '')
+    onAnswer('lng', s.lng, '')
+    onAnswer('adresse', s.label, s.label)
     if (currentInfos.dpe || currentInfos.parcelle) {
       const lines = ["Voici ce que j'ai trouvé pour cette adresse :"]
       if (currentInfos.dpe) lines.push('⚡ DPE : ' + currentInfos.dpe.lettre + ' (vérifié ADEME)')
@@ -485,13 +510,47 @@ function AdresseInput({ onAnswer, onAlMessage }: {
     }
   }
 
+  function validate(currentInfos: AdresseInfos) {
+    if (!selected) return
+    validateSuggestion(selected, currentInfos)
+  }
+
   function onChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setVal(e.target.value); setSelected(null); setInfos({})
+    setVal(e.target.value); setSelected(null); setInfos({}); setError(null)
     if (timer.current) clearTimeout(timer.current)
     timer.current = setTimeout(() => fetchSug(e.target.value), 300)
   }
 
-  function submit() { if (!val.trim()) return; setSug([]); onAnswer('adresse', val.trim(), val.trim()) }
+  async function submit() {
+    const q = val.trim()
+    if (!q) return
+    if (selected) {
+      validate(infos)
+      return
+    }
+
+    setFetching(true)
+    setError(null)
+    try {
+      const [first] = await fetchSuggestions(q)
+      if (!first) {
+        setError('Adresse introuvable. Choisissez une adresse proposée pour générer une estimation fiable.')
+        setSug([])
+        return
+      }
+      const data = await fetchAddressInfos(first)
+      setSelected(first)
+      setVal(first.label)
+      setInfos(data)
+      setSug([])
+      if (data.parcelle?.surface) onAnswer('cadastre_surface', data.parcelle.surface, '')
+      validateSuggestion(first, data)
+    } catch {
+      setError('Adresse introuvable. Choisissez une adresse proposée pour générer une estimation fiable.')
+    } finally {
+      setFetching(false)
+    }
+  }
 
   return (
     <div>
@@ -510,6 +569,7 @@ function AdresseInput({ onAnswer, onAlMessage }: {
       )}
       {loading && <p style={loadingSt}>Recherche en cours...</p>}
       {fetching && <p style={loadingSt}>Vérification des données officielles...</p>}
+      {error && <div style={errorCard}>{error}</div>}
       {selected && !fetching && (
         <div>
           {infos.dpe && (
@@ -582,7 +642,7 @@ function RecapInput({ onConfirm, onRestart }: { onConfirm: () => void; onRestart
   )
 }
 
-function Coordonnees({ answers, onFinalSubmit }: { answers: VendreAnswers; onFinalSubmit: (p: string, n: string, t: string, e: string, c: 'monsieur' | 'madame') => void }) {
+function Coordonnees({ onFinalSubmit }: { onFinalSubmit: (p: string, n: string, t: string, e: string, c: 'monsieur' | 'madame') => void }) {
   const [civilite, setCiv] = useState<'monsieur' | 'madame'>('monsieur')
   const [prenom, setPrenom] = useState('')
   const [nom, setNom] = useState('')
@@ -628,17 +688,21 @@ function Coordonnees({ answers, onFinalSubmit }: { answers: VendreAnswers; onFin
 
 const CALCUL_STEPS = ['Recherche des ventes récentes...', 'Analyse du marché local', 'Calcul de votre estimation']
 
-function CalculLoading({ onComplete }: { onComplete: () => void }) {
+function CalculLoading({ ready, onComplete }: { ready: boolean; onComplete: () => void }) {
   const [activeStep, setActiveStep] = useState(0)
   const [progress, setProgress] = useState(0)
+  const [animationDone, setAnimationDone] = useState(false)
   const ref = useRef(onComplete); ref.current = onComplete
   useEffect(() => {
     const t1 = setTimeout(() => { setActiveStep(1); setProgress(35) }, 900)
     const t2 = setTimeout(() => { setActiveStep(2); setProgress(68) }, 1900)
     const t3 = setTimeout(() => { setActiveStep(3); setProgress(100) }, 2800)
-    const t4 = setTimeout(() => ref.current(), 3400)
+    const t4 = setTimeout(() => setAnimationDone(true), 3400)
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4) }
   }, [])
+  useEffect(() => {
+    if (ready && animationDone) ref.current()
+  }, [ready, animationDone])
   return (
     <div style={calculPage}>
       <div style={calculIcon}>📊</div>

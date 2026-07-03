@@ -9,6 +9,19 @@
 | `NEXT_PUBLIC_IAD_LISTINGS_URL` | URL des annonces IAD (vide = `/biens` placeholder) |
 | `NEXT_PUBLIC_SITE_URL` | URL du site (pour les canonicals SEO) |
 
+## Architecture cible domaines
+
+Decision du 03/07/2026 :
+
+- Le repo actuel reste la source unique pour le site public, Mandat OS, le portail client et les APIs.
+- Domaine public cible : `alexandrelopez.fr`.
+- Sous-domaine applicatif cible : `app.alexandrelopez.fr`.
+- Sur `app.alexandrelopez.fr`, conserver deux surfaces avec auth et usages distincts :
+  - `/app/*` : Mandat OS interne.
+  - `/espace-client/*` : portail vendeur.
+- Avant configuration DNS/Vercel, unifier le design applicatif dans ce repo avec une base commune
+  `app-product`, puis rattacher le sous-domaine.
+
 ## Routes du site
 
 ### Logiciel Mandat OS
@@ -20,6 +33,8 @@ Routes canoniques de navigation locale et backoffice :
 | `/app/dashboard` | Vue d'ensemble Mandat OS |
 | `/app/radar` | Radar vendeurs / MandatFinder |
 | `/app/leads` | Pipeline leads vendeurs |
+| `/app/clients` | Dossiers clients vendeurs |
+| `/app/clients/[id]` | Detail dossier client vendeur |
 | `/app/liste-chaude` | Liste chaude bouche-a-oreille |
 | `/app/properties` | Biens du marche |
 | `/app/properties/[id]` | Detail d'un bien |
@@ -34,6 +49,7 @@ Routes canoniques de navigation locale et backoffice :
 | `/app/zones` | Zones surveillees |
 | `/app/settings` | Parametres et controle sync |
 | `/app/utilisateurs` | Gestion utilisateurs admin |
+| `/espace-client/test` | Session test locale espace client vendeur |
 
 Routes historiques conservees en redirection/rewrite :
 

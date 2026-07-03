@@ -17,6 +17,499 @@ Decision : Codex reprend seul le developpement et le design pour le moment.
 
 Note : les lots Linear ci-dessous sont historiques et ne refletent plus l'etat reel du code. La memoire courante est dans `docs/MEMOIRE_SESSION.md`.
 
+### 03/07/2026 15:25 CEST - Scope typographique portail client
+- Base/branche : `preview` (local non commite au moment de l'ecriture).
+- Type : design system / typographie / coherence app.
+- Statut : **fait**.
+- Decision (Alexandre) : garder Inter pour l'app interne Mandat OS et le site public,
+  mais utiliser Plus Jakarta Sans uniquement sur le portail client vendeur pour rester
+  proche du rendu Google AI Studio.
+- Travail :
+  1. Repassage du scope `.app-product` sur `--font-inter`.
+  2. Ajout du scope `.client-portal` avec `--font-jakarta` prioritaire.
+  3. Ajout du scrollbar premium global : 6px, piste transparente, thumb `#E2E8F0`,
+     hover `#CBD5E1`.
+  4. Mise a jour de `docs/BRAND.md` pour documenter la separation Inter / Jakarta.
+- Fichiers principaux : `src/app/globals.css`, `docs/BRAND.md`, `docs/SUIVI_PROJET.md`.
+- Audit qualite : `pnpm exec tsc --noEmit` OK ; `pnpm lint` OK avec warnings existants ;
+  `pnpm build` OK avec warnings existants ; verification Playwright runtime sur
+  `http://localhost:3001/espace-client/test` : portail en Plus Jakarta Sans, body/app
+  en Inter, scrollbar thumb `rgb(226, 232, 240)`.
+
+### 03/07/2026 14:27 CEST - Carte Leaflet des comparables portail client
+- Base/branche : `preview` (local non commite au moment de l'ecriture).
+- Type : UX portail client / carte interactive / confidentialite donnees.
+- Statut : **fait**.
+- Demande (Alexandre) : remplacer la fausse carte SVG des biens comparables vendus
+  par une vraie carte Leaflet, sans exposer automatiquement les adresses exactes.
+- Travail :
+  1. Ajout d'un composant client Leaflet dedie au portail vendeur avec chargement
+     dynamique pour eviter les erreurs SSR.
+  2. Branchement sur `professional_opinion.comparables` avec support de `lat` / `lng`
+     optionnels, popups, selection active et marqueurs numerotes.
+  3. Ajout du marqueur `Votre bien` lorsque les coordonnees existent via
+     `property_snapshot` ou `seller_properties`.
+  4. Application d'un decalage deterministe sur les coordonnees des comparables
+     pour conserver un affichage indicatif cote client.
+  5. Generation de points autour du bien vendeur ou du centre secteur lorsque les
+     coordonnees comparables sont absentes.
+  6. Mise a jour de l'aide admin JSON des comparables pour documenter `lat` / `lng`
+     optionnels et l'affichage approximatif cote client.
+- Fichiers principaux : `src/app/espace-client/comparable-leaflet-map.tsx`,
+  `src/app/espace-client/portal-view.tsx`,
+  `src/app/admin/market/clients/[id]/page.tsx`.
+- Audit qualite : `pnpm exec tsc --noEmit` OK ; `pnpm lint` OK avec warnings existants ;
+  `pnpm build` OK avec warnings existants ; audit Playwright sur
+  `http://localhost:3001/espace-client/test` OK desktop/mobile : Leaflet charge,
+  marqueur bien vendeur present, comparables cliquables, selection active OK, aucun
+  debordement horizontal.
+- Captures : `/tmp/espace-client-leaflet-estimation-desktop.png`,
+  `/tmp/espace-client-leaflet-estimation-mobile-loaded.png`.
+- URL de verification : `http://localhost:3001/espace-client/test`.
+
+### 03/07/2026 14:13 CEST - Alignement titre arguments estimation
+- Base/branche : `preview` (local non commite au moment de l'ecriture).
+- Type : micro-ajustement UI / hierarchie typographique.
+- Statut : **fait**.
+- Demande (Alexandre) : basculer `Pourquoi ce prix de 420 000 € ?` avec le meme style
+  que `Carte des biens comparables vendus`.
+- Travail : remplacement de `portal-h1` par `portal-h2` sur le titre de la carte sombre
+  `Arguments d'Alexandre`.
+- Fichier : `src/app/espace-client/portal-view.tsx`.
+- Verification : `pnpm exec tsc --noEmit` OK ; audit Playwright cible OK :
+  les deux titres sont en 20px/800 avec le meme line-height.
+
+### 03/07/2026 14:07 CEST - Correction hierarchie titres portail client
+- Base/branche : `preview` (local non commite au moment de l'ecriture).
+- Type : design system / hierarchie typographique.
+- Statut : **fait**.
+- Demande (Alexandre) : verifier la hierarchie apres question sur le titre
+  `Carte des biens comparables vendus`.
+- Travail :
+  1. Correction des titres de blocs secondaires en `portal-h2` 20px/800 :
+     `Carte des biens comparables vendus`, `Detail des ventes recentes`,
+     `Evolution du prix median au m2`, `Diffusion & Audience`,
+     `Accompagnement de votre conseiller`.
+  2. Passage de `Bonjour, ...` en vrai `h1` avec `portal-h1` 28px/800.
+  3. Separation des gros chiffres et valeurs dans une classe `portal-value`
+     28px/800 pour ne plus utiliser `portal-h1` sur des donnees non titrees.
+  4. Conservation des H3 16px/700 pour titres internes : document, comparable,
+     evenement, sous-bloc.
+- Fichiers principaux : `src/app/globals.css`,
+  `src/app/espace-client/portal-view.tsx`, `docs/SUIVI_PROJET.md`.
+- Audit qualite : `pnpm exec tsc --noEmit` OK ; `pnpm lint` OK avec warnings existants ;
+  `pnpm build` OK avec warnings existants ; audit Playwright hierarchie OK sur
+  `http://localhost:3000/espace-client/test` : H1 dashboard, H2 comparables/ventes/DVF,
+  H3 interne, `portal-value`, aucun debordement desktop/mobile.
+- Captures : `/tmp/espace-client-hierarchy-estimation-desktop.png`,
+  `/tmp/espace-client-hierarchy-dashboard-mobile.png`.
+- URL active : `http://localhost:3000/espace-client/test`.
+
+### 03/07/2026 13:52 CEST - Echelle typographique portail client
+- Base/branche : `preview` (local non commite au moment de l'ecriture).
+- Type : design system / typographie portail client.
+- Statut : **fait**.
+- Demande (Alexandre) : appliquer les tailles de police conformement aux captures, apres
+  validation de la passe Inter.
+- Travail :
+  1. Ajout des classes typographiques scopees `.client-portal` :
+     `portal-h1` 28px/800, `portal-h2` 20px/800, `portal-h3` 16px/700,
+     `portal-body` 15px/400, `portal-button-text` 14px/600,
+     `portal-meta` 13px/300 et `portal-label` 13px/600.
+  2. Remplacement des tailles Tailwind dispersees dans les zones principales du portail :
+     header, onglets, accueil, conseiller, audience, fiche bien, estimation, documents,
+     suivi, timelines et composants utilitaires.
+  3. Conservation volontaire des tres grands chiffres de valeur/prix/KPI en tailles
+     specifiques, car ils correspondent aux emphases visuelles de la maquette.
+  4. Mise a jour de `docs/BRAND.md` pour documenter les tailles exactes et les classes
+     applicatives.
+- Fichiers principaux : `src/app/globals.css`, `src/app/espace-client/portal-view.tsx`,
+  `src/app/espace-client/client-documents.tsx`, `docs/BRAND.md`,
+  `docs/SUIVI_PROJET.md`.
+- Audit qualite : `pnpm exec tsc --noEmit` OK ; `pnpm lint` OK avec warnings existants ;
+  `pnpm build` OK avec warnings existants ; audit Playwright typographique OK sur
+  `http://localhost:3000/espace-client/test` : Inter detecte, tailles/weights verifies
+  au runtime pour `portal-h1`, `portal-h2`, `portal-h3`, `portal-body`,
+  `portal-button-text`, `portal-meta`, `portal-label`, aucun debordement horizontal
+  desktop/mobile.
+- Captures : `/tmp/espace-client-typography-dashboard-desktop.png`,
+  `/tmp/espace-client-typography-estimation-desktop.png`,
+  `/tmp/espace-client-typography-dashboard-mobile.png`.
+- URL active : `http://localhost:3000/espace-client/test`.
+
+### 03/07/2026 12:05 CEST - Tokens design AI Studio et typographie Inter
+- Base/branche : `preview` (local non commite au moment de l'ecriture).
+- Type : design system / portail client.
+- Statut : **fait**.
+- Demande (Alexandre) : integrer les elements de design fournis et remplacer la typographie
+  applicative par Inter.
+- Travail :
+  1. Harmonisation des tokens `.app-product` avec la palette cible : `#0077B6`,
+     `#005F96`, `#E0F0FA`, `#0F172A`, `#64748B`, `#E2E8F0`, `#F8FAFC`,
+     `#10B981`, `#B26A00`, `#EF4444`.
+  2. Confirmation d'Inter comme police applicative via `--font-inter` et suppression des
+     dernieres references actives a Plus Jakarta Sans.
+  3. Ajout de styles scopes `.client-portal` pour boutons `rounded-full`, badges statut,
+     KPI cards et neutralisation du letter-spacing dans l'espace applicatif.
+  4. Reprise des badges documents vendeur : `VALIDE`, `A FOURNIR`, `A REPRENDRE` avec
+     les couleurs exactes success/warning/error.
+  5. Mise a jour de `docs/BRAND.md` pour aligner la documentation sur Inter et le token
+     warning.
+- Fichiers principaux : `src/app/globals.css`, `src/app/espace-client/portal-view.tsx`,
+  `src/app/espace-client/client-documents.tsx`, `src/app/admin/login/page.tsx`,
+  `docs/BRAND.md`, `docs/SUIVI_PROJET.md`.
+- Audit qualite : `pnpm exec tsc --noEmit` OK ; `pnpm lint` OK avec warnings existants ;
+  `pnpm build` OK avec warnings existants ; Playwright sur
+  `http://localhost:3000/espace-client/test` OK desktop/mobile : Inter detecte au runtime,
+  badges documents presents, aucun debordement horizontal.
+- Captures : `/tmp/espace-client-inter-dashboard-desktop.png`,
+  `/tmp/espace-client-inter-estimation-desktop.png`,
+  `/tmp/espace-client-inter-documents-desktop.png`,
+  `/tmp/espace-client-inter-documents-mobile.png`.
+- URL active : `http://localhost:3000/espace-client/test`.
+
+### 03/07/2026 11:58 CEST - Reprise fidele Google AI Studio accueil + estimation
+- Base/branche : `preview` (local non commite au moment de l'ecriture).
+- Type : design produit / portail client vendeur.
+- Statut : **fait**.
+- Demande (Alexandre) : revenir a un rendu tres proche des captures Google AI Studio, en
+  commencant par les onglets `Accueil` et `Estimation`, avec couleurs, grands arrondis,
+  cartes et outils integres de la maquette.
+- Travail :
+  1. Restauration de la palette AI Studio/iAD scopee au portail client : bleu `#0077B6`,
+     bleu hover `#005F96`, surfaces `#F8FAFC`, bordures claires, vert `#10B981`,
+     cartes `rounded-3xl` et boutons `rounded-full`.
+  2. Refonte de l'accueil vendeur : statut dossier, 3 KPI, checklist, bloc conseiller
+     Alexandre, diffusion/audience, grande fiche bien illustree et CTA rendez-vous.
+  3. Refonte de `Mon estimation` : switch `Avis de valeur Conseiller` / `Estimation Express
+     iAD`, grande carte prix, jauge, simulateur net vendeur, carte sombre des arguments,
+     comparables interactifs, ventes recentes et graphe DVF.
+  4. Enrichissement du ViewModel interne avec `audience`, `propertyHero`, `comparables`,
+     `priceTrend` et fallbacks complets reserves a `/espace-client/test`.
+  5. Conservation de l'architecture Next/Supabase existante, sans nouvelle route, sans
+     migration et sans importer le scaffold Vite/AI Studio.
+- Fichiers principaux : `src/app/espace-client/portal-view.tsx`,
+  `src/app/globals.css`, `docs/SUIVI_PROJET.md`.
+- Audit qualite : `pnpm exec tsc --noEmit` OK ; `pnpm lint` OK avec warnings existants ;
+  `pnpm build` OK avec warnings existants ; Playwright sur
+  `http://localhost:3000/espace-client/test` OK desktop/mobile : onglets `Accueil` et
+  `Estimation`, switch estimation, simulateur, comparables, aucun debordement horizontal.
+- Captures : `/tmp/espace-client-ai-dashboard-desktop.png`,
+  `/tmp/espace-client-ai-estimation-desktop.png`,
+  `/tmp/espace-client-ai-dashboard-mobile.png`,
+  `/tmp/espace-client-ai-estimation-mobile.png`.
+- Note locale : le seul `404` detecte en audit est `/_vercel/insights/script.js`, attendu en
+  developpement local et sans impact sur le rendu.
+- URL active : `http://localhost:3000/espace-client/test`.
+
+### 03/07/2026 10:46 CEST - Largeur portail client app premium
+- Base/branche : `preview` (local non commite au moment de l'ecriture).
+- Type : decision UI / layout responsive.
+- Statut : **fait**.
+- Decision : ne pas passer le portail client en plein `100%` desktop. Pour une experience
+  vendeur premium, garder une largeur de lecture contrainte, mais l'elargir de `max-w-6xl` a
+  `max-w-7xl` pour donner plus d'ampleur app sur grands ecrans.
+- Travail : header et contenu principal de `/espace-client` passent en `max-w-7xl`.
+- Fichiers : `src/app/espace-client/portal-view.tsx`, `docs/SUIVI_PROJET.md`.
+- Verification : `pnpm exec tsc --noEmit` OK ; `curl -I http://localhost:3000/espace-client/test`
+  retourne `200 OK`.
+- URL active : `http://localhost:3000/espace-client/test`.
+
+### 03/07/2026 10:39 CEST - Passe design premium portail client
+- Base/branche : `preview` (local non commite au moment de l'ecriture).
+- Type : design produit / direction visuelle.
+- Statut : **fait**.
+- Demande (Alexandre) : rendre le design du portail vendeur plus premium et moins `IA-style`.
+- Travail :
+  1. Conservation de la structure UX inspiree Google AI Studio, mais reduction des codes
+     visuels trop prototype : pastilles bleues, icones sur fonds bleus, arrondis tres mous,
+     couleurs trop presentes.
+  2. Header produit rendu plus sobre : logo iAD blanc borde, onglets actifs anthracite,
+     formes plus nettes, CTA rendez-vous conserve en bleu.
+  3. Cartes et panneaux rendus plus premium : fond applicatif plus calme, radius 8px,
+     ombres plus diffuses, surfaces neutres, accents bleus reserves aux actions ou signaux.
+  4. Dashboard rendu moins demonstratif : KPI plus sobres, checklist moins coloree, conseiller
+     et audience sans decoration excessive, timeline plus discrete.
+  5. Tokens `.app-product` ajustes sans impacter le site public.
+- Fichiers principaux : `src/app/espace-client/portal-view.tsx`,
+  `src/app/globals.css`, `docs/SUIVI_PROJET.md`.
+- Audit qualite : `pnpm exec tsc --noEmit` OK ; `pnpm lint` OK avec warnings existants ;
+  `pnpm build` OK avec warnings existants ; Playwright desktop/mobile sur
+  `http://localhost:3000/espace-client/test` OK : route `200`, pas de header public,
+  blocs essentiels presents, aucun debordement horizontal, cartes a `8px`.
+- Captures : `/tmp/espace-client-premium-desktop.png`,
+  `/tmp/espace-client-premium-mobile.png`.
+- URL active : `http://localhost:3000/espace-client/test`.
+
+### 03/07/2026 10:31 CEST - Redemarrage localhost portail client
+- Base/branche : `preview` (local non commite au moment de l'ecriture).
+- Type : environnement local / support consultation.
+- Statut : **fait**.
+- Probleme : Alexandre ne pouvait pas consulter localhost. Les anciennes instances `3002` et
+  `3004` pointaient vers un cache dev `.next` incoherent apres un `pnpm build`, provoquant des
+  erreurs `500` de manifest manquant.
+- Travail : arret des anciennes instances Node, relance du serveur dev sur le port standard
+  `3000`.
+- Verification : `curl -I http://localhost:3000/espace-client/test` retourne `200 OK`.
+- URL active : `http://localhost:3000/espace-client/test`.
+
+### 03/07/2026 10:28 CEST - Portail vendeur shadcn aligne UX Google AI Studio
+- Base/branche : `preview` (local non commite au moment de l'ecriture).
+- Type : design produit + UX portail client.
+- Statut : **fait**.
+- Decision (Alexandre) : rester sur `shadcn/ui` et les tokens Mandat OS, mais reprendre la
+  structure UX de la maquette Google AI Studio : header produit compact, onglets centraux,
+  navigation mobile basse, dashboard construit en blocs statut/KPI/checklist/conseiller.
+- Travail :
+  1. Reorganisation de `/espace-client` : le header n'est plus un hero, il devient une barre
+     produit compacte avec logo, onglets desktop, vendeur, rendez-vous et telephone.
+  2. Refonte de l'accueil vendeur selon l'ordre de la maquette : quick status, 3 KPI, checklist
+     "Prochaines etapes conseillees", conseiller, diffusion/audience, synthese bien, jalons,
+     message Alexandre et CTA final.
+  3. Conservation des donnees reelles `ClientPortalDossier`, sans importer le scaffold Vite/AI
+     Studio ni les donnees hardcodees de la maquette.
+  4. Utilisation de primitives shadcn (`Card`, `CardContent`, `Progress`, `Badge`, `Button`) pour
+     rester coherent avec Mandat OS.
+  5. Isolation de `/espace-client/*` dans `AppChrome` pour retirer le header/footer public et
+     preparer le rattachement futur a `app.alexandrelopez.fr`.
+- Fichiers principaux : `src/app/espace-client/portal-view.tsx`,
+  `src/components/layout/AppChrome.tsx`, `docs/SUIVI_PROJET.md`.
+- Audit qualite : `pnpm exec tsc --noEmit` OK ; `pnpm lint` OK avec warnings existants ;
+  `pnpm build` OK avec warnings existants ; Playwright sur `http://localhost:3004/espace-client/test`
+  OK desktop/mobile : route `200`, pas de header/footer public, blocs dashboard/conseiller/bien
+  presents, aucun debordement horizontal. Captures : `/tmp/espace-client-ai-studio-isolated-desktop.png`
+  et `/tmp/espace-client-ai-studio-isolated-mobile.png`.
+- Point de reprise : serveur local de verification actif sur `http://localhost:3004/espace-client/test`.
+- Suite conseillee : appliquer la meme logique de construction par onglets aux sous-pages
+  `Estimation`, `Documents` et `Suivi`, puis aligner `/app/clients/[id]` champ par champ sur ce
+  que voit le vendeur.
+
+### 03/07/2026 09:57 CEST - Decision domaine app et base design applicative
+- Base/branche : `preview` (local non commite au moment de l'ecriture).
+- Type : architecture produit + design system applicatif.
+- Statut : **fait**.
+- Decision (Alexandre) : conserver le site, Mandat OS, le portail client et les APIs dans ce
+  repo actuel, puis rattacher plus tard l'application metier au sous-domaine
+  `app.alexandrelopez.fr`. Le domaine public cible reste `alexandrelopez.fr`.
+- Travail :
+  1. Documentation dans `docs/ROUTES.md` : repo unique, futur sous-domaine
+     `app.alexandrelopez.fr`, surfaces `/app/*` et `/espace-client/*`.
+  2. Ajout d'une base CSS scopee `.app-product` pour Mandat OS et le portail client, sans
+     modifier le site public.
+  3. Application de `.app-product` au shell Mandat OS (`MarketShell`) et au portail client.
+  4. Ajout de styles communs `app-panel` et `app-page-title` pour unifier panneaux, titres,
+     fonds, bordures et accent bleu.
+  5. Realignement leger de `/app/clients` et des panneaux `/espace-client/test` sur cette base.
+- Fichiers principaux : `src/app/globals.css`, `src/app/admin/market/MarketShell.tsx`,
+  `src/app/admin/market/clients/page.tsx`, `src/app/espace-client/portal-view.tsx`,
+  `docs/ROUTES.md`, `docs/SUIVI_PROJET.md`.
+- Audit qualite : `pnpm exec tsc --noEmit` OK ; `pnpm lint` OK avec warnings existants ;
+  `pnpm build` OK avec warnings existants ; Playwright OK sur `/app/clients` et
+  `/espace-client/test` : `.app-product` present, CTA/modale creation OK, onglets client OK,
+  telephone visible, aucun debordement horizontal desktop/mobile.
+- Point de reprise : serveur local actif sur `http://localhost:3002/app/clients` et
+  `http://localhost:3002/espace-client/test`.
+- Suite conseillee : poursuivre l'unification ecran par ecran dans `/app/*` avant de configurer
+  DNS/Vercel pour `app.alexandrelopez.fr`.
+
+### 03/07/2026 09:27 CEST - Creation manuelle dossiers clients vendeurs
+- Base/branche : `preview` (local non commite au moment de l'ecriture).
+- Type : backend admin + migration Supabase + UX etat vide.
+- Statut : **fait, migration appliquee en base distante**.
+- Demande (Alexandre) : continuer le chantier espace client vendeur apres la refonte premium.
+- Travail :
+  1. Ajout migration `022_client_dossiers_manual_creation.sql` pour autoriser un dossier client
+     manuel si `property_snapshot` est renseigne, sans imposer un lead/bien/opportunite.
+  2. Migration `022` appliquee sur la base Supabase distante et enregistree dans
+     `supabase_migrations.schema_migrations`.
+  3. Ajout de `POST /api/market/clients` : creation profil client, dossier vendeur manuel,
+     checklist documentaire par defaut et premiers jalons visibles client.
+  4. Ajout d'un bouton `Nouveau dossier` dans `/app/clients`, avec modale client + bien de
+     depart et redirection vers `/app/clients/[id]` apres creation.
+  5. Etat vide `/app/clients` rendu actionnable avec CTA `Creer le premier dossier`.
+- Fichiers principaux : `supabase/migrations/022_client_dossiers_manual_creation.sql`,
+  `src/app/api/market/clients/route.ts`, `src/app/admin/market/clients/page.tsx`,
+  `docs/SUIVI_PROJET.md`.
+- Audit qualite : `pnpm exec tsc --noEmit` OK ; `pnpm lint` OK avec warnings existants ;
+  `pnpm build` OK avec warnings existants ; Playwright OK sur `/app/clients` : route `200`,
+  titre visible, CTA creation visible, modale creation visible, aucun debordement horizontal ;
+  `/espace-client/test` OK route `200`, aucun debordement.
+- Point de reprise : serveur local actif sur `http://localhost:3002/app/clients` et
+  `http://localhost:3002/espace-client/test`.
+- A verifier manuellement : creer un vrai dossier client depuis `/app/clients`, ouvrir la fiche,
+  renseigner avis pro/documents/suivi, inviter le vendeur puis tester le lien magique.
+
+### 03/07/2026 00:37 CEST - Refonte premium espace client vendeur par lots
+- Base/branche : `preview` (local non commite au moment de l'ecriture).
+- Type : UX client vendeur + enrichissement back-office client.
+- Statut : **fait**.
+- Demande (Alexandre) : implementer le plan projet en lots pour transformer `/espace-client`
+  en espace vendeur premium inspire de la maquette.
+- Travail :
+  1. Refonte de `ClientPortalView` en shell a onglets `Accueil`, `Estimation`, `Documents`,
+     `Suivi`, avec navigation desktop et barre mobile.
+  2. Tableau de bord vendeur ajoute : KPI prix/documents/etape, prochaine action, bloc
+     conseiller Alexandre, synthese du bien et jalons visibles.
+  3. Onglet estimation ajoute : prix retenu, fourchette, net vendeur indicatif, arguments
+     conseiller, comparables valides et lecture marche depuis `professional_opinion`.
+  4. Onglet documents refait : progression, statuts lisibles, dates, taille fichier, motif de
+     rejet, lecture seule en session test et upload client limite aux statuts autorises.
+  5. Onglet suivi enrichi : timeline, visites, offres consultatives et avertissement sur les
+     decisions juridiquement sensibles.
+  6. Back-office `/app/clients/[id]` enrichi avec onglet `Avis pro`, champs arguments,
+     comparables JSON et payloads simples pour visites/offres.
+  7. API client document durcie : refus de remplacer une piece deja recue/en validation ou
+     validee ; API events admin accepte maintenant `payload`.
+- Fichiers principaux : `src/app/espace-client/portal-view.tsx`,
+  `src/app/espace-client/client-documents.tsx`, `src/app/espace-client/test/page.tsx`,
+  `src/app/admin/market/clients/[id]/page.tsx`,
+  `src/app/api/client/documents/route.ts`,
+  `src/app/api/market/clients/[id]/events/route.ts`,
+  `docs/SUIVI_PROJET.md`.
+- Audit qualite : `pnpm exec tsc --noEmit` OK ; `pnpm lint` OK avec warnings existants ;
+  `pnpm build` OK avec warnings existants Supabase Edge/runtime et lint historiques ;
+  Playwright OK desktop/mobile sur `/espace-client/test` : route `200`, bannière test visible,
+  onglets estimation/documents/suivi OK, documents en `Lecture test`, aucun debordement
+  horizontal. Verification supplementaire OK : le telephone `06 13 18 01 68` reste visible.
+- Point de reprise : serveur local actif sur `http://localhost:3002/espace-client/test`.
+- A verifier en donnees reelles : renseigner un avis pro dans `/app/clients/[id]`, ajouter une
+  visite/offre visible client, tester upload client authentifie et confirmer le rendu
+  `/espace-client` avec session Supabase.
+
+### 02/07/2026 16:10 CEST - Session test espace client sans connexion
+- Base/branche : `preview` (local non commite au moment de l'ecriture).
+- Type : UX locale / acces de demonstration espace vendeur.
+- Statut : **fait**.
+- Demande (Alexandre) : pouvoir ouvrir un espace client sans connexion avec une session test.
+- Travail :
+  1. Extraction de l'interface vendeur dans `ClientPortalView` pour reutiliser le meme rendu
+     entre la session authentifiee et la session test.
+  2. Ajout de `/espace-client/test`, disponible hors production uniquement ; en production la
+     route redirige vers `/espace-client/connexion`.
+  3. Chargement du premier dossier client actif si disponible via l'admin local, sinon fallback
+     vers un dossier demo Cotignac complet.
+  4. Mode test signale par une bannière, sans bouton de deconnexion et avec les documents en
+     lecture seule pour eviter tout upload sans session.
+  5. Documentation route ajoutee dans `docs/ROUTES.md`.
+- Fichiers principaux : `src/app/espace-client/page.tsx`,
+  `src/app/espace-client/portal-view.tsx`, `src/app/espace-client/test/page.tsx`,
+  `src/app/espace-client/client-documents.tsx`, `docs/ROUTES.md`,
+  `docs/SUIVI_PROJET.md`.
+- Audit qualite : `pnpm exec tsc --noEmit` OK ; `pnpm lint` OK avec warnings existants ;
+  `pnpm build` OK avec warnings existants ; Playwright OK desktop/mobile sur
+  `/espace-client/test` (`200`, bannière visible, documents `Lecture test`, aucun debordement
+  horizontal). Warning navigateur connu : 404 ressource analytics/Vercel sans impact fonctionnel.
+- Point de reprise : serveur local actif sur `http://localhost:3002/espace-client/test`.
+
+### 02/07/2026 15:51 CEST - Backend admin clients vendeurs
+- Base/branche : `preview` (local non commite au moment de l'ecriture).
+- Type : module admin Mandat OS + APIs backend espace client.
+- Statut : **fait**.
+- Demande (Alexandre) : ajouter un backend pour gerer les clients vendeurs, les documents a
+  demander/valider, les informations du bien et le suivi du dossier.
+- Travail :
+  1. Ajout du module canonique `/app/clients` dans la sidebar Mandat OS, section `Vendeurs`.
+  2. Liste clients/dossiers : recherche, filtre statut, client, bien, compteur documents,
+     derniere activite et action `Ouvrir`.
+  3. Fiche `/app/clients/[id]` avec onglets `Dossier`, `Bien`, `Documents`, `Suivi`.
+  4. APIs admin `/api/market/clients` ajoutees : liste, detail, patch profil/dossier/snapshot
+     bien, invitation, checklist documents, upload admin, validation/rejet/suppression,
+     jalons visibles ou internes.
+  5. Depuis `/app/leads`, le bouton `Espace` prepare/envoie l'acces puis ouvre la fiche client.
+  6. Le dossier client reste la source de verite visible vendeur via
+     `client_dossiers.property_snapshot`; `seller_properties` reste l'historique lead/CRM.
+- Fichiers principaux : `src/app/admin/market/clients/*`,
+  `src/app/api/market/clients/*`, `src/lib/market/client-admin.ts`,
+  `src/components/app-sidebar.tsx`, `src/app/admin/market/leads/page.tsx`,
+  `docs/ROUTES.md`, `docs/SUIVI_PROJET.md`.
+- Audit qualite : `pnpm exec tsc --noEmit` OK ; `pnpm lint` OK avec warnings existants hors
+  changement ; `pnpm build` OK avec warnings existants Supabase Edge / lint ; audit Playwright
+  mocke desktop/mobile OK sur `/app/clients` et `/app/clients/[id]`, sans debordement horizontal.
+- A verifier en donnees reelles : inviter un lead vendeur pour creer le premier dossier, tester
+  edition bien/documents/jalons sur Supabase, puis verifier que `/espace-client` reflete les
+  modifications admin.
+
+### 02/07/2026 15:08 CEST - Espace client vendeur v1
+- Base/branche : `preview` (local non commite au moment de l'ecriture).
+- Type : fondations produit + auth client + UX espace vendeur.
+- Statut : **fait, a appliquer en base Supabase avant test reel complet**.
+- Demande (Alexandre) : implementer le plan Espace Client Vendeur Mandat OS avec auth client
+  distincte, rapport durable, documents, suivi de mandat et pont Cowork prepare.
+- Travail :
+  1. Migration `021_client_portal_foundations.sql` ajoutee : `client_profiles`,
+     `client_dossiers`, `client_documents`, `client_dossier_events`, enums, bucket Storage
+     prive `client-documents`, trigger de synchronisation `auth.users` -> `client_profiles`,
+     policies RLS client et policies de lecture limitees sur `leads`, `prospects`,
+     `seller_properties`, `opportunities`.
+  2. Helper `src/lib/client-portal.ts` ajoute pour preparer un dossier client depuis un lead,
+     creer checklist + jalons par defaut, puis relire le dossier via session client/RLS.
+  3. Routes ajoutees : `/auth/callback`, `/api/client/auth/request-link`,
+     `/api/client/invite`, `/api/client/dossier`, `/api/client/documents`.
+  4. Ecrans client ajoutes : `/espace-client/connexion` et `/espace-client` avec synthese du
+     bien, estimation durable, prochaine action, checklist documentaire uploadable, jalons et
+     deconnexion.
+  5. Liste leads admin : bouton `Espace` pour preparer le dossier et envoyer/copier le lien
+     d'invitation client.
+  6. Email Resend d'invitation espace vendeur ajoute, avec fallback lien manuel/Supabase selon
+     disponibilite du lien genere.
+- Fichiers principaux : `supabase/migrations/021_client_portal_foundations.sql`,
+  `src/lib/client-portal.ts`, `src/app/espace-client/*`, `src/app/api/client/*`,
+  `src/app/auth/callback/route.ts`, `src/app/admin/market/leads/page.tsx`,
+  `src/lib/resend.ts`, `src/types/supabase.ts`.
+- Audit qualite : `pnpm exec tsc --noEmit` OK ; `pnpm lint` OK avec warnings existants hors
+  changement ; `pnpm build` OK avec warnings existants Supabase Edge / lint.
+- 02/07/2026 15:15 CEST : migration `021_client_portal_foundations.sql` appliquee sur la base
+  Supabase distante via connexion Postgres ciblee, puis enregistree dans
+  `supabase_migrations.schema_migrations` (`version = 021`). Verification OK : tables client,
+  policies RLS, bucket prive `client-documents`, trigger auth et historique presents.
+- A verifier apres application migration : inviter un lead vendeur avec email, valider
+  reception/lien magique, verifier RLS client A/B, tester upload document et audit Playwright
+  mobile/desktop sur `/espace-client/connexion` + `/espace-client`.
+
+### 30/06/2026 - Site public : correction couleur des textes secondaires
+- Base/branche : `preview` (local non commite au moment de l'ecriture).
+- Type : correction CSS globale / lisibilite site public.
+- Statut : **fait**.
+- Probleme : le token Tailwind `text-muted` etait genere depuis le token shadcn `--muted`
+  destine aux fonds clairs, ce qui rendait de nombreux textes secondaires quasi blancs sur fond
+  blanc.
+- Travail : ajout d'une compatibilite CSS globale pour conserver `bg-muted` comme surface claire
+  tout en forçant `text-muted`, `text-muted/60`, `hover:text-muted` et les placeholders muted vers
+  `--muted-foreground`.
+- Fichiers : `src/app/globals.css`, `docs/SUIVI_PROJET.md`.
+- Audit qualite : verification navigateur OK (`text-muted` passe de `lab(96.52...)` a
+  `lab(48.496...)`) ; capture `/tmp/home-muted-color-check.png` ; `pnpm exec tsc --noEmit` OK ;
+  `pnpm lint` OK avec warnings existants hors changement ; `pnpm build` OK avec warnings existants
+  Supabase Edge / lint.
+- Etat final : fait, dev server relance ensuite sur `http://localhost:3002` apres nettoyage `.next`
+  pour eviter le melange cache dev/prod.
+
+### 30/06/2026 - Estimation vendeur : adresse libre geocodee et erreur visible
+- Base/branche : `preview` (local non commite au moment de l'ecriture).
+- Type : correction UX parcours public `/outils/vendre`.
+- Statut : **fait**.
+- Probleme : l'utilisateur pouvait saisir une adresse libre sans choisir une suggestion BAN ; le
+  parcours avançait alors sans `lat/lng`, puis `/api/leads` echouait sur le calcul vendeur avec
+  `lat, lng, surface requis`, pendant que l'ecran de calcul continuait vers les resultats.
+- Travail :
+  1. L'envoi d'une adresse libre tente maintenant un geocodage automatique via
+     `api-adresse.data.gouv.fr`.
+  2. Le parcours ne passe a l'etape suivante que si `adresse`, `lat` et `lng` sont enregistres
+     ensemble.
+  3. Une adresse introuvable reste sur l'etape adresse avec un message actionnable.
+  4. En cas d'echec de `/api/leads`, l'ecran de calcul est stoppe, le parcours revient sur
+     l'adresse et affiche `Impossible de generer l'estimation, verifiez l'adresse puis reessayez.`
+  5. La redirection post-calcul attend maintenant la reussite reelle de `/api/leads`, pas seulement
+     la fin de l'animation.
+- Fichiers : `src/app/outils/vendre/page.tsx`, `docs/SUIVI_PROJET.md`.
+- Audit qualite : `pnpm exec tsc --noEmit` OK ; `pnpm lint` OK avec warnings existants hors
+  changement ; `pnpm build` OK ; tests API `dry_run` OK (`500` attendu sans `lat/lng`, `200` avec
+  `lat/lng/surface`) ; audit Playwright mobile OK (adresse invalide bloquee, adresse libre
+  `Cotignac` geocodee avec `lat/lng`) ; audit Playwright desktop complet OK avec `/api/leads`
+  mocke, redirection `/resultats/...` et capture `/tmp/outils-vendre-full-desktop.png`.
+- Etat final : fait, serveur local toujours disponible sur `http://localhost:3002/outils/vendre`,
+  aucun push, aucune migration, aucune creation de lead reel pendant l'audit.
+
 ### 28/06/2026 - Biens : diffusions multi-sites et rapprochement manuel des doublons
 - Base/branche : `preview` (local non commite au moment de l'ecriture).
 - Type : donnees + API + UX fiche Bien.
@@ -1440,5 +1933,5 @@ Deployment: Work, declenche un deployment Vercel pour la branche preview.
 - Progression globale: 0%
 
 ---
-Derniere mise a jour: 28/06/2026
-Maintenu par: Claude Code (sur `preview`)
+Derniere mise a jour: 03/07/2026
+Maintenu par: Codex (sur `preview`)

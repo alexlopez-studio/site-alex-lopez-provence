@@ -283,6 +283,7 @@ export function AppChrome({
   const pathname = usePathname()
   const isToolsMiniApp = pathname === '/outils' || pathname.startsWith('/outils/') || pathname.startsWith('/resultats/')
   const isAdminArea = pathname.startsWith('/admin') || pathname.startsWith('/dashboard') || pathname.startsWith('/app')
+  const isClientPortalArea = pathname.startsWith('/espace-client')
 
   useEffect(function () {
     normalizeAdvisorName(document.body)
@@ -338,7 +339,7 @@ export function AppChrome({
     }
   }, [pathname])
 
-  if (isToolsMiniApp || isAdminArea) {
+  if (isToolsMiniApp || isAdminArea || isClientPortalArea) {
     return (
       <PageTransition>
         <main>{children}</main>

@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { EyeIcon, Search, ChevronLeft, ChevronRight, RefreshCw, Plus, Loader2, Phone, MapPin } from 'lucide-react'
+import { EyeIcon, Search, ChevronLeft, ChevronRight, RefreshCw, Plus, Loader2, Phone, MapPin, Send } from 'lucide-react'
 import { toast } from 'sonner'
 import { LeadStatsCards } from '@/components/admin/LeadStatsCards'
 import { Badge } from '@/components/ui/badge'
@@ -185,6 +185,7 @@ export default function LeadsListPage() {
     const [createOpen, setCreateOpen] = useState(false)
     const [draft, setDraft] = useState<CreateDraft>(emptyDraft())
     const [creating, setCreating] = useState(false)
+    const [invitingId, setInvitingId] = useState<string | null>(null)
 
     const fetchLeads = useCallback(async () => {
         setLoading(true)
@@ -270,6 +271,37 @@ export default function LeadsListPage() {
         }
     }
 
+    async function inviteClient(lead: LeadRow) {
+        if (!lead.prospect.email) {
+            toast.error('Ajoute un email au lead avant invitation')
+            return
+        }
+
+        setInvitingId(lead.id)
+        try {
+            const res = await fetch('/api/client/invite', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ lead_id: lead.id }),
+            })
+            const json = await res.json()
+            if (!res.ok || !json.success) throw new Error(json.error ?? 'Erreur API')
+
+            if (json.data?.action_link) {
+                await navigator.clipboard?.writeText(json.data.action_link)
+                toast.success('Espace client préparé, lien copié')
+            } else {
+                toast.success('Invitation espace client envoyée')
+            }
+            if (json.data?.dossier_id) router.push(`/app/clients/${json.data.dossier_id}`)
+        } catch (err) {
+            console.error('[LeadsListPage] invite client error:', err)
+            toast.error(err instanceof Error ? err.message : 'Impossible d’inviter le client')
+        } finally {
+            setInvitingId(null)
+        }
+    }
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -338,7 +370,7 @@ export default function LeadsListPage() {
                                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Statut</th>
                                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Action</th>
                                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Relance</th>
-                                    <th className="px-4 py-3 text-right font-medium text-muted-foreground">Fiche</th>
+                                    <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -392,10 +424,23 @@ export default function LeadsListPage() {
                                                 <td className="whitespace-nowrap px-4 py-3 text-xs text-muted-foreground">
                                                     {formatShortDate(lead.due_date ?? lead.follow_up_at)}
                                                 </td>
-                                                <td className="px-4 py-3 text-right">
-                                                    <Link href={'/app/leads/' + lead.id} className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent">
-                                                        <EyeIcon className="size-3.5" /> Ouvrir
-                                                    </Link>
+                                                <td className="px-4 py-3">
+                                                    <div className="flex justify-end gap-2">
+                                                        {lead.prospect.email && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => inviteClient(lead)}
+                                                                disabled={invitingId === lead.id}
+                                                                className="inline-flex items-center gap-1 rounded-lg border border-brand/25 px-3 py-1.5 text-xs font-medium text-brand transition-colors hover:bg-brand-light disabled:cursor-not-allowed disabled:opacity-60"
+                                                            >
+                                                                {invitingId === lead.id ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
+                                                                Espace
+                                                            </button>
+                                                        )}
+                                                        <Link href={'/app/leads/' + lead.id} className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent">
+                                                            <EyeIcon className="size-3.5" /> Ouvrir
+                                                        </Link>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         )

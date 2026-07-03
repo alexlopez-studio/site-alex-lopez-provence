@@ -13,7 +13,7 @@ const border = '#E2E8F0'
 const surface = '#F8FAFC'
 const white = '#ffffff'
 const error = '#EF4444'
-const FONT = 'var(--font-plus-jakarta-sans, system-ui, sans-serif)'
+const FONT = 'var(--font-inter, system-ui, sans-serif)'
 
 const pageSt: CSSProperties = { minHeight: '100vh', backgroundColor: surface, fontFamily: FONT, display: 'flex', alignItems: 'center', justifyContent: 'center' }
 const cardSt: CSSProperties = { backgroundColor: white, border: '1px solid ' + border, borderRadius: '20px', padding: '40px 36px', width: '100%', maxWidth: '380px' }

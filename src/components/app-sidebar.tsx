@@ -14,6 +14,7 @@ import {
   PackageIcon,
   UserPlusIcon,
   FlameIcon,
+  ContactRoundIcon,
 } from "lucide-react"
 import type { AdminRole } from "@/types/supabase"
 
@@ -38,6 +39,7 @@ const SELLER_ITEMS = [
   { title: "Liste chaude", url: "/app/liste-chaude", icon: FlameIcon },
   { title: "Leads", url: "/app/leads", icon: UserPlusIcon },
   { title: "Opportunités", url: "/app/opportunities", icon: KanbanIcon },
+  { title: "Clients", url: "/app/clients", icon: ContactRoundIcon },
 ]
 
 const BUYER_ITEMS = [

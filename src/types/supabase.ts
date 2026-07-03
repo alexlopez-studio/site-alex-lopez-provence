@@ -60,6 +60,12 @@ export type OpportunityEventType =
 
 export type SyncStatus = 'running' | 'success' | 'error'
 
+export type ClientDocumentStatus =
+  | 'missing' | 'requested' | 'uploaded' | 'validated' | 'rejected'
+
+export type ClientDossierEventType =
+  | 'milestone' | 'visit' | 'offer' | 'note' | 'document' | 'system'
+
 // ── Liste Chaude (réseau / bouche-à-oreille) ───────────────
 
 export type WarmContactStatus =
@@ -244,6 +250,237 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      client_profiles: {
+        Row: {
+          id: string
+          user_id: string | null
+          email: string
+          first_name: string
+          last_name: string
+          phone: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          email: string
+          first_name?: string
+          last_name?: string
+          phone?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          email?: string
+          first_name?: string
+          last_name?: string
+          phone?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      client_dossiers: {
+        Row: {
+          id: string
+          client_profile_id: string
+          lead_id: string | null
+          seller_property_id: string | null
+          opportunity_id: string | null
+          status: string
+          title: string
+          property_snapshot: Json
+          advisor_note: string | null
+          professional_opinion: Json
+          client_welcome_seen_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          client_profile_id: string
+          lead_id?: string | null
+          seller_property_id?: string | null
+          opportunity_id?: string | null
+          status?: string
+          title?: string
+          property_snapshot?: Json
+          advisor_note?: string | null
+          professional_opinion?: Json
+          client_welcome_seen_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          client_profile_id?: string
+          lead_id?: string | null
+          seller_property_id?: string | null
+          opportunity_id?: string | null
+          status?: string
+          title?: string
+          property_snapshot?: Json
+          advisor_note?: string | null
+          professional_opinion?: Json
+          client_welcome_seen_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'client_dossiers_client_profile_id_fkey'
+            columns: ['client_profile_id']
+            isOneToOne: false
+            referencedRelation: 'client_profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'client_dossiers_lead_id_fkey'
+            columns: ['lead_id']
+            isOneToOne: false
+            referencedRelation: 'leads'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'client_dossiers_seller_property_id_fkey'
+            columns: ['seller_property_id']
+            isOneToOne: false
+            referencedRelation: 'seller_properties'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'client_dossiers_opportunity_id_fkey'
+            columns: ['opportunity_id']
+            isOneToOne: false
+            referencedRelation: 'opportunities'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      client_documents: {
+        Row: {
+          id: string
+          dossier_id: string
+          label: string
+          category: string
+          status: ClientDocumentStatus
+          storage_path: string | null
+          file_name: string | null
+          mime_type: string | null
+          file_size: number | null
+          uploaded_by_user_id: string | null
+          uploaded_at: string | null
+          validated_at: string | null
+          validated_by: string | null
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          dossier_id: string
+          label: string
+          category?: string
+          status?: ClientDocumentStatus
+          storage_path?: string | null
+          file_name?: string | null
+          mime_type?: string | null
+          file_size?: number | null
+          uploaded_by_user_id?: string | null
+          uploaded_at?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          dossier_id?: string
+          label?: string
+          category?: string
+          status?: ClientDocumentStatus
+          storage_path?: string | null
+          file_name?: string | null
+          mime_type?: string | null
+          file_size?: number | null
+          uploaded_by_user_id?: string | null
+          uploaded_at?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'client_documents_dossier_id_fkey'
+            columns: ['dossier_id']
+            isOneToOne: false
+            referencedRelation: 'client_dossiers'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      client_dossier_events: {
+        Row: {
+          id: string
+          dossier_id: string
+          type: ClientDossierEventType
+          title: string
+          description: string | null
+          status: string
+          event_date: string | null
+          payload: Json
+          visible_to_client: boolean
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          dossier_id: string
+          type?: ClientDossierEventType
+          title: string
+          description?: string | null
+          status?: string
+          event_date?: string | null
+          payload?: Json
+          visible_to_client?: boolean
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          dossier_id?: string
+          type?: ClientDossierEventType
+          title?: string
+          description?: string | null
+          status?: string
+          event_date?: string | null
+          payload?: Json
+          visible_to_client?: boolean
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'client_dossier_events_dossier_id_fkey'
+            columns: ['dossier_id']
+            isOneToOne: false
+            referencedRelation: 'client_dossiers'
+            referencedColumns: ['id']
+          },
+        ]
       }
 
       // ── Tables Mandat OS ──────────────────────────────────
@@ -1320,6 +1557,8 @@ export type Database = {
       warm_event_type: WarmEventType
       opportunity_event_type: OpportunityEventType
       admin_role: AdminRole
+      client_document_status: ClientDocumentStatus
+      client_dossier_event_type: ClientDossierEventType
     }
     CompositeTypes: {
       [_ in never]: never
