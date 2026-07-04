@@ -34,7 +34,7 @@ export default function ClientLoginPage() {
   }
 
   return (
-    <main className="app-product client-portal min-h-screen bg-[#F8FAFC] px-6 py-16 text-foreground">
+    <main className="app-product client-portal min-h-screen bg-[#F8FAFC] px-4 py-10 text-foreground sm:px-6 sm:py-16">
       <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
         <section>
           <div className="portal-label mb-5 inline-flex items-center gap-2 rounded-full bg-[#E0F0FA] px-3 py-1 text-[#0077B6]">
@@ -62,7 +62,7 @@ export default function ClientLoginPage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
+        <section className="rounded-3xl border border-[#E2E8F0] bg-white p-6 shadow-sm md:p-8">
           {sent ? (
             <div className="space-y-4">
               <div className="flex size-11 items-center justify-center rounded-full bg-[#E0F0FA] text-[#0077B6]">
@@ -74,7 +74,7 @@ export default function ClientLoginPage() {
                   Consultez votre boîte mail et cliquez sur le lien reçu pour ouvrir votre espace vendeur.
                 </p>
               </div>
-              <Button asChild variant="outline" className="w-full border-[#E2E8F0] bg-white text-[#0F172A] hover:bg-[#F8FAFC]">
+              <Button asChild variant="outline" className="h-11 w-full rounded-full border-[#E2E8F0] bg-white text-[#0F172A] hover:bg-[#F8FAFC]">
                 <Link href="/">Retour au site</Link>
               </Button>
             </div>
@@ -89,6 +89,7 @@ export default function ClientLoginPage() {
               <label className="block space-y-2">
                 <span className="portal-button-text text-[#0F172A]">Email</span>
                 <Input
+                  className="h-12 rounded-2xl"
                   type="email"
                   autoComplete="email"
                   required
@@ -102,7 +103,7 @@ export default function ClientLoginPage() {
                   {error}
                 </p>
               )}
-              <Button type="submit" className="w-full bg-[#0077B6] hover:bg-[#005F96]" disabled={loading}>
+              <Button type="submit" className="h-12 w-full rounded-full bg-[#0077B6] hover:bg-[#005F96]" disabled={loading}>
                 {loading ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Mail className="mr-2 size-4" />}
                 Envoyer le lien
               </Button>

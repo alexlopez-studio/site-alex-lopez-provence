@@ -11,11 +11,13 @@ export async function POST(req: NextRequest, context: RouteContext) {
 
   const { id } = await context.params
   try {
+    const body = await readJson(req)
+    const returnLinkOnly = body.return_link === true
     const detail = await loadAdminClientDossier(id)
     if (!detail) return NextResponse.json({ success: false, error: 'Dossier introuvable' }, { status: 404 })
 
     const profile = detail.dossier.client_profile
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? req.nextUrl.origin
+    const siteUrl = returnLinkOnly ? req.nextUrl.origin : process.env.NEXT_PUBLIC_SITE_URL ?? req.nextUrl.origin
     const redirectTo = `${siteUrl}/auth/callback?next=/espace-client`
 
     const generated = await supabaseAdmin.auth.admin.generateLink({
@@ -25,6 +27,37 @@ export async function POST(req: NextRequest, context: RouteContext) {
     })
 
     const actionLink = generated.data?.properties?.action_link ?? null
+    if (returnLinkOnly && actionLink) {
+      return NextResponse.json({
+        success: true,
+        data: {
+          delivery: 'manual',
+          action_link: actionLink,
+        },
+      })
+    }
+
+    if (returnLinkOnly && !actionLink) {
+      const signup = await supabaseAdmin.auth.admin.generateLink({
+        type: 'signup',
+        email: profile.email,
+        password: crypto.randomUUID(),
+        options: { redirectTo },
+      })
+      const signupLink = signup.data?.properties?.action_link ?? null
+      if (signupLink) {
+        return NextResponse.json({
+          success: true,
+          data: {
+            delivery: 'manual',
+            action_link: signupLink,
+          },
+        })
+      }
+      console.error('[POST /api/market/clients/[id]/invite] return link:', generated.error, signup.error)
+      return NextResponse.json({ success: false, error: 'Lien client impossible à générer' }, { status: 500 })
+    }
+
     if (actionLink) {
       const sent = await sendClientPortalInviteEmail({
         to: profile.email,
@@ -58,5 +91,14 @@ export async function POST(req: NextRequest, context: RouteContext) {
   } catch (err) {
     console.error('[POST /api/market/clients/[id]/invite]', err)
     return NextResponse.json({ success: false, error: 'Erreur invitation client' }, { status: 500 })
+  }
+}
+
+async function readJson(req: NextRequest): Promise<Record<string, unknown>> {
+  try {
+    const value = await req.json()
+    return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {}
+  } catch {
+    return {}
   }
 }

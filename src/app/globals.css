@@ -300,11 +300,15 @@ body {
 
 .client-portal {
   font-family: var(--font-jakarta), var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #F8FAFC;
+  color: #0F172A;
 }
 
 .app-product [data-slot="card"],
 .app-panel {
   border-radius: 1.5rem;
+  border-color: #E2E8F0;
+  background: #FFFFFF;
   box-shadow: 0 1px 2px rgb(15 23 42 / 0.06);
 }
 
@@ -328,36 +332,49 @@ body {
   font-weight: 700;
 }
 
+.client-portal [data-slot="input"] {
+  border-color: #E2E8F0;
+  background: #FFFFFF;
+  color: #0F172A;
+  font-size: 15px;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+}
+
+.client-portal [data-slot="input"]:focus-visible {
+  border-color: #0077B6;
+  box-shadow: 0 0 0 3px rgb(0 119 182 / 0.12);
+}
+
 .client-portal .portal-h1 {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 800;
   line-height: 1.15;
   letter-spacing: 0;
 }
 
 .client-portal .portal-h2 {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
   line-height: 1.25;
   letter-spacing: 0;
 }
 
 .client-portal .portal-h3 {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   line-height: 1.35;
   letter-spacing: 0;
 }
 
 .client-portal .portal-value {
-  font-size: 28px;
+  font-size: 18px;
   font-weight: 800;
   line-height: 1.15;
   letter-spacing: 0;
 }
 
 .client-portal .portal-body {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 400;
   line-height: 1.55;
   letter-spacing: 0;
@@ -371,14 +388,14 @@ body {
 }
 
 .client-portal .portal-meta {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 300;
   line-height: 1.4;
   letter-spacing: 0;
 }
 
 .client-portal .portal-label {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: 0;
@@ -392,6 +409,11 @@ body {
   box-shadow: 0 1px 2px rgb(15 23 42 / 0.06);
 }
 
+.client-portal .portal-kpi-card:hover,
+.client-portal .app-panel:hover {
+  box-shadow: 0 14px 32px -28px rgb(15 23 42 / 0.42);
+}
+
 .client-status-badge {
   display: inline-flex;
   min-height: 1.75rem;
@@ -400,9 +422,10 @@ body {
   border-radius: 9999px;
   border: 1px solid transparent;
   padding: 0.25rem 0.75rem;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 10px;
+  font-weight: 800;
   line-height: 1;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { supabaseAdmin } from '@/lib/supabase'
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url)
@@ -9,6 +10,16 @@ export async function GET(req: NextRequest) {
   if (code) {
     const supabase = await createClient()
     await supabase.auth.exchangeCodeForSession(code)
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (user?.email) {
+      await supabaseAdmin
+        .from('client_profiles')
+        .update({ user_id: user.id } as never)
+        .is('user_id', null)
+        .ilike('email', user.email)
+    }
   }
 
   return NextResponse.redirect(new URL(next, url.origin))

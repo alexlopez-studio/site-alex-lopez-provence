@@ -9,75 +9,78 @@ import {
   Check,
   CheckCircle2,
   ChevronRight,
-  CircleAlert,
   Clock,
   Eye,
   FileText,
+  Globe2,
   Home,
   Info,
+  LogOut,
   Map as MapIcon,
   MapPin,
+  MessageCircle,
   Phone,
+  PhoneCall,
+  Star,
   ShieldCheck,
   Sparkles,
   Sliders,
   TrendingUp,
+  User,
   Users,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
 import type { ClientPortalDossier } from '@/lib/client-portal'
 import type { Json } from '@/types/supabase'
 import { ClientDocuments } from './client-documents'
 import { ComparableLeafletMap } from './comparable-leaflet-map'
 import { SignOutButton } from './sign-out-button'
 
-const PHONE_DISPLAY = '06 13 18 01 68'
 const DEFAULT_CAL_URL = '/contact'
 
 type PortalTab = 'dashboard' | 'valuation' | 'documents' | 'tracking'
+type PortalMode = 'session' | 'test' | 'preview'
 
 const TABS: Array<{ id: PortalTab; label: string; mobileLabel: string; icon: typeof Home }> = [
-  { id: 'dashboard', label: 'Accueil', mobileLabel: 'Accueil', icon: Home },
-  { id: 'valuation', label: 'Estimation', mobileLabel: 'Prix', icon: TrendingUp },
-  { id: 'documents', label: 'Documents', mobileLabel: 'Docs', icon: FileText },
-  { id: 'tracking', label: 'Suivi', mobileLabel: 'Suivi', icon: CheckCircle2 },
+  { id: 'dashboard', label: 'Tableau de bord', mobileLabel: 'Accueil', icon: Home },
+  { id: 'valuation', label: 'Mon estimation', mobileLabel: 'Prix', icon: TrendingUp },
+  { id: 'documents', label: 'Mes documents', mobileLabel: 'Docs', icon: FileText },
+  { id: 'tracking', label: 'Suivi de mandat', mobileLabel: 'Suivi', icon: CheckCircle2 },
 ]
 
 export function ClientPortalView({
   data,
   mode = 'session',
+  previewBackHref,
+  showPreviewBanner = true,
 }: {
   data: ClientPortalDossier
-  mode?: 'session' | 'test'
+  mode?: PortalMode
+  previewBackHref?: string
+  showPreviewBanner?: boolean
 }) {
   const [activeTab, setActiveTab] = useState<PortalTab>('dashboard')
   const vm = useMemo(() => buildViewModel(data, mode), [data, mode])
+  const headerClientName = mode === 'test' ? 'Jean-Marc & Sylvie' : vm.clientName
 
   return (
     <main className="app-product client-portal min-h-screen bg-[#F8FAFC] pb-24 text-foreground">
       <header className="sticky top-0 z-40 border-b border-[#E2E8F0] bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:px-8">
-          {mode === 'test' && (
-            <div className="portal-body rounded-md border border-amber-200 bg-amber-50/70 px-4 py-3 text-amber-900">
-              Session test locale sans connexion. Les dépôts de documents sont désactivés sur cette vue.
-            </div>
-          )}
-
-          <div className="flex items-center justify-between gap-3">
+        <div className="flex w-full px-3 py-2 sm:px-4 lg:px-6">
+          <div className="grid min-h-12 w-full grid-cols-[auto_1fr_auto] items-center gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              <span className="portal-button-text flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#0077B6] text-white shadow-sm">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#0077B6] text-[18px] font-extrabold leading-none text-white shadow-sm">
                 iAD
               </span>
               <div className="min-w-0">
-                <p className="portal-button-text truncate leading-tight">Alexandre Lopez</p>
-                <p className="portal-meta truncate uppercase text-muted-foreground">Espace vendeur</p>
+                <p className="truncate text-[17px] font-extrabold leading-none text-[#0F172A]">Alexandre Lopez immobilier</p>
+                <p className="mt-0.5 truncate text-[10px] font-semibold leading-none text-[#64748B]">Provence Verte & Verdon</p>
               </div>
             </div>
 
-            <nav className="hidden rounded-full border border-[#E2E8F0] bg-[#F8FAFC] p-1 md:flex" aria-label="Navigation espace vendeur">
+            <nav className="mx-auto hidden rounded-full border border-[#E2E8F0] bg-[#F8FAFC] p-1 shadow-sm md:flex" aria-label="Navigation espace vendeur">
               {TABS.map((tab) => {
                 const Icon = tab.icon
                 const isActive = activeTab === tab.id
@@ -86,7 +89,7 @@ export function ClientPortalView({
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveTab(tab.id)}
-                    className={`portal-button-text inline-flex h-10 items-center gap-2 rounded-full px-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
+                    className={`inline-flex h-9 items-center gap-2 rounded-full px-4 text-[14px] font-extrabold leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0077B6] focus-visible:ring-offset-2 ${
                       isActive ? 'bg-[#0077B6] text-white shadow-sm' : 'text-[#64748B] hover:bg-white hover:text-[#0F172A]'
                     }`}
                   >
@@ -97,35 +100,48 @@ export function ClientPortalView({
               })}
             </nav>
 
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="flex shrink-0 items-center gap-3">
               <div className="hidden flex-col text-right lg:flex">
-                <span className="portal-button-text max-w-36 truncate">{vm.clientName}</span>
-                <span className="portal-meta text-success">Vendeur</span>
+                <span className="max-w-44 truncate text-[15px] font-extrabold leading-none text-[#0F172A]">{headerClientName}</span>
+                <span className="mt-0.5 flex items-center justify-end gap-1 text-[12px] font-extrabold leading-none text-[#10B981]">
+                  <span className="size-2 rounded-full bg-[#10B981]" />
+                  Vendeur
+                </span>
               </div>
-              <Button asChild size="sm" className="hidden rounded-full bg-[#0077B6] hover:bg-[#005F96] sm:inline-flex">
-                <a href={process.env.NEXT_PUBLIC_CALCOM_URL || DEFAULT_CAL_URL}>
-                  <CalendarDays className="mr-2 size-4" />
-                  Rendez-vous
-                </a>
-              </Button>
-              <a
-                href={`tel:${PHONE_DISPLAY.replace(/\s/g, '')}`}
-                className="inline-flex size-9 items-center justify-center rounded-full border border-[#E2E8F0] bg-white text-[#0077B6] transition-colors hover:bg-[#E0F0FA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-                aria-label={`Appeler Alexandre Lopez au ${PHONE_DISPLAY}`}
-              >
-                <Phone className="size-4" />
-              </a>
+              <span className="hidden size-10 items-center justify-center rounded-full border border-[#B9DFF4] bg-[#E0F0FA] text-[#0077B6] shadow-sm sm:inline-flex">
+                <User className="size-5" />
+              </span>
               {mode === 'session' && <SignOutButton />}
+              {mode === 'test' && (
+                <button
+                  type="button"
+                  aria-label="Déconnexion"
+                  className="hidden size-9 items-center justify-center rounded-full text-[#64748B] transition-colors hover:bg-[#F8FAFC] hover:text-[#0F172A] sm:inline-flex"
+                >
+                  <LogOut className="size-5" />
+                </button>
+              )}
             </div>
           </div>
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      {mode === 'preview' && showPreviewBanner && (
+        <div className="border-b border-[#B9DFF4] bg-[#E0F0FA] px-4 py-2 text-center text-xs font-extrabold text-[#0077B6]">
+          Prévisualisation conseiller · les dépôts et actions vendeur sont désactivés.
+          {previewBackHref && (
+            <a href={previewBackHref} className="ml-2 underline underline-offset-2">
+              Retour console
+            </a>
+          )}
+        </div>
+      )}
+
+      <div className="mx-auto max-w-[1180px] px-4 py-5 sm:px-5 lg:px-6">
         {activeTab === 'dashboard' && <DashboardTab data={data} vm={vm} onNavigate={setActiveTab} />}
         {activeTab === 'valuation' && <ValuationTab vm={vm} />}
-        {activeTab === 'documents' && <DocumentsTab data={data} vm={vm} readOnly={mode === 'test'} />}
-        {activeTab === 'tracking' && <TrackingTab vm={vm} />}
+        {activeTab === 'documents' && <DocumentsTab data={data} vm={vm} readOnly={mode !== 'session'} />}
+        {activeTab === 'tracking' && <TrackingTab vm={vm} mode={mode} />}
       </div>
 
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white px-2 py-2 shadow-lg md:hidden" aria-label="Navigation mobile espace vendeur">
@@ -190,10 +206,10 @@ function DashboardTab({
   const completedChecklist = checklist.filter((item) => item.done).length
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <DashboardStatusCard vm={vm} />
 
-      <section className="grid grid-cols-1 gap-6 md:grid-cols-3" id="dashboard-kpis">
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-3" id="dashboard-kpis">
         <DashboardKpi
           label="Prix retenu"
           value={vm.estimate.median ? formatPriceCompact(vm.estimate.median) : 'À confirmer'}
@@ -224,7 +240,7 @@ function DashboardTab({
 
       <NextStepsPanel checklist={checklist} completed={completedChecklist} onNavigate={onNavigate} />
 
-      <section className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
           <h2 className="portal-h2 flex items-center gap-2 text-[#0F172A]">
             <span aria-hidden="true">🤝</span>
@@ -328,11 +344,11 @@ function ValuationTab({ vm }: { vm: PortalViewModel }) {
               <div className="flex flex-wrap items-end gap-6 border-b border-[#E2E8F0] pb-5">
                 <div>
                   <p className="portal-label text-[#64748B]">Prix de mise en vente suggéré</p>
-                  <p className="text-5xl font-extrabold tracking-tight text-[#0077B6]">{formatPriceCompact(safeSelectedPrice)}</p>
+                  <p className="text-[34px] font-extrabold leading-none tracking-tight text-[#0077B6]">{formatPriceCompact(safeSelectedPrice)}</p>
                 </div>
                 <div className="border-l border-[#E2E8F0] py-1 pl-6">
                   <p className="portal-label text-[#64748B]">Fourchette optimale</p>
-                  <p className="portal-h3 text-[#0F172A]">{formatPrice(low)} – {formatPrice(high)}</p>
+                  <p className="text-lg font-extrabold leading-tight text-[#0F172A]">{formatPrice(low)} – {formatPrice(high)}</p>
                 </div>
               </div>
 
@@ -522,7 +538,7 @@ function ComparableMap({
               </p>
             </div>
             <div className="text-right">
-              <p className="text-lg font-extrabold text-[#0F172A]">{active.price ? formatPrice(active.price) : 'Vendu'}</p>
+              <p className="text-base font-extrabold text-[#0F172A]">{active.price ? formatPrice(active.price) : 'Vendu'}</p>
               <span className="portal-button-text rounded bg-[#10B981]/10 px-2 py-1 text-[#10B981]">Vendu</span>
             </div>
           </div>
@@ -579,7 +595,7 @@ function ComparableList({
                 </p>
               </div>
               <div className="shrink-0 text-right">
-                <p className="text-xl font-extrabold text-[#0F172A]">{comparable.price ? formatPrice(comparable.price) : 'Vendu'}</p>
+                <p className="text-base font-extrabold text-[#0F172A]">{comparable.price ? formatPrice(comparable.price) : 'Vendu'}</p>
                 <span className="portal-button-text rounded-lg bg-[#10B981]/10 px-3 py-1 text-[#10B981]">Vendu iAD</span>
               </div>
             </button>
@@ -683,73 +699,546 @@ function DocumentsTab({
   readOnly: boolean
 }) {
   return (
-    <div className="space-y-6">
-      <Panel>
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="portal-h2">Dossier administratif</h2>
-            <p className="portal-body mt-1 max-w-2xl text-muted-foreground">
-              Chaque pièce fournie est vérifiée par Alexandre avant transmission aux interlocuteurs utiles.
-            </p>
-          </div>
-          <div className="w-full rounded-md border bg-surface/80 p-4 md:w-72">
-            <div className="portal-label flex justify-between text-muted-foreground">
-              <span>Avancement</span>
-              <span className="text-brand">{vm.documents.provided}/{vm.documents.total}</span>
-            </div>
-            <Progress value={vm.documents.progress} className="mt-3 h-2.5" />
-            <p className="portal-meta mt-2 text-muted-foreground">
-              {vm.documents.progress === 100 ? 'Votre dossier est complet.' : 'Les pièces manquantes restent visibles en priorité.'}
-            </p>
-          </div>
-        </div>
-      </Panel>
+    <ClientDocuments
+      dossierId={data.dossier.id}
+      documents={data.documents}
+      readOnly={readOnly}
+      commune={vm.summary.commune}
+    />
+  )
+}
 
-      <Panel>
-        <ClientDocuments dossierId={data.dossier.id} documents={data.documents} readOnly={readOnly} />
-      </Panel>
+function TrackingTab({ vm, mode }: { vm: PortalViewModel; mode: PortalMode }) {
+  const timeline = buildTrackingTimeline(vm, mode)
+  const offers = buildOfferCards(vm, mode)
+  const visits = buildVisitCards(vm, mode)
+
+  return (
+    <div className="space-y-6">
+      <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_410px]">
+        <TrackingTimelineCard steps={timeline} />
+
+        <aside className="space-y-6">
+          <TrackingAudienceCard vm={vm} />
+          <MandateNoticeCard mandateType={vm.mandateType} />
+        </aside>
+      </section>
+
+      <OfferManagementSection offers={offers} />
+      <VisitReportsSection visits={visits} />
     </div>
   )
 }
 
-function TrackingTab({ vm }: { vm: PortalViewModel }) {
-  const visits = vm.visibleEvents.filter((event) => event.type === 'visit')
-  const offers = vm.visibleEvents.filter((event) => event.type === 'offer')
+type TrackingStep = {
+  id: string
+  dateLabel: string
+  title: string
+  description: string
+  state: 'done' | 'current' | 'future'
+  badge?: string
+}
+
+type OfferCardModel = {
+  id: string
+  buyer: string
+  dateLabel: string
+  amount: number | null
+  conditions: string
+  status: 'active' | 'declined' | 'final'
+}
+
+type VisitCardModel = {
+  id: string
+  visitor: string
+  dateLabel: string
+  description: string
+  rating: number | null
+  status: 'done' | 'planned'
+}
+
+function TrackingTimelineCard({ steps }: { steps: TrackingStep[] }) {
+  return (
+    <section className="rounded-3xl border border-[#E2E8F0] bg-white px-6 py-7 shadow-sm md:px-8 md:py-8">
+      <div>
+        <h2 className="text-[20px] font-extrabold leading-tight text-[#0F172A]">Suivi de votre mandat pas à pas</h2>
+        <p className="mt-1 text-[13px] leading-relaxed text-[#64748B]">Suivez la progression chronologique de la vente de votre villa.</p>
+      </div>
+
+      <ol className="relative mt-8 space-y-7 pl-10 before:absolute before:bottom-0 before:left-[10px] before:top-3 before:w-px before:bg-[#E2E8F0]">
+        {steps.map((step) => {
+          const current = step.state === 'current'
+          const future = step.state === 'future'
+
+          return (
+            <li key={step.id} className="relative">
+              <TimelineLineDot state={step.state} />
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className={`text-[12px] font-extrabold leading-none ${current ? 'text-[#0077B6]' : 'text-[#64748B]'}`}>
+                    {step.dateLabel}
+                  </p>
+                  {step.badge && (
+                    <span className="rounded-full border border-[#B9DFF4] bg-[#E0F0FA] px-3 py-1 text-[9px] font-extrabold uppercase leading-none text-[#6D9FBE]">
+                      {step.badge}
+                    </span>
+                  )}
+                </div>
+                <h3 className={`mt-2 text-sm font-extrabold leading-snug ${future ? 'text-[#0F172A]' : current ? 'text-[#0F172A]' : 'text-[#64748B]'}`}>
+                  {step.title}
+                </h3>
+                <p className="mt-1 text-xs leading-relaxed text-[#8AA0BC]">{step.description}</p>
+              </div>
+            </li>
+          )
+        })}
+      </ol>
+    </section>
+  )
+}
+
+function TimelineLineDot({ state }: { state: TrackingStep['state'] }) {
+  if (state === 'done') {
+    return (
+      <span className="absolute -left-10 top-0.5 z-10 flex size-5 items-center justify-center rounded-full border-[3px] border-white bg-[#E0F0FA] text-[#0077B6] ring-2 ring-[#D4ECFA]">
+        <CheckCircle2 className="size-3.5" />
+      </span>
+    )
+  }
+
+  if (state === 'current') {
+    return (
+      <span className="absolute -left-[42px] top-0 z-10 flex size-6 items-center justify-center rounded-full border-[4px] border-[#E0F0FA] bg-[#0077B6] text-white ring-2 ring-white">
+        <span className="size-2 rounded-full bg-white" />
+      </span>
+    )
+  }
 
   return (
-    <div className="space-y-6">
-      <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <Panel>
-          <h2 className="portal-h2">Suivi de votre mandat</h2>
-          <p className="portal-body mt-1 text-muted-foreground">La progression visible de votre vente, étape par étape.</p>
-          <TimelineList events={vm.visibleEvents} />
-        </Panel>
+    <span className="absolute -left-10 top-0.5 z-10 flex size-5 items-center justify-center rounded-full border-[3px] border-white bg-white ring-2 ring-[#CBD5E1]">
+      <span className="size-2 rounded-full bg-white" />
+    </span>
+  )
+}
 
-        <Panel>
-          <h2 className="portal-h2">Audience & actions</h2>
-          <div className="mt-4 grid gap-3">
-            <MiniInfo label="Visites renseignées" value={String(visits.length)} icon={Users} />
-            <MiniInfo label="Offres consultables" value={String(offers.length)} icon={FileText} />
-            <MiniInfo label="Prochaine action" value={vm.nextAction} icon={Clock} />
-          </div>
-          <div className="portal-body mt-5 rounded-md border border-amber-200 bg-amber-50/80 p-4 text-amber-900">
-            <CircleAlert className="mb-2 size-5" />
-            Les offres sont consultables dans cette v1. Les décisions juridiquement sensibles restent traitées directement avec Alexandre.
-          </div>
-        </Panel>
-      </section>
+function TrackingAudienceCard({ vm }: { vm: PortalViewModel }) {
+  const sources = buildDiffusionSources(vm)
+  const [activeSourceId, setActiveSourceId] = useState(sources[4]?.id ?? sources[0]?.id)
+  const activeSource = sources.find((source) => source.id === activeSourceId) ?? sources[0]
+  const totalViews = sources.slice(1).reduce((sum, source) => sum + source.views, 0)
 
-      <section className="grid gap-6 lg:grid-cols-2">
-        <Panel>
-          <h2 className="portal-h2">Retours de visites</h2>
-          <EventCards events={visits} empty="Les comptes-rendus de visites apparaîtront ici." />
-        </Panel>
-        <Panel>
-          <h2 className="portal-h2">Offres et négociation</h2>
-          <EventCards events={offers} empty="Les offres écrites validées par Alexandre apparaîtront ici." />
-        </Panel>
-      </section>
+  return (
+    <section className="rounded-3xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
+      <h2 className="text-lg font-extrabold leading-tight text-[#0F172A]">Diffusion & Statistiques</h2>
+      <p className="mt-1 text-xs leading-relaxed text-[#64748B]">
+        Suivez l&apos;audience consolidée (Ombrelle) ou détaillez par portail immobilier.
+      </p>
+
+      <div className="mt-5 rounded-2xl bg-[#EEF4FA] p-1">
+        <div className="flex flex-wrap gap-1">
+          {sources.map((source) => (
+            <button
+              key={source.id}
+              type="button"
+              onClick={() => setActiveSourceId(source.id)}
+              className={`min-h-8 rounded-lg px-3 text-[11px] font-extrabold leading-tight transition-colors ${
+                activeSource.id === source.id
+                  ? 'bg-[#10B981] text-white shadow-[inset_0_0_0_2px_#0077B6]'
+                  : 'text-[#475569] hover:bg-white/70'
+              }`}
+            >
+              {source.id === 'global' ? (
+                <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                  <Globe2 className="size-3" />
+                  {source.name}
+                </span>
+              ) : (
+                <span className="whitespace-nowrap">{source.name}</span>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-5 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+        <p className="text-[10px] font-extrabold uppercase leading-none text-[#8AA0BC]">Support de diffusion</p>
+        <p className="mt-2 text-sm font-extrabold leading-none text-[#0F172A]">{activeSource.name}</p>
+        <p className="mt-2 text-xs font-semibold leading-relaxed text-[#64748B]">{activeSource.description}</p>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <DiffusionStat label="Vues" value={formatNumber(activeSource.views)} icon={Eye} tone="brand" />
+        <DiffusionStat label="Engagement" value={`${activeSource.engagement} %`} icon={TrendingUp} tone="violet" />
+        <DiffusionStat label="Appels" value={String(activeSource.calls)} icon={PhoneCall} tone="success" />
+        <DiffusionStat label="Messages" value={String(activeSource.messages)} icon={MessageCircle} tone="warning" />
+        <DiffusionStat label="Mises en favoris" value={activeSource.favorites} icon={Star} tone="pink" wide />
+      </div>
+
+      <div className="mt-5 border-t border-[#E2E8F0] pt-4">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs font-extrabold text-[#64748B]">Répartition des vues par support</p>
+          <span className="text-[10px] font-extrabold uppercase text-[#0077B6]">Audience active</span>
+        </div>
+        <div className="mt-3 flex h-3 overflow-hidden rounded-full bg-[#E2E8F0]">
+          {sources.slice(1).map((source) => (
+            <span
+              key={source.id}
+              className="h-full"
+              style={{
+                width: `${totalViews ? (source.views / totalViews) * 100 : 0}%`,
+                backgroundColor: source.color,
+              }}
+            />
+          ))}
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2">
+          {sources.slice(1).map((source) => (
+            <div key={source.id} className="flex items-center gap-1.5 text-[10px] font-semibold text-[#64748B]">
+              <span className="size-2.5 rounded-full" style={{ backgroundColor: source.color }} />
+              <span>
+                {source.name} ({source.share}%)
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-[#B26A00]">
+        <strong>L&apos;avis d&apos;Alexandre :</strong> L&apos;annonce surpasse de +24% les performances moyennes des villas similaires à Saint-Maximin. L&apos;intérêt est très soutenu.
+      </div>
+    </section>
+  )
+}
+
+type DiffusionSource = {
+  id: string
+  name: string
+  description: string
+  views: number
+  engagement: number
+  calls: number
+  messages: number
+  favorites: string
+  share: number
+  color: string
+}
+
+function buildDiffusionSources(vm: PortalViewModel): DiffusionSource[] {
+  const fallback = buildFallbackDiffusionSources(vm)
+  const saved = vm.audience.portals
+  if (saved.length === 0) return fallback
+
+  const savedById = new Map(saved.map((source) => [source.id, source]))
+  const fallbackIds = new Set(fallback.map((source) => source.id))
+  const supportTotal = saved
+    .filter((source) => source.id !== 'global')
+    .reduce((sum, source) => sum + source.views, 0)
+
+  const merged = fallback.map((source) => {
+    const override = savedById.get(source.id)
+    if (!override) return source
+    const favoriteCount = Number(override.favorites) || 0
+    return {
+      ...source,
+      name: override.name || source.name,
+      description: override.description || source.description,
+      views: override.views,
+      engagement: override.engagement,
+      calls: override.calls,
+      messages: override.messages,
+      favorites: `${favoriteCount} ${favoriteCount > 1 ? 'acquéreurs' : 'acquéreur'}`,
+      share: source.id === 'global' ? 100 : supportTotal ? Math.round((override.views / supportTotal) * 1000) / 10 : source.share,
+    }
+  })
+
+  const extra = saved.filter((source) => !fallbackIds.has(source.id)).map((source, index) => {
+    const favoriteCount = Number(source.favorites) || 0
+    return {
+      ...source,
+      favorites: `${favoriteCount} ${favoriteCount > 1 ? 'acquéreurs' : 'acquéreur'}`,
+      share: supportTotal ? Math.round((source.views / supportTotal) * 1000) / 10 : 0,
+      color: ['#64748B', '#0EA5E9', '#14B8A6'][index % 3],
+    }
+  })
+
+  return [...merged, ...extra]
+}
+
+function buildFallbackDiffusionSources(vm: PortalViewModel): DiffusionSource[] {
+  const totalViews = vm.audience.views.count ?? 1420
+  const contacts = vm.audience.contacts.count ?? 28
+  const selogerViews = Math.max(1, Math.round(totalViews * 0.338))
+  const leboncoinViews = Math.max(1, Math.round(totalViews * 0.366))
+  const iadViews = Math.max(1, Math.round(totalViews * 0.218))
+  const bieniciViews = totalViews === 1420 ? 110 : Math.max(1, totalViews - selogerViews - leboncoinViews - iadViews)
+
+  return [
+    {
+      id: 'global',
+      name: 'Global',
+      description: 'Audience consolidée de tous les supports de diffusion.',
+      views: totalViews,
+      engagement: vm.audience.views.change ?? 12,
+      calls: Math.max(1, Math.round(contacts * 0.35)),
+      messages: Math.max(0, Math.round(contacts * 0.2)),
+      favorites: `${Math.max(1, Math.round(contacts * 0.5))} acquéreurs`,
+      share: 100,
+      color: '#0077B6',
+    },
+    {
+      id: 'seloger',
+      name: 'SeLoger',
+      description: 'Portail immobilier national à forte audience vendeurs et acquéreurs.',
+      views: selogerViews,
+      engagement: 3.1,
+      calls: Math.max(1, Math.round(contacts * 0.18)),
+      messages: Math.max(0, Math.round(contacts * 0.08)),
+      favorites: `${Math.max(1, Math.round(contacts * 0.25))} acquéreurs`,
+      share: 33.8,
+      color: '#FF2E63',
+    },
+    {
+      id: 'leboncoin',
+      name: 'LeBonCoin',
+      description: 'Support généraliste générant une forte visibilité locale.',
+      views: leboncoinViews,
+      engagement: 2.9,
+      calls: Math.max(1, Math.round(contacts * 0.2)),
+      messages: Math.max(0, Math.round(contacts * 0.1)),
+      favorites: `${Math.max(1, Math.round(contacts * 0.3))} acquéreurs`,
+      share: 36.6,
+      color: '#FF9F1C',
+    },
+    {
+      id: 'iad',
+      name: 'iAD France',
+      description: 'Diffusion réseau iAD auprès des acquéreurs qualifiés.',
+      views: iadViews,
+      engagement: 2.4,
+      calls: Math.max(1, Math.round(contacts * 0.12)),
+      messages: Math.max(0, Math.round(contacts * 0.06)),
+      favorites: `${Math.max(1, Math.round(contacts * 0.18))} acquéreurs`,
+      share: 21.8,
+      color: '#123A63',
+    },
+    {
+      id: 'bienici',
+      name: "Bien'ici",
+      description: 'Portail innovant avec cartographie 3D immersive.',
+      views: bieniciViews,
+      engagement: 2.7,
+      calls: Math.max(1, Math.round(contacts * 0.04)),
+      messages: 0,
+      favorites: `${Math.max(1, Math.round(contacts * 0.08))} acquéreurs`,
+      share: 7.8,
+      color: '#00A896',
+    },
+  ]
+}
+
+function DiffusionStat({
+  label,
+  value,
+  icon: Icon,
+  tone,
+  wide = false,
+}: {
+  label: string
+  value: string
+  icon: typeof Home
+  tone: 'brand' | 'violet' | 'success' | 'warning' | 'pink'
+  wide?: boolean
+}) {
+  const tones = {
+    brand: 'bg-[#E0F0FA] text-[#0077B6]',
+    violet: 'bg-violet-50 text-violet-600',
+    success: 'bg-emerald-50 text-emerald-600',
+    warning: 'bg-orange-50 text-orange-500',
+    pink: 'bg-pink-50 text-pink-600',
+  }
+
+  return (
+    <div className={`rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 ${wide ? 'col-span-2' : ''}`}>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-extrabold uppercase leading-none text-[#8AA0BC]">{label}</p>
+          <p className="mt-2 truncate text-xl font-extrabold leading-none text-[#0F172A]">{value}</p>
+        </div>
+        <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${tones[tone]}`}>
+          <Icon className="size-5" />
+        </span>
+      </div>
     </div>
+  )
+}
+
+function TrackingMetricCard({
+  label,
+  value,
+  change,
+  icon: Icon,
+  tone,
+  points,
+}: {
+  label: string
+  value: number | null
+  change: number | null
+  icon: typeof Home
+  tone: 'brand' | 'violet'
+  points: number[]
+}) {
+  const color = tone === 'brand' ? '#0077B6' : '#8B5CF6'
+  return (
+    <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold text-[#64748B]">{label}</p>
+          <p className="text-xl font-extrabold leading-none text-[#0F172A]">
+            {value === null ? '—' : formatNumber(value)}
+            {change !== null && <span className="ml-1 text-xs font-extrabold text-[#10B981]">(+{change}%)</span>}
+          </p>
+        </div>
+        <Icon className="size-4" style={{ color }} />
+      </div>
+      <MiniSparkline color={color} points={points} />
+    </div>
+  )
+}
+
+function MiniSparkline({ color, points }: { color: string; points: number[] }) {
+  const min = Math.min(...points)
+  const max = Math.max(...points)
+  const spread = Math.max(1, max - min)
+  const plotted = points.map((point, index) => {
+    const x = 10 + index * (120 / Math.max(1, points.length - 1))
+    const y = 42 - ((point - min) / spread) * 28
+    return `${x},${y}`
+  }).join(' ')
+
+  return (
+    <svg className="mt-3 h-12 w-full" viewBox="0 0 140 52" aria-hidden="true">
+      <polyline fill="none" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" points={plotted} />
+    </svg>
+  )
+}
+
+function MandateNoticeCard({ mandateType }: { mandateType: string | null }) {
+  return (
+    <section className="rounded-3xl border border-[#B9DFF4] bg-[#EAF6FC] p-6">
+      <div className="flex gap-4">
+        <Award className="mt-0.5 size-6 shrink-0 text-[#0077B6]" />
+        <div>
+          <h2 className="text-sm font-extrabold uppercase text-[#0F172A]">{mandateType || 'Mandat de vente exclusif (OS)'}</h2>
+          <p className="mt-2 text-xs leading-relaxed text-[#64748B]">
+            Profitez de la force de diffusion nationale du réseau iAD : diffusion illimitée de l&apos;annonce sur plus de 100 portails français et internationaux jusqu&apos;à la signature de l&apos;acte authentique.
+          </p>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function OfferManagementSection({ offers }: { offers: OfferCardModel[] }) {
+  return (
+    <section className="rounded-3xl border border-[#E2E8F0] bg-white p-6 shadow-sm md:p-8">
+      <h2 className="text-[20px] font-extrabold text-[#0F172A]">Gestion des offres d&apos;achat</h2>
+      <p className="mt-1 text-sm text-[#64748B]">Consultez les offres d&apos;achat écrites transmises par les acquéreurs.</p>
+      {offers.length > 0 ? (
+        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          {offers.map((offer) => <OfferCard key={offer.id} offer={offer} />)}
+        </div>
+      ) : (
+        <EmptyState text="Les offres écrites validées par Alexandre apparaîtront ici." />
+      )}
+    </section>
+  )
+}
+
+function OfferCard({ offer }: { offer: OfferCardModel }) {
+  const declined = offer.status === 'declined'
+  return (
+    <article className={`rounded-2xl border p-6 ${declined ? 'border-[#FDB9B9] bg-white text-[#64748B]' : 'border-[#E2E8F0] bg-white'}`}>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-extrabold text-[#64748B]">Acheteur :</p>
+          <h3 className="text-base font-extrabold text-[#0F172A]">{offer.buyer}</h3>
+          <p className="text-xs text-[#94A3B8]">Transmise le {offer.dateLabel}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-xs font-extrabold text-[#64748B]">Montant proposé :</p>
+          <p className="text-xl font-extrabold text-[#0F172A]">{offer.amount ? formatPriceCompact(offer.amount) : 'À consulter'}</p>
+        </div>
+      </div>
+
+      <div className="mt-5 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+        <p className="flex items-center gap-2 text-xs font-extrabold text-[#0F172A]">
+          <FileText className="size-4 text-[#0077B6]" />
+          Conditions & Financement :
+        </p>
+        <p className="mt-2 text-xs leading-relaxed text-[#334155]">{offer.conditions}</p>
+      </div>
+
+      <div className="mt-6 border-t border-[#E2E8F0] pt-5">
+        {declined ? (
+          <p className="flex items-center gap-2 text-xs font-semibold text-[#EF4444]">
+            <Clock className="size-4 text-[#94A3B8]" />
+            Statut final : Offre déclinée
+          </p>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+            <button type="button" aria-disabled className="h-10 rounded-full bg-[#10B981] px-4 text-xs font-extrabold text-white">Accepter l&apos;offre</button>
+            <button type="button" aria-disabled className="h-10 rounded-full border border-[#E2E8F0] bg-white px-4 text-xs font-extrabold text-[#0F172A]">Contre-proposer</button>
+            <button type="button" aria-disabled className="h-10 rounded-full px-4 text-xs font-extrabold text-[#EF4444]">Refuser</button>
+          </div>
+        )}
+      </div>
+    </article>
+  )
+}
+
+function VisitReportsSection({ visits }: { visits: VisitCardModel[] }) {
+  return (
+    <section className="rounded-3xl border border-[#E2E8F0] bg-white p-6 shadow-sm md:p-8">
+      <h2 className="text-[20px] font-extrabold text-[#0F172A]">Comptes-rendus des visites physiques</h2>
+      <p className="mt-1 text-sm text-[#64748B]">Suivi en temps réel des réactions à chaud des acquéreurs potentiels.</p>
+      {visits.length > 0 ? (
+        <div className="mt-6 space-y-4">
+          {visits.map((visit) => <VisitReportCard key={visit.id} visit={visit} />)}
+        </div>
+      ) : (
+        <EmptyState text="Les comptes-rendus de visites apparaîtront ici." />
+      )}
+    </section>
+  )
+}
+
+function VisitReportCard({ visit }: { visit: VisitCardModel }) {
+  const done = visit.status === 'done'
+  return (
+    <article className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-5">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="flex items-center gap-1.5 text-xs font-extrabold text-[#64748B]">
+              <CalendarDays className="size-4 text-[#0077B6]" />
+              {visit.dateLabel}
+            </span>
+            <h3 className="text-sm font-extrabold text-[#0F172A]">{visit.visitor}</h3>
+            <span className={`rounded-full px-3 py-1 text-[10px] font-extrabold uppercase leading-none ${
+              done ? 'bg-[#ECFDF5] text-[#10B981] ring-1 ring-[#9BE7C0]' : 'bg-[#FFF8E8] text-[#B26A00] ring-1 ring-[#F5C56B]'
+            }`}>
+              {done ? 'Visite effectuée' : 'Visite programmée'}
+            </span>
+          </div>
+          <p className="mt-3 text-xs leading-relaxed text-[#334155]">{visit.description}</p>
+        </div>
+        {visit.rating !== null && (
+          <div className="shrink-0 rounded-xl border border-[#E2E8F0] bg-white px-4 py-2 text-xs font-extrabold text-[#64748B]">
+            Intérêt : <span className="text-amber-500">{ratingStars(visit.rating)}</span>
+          </div>
+        )}
+      </div>
+    </article>
   )
 }
 
@@ -757,7 +1246,7 @@ function AdvisorPanel() {
   const [imageError, setImageError] = useState(false)
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-[#E2E8F0] bg-white p-6 shadow-sm transition-shadow hover:shadow-md md:p-8">
+    <section className="relative overflow-hidden rounded-3xl border border-[#E2E8F0] bg-white p-5 shadow-sm transition-shadow hover:shadow-md md:p-6">
       <div className="absolute right-0 top-0 h-36 w-36 rounded-full bg-[#E0F0FA]/40 blur-2xl" />
       <div className="relative flex flex-col gap-6 md:flex-row md:items-center">
         <div className="relative shrink-0">
@@ -822,7 +1311,7 @@ function AdvisorPanel() {
 
 function DashboardStatusCard({ vm }: { vm: PortalViewModel }) {
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-[#E2E8F0] bg-white p-6 shadow-sm md:p-8">
+    <section className="relative overflow-hidden rounded-3xl border border-[#E2E8F0] bg-white p-5 shadow-sm md:p-6">
       <div className="absolute left-0 top-0 h-full w-2 bg-[#0077B6]" />
       <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
         <div className="space-y-2">
@@ -840,9 +1329,9 @@ function DashboardStatusCard({ vm }: { vm: PortalViewModel }) {
           </p>
         </div>
 
-        <div className="flex items-center gap-3 rounded-2xl border border-[#10B981]/20 bg-[#10B981]/10 p-4">
-          <span className="flex size-10 items-center justify-center rounded-full bg-[#10B981]/15 text-[#10B981]">
-            <CheckCircle2 className="size-5" />
+        <div className="flex items-center gap-3 rounded-2xl border border-[#10B981]/20 bg-[#10B981]/10 p-3">
+          <span className="flex size-9 items-center justify-center rounded-full bg-[#10B981]/15 text-[#10B981]">
+            <CheckCircle2 className="size-4" />
           </span>
           <div>
             <p className="portal-label text-[#64748B]">Statut commercial</p>
@@ -881,7 +1370,7 @@ function DashboardKpi({
     <button
       type="button"
       onClick={onClick}
-      className="portal-kpi-card group p-6 text-left transition-all hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0077B6] focus-visible:ring-offset-2"
+      className="portal-kpi-card group p-5 text-left transition-all hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0077B6] focus-visible:ring-offset-2"
     >
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0 space-y-1">
@@ -895,8 +1384,8 @@ function DashboardKpi({
             <ChevronRight className="size-3.5" />
           </p>
         </div>
-        <span className={`flex size-12 shrink-0 items-center justify-center rounded-xl ${tones[tone]}`}>
-          <Icon className="size-6" />
+        <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${tones[tone]}`}>
+          <Icon className="size-5" />
         </span>
       </div>
     </button>
@@ -913,7 +1402,7 @@ function NextStepsPanel({
   onNavigate: (tab: PortalTab) => void
 }) {
   return (
-    <section className="rounded-3xl border border-[#E2E8F0] bg-white p-6 shadow-sm md:p-8">
+    <section className="rounded-3xl border border-[#E2E8F0] bg-white p-5 shadow-sm md:p-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
           <h2 className="portal-h2 text-[#0F172A]">Prochaines étapes conseillées</h2>
@@ -930,7 +1419,7 @@ function NextStepsPanel({
             key={item.id}
             type="button"
             onClick={() => onNavigate(item.target)}
-            className={`flex w-full items-center justify-between gap-4 rounded-2xl border p-4 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0077B6] focus-visible:ring-offset-2 ${
+            className={`flex w-full items-center justify-between gap-4 rounded-2xl border p-3.5 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0077B6] focus-visible:ring-offset-2 ${
               item.done ? 'border-[#E2E8F0] bg-slate-50/70 text-[#64748B] opacity-85' : 'border-[#E2E8F0] bg-white hover:border-[#0077B6]'
             }`}
           >
@@ -965,7 +1454,7 @@ function AudiencePanel({
   onNavigate: () => void
 }) {
   return (
-    <section className="flex flex-col justify-between rounded-3xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
+    <section className="flex flex-col justify-between rounded-3xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
       <div className="space-y-2">
         <h2 className="portal-h2 text-[#0F172A]">Diffusion & Audience</h2>
         <p className="portal-body text-[#64748B]">
@@ -973,7 +1462,7 @@ function AudiencePanel({
         </p>
       </div>
 
-      <div className="mt-8 space-y-6">
+      <div className="mt-6 space-y-4">
         <AudienceMetric
           label="Vues de l’annonce"
           value={views.count}
@@ -993,7 +1482,7 @@ function AudiencePanel({
       <button
         type="button"
         onClick={onNavigate}
-        className="portal-button-text mt-8 flex w-full items-center justify-center gap-2 rounded-full border border-[#E2E8F0] bg-white py-4 text-[#0F172A] transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0077B6]"
+        className="portal-button-text mt-6 flex w-full items-center justify-center gap-2 rounded-full border border-[#E2E8F0] bg-white py-3 text-[#0F172A] transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0077B6]"
       >
         Voir les statistiques détaillées
         <ArrowRight className="size-4 text-[#0077B6]" />
@@ -1016,17 +1505,17 @@ function AudienceMetric({
   tone: 'brand' | 'violet'
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-3xl border border-[#E2E8F0] bg-[#F8FAFC] p-5">
+    <div className="flex items-center justify-between gap-4 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
       <div className="flex items-center gap-4">
-        <span className={`flex size-14 shrink-0 items-center justify-center rounded-2xl ${tone === 'brand' ? 'bg-[#E0F0FA] text-[#0077B6]' : 'bg-violet-50 text-violet-600'}`}>
-          <Icon className="size-6" />
+        <span className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${tone === 'brand' ? 'bg-[#E0F0FA] text-[#0077B6]' : 'bg-violet-50 text-violet-600'}`}>
+          <Icon className="size-5" />
         </span>
         <div>
           <p className="portal-h3 text-[#64748B]">{label}</p>
-          <p className="text-4xl font-extrabold tracking-tight text-[#0F172A]">{value === null ? '—' : formatNumber(value)}</p>
+          <p className="text-lg font-extrabold tracking-tight text-[#0F172A]">{value === null ? '—' : formatNumber(value)}</p>
         </div>
       </div>
-      <span className="portal-h3 rounded-full bg-[#10B981]/10 px-4 py-2 text-[#10B981]">
+      <span className="whitespace-nowrap rounded-full bg-[#10B981]/10 px-2 py-1 text-[11px] font-extrabold leading-none text-[#10B981]">
         {change === null ? '+—' : `+${change}%`} cette sem.
       </span>
     </div>
@@ -1085,9 +1574,9 @@ function PropertyHeroPanel({ vm, onNavigate }: { vm: PortalViewModel; onNavigate
 
 function PropertyFact({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 text-center">
+    <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3 text-center">
       <p className="portal-label text-[#64748B]">{label}</p>
-      <p className="portal-value mt-2 text-[#0F172A]">{value}</p>
+      <p className="mt-1 text-sm font-extrabold leading-tight text-[#0F172A]">{value}</p>
     </div>
   )
 }
@@ -1116,24 +1605,24 @@ function DashboardCta() {
 function Panel({ children, tone = 'default' }: { children: React.ReactNode; tone?: 'default' | 'brand' }) {
   return (
     <Card
-      className={`app-panel rounded-lg border-slate-200/90 shadow-[0_18px_50px_-42px_rgba(15,23,42,0.55)] ${
-        tone === 'brand' ? 'bg-brand-light/65' : 'bg-white'
+      className={`app-panel rounded-3xl border-[#E2E8F0] shadow-sm transition-shadow ${
+        tone === 'brand' ? 'bg-[#E0F0FA]/65' : 'bg-white'
       }`}
     >
-      <CardContent className="p-5 sm:p-6">{children}</CardContent>
+      <CardContent className="p-4 sm:p-5">{children}</CardContent>
     </Card>
   )
 }
 
 function MiniInfo({ label, value, icon: Icon }: { label: string; value: string; icon: typeof Home }) {
   return (
-    <div className="flex items-center gap-3 rounded-md border bg-surface/80 p-3">
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-md border bg-white text-foreground">
+    <div className="flex items-center gap-3 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#E0F0FA] text-[#0077B6]">
         <Icon className="size-4" />
       </span>
       <span className="min-w-0">
-        <span className="portal-label block text-muted-foreground">{label}</span>
-        <span className="portal-button-text mt-1 block truncate">{value}</span>
+        <span className="portal-label block text-[#64748B]">{label}</span>
+        <span className="portal-button-text mt-1 block truncate text-[#0F172A]">{value}</span>
       </span>
     </div>
   )
@@ -1141,9 +1630,9 @@ function MiniInfo({ label, value, icon: Icon }: { label: string; value: string; 
 
 function MiniValue({ label, value, tone }: { label: string; value: string; tone?: 'brand' | 'warning' }) {
   return (
-    <div className={`rounded-md border p-3 ${tone === 'brand' ? 'border-brand/15 bg-brand-light/60' : 'bg-surface/80'}`}>
-      <p className="portal-label text-muted-foreground">{label}</p>
-      <p className={`portal-button-text mt-1 ${tone === 'brand' ? 'text-brand-hover' : tone === 'warning' ? 'text-[#B26A00]' : ''}`}>{value}</p>
+    <div className={`rounded-2xl border p-3 ${tone === 'brand' ? 'border-[#0077B6]/15 bg-[#E0F0FA]' : 'border-[#E2E8F0] bg-white'}`}>
+      <p className="portal-label text-[#64748B]">{label}</p>
+      <p className={`portal-button-text mt-1 ${tone === 'brand' ? 'text-[#0077B6]' : tone === 'warning' ? 'text-[#B26A00]' : 'text-[#0F172A]'}`}>{value}</p>
     </div>
   )
 }
@@ -1151,21 +1640,21 @@ function MiniValue({ label, value, tone }: { label: string; value: string; tone?
 function TimelineList({ events, compact = false }: { events: PortalEvent[]; compact?: boolean }) {
   if (events.length === 0) return <EmptyState text="Les jalons visibles seront ajoutés par Alexandre." />
   return (
-    <ol className={`relative ml-4 mt-5 border-l-2 border-border pl-5 ${compact ? 'space-y-4' : 'space-y-6'}`}>
+    <ol className={`relative ml-4 mt-5 border-l-2 border-[#E2E8F0] pl-5 ${compact ? 'space-y-4' : 'space-y-6'}`}>
       {events.map((event) => {
         const isDone = event.status === 'done'
         return (
           <li key={event.id} className="relative">
-            <span className={`absolute -left-[31px] top-1 flex size-5 items-center justify-center rounded-md border-4 border-white ${isDone ? 'bg-foreground text-white' : 'bg-white text-muted-foreground ring-1 ring-border'}`}>
+            <span className={`absolute -left-[31px] top-1 flex size-5 items-center justify-center rounded-full border-4 border-white ${isDone ? 'bg-[#10B981] text-white' : 'bg-white text-[#64748B] ring-1 ring-[#E2E8F0]'}`}>
               {isDone ? <CheckCircle2 className="size-3" /> : <Clock className="size-3" />}
             </span>
             <div className="flex flex-wrap items-center gap-2">
-              {event.event_date && <span className="portal-meta text-brand">{formatDate(event.event_date)}</span>}
-              <Badge variant="outline" className="rounded-md">{event.typeLabel}</Badge>
-              {event.status !== 'done' && <Badge variant="outline" className="rounded-md border-brand/20 bg-brand-light/70 text-brand">En cours</Badge>}
+              {event.event_date && <span className="portal-meta text-[#0077B6]">{formatDate(event.event_date)}</span>}
+              <Badge variant="outline" className="rounded-full border-[#E2E8F0] bg-white text-[#64748B]">{event.typeLabel}</Badge>
+              {event.status !== 'done' && <Badge variant="outline" className="rounded-full border-[#0077B6]/20 bg-[#E0F0FA] text-[#0077B6]">En cours</Badge>}
             </div>
-            <h3 className="portal-h3 mt-1">{event.title}</h3>
-            {event.description && <p className="portal-body mt-1 text-muted-foreground">{event.description}</p>}
+            <h3 className="portal-h3 mt-1 text-[#0F172A]">{event.title}</h3>
+            {event.description && <p className="portal-body mt-1 text-[#64748B]">{event.description}</p>}
           </li>
         )
       })}
@@ -1178,14 +1667,14 @@ function EventCards({ events, empty }: { events: PortalEvent[]; empty: string })
   return (
     <div className="mt-4 space-y-3">
       {events.map((event) => (
-        <div key={event.id} className="rounded-md border bg-surface/80 p-4">
+        <div key={event.id} className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline" className="rounded-md">{event.typeLabel}</Badge>
-            {event.event_date && <span className="portal-meta text-brand">{formatDate(event.event_date)}</span>}
+            <Badge variant="outline" className="rounded-full border-[#E2E8F0] bg-white text-[#64748B]">{event.typeLabel}</Badge>
+            {event.event_date && <span className="portal-meta text-[#0077B6]">{formatDate(event.event_date)}</span>}
           </div>
-          <h3 className="portal-h3 mt-2">{event.title}</h3>
-          {event.description && <p className="portal-body mt-1 text-muted-foreground">{event.description}</p>}
-          {event.payloadSummary && <p className="portal-meta mt-2 font-semibold text-foreground">{event.payloadSummary}</p>}
+          <h3 className="portal-h3 mt-2 text-[#0F172A]">{event.title}</h3>
+          {event.description && <p className="portal-body mt-1 text-[#64748B]">{event.description}</p>}
+          {event.payloadSummary && <p className="portal-meta mt-2 font-semibold text-[#0F172A]">{event.payloadSummary}</p>}
         </div>
       ))}
     </div>
@@ -1193,7 +1682,7 @@ function EventCards({ events, empty }: { events: PortalEvent[]; empty: string })
 }
 
 function EmptyState({ text }: { text: string }) {
-  return <div className="portal-body mt-4 rounded-md border border-dashed bg-surface/80 p-5 text-muted-foreground">{text}</div>
+  return <div className="portal-body mt-4 rounded-2xl border border-dashed border-[#E2E8F0] bg-[#F8FAFC] p-5 text-[#64748B]">{text}</div>
 }
 
 type PortalViewModel = ReturnType<typeof buildViewModel>
@@ -1209,7 +1698,182 @@ const TEST_PRICE_TREND = [
   { year: '2026', price: 3640 },
 ]
 
-function buildViewModel(data: ClientPortalDossier, mode: 'session' | 'test') {
+function buildTrackingTimeline(vm: PortalViewModel, mode: PortalMode): TrackingStep[] {
+  const milestoneEvents = vm.visibleEvents.filter((event) => !['visit', 'offer', 'document', 'system'].includes(event.type))
+  const source = milestoneEvents.length > 0 && mode !== 'test' ? milestoneEvents : []
+
+  if (source.length > 0) {
+    return source.map((event, index) => {
+      const done = event.status === 'done'
+      const current = !done && index === source.findIndex((item) => item.status !== 'done')
+      return {
+        id: event.id,
+        dateLabel: event.event_date ? formatDate(event.event_date) : done ? 'Étape réalisée' : 'À venir',
+        title: event.title,
+        description: event.description ?? 'Alexandre mettra cette étape à jour dès qu’une information utile sera disponible.',
+        state: done ? 'done' : current ? 'current' : 'future',
+        badge: current ? 'Étape en cours' : undefined,
+      }
+    })
+  }
+
+  return [
+    {
+      id: 'estimate',
+      dateLabel: '12 Mai 2026',
+      title: 'Estimation & Avis de valeur',
+      description: 'Visite technique du bien et remise du rapport d’estimation détaillé par Alexandre.',
+      state: 'done',
+    },
+    {
+      id: 'exclusive',
+      dateLabel: '14 Mai 2026',
+      title: 'Signature du mandat exclusif',
+      description: 'Mise en place de la stratégie commerciale exclusive et constitution du dossier initial.',
+      state: 'done',
+    },
+    {
+      id: 'shooting',
+      dateLabel: '20 Mai 2026',
+      title: 'Shooting photo pro & Visite virtuelle 3D',
+      description: 'Prise de clichés haute définition et numérisation 3D immersive par un photographe professionnel.',
+      state: 'done',
+    },
+    {
+      id: 'launch',
+      dateLabel: '24 Mai 2026',
+      title: 'Lancement de la commercialisation',
+      description: 'Publication sur plus de 100 portails immobiliers nationaux et internationaux.',
+      state: 'done',
+    },
+    {
+      id: 'current-visits',
+      dateLabel: 'En cours (Juin-Juillet 2026)',
+      title: 'Visites qualifiées & retours acquéreurs',
+      description: 'Sélection rigoureuse des profils, vérification des plans de financement, visites physiques et comptes-rendus hebdomadaires.',
+      state: 'current',
+      badge: 'Étape en cours',
+    },
+    {
+      id: 'negotiation',
+      dateLabel: 'Prochaine étape (Est. Fin Juillet)',
+      title: 'Négociation & Signature du compromis',
+      description: 'Analyse des offres d’achat écrites, contre-propositions et rédaction du compromis chez le notaire choisi.',
+      state: 'future',
+    },
+    {
+      id: 'signature',
+      dateLabel: 'Est. Octobre 2026',
+      title: 'Acte de vente authentique',
+      description: 'Levée des conditions suspensives, virement des fonds par la banque et remise des clés.',
+      state: 'future',
+    },
+  ]
+}
+
+function buildOfferCards(vm: PortalViewModel, mode: PortalMode): OfferCardModel[] {
+  const events = vm.visibleEvents.filter((event) => event.type === 'offer')
+  if (events.length > 0 && mode !== 'test') return events.map(offerFromEvent)
+
+  if (mode === 'test') {
+    return [
+      {
+        id: 'offer-giraud',
+        buyer: 'M. & Mme Giraud',
+        dateLabel: '29 Juin 2026',
+        amount: 382000,
+        conditions: 'Sous condition d’obtention de prêt de 262 000 € (apport personnel de 120 000 € déjà vérifié auprès de l’établissement financier).',
+        status: 'active',
+      },
+      {
+        id: 'offer-horizon',
+        buyer: 'SCI Provence Horizon (M. Blanc)',
+        dateLabel: '12 Juin 2026',
+        amount: 360000,
+        conditions: 'Paiement comptant sans condition de prêt bancaire. Offre refusée car le vendeur a jugée trop basse.',
+        status: 'declined',
+      },
+    ]
+  }
+
+  return events.map(offerFromEvent)
+}
+
+function offerFromEvent(event: PortalEvent): OfferCardModel {
+  const payload = asRecord(event.payload)
+  const status = text(payload.status) ?? event.status
+  return {
+    id: event.id,
+    buyer: text(payload.buyer_name) ?? event.title,
+    dateLabel: event.event_date ? formatDate(event.event_date) : 'date à confirmer',
+    amount: numberValue(payload.amount),
+    conditions: text(payload.conditions) ?? event.description ?? 'Conditions transmises par Alexandre.',
+    status: status === 'declined' || status === 'refused' || status === 'done' ? 'declined' : 'active',
+  }
+}
+
+function buildVisitCards(vm: PortalViewModel, mode: PortalMode): VisitCardModel[] {
+  const events = vm.visibleEvents.filter((event) => event.type === 'visit')
+  if (events.length > 0 && mode !== 'test') return events.map(visitFromEvent)
+
+  if (mode === 'test') {
+    return [
+      {
+        id: 'visit-giraud',
+        visitor: 'M. & Mme Giraud',
+        dateLabel: '28 Juin 2026',
+        description: 'Très fort intérêt pour la pièce à vivre et l’espace piscine. Ils apprécient l’exposition et le calme absolu. Financement validé par courtier, ils étudient une offre.',
+        rating: 5,
+        status: 'done',
+      },
+      {
+        id: 'visit-dufour',
+        visitor: 'Famille Dufour',
+        dateLabel: '24 Juin 2026',
+        description: 'Maison coup de cœur pour les parents, mais le terrain est jugé un peu trop en pente. Ils s’orientent vers un autre bien en centre-ville.',
+        rating: 3,
+        status: 'done',
+      },
+      {
+        id: 'visit-roux',
+        visitor: 'M. Bastien Roux',
+        dateLabel: '18 Juin 2026',
+        description: 'Investisseur cherchant sa résidence secondaire. Très emballé par la cuisine d’été et la qualité des prestations, mais trouve le prix un peu haut.',
+        rating: 4,
+        status: 'done',
+      },
+      {
+        id: 'visit-vautier',
+        visitor: 'Mme Claire Vautier',
+        dateLabel: '04 Juillet 2026',
+        description: 'Profil sérieusement sélectionné : mutation professionnelle d’Aix-en-Provence. Budget pré-approuvé. Visite fixée ce samedi à 10h.',
+        rating: null,
+        status: 'planned',
+      },
+    ]
+  }
+
+  return events.map(visitFromEvent)
+}
+
+function visitFromEvent(event: PortalEvent): VisitCardModel {
+  const payload = asRecord(event.payload)
+  return {
+    id: event.id,
+    visitor: text(payload.buyer_name) ?? text(payload.visitor_name) ?? event.title,
+    dateLabel: event.event_date ? formatDate(event.event_date) : 'date à confirmer',
+    description: event.description ?? 'Compte-rendu à compléter par Alexandre.',
+    rating: numberValue(payload.rating),
+    status: event.status === 'done' ? 'done' : 'planned',
+  }
+}
+
+function ratingStars(value: number) {
+  const rounded = Math.max(0, Math.min(5, Math.round(value)))
+  return '★'.repeat(rounded) + '☆'.repeat(5 - rounded)
+}
+
+function buildViewModel(data: ClientPortalDossier, mode: PortalMode) {
   const summary = buildSummary(data)
   const estimate = buildEstimate(data, mode)
   const visibleEvents = data.events
@@ -1276,13 +1940,13 @@ function buildSummary(data: ClientPortalDossier) {
   }
 }
 
-function buildMapCenter(summary: ReturnType<typeof buildSummary>, mode: 'session' | 'test') {
+function buildMapCenter(summary: ReturnType<typeof buildSummary>, mode: PortalMode) {
   if (summary.lat !== null && summary.lng !== null) return { lat: summary.lat, lng: summary.lng }
   if (mode === 'test') return { lat: 43.4521, lng: 5.8623 }
   return null
 }
 
-function buildEstimate(data: ClientPortalDossier, mode: 'session' | 'test') {
+function buildEstimate(data: ClientPortalDossier, mode: PortalMode) {
   const results = asRecord(data.lead?.results ?? null)
   const snapshot = asRecord(data.dossier.property_snapshot)
   const opinion = asRecord(data.dossier.professional_opinion)
@@ -1327,7 +1991,7 @@ function buildEstimate(data: ClientPortalDossier, mode: 'session' | 'test') {
   }
 }
 
-function buildAudience(data: ClientPortalDossier, mode: 'session' | 'test') {
+function buildAudience(data: ClientPortalDossier, mode: PortalMode) {
   const opinion = asRecord(data.dossier.professional_opinion)
   const audience = asRecord(opinion.audience)
   return {
@@ -1339,10 +2003,34 @@ function buildAudience(data: ClientPortalDossier, mode: 'session' | 'test') {
       count: numberValue(audience.contacts_count) ?? numberValue(audience.contacts) ?? (mode === 'test' ? 28 : null),
       change: numberValue(audience.contacts_change) ?? (mode === 'test' ? 8 : null),
     },
+    portals: audiencePortalList(audience.portals),
   }
 }
 
-function buildPropertyHero(data: ClientPortalDossier, summary: ReturnType<typeof buildSummary>, mode: 'session' | 'test') {
+function audiencePortalList(value: Json | undefined): Array<Omit<DiffusionSource, 'share' | 'color'>> {
+  const portals = asRecord(value)
+  const ids = ['global', 'seloger', 'leboncoin', 'iad', 'bienici', 'autre']
+
+  return ids.flatMap((id) => {
+    const portal = asRecord(portals[id])
+    const views = numberValue(portal.views)
+    if (views === null) return []
+    const name = text(portal.name)
+    const description = text(portal.description)
+    return [{
+      id,
+      name: name ?? id,
+      description: description ?? '',
+      views,
+      engagement: numberValue(portal.engagement) ?? 0,
+      calls: numberValue(portal.calls) ?? 0,
+      messages: numberValue(portal.messages) ?? 0,
+      favorites: String(numberValue(portal.favorites) ?? 0),
+    }]
+  })
+}
+
+function buildPropertyHero(data: ClientPortalDossier, summary: ReturnType<typeof buildSummary>, mode: PortalMode) {
   const snapshot = asRecord(data.dossier.property_snapshot)
   const opinion = asRecord(data.dossier.professional_opinion)
   const features = listValue(snapshot.features).length > 0
@@ -1369,7 +2057,7 @@ function fallbackArguments(data: ClientPortalDossier) {
   ].filter((item): item is string => Boolean(item))
 }
 
-function comparableList(value: unknown, mode: 'session' | 'test') {
+function comparableList(value: unknown, mode: PortalMode) {
   if (!Array.isArray(value) || value.length === 0) return mode === 'test' ? testComparables() : []
   return value
     .map((item, index) => {
@@ -1442,7 +2130,7 @@ function testComparables() {
   ]
 }
 
-function priceTrendList(value: unknown, mode: 'session' | 'test') {
+function priceTrendList(value: unknown, mode: PortalMode) {
   if (!Array.isArray(value) || value.length === 0) return mode === 'test' ? TEST_PRICE_TREND : []
   return value
     .map((item) => {

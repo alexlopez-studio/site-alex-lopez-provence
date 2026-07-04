@@ -222,7 +222,7 @@ export function ComparableLeafletMap({
           border: 4px solid #0077b6;
           background: #ffffff;
           color: #0077b6;
-          font-family: Inter, system-ui, sans-serif;
+          font-family: var(--font-jakarta), var(--font-inter), system-ui, sans-serif;
           font-size: 16px;
           font-weight: 800;
           box-shadow: 0 12px 24px rgba(15, 23, 42, 0.2);
@@ -241,7 +241,7 @@ export function ComparableLeafletMap({
 
         .portal-map-popup {
           min-width: 180px;
-          font-family: Inter, system-ui, sans-serif;
+          font-family: var(--font-jakarta), var(--font-inter), system-ui, sans-serif;
           color: #0f172a;
         }
 

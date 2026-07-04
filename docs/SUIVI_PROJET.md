@@ -17,6 +17,136 @@ Decision : Codex reprend seul le developpement et le design pour le moment.
 
 Note : les lots Linear ci-dessous sont historiques et ne refletent plus l'etat reel du code. La memoire courante est dans `docs/MEMOIRE_SESSION.md`.
 
+### 05/07/2026 00:25 CEST - Validation pre-push portail vendeur
+- Base/branche : `preview` alignee avec `origin/preview` en commits apres
+  `git fetch --all --prune` (`0 / 0` avance/retard).
+- Type : validation / build / preparation commit-push.
+- Statut : **fait**.
+- Travail :
+  1. Confirmation par Alexandre de faire `commit + push sur preview`.
+  2. Verification du statut Git et du diff avant staging.
+  3. Verification des routes non suivies de preview admin/client :
+     `/admin/market/clients/[id]/preview` et `/espace-client/preview/[id]`.
+  4. Relance de `npm run build` avant commit.
+- Fichiers principaux : `docs/SUIVI_PROJET.md` et l'ensemble du chantier portail
+  vendeur / console admin dossier client liste dans l'entree du 05/07/2026 00:16.
+- Audit qualite : `git diff --check` OK ; `npm run build` OK. Warnings ESLint
+  non bloquants encore presents, dont quelques helpers non utilises dans
+  `src/app/espace-client/portal-view.tsx` a nettoyer lors d'une prochaine passe.
+- Prochain point de reprise recommande apres push : revue fonctionnelle sur un
+  dossier vendeur reel et test complet documents / suivi de mandat.
+
+### 05/07/2026 00:21 CEST - Reprise de session
+- Base/branche : `preview` alignee avec `origin/preview` en commits apres
+  `git fetch --all --prune` (`0 / 0` avance/retard).
+- Type : reprise / verification locale / suivi projet.
+- Statut : **fait**.
+- Travail :
+  1. Lecture de `docs/MEMOIRE_SESSION.md`, `docs/SUIVI_PROJET.md` et
+     `docs/START.md`.
+  2. Verification du working tree : le travail local non commite du portail vendeur
+     et de la console admin dossier client est present et doit etre preserve.
+  3. Demarrage du serveur Next local avec `npm run dev -- --port 3002`.
+  4. Verification HTTP de `http://localhost:3002/app/dashboard` : reponse `200 OK`.
+- Fichiers principaux : `docs/SUIVI_PROJET.md`.
+- Audit qualite : serveur local pret sur `http://localhost:3002` ; le navigateur
+  integre Codex n'etait pas disponible dans cette session, donc pas de verification
+  visuelle Playwright/in-app browser effectuee a cette etape.
+- Prochain point de reprise recommande : revue fonctionnelle du dossier vendeur reel,
+  puis test des cycles documents et suivi de mandat avant validation/push.
+
+### 05/07/2026 00:16 CEST - Portail vendeur + console admin dossier client
+- Base/branche : `preview` (local non commite au moment de l'ecriture).
+- Type : produit / portail client vendeur / console Mandat OS / design system.
+- Statut : **fait**.
+- Demandes (Alexandre) : dupliquer le design du prototype vendeur sur l'espace client,
+  aligner les onglets `Mes documents` et `Suivi de mandat` sur les captures Google AI
+  Studio, ajouter une console admin dossier client dans Mandat OS, permettre l'acces
+  admin au portail client et standardiser les champs admin avec des dropdowns
+  pre-remplis + `Autre`.
+- Travail portail client :
+  1. Refonte visuelle scopee a `.client-portal` sans impacter le site public :
+     police Plus Jakarta Sans, tokens AI Studio/iAD, surfaces blanches, bordures fines,
+     boutons/badges en pilules et header compact.
+  2. Header portail reproduit puis reduit pour une densite proche Google AI Studio ;
+     marque mise a jour en `Alexandre Lopez immobilier` avec sous-titre
+     `Provence Verte & Verdon`.
+  3. Ajustement des gros chiffres KPI/prix/statistiques pour limiter les effets trop
+     massifs et garder les valeurs critiques sur une ligne.
+  4. Alignement de `/espace-client/connexion` sur la meme charte sans changer le magic
+     link.
+  5. Carte Leaflet et marqueurs harmonises avec les tokens portail.
+- Travail `Mes documents` :
+  1. Remplacement de l'onglet par une page dense : carte intro `Dossier administratif
+     & Pieces justificatives`, encart avancement, grande dropzone, liste reglementaire
+     et bloc bas diagnostics.
+  2. Conservation de l'upload existant, des URLs signees, des statuts et du mode test.
+  3. Reorganisation visuelle des statuts, motifs, commentaires et actions pour eviter
+     les alignements confus.
+- Travail `Suivi de mandat` :
+  1. Recomposition en blocs : timeline pas-a-pas, diffusion/statistiques, offres
+     d'achat et comptes-rendus de visites.
+  2. Utilisation des donnees reelles `client_dossier_events`, `professional_opinion`
+     et fallbacks test lorsque les donnees sont absentes.
+  3. Reprise du bloc demande par Alexandre : timeline claire a gauche et panneau
+     `Diffusion & Statistiques` a droite avec portails, KPI, repartition et avis.
+  4. Boutons d'offres rendus visuellement mais non mutationnels.
+- Travail console admin Mandat OS :
+  1. Refonte de la page detail dossier client en `Console d'Administration Pro` avec
+     hero sombre, reference mandat, adresse, bouton `Publier sur l'espace client` et
+     tabs metier : mandat/technique, estimation, documents, plan de vente, visites,
+     offres.
+  2. Edition/sauvegarde via les API existantes du dossier, `property_snapshot`,
+     `professional_opinion`, documents et events, sans migration SQL.
+  3. Ajout des statistiques par portail dans `professional_opinion.audience.portals`
+     et lecture cote client dans `Diffusion & Statistiques`.
+  4. Ajout d'une preview admin et d'un acces direct au portail client depuis le dossier,
+     sans exposer d'onglet admin au vendeur.
+  5. Clarification du comportement : les donnees saisies dans Mandat OS sont les donnees
+     synchronisees/publiees dans l'espace client.
+- Travail dropdowns admin :
+  1. Ajout de listes pre-remplies + option `Autre` pour les champs structurants :
+     type de mandat, type de bien, etat general, DPE, equipements/atouts, categories
+     documents, statuts, motifs de rejet, types d'etapes, visibilite, statuts visites,
+     interet, profil acquereur, financement, statuts offres, condition principale,
+     solidite et portails statistiques.
+  2. Conservation en champs libres des donnees variables : adresse, commune, surfaces,
+     pieces/chambres, prix, audiences, descriptions, syntheses, comparables JSON, noms
+     acquereurs et montants.
+  3. Les valeurs `Autre` sont stockees comme texte normal dans les JSON/API existants.
+- Fichiers principaux : `src/app/globals.css`,
+  `src/app/espace-client/portal-view.tsx`,
+  `src/app/espace-client/client-documents.tsx`,
+  `src/app/espace-client/comparable-leaflet-map.tsx`,
+  `src/app/espace-client/connexion/page.tsx`,
+  `src/app/espace-client/sign-out-button.tsx`,
+  `src/app/espace-client/preview/[id]/page.tsx`,
+  `src/app/admin/market/clients/[id]/page.tsx`,
+  `src/app/admin/market/clients/[id]/preview/page.tsx`,
+  `src/app/api/market/clients/[id]/invite/route.ts`,
+  `src/app/auth/callback/route.ts`.
+- Audit qualite : `npx tsc --noEmit` OK ; `git diff --check` OK ;
+  `npm run build` OK avec warnings existants ; verification locale sur
+  `http://localhost:3012/app/clients/b9b76b97-8854-488f-b9d4-0a59f7090f3e` OK
+  (chargement page admin + API dossier/notifications, seul 404 local attendu sur
+  `/_vercel/insights/script.js`).
+- Points de vigilance : valider en session admin reelle que l'acces direct dossier
+  client ouvre bien la vue attendue en rendez-vous ; tester un dossier reel avec
+  documents/offres/visites non mockes avant push.
+- Prochaines etapes recommandees :
+  1. Faire une revue fonctionnelle sur un dossier vendeur reel : saisie admin,
+     publication, ouverture du portail client et verification des donnees affichees.
+  2. Finaliser le comportement exact de l'acces direct admin au portail client en
+     conditions production : preview interne vs lien client partageable en rendez-vous.
+  3. Tester le cycle documents complet en session reelle : upload vendeur, validation
+     admin, rejet avec motif, remplacement et ouverture d'URL signee.
+  4. Tester le cycle suivi mandat complet : ajout d'etapes, visites, offres et rendu
+     immediat cote client.
+  5. Stabiliser les listes pre-remplies des dropdowns apres usage terrain : ajouter,
+     retirer ou renommer les valeurs selon les formulations qu'Alexandre veut imposer.
+  6. Prevoir ensuite la couche email/notification vendeur si l'espace client devient
+     utilise en production active.
+
 ### 03/07/2026 15:25 CEST - Scope typographique portail client
 - Base/branche : `preview` (local non commite au moment de l'ecriture).
 - Type : design system / typographie / coherence app.
