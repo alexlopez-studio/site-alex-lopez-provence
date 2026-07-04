@@ -30,6 +30,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 import type { ClientDocumentStatus, Json } from '@/types/supabase'
 
 type ClientDetail = {
@@ -132,6 +133,9 @@ type ProfessionalDraft = {
   portals: PortalDraft[]
 }
 
+const ADMIN_TAB_VALUES = ['mandat', 'estimation', 'documents', 'plan', 'visites', 'offres'] as const
+type AdminTabValue = (typeof ADMIN_TAB_VALUES)[number]
+
 const DOCUMENT_STATUS_LABELS: Record<string, string> = {
   missing: 'Manquant',
   requested: 'Demandé',
@@ -185,6 +189,13 @@ const PORTAL_DEFS: Array<Pick<PortalDraft, 'id' | 'name' | 'description'>> = [
   { id: 'autre', name: 'Autre', description: 'Support de diffusion complémentaire.' },
 ]
 
+const ADMIN_INPUT_CLASS = 'h-10 rounded-xl px-3 text-sm'
+const ADMIN_SELECT_CLASS = 'h-10 w-full rounded-xl border border-input bg-background px-3 text-sm'
+const ADMIN_TEXTAREA_CLASS = 'rounded-xl px-3 py-2 text-sm'
+const ADMIN_PRIMARY_ACTION_CLASS = 'h-10 rounded-xl px-4'
+const ADMIN_SECONDARY_ACTION_CLASS = 'h-9 rounded-xl px-3'
+const ADMIN_ICON_ACTION_CLASS = 'size-9 rounded-xl'
+
 export default function ClientDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -200,9 +211,10 @@ export default function ClientDetailPage() {
   const [newDoc, setNewDoc] = useState({ label: '', category: 'Autre' })
   const [newEvent, setNewEvent] = useState(emptyEventDraft())
   const [uploadingId, setUploadingId] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<AdminTabValue>('mandat')
 
-  const fetchDetail = useCallback(async () => {
-    setLoading(true)
+  const fetchDetail = useCallback(async ({ showLoading = true }: { showLoading?: boolean } = {}) => {
+    if (showLoading) setLoading(true)
     try {
       const res = await fetch('/api/market/clients/' + id)
       const json = await res.json()
@@ -215,7 +227,7 @@ export default function ClientDetailPage() {
       console.error('[ClientDetailPage] fetch:', err)
       toast.error('Impossible de charger le dossier client')
     } finally {
-      setLoading(false)
+      if (showLoading) setLoading(false)
     }
   }, [id])
 
@@ -231,7 +243,7 @@ export default function ClientDetailPage() {
   const mandateReference = propertyDraft.mandate_number || `M-${new Date().getFullYear()}-${id.slice(0, 4).toUpperCase()}`
   const address = propertyDraft.adresse || data?.dossier.title || 'Adresse du mandat à compléter'
 
-  async function publishClientPortal() {
+  async function saveClientPortal() {
     if (!draft) return
     setSaving(true)
     try {
@@ -256,8 +268,8 @@ export default function ClientDetailPage() {
       })
       const json = await res.json()
       if (!res.ok || !json.success) throw new Error(json.error ?? 'Erreur API')
-      toast.success('Espace client publié')
-      await fetchDetail()
+      toast.success('Modifications sauvegardées')
+      await fetchDetail({ showLoading: false })
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Publication impossible')
     } finally {
@@ -308,7 +320,7 @@ export default function ClientDetailPage() {
     const json = await res.json()
     if (!res.ok || !json.success) return toast.error(json.error ?? 'Ajout impossible')
     setNewDoc({ label: '', category: 'Autre' })
-    await fetchDetail()
+    await fetchDetail({ showLoading: false })
   }
 
   async function updateDocument(documentId: string, patch: Record<string, unknown>) {
@@ -319,14 +331,14 @@ export default function ClientDetailPage() {
     })
     const json = await res.json()
     if (!res.ok || !json.success) return toast.error(json.error ?? 'Mise à jour impossible')
-    await fetchDetail()
+    await fetchDetail({ showLoading: false })
   }
 
   async function deleteDocument(documentId: string) {
     const res = await fetch(`/api/market/clients/${id}/documents?id=${encodeURIComponent(documentId)}`, { method: 'DELETE' })
     const json = await res.json()
     if (!res.ok || !json.success) return toast.error(json.error ?? 'Suppression impossible')
-    await fetchDetail()
+    await fetchDetail({ showLoading: false })
   }
 
   async function uploadDocument(document: ClientDocument | null, file: File | null) {
@@ -341,7 +353,7 @@ export default function ClientDetailPage() {
       const res = await fetch(`/api/market/clients/${id}/documents/upload`, { method: 'POST', body })
       const json = await res.json()
       if (!res.ok || !json.success) throw new Error(json.error ?? 'Upload impossible')
-      await fetchDetail()
+      await fetchDetail({ showLoading: false })
       toast.success('Document ajouté')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Upload impossible')
@@ -368,7 +380,7 @@ export default function ClientDetailPage() {
     const json = await res.json()
     if (!res.ok || !json.success) return toast.error(json.error ?? 'Ajout impossible')
     setNewEvent(emptyEventDraft())
-    await fetchDetail()
+    await fetchDetail({ showLoading: false })
   }
 
   async function updateEvent(eventId: string, patch: Record<string, unknown>) {
@@ -379,14 +391,14 @@ export default function ClientDetailPage() {
     })
     const json = await res.json()
     if (!res.ok || !json.success) return toast.error(json.error ?? 'Mise à jour impossible')
-    await fetchDetail()
+    await fetchDetail({ showLoading: false })
   }
 
   async function deleteEvent(eventId: string) {
     const res = await fetch(`/api/market/clients/${id}/events?id=${encodeURIComponent(eventId)}`, { method: 'DELETE' })
     const json = await res.json()
     if (!res.ok || !json.success) return toast.error(json.error ?? 'Suppression impossible')
-    await fetchDetail()
+    await fetchDetail({ showLoading: false })
   }
 
   if (loading) return <div className="p-8 text-sm text-muted-foreground">Chargement du dossier...</div>
@@ -426,29 +438,25 @@ export default function ClientDetailPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" onClick={inviteClient} disabled={inviting} className="rounded-xl">
+            <Button variant="secondary" onClick={inviteClient} disabled={inviting} className={ADMIN_PRIMARY_ACTION_CLASS}>
               {inviting ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Send className="mr-2 size-4" />}
               Inviter
             </Button>
-            <Button asChild variant="secondary" className="rounded-xl">
+            <Button asChild variant="secondary" className={ADMIN_PRIMARY_ACTION_CLASS}>
               <Link href={`/app/clients/${id}/preview`}>
                 <Eye className="mr-2 size-4" />
                 Preview admin
               </Link>
             </Button>
-            <Button variant="secondary" onClick={openClientPortalLink} disabled={openingClientLink} className="rounded-xl">
+            <Button variant="secondary" onClick={openClientPortalLink} disabled={openingClientLink} className={ADMIN_PRIMARY_ACTION_CLASS}>
               {openingClientLink ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Eye className="mr-2 size-4" />}
               Accès direct client
-            </Button>
-            <Button onClick={publishClientPortal} disabled={saving} className="rounded-xl bg-[#10B981] text-white hover:bg-[#0EA371]">
-              {saving ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Save className="mr-2 size-4" />}
-              Publier sur l&apos;espace client
             </Button>
           </div>
         </div>
       </section>
 
-      <Tabs defaultValue="mandat" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(normalizeAdminTab(value))} className="space-y-6">
         <TabsList className="flex h-auto flex-wrap justify-start rounded-2xl border bg-white p-1 shadow-sm">
           <AdminTab value="mandat" icon={SlidersHorizontal} label="Mandat & Technical" />
           <AdminTab value="estimation" icon={BarChart3} label="Estimation (DVF)" />
@@ -499,7 +507,7 @@ export default function ClientDetailPage() {
                     value={propertyDraft.description}
                     onChange={(event) => setPropertyDraft({ ...propertyDraft, description: event.target.value })}
                     rows={8}
-                    className="rounded-xl"
+                    className={ADMIN_TEXTAREA_CLASS}
                   />
                 </label>
               </div>
@@ -533,15 +541,15 @@ export default function ClientDetailPage() {
             </div>
             <label className="mt-4 block space-y-1">
               <span className="text-xs font-extrabold uppercase text-slate-500">Lecture marché / synthèse conseiller</span>
-              <Textarea value={professionalDraft.summary} onChange={(event) => setProfessionalDraft({ ...professionalDraft, summary: event.target.value })} rows={4} className="rounded-xl" />
+              <Textarea value={professionalDraft.summary} onChange={(event) => setProfessionalDraft({ ...professionalDraft, summary: event.target.value })} rows={4} className={ADMIN_TEXTAREA_CLASS} />
             </label>
             <label className="mt-4 block space-y-1">
               <span className="text-xs font-extrabold uppercase text-slate-500">Arguments visibles client (un par ligne)</span>
-              <Textarea value={professionalDraft.arguments} onChange={(event) => setProfessionalDraft({ ...professionalDraft, arguments: event.target.value })} rows={5} className="rounded-xl" />
+              <Textarea value={professionalDraft.arguments} onChange={(event) => setProfessionalDraft({ ...professionalDraft, arguments: event.target.value })} rows={5} className={ADMIN_TEXTAREA_CLASS} />
             </label>
             <label className="mt-4 block space-y-1">
               <span className="text-xs font-extrabold uppercase text-slate-500">Comparables validés JSON</span>
-              <Textarea value={professionalDraft.comparables_json} onChange={(event) => setProfessionalDraft({ ...professionalDraft, comparables_json: event.target.value })} rows={7} className="font-mono text-xs" />
+              <Textarea value={professionalDraft.comparables_json} onChange={(event) => setProfessionalDraft({ ...professionalDraft, comparables_json: event.target.value })} rows={7} className={cn(ADMIN_TEXTAREA_CLASS, 'font-mono text-xs')} />
             </label>
           </Section>
         </TabsContent>
@@ -549,9 +557,9 @@ export default function ClientDetailPage() {
         <TabsContent value="documents" className="space-y-6">
           <Section title="Ajouter une pièce demandée" icon={FileText}>
             <div className="grid gap-3 md:grid-cols-[1fr_180px_auto]">
-              <Input value={newDoc.label} onChange={(event) => setNewDoc({ ...newDoc, label: event.target.value })} placeholder="Ex. Diagnostic amiante" className="rounded-xl" />
+              <Input value={newDoc.label} onChange={(event) => setNewDoc({ ...newDoc, label: event.target.value })} placeholder="Ex. Diagnostic amiante" className={ADMIN_INPUT_CLASS} />
               <SelectWithOther label="Catégorie" value={newDoc.category} options={DOCUMENT_CATEGORY_OPTIONS} onChange={(value) => setNewDoc({ ...newDoc, category: value })} compact />
-              <Button onClick={addDocument} className="rounded-xl"><Plus className="mr-2 size-4" /> Ajouter</Button>
+              <Button onClick={addDocument} className={ADMIN_PRIMARY_ACTION_CLASS}><Plus className="mr-2 size-4" /> Ajouter</Button>
             </div>
           </Section>
           <Section title="Checklist et fichiers vendeur" icon={FileText}>
@@ -592,9 +600,9 @@ export default function ClientDetailPage() {
       </Tabs>
 
       <div className="sticky bottom-4 z-20 flex justify-end">
-        <Button onClick={publishClientPortal} disabled={saving} className="rounded-xl bg-[#10B981] px-5 text-white shadow-lg hover:bg-[#0EA371]">
+        <Button onClick={saveClientPortal} disabled={saving} className="h-10 rounded-xl bg-[#10B981] px-5 text-white shadow-lg hover:bg-[#0EA371]">
           {saving ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Save className="mr-2 size-4" />}
-          Publier sur l&apos;espace client
+          Sauvegarder
         </Button>
       </div>
     </div>
@@ -608,6 +616,10 @@ function AdminTab({ value, icon: Icon, label }: { value: string; icon: typeof Sl
       {label}
     </TabsTrigger>
   )
+}
+
+function normalizeAdminTab(value: string): AdminTabValue {
+  return ADMIN_TAB_VALUES.includes(value as AdminTabValue) ? value as AdminTabValue : 'mandat'
 }
 
 function Section({ title, icon: Icon, children }: { title: string; icon: typeof SlidersHorizontal; children: React.ReactNode }) {
@@ -636,7 +648,7 @@ function Field({
   return (
     <label className="block space-y-1">
       <span className="text-xs font-extrabold uppercase text-slate-500">{label}</span>
-      <Input value={value} onChange={(event) => onChange(event.target.value)} readOnly={readOnly} className="rounded-xl" />
+      <Input value={value} onChange={(event) => onChange(event.target.value)} readOnly={readOnly} className={ADMIN_INPUT_CLASS} />
     </label>
   )
 }
@@ -663,7 +675,7 @@ function SelectWithOther({
       <select
         value={selectValue}
         onChange={(event) => onChange(event.target.value === '__other__' ? 'Autre' : event.target.value)}
-        className="h-10 w-full rounded-xl border border-input bg-background px-3 text-sm"
+        className={ADMIN_SELECT_CLASS}
         aria-label={compact ? label : undefined}
       >
         <option value="">Sélectionner</option>
@@ -675,7 +687,7 @@ function SelectWithOther({
           value={value}
           onChange={(event) => onChange(event.target.value)}
           placeholder={`${label} personnalisé`}
-          className="mt-2 rounded-xl"
+          className={cn('mt-2', ADMIN_INPUT_CLASS)}
         />
       )}
     </label>
@@ -692,7 +704,7 @@ function SelectValue({
   onChange: (value: string) => void
 }) {
   return (
-    <select value={value} onChange={(event) => onChange(event.target.value)} className="h-10 w-full rounded-xl border border-input bg-background px-3 text-sm">
+    <select value={value} onChange={(event) => onChange(event.target.value)} className={ADMIN_SELECT_CLASS}>
       {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
     </select>
   )
@@ -740,7 +752,7 @@ function TagsWithOther({
         value={customValues.join(', ')}
         onChange={(event) => onChange(uniqueTags([...values.filter((item) => options.includes(item)), ...splitTags(event.target.value)]).join(', '))}
         placeholder="Autre équipement ou atout, séparé par virgules"
-        className="rounded-xl"
+        className={ADMIN_INPUT_CLASS}
       />
     </div>
   )
@@ -803,15 +815,15 @@ function DocumentRow({
       />
       <div className="flex flex-wrap justify-end gap-2">
         {document.signed_url && (
-          <Button asChild variant="outline" size="sm" className="rounded-xl"><a href={document.signed_url} target="_blank" rel="noreferrer"><Download className="mr-1 size-4" /> Ouvrir</a></Button>
+          <Button asChild variant="outline" size="sm" className={ADMIN_SECONDARY_ACTION_CLASS}><a href={document.signed_url} target="_blank" rel="noreferrer"><Download className="mr-1 size-4" /> Ouvrir</a></Button>
         )}
-        <label className="inline-flex h-9 cursor-pointer items-center rounded-xl border px-3 text-sm font-semibold hover:bg-accent">
+        <label className={cn('inline-flex cursor-pointer items-center border text-sm font-semibold hover:bg-accent', ADMIN_SECONDARY_ACTION_CLASS)}>
           {uploadingId === document.id ? <Loader2 className="mr-1 size-4 animate-spin" /> : <Upload className="mr-1 size-4" />}
           Upload
           <input type="file" className="sr-only" onChange={(event) => onUpload(document, event.target.files?.[0] ?? null)} />
         </label>
-        <Button variant="outline" size="sm" className="rounded-xl" onClick={() => onUpdate(document.id, { status: 'validated' })}><CheckCircle2 className="mr-1 size-4" /> Valider</Button>
-        <Button variant="ghost" size="sm" onClick={() => onDelete(document.id)}><Trash2 className="size-4" /></Button>
+        <Button variant="outline" size="sm" className={ADMIN_SECONDARY_ACTION_CLASS} onClick={() => onUpdate(document.id, { status: 'validated' })}><CheckCircle2 className="mr-1 size-4" /> Valider</Button>
+        <Button variant="ghost" size="icon-sm" className={ADMIN_ICON_ACTION_CLASS} onClick={() => onDelete(document.id)}><Trash2 className="size-4" /></Button>
       </div>
       {document.status === 'rejected' && (
         <div className="lg:col-span-4">
@@ -840,8 +852,8 @@ function EventEditor({
   return (
     <Section title={title} icon={CalendarDays}>
       <div className="grid gap-3 md:grid-cols-[1fr_160px_160px]">
-        <Input value={newEvent.title} onChange={(event) => setNewEvent({ ...newEvent, title: event.target.value })} placeholder="Titre" className="rounded-xl" />
-        <Input type="date" value={newEvent.event_date} onChange={(event) => setNewEvent({ ...newEvent, event_date: event.target.value })} className="rounded-xl" />
+        <Input value={newEvent.title} onChange={(event) => setNewEvent({ ...newEvent, title: event.target.value })} placeholder="Titre" className={ADMIN_INPUT_CLASS} />
+        <Input type="date" value={newEvent.event_date} onChange={(event) => setNewEvent({ ...newEvent, event_date: event.target.value })} className={ADMIN_INPUT_CLASS} />
         <SelectValue value={currentStatus} options={statusOptions} onChange={(value) => setNewEvent({ ...newEvent, status: value })} />
       </div>
       {type === 'milestone' && (
@@ -849,7 +861,7 @@ function EventEditor({
           <SelectWithOther label="Type d'étape" value={newEvent.milestone_kind} options={MILESTONE_TYPE_OPTIONS} onChange={(value) => setNewEvent({ ...newEvent, milestone_kind: value })} />
         </div>
       )}
-      <Textarea className="mt-3 rounded-xl" value={newEvent.description} onChange={(event) => setNewEvent({ ...newEvent, description: event.target.value })} placeholder="Description visible client" rows={3} />
+      <Textarea className={cn('mt-3', ADMIN_TEXTAREA_CLASS)} value={newEvent.description} onChange={(event) => setNewEvent({ ...newEvent, description: event.target.value })} placeholder="Description visible client" rows={3} />
       {type !== 'milestone' && (
         <div className="mt-3 grid gap-3 md:grid-cols-3">
           <Field label="Acheteur / visiteur" value={newEvent.buyer_name} onChange={(value) => setNewEvent({ ...newEvent, buyer_name: value })} />
@@ -875,13 +887,13 @@ function EventEditor({
           <select
             value={newEvent.visible_to_client ? 'client' : 'internal'}
             onChange={(event) => setNewEvent({ ...newEvent, visible_to_client: event.target.value === 'client' })}
-            className="h-10 w-full rounded-xl border border-input bg-background px-3 text-sm"
+            className={ADMIN_SELECT_CLASS}
           >
             <option value="client">Visible client</option>
             <option value="internal">Interne uniquement</option>
           </select>
         </label>
-        <Button onClick={() => onAdd(type)} className="rounded-xl"><Plus className="mr-2 size-4" /> Ajouter</Button>
+        <Button onClick={() => onAdd(type)} className={ADMIN_PRIMARY_ACTION_CLASS}><Plus className="mr-2 size-4" /> Ajouter</Button>
       </div>
     </Section>
   )
@@ -916,10 +928,10 @@ function EventList({
               {summarizeEventPayload(event.payload) && <p className="mt-1 text-xs font-semibold text-foreground">{summarizeEventPayload(event.payload)}</p>}
             </div>
             <div className="flex flex-wrap justify-end gap-2">
-              <Button variant="outline" size="sm" className="rounded-xl" onClick={() => onUpdate(event.id, { status: event.status === 'done' ? 'todo' : 'done' })}>
+              <Button variant="outline" size="sm" className={ADMIN_SECONDARY_ACTION_CLASS} onClick={() => onUpdate(event.id, { status: event.status === 'done' ? 'todo' : 'done' })}>
                 {event.status === 'done' ? 'À faire' : 'Terminer'}
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => onDelete(event.id)}><Trash2 className="size-4" /></Button>
+              <Button variant="ghost" size="icon-sm" className={ADMIN_ICON_ACTION_CLASS} onClick={() => onDelete(event.id)}><Trash2 className="size-4" /></Button>
             </div>
           </div>
         ))}

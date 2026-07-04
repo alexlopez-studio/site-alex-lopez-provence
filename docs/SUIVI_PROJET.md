@@ -17,6 +17,181 @@ Decision : Codex reprend seul le developpement et le design pour le moment.
 
 Note : les lots Linear ci-dessous sont historiques et ne refletent plus l'etat reel du code. La memoire courante est dans `docs/MEMOIRE_SESSION.md`.
 
+### 05/07/2026 01:24 CEST - Normalisation controles Console Admin Pro
+- Base/branche : `preview` apres push du commit `336cabc`, modifications locales
+  non poussees.
+- Type : correction UI / socle Console Admin Pro / controles formulaire.
+- Statut : **fait**.
+- Demande (Alexandre) : corriger les inputs et dropdowns qui n'avaient pas la meme
+  hauteur, puis demarrer le travail methodique par sections.
+- Travail :
+  1. Ajout d'une convention locale dans la page dossier client : classes communes pour
+     inputs, selects natifs, textareas, actions principales, actions secondaires et
+     boutons icones.
+  2. Standardisation des inputs texte/date et dropdowns a `40px`.
+  3. Standardisation des actions principales de la console (`Inviter`, `Preview admin`,
+     `Acces direct client`, `Ajouter`, `Sauvegarder`) a `40px`.
+  4. Conservation volontaire des actions secondaires de ligne a `36px` pour garder une
+     bonne densite dans les listes documents / evenements.
+  5. Harmonisation des textareas avec le meme rayon, padding et typographie que les
+     champs, tout en conservant leur hauteur variable.
+- Fichiers principaux : `src/app/admin/market/clients/[id]/page.tsx`,
+  `docs/SUIVI_PROJET.md`.
+- Audit qualite : `npx tsc --noEmit` OK ; `git diff --check` OK ; audit Playwright
+  sur `http://localhost:3002/app/clients/b9b76b97-8854-488f-b9d4-0a59f7090f3e`
+  OK. Mesures ciblees par onglet : inputs `40px`, selects `40px`, actions principales
+  `40px`, actions secondaires de ligne `36px`; aucun debordement horizontal mobile.
+  Test sauvegarde avec PATCH intercepte OK : l'onglet `Offres d'achat` reste actif.
+  Seuls messages observes : `404` local attendu sur `/_vercel/insights/script.js` et
+  warning preload CSS dev non bloquant.
+- Prochain point : revue visuelle par Alexandre du socle, puis balayage section
+  `Mandat & Technical`.
+
+### 05/07/2026 01:19 CEST - Plan projet Console Admin Pro
+- Base/branche : `preview` apres push du commit `336cabc`, modifications locales
+  non poussees.
+- Type : plan projet / methode de travail / console admin dossier client.
+- Statut : **en cours**.
+- Objectif : travailler methodiquement la `Console d'Administration Pro` section par
+  section avant de passer aux thematiques suivantes, sans perdre les corrections UX
+  deja faites localement.
+- Priorite immediate :
+  1. Normaliser les hauteurs des inputs, dropdowns, boutons et controles de formulaire
+     de la console admin dossier client.
+  2. Garder la correction scopee a `src/app/admin/market/clients/[id]/page.tsx`, sans
+     modifier les composants UI globaux.
+  3. Utiliser une hauteur standard de `40px` pour les inputs texte/date et dropdowns.
+  4. Conserver des boutons plus compacts uniquement pour les actions secondaires de
+     ligne lorsque cela sert la densite de l'interface.
+- Methode par section :
+  1. Socle Console Admin Pro : hero sombre, actions `Inviter`, `Preview admin`,
+     `Acces direct client`, bouton sticky `Sauvegarder`, onglets et responsive.
+  2. Mandat & Technical : mandat, bien, adresse, surfaces, DPE, etat, equipements,
+     statistiques par portail et dropdowns avec `Autre`.
+  3. Estimation : prix, fourchette, honoraires, synthese, arguments, JSON comparables
+     et clarification visible client / interne.
+  4. Documents Vendeur : ajout de piece, categorie, statut, upload, validation, rejet
+     et coherence avec le portail client `Mes documents`.
+  5. Plan de Vente : etapes, statut, date, visibilite client et rendu cote client.
+  6. Visites Physiques : visite, profil acquereur, financement, interet,
+     compte-rendu et rendu vendeur.
+  7. Offres d'Achat : montant, statut, condition principale, solidite, acheteur et
+     statuts visibles client.
+- Validation attendue pour chaque section : saisie, sauvegarde, onglet conserve,
+  donnees visibles apres refresh, rendu portail client lorsque la section l'alimente,
+  puis entree horodatee dans ce suivi.
+
+### 05/07/2026 01:04 CEST - Badge requis documents portail client
+- Base/branche : `preview` apres push du commit `336cabc`, modifications locales
+  non poussees.
+- Type : correction UX / portail client vendeur / documents.
+- Statut : **fait**.
+- Demande (Alexandre) : dans `Mes documents`, placer le badge `Requis` au meme
+  endroit que le statut `Valide par Alexandre`.
+- Travail :
+  1. Retrait du badge `Requis` accole au titre du document.
+  2. Ajout du badge `Requis` dans la colonne de statut/actions du document, au meme
+     niveau visuel que les badges `A fournir`, `Manquant`, `Valide par Alexandre`,
+     etc.
+  3. Affichage limite aux statuts `missing` et `requested`.
+- Fichiers principaux : `src/app/espace-client/client-documents.tsx`,
+  `docs/SUIVI_PROJET.md`.
+- Audit qualite : `npx tsc --noEmit` OK ; `git diff --check` OK ; verification
+  Playwright sur `http://localhost:3002/espace-client/test` OK. Le jeu de test local
+  contient surtout un document valide, donc le cas `Requis` devra etre recontrole sur
+  un dossier reel avec document manquant/demande.
+- Prochain point : validation visuelle par Alexandre puis commit/push de la passe UX.
+
+### 05/07/2026 00:53 CEST - Bouton sauvegarde console admin
+- Base/branche : `preview` apres push du commit `336cabc`, modifications locales
+  non poussees.
+- Type : correction UX / console admin dossier client.
+- Statut : **fait**.
+- Demande (Alexandre) : remplacer le bouton bas de page `Publier sur l'espace client`
+  par `Sauvegarder` et retirer le bouton de publication dans l'encadre
+  `Console d'Administration Pro`.
+- Travail :
+  1. Suppression du bouton `Publier sur l'espace client` dans le hero sombre.
+  2. Remplacement du bouton sticky bas de page par `Sauvegarder`.
+  3. Renommage du handler interne en sauvegarde et message toast
+     `Modifications sauvegardées`.
+  4. Conservation du comportement precedent : les donnees sauvegardees restent celles
+     qui alimentent l'espace client, sans retour au premier onglet.
+- Fichiers principaux : `src/app/admin/market/clients/[id]/page.tsx`,
+  `docs/SUIVI_PROJET.md`.
+- Audit qualite : `npx tsc --noEmit` OK ; `git diff --check` OK ; test Playwright
+  cible OK sur le dossier client local : aucun bouton `Publier sur l'espace client`,
+  un bouton `Sauvegarder`, onglet `Offres d'achat` conserve apres clic sauvegarde
+  avec PATCH intercepte. Seul le `404` local attendu sur
+  `/_vercel/insights/script.js` apparait.
+- Prochain point : validation visuelle par Alexandre puis commit/push de cette passe.
+
+### 05/07/2026 00:48 CEST - Conservation onglet admin apres sauvegarde
+- Base/branche : `preview` apres push du commit `336cabc`, modifications locales
+  non poussees.
+- Type : correction UX / console admin dossier client.
+- Statut : **fait**.
+- Demande (Alexandre) : apres clic sur `Publier sur l'espace client` ou une action
+  de sauvegarde, rester sur l'onglet courant au lieu de revenir au premier onglet.
+- Travail :
+  1. Passage des onglets de la page dossier client en mode controle avec `activeTab`.
+  2. Conservation de l'onglet courant pendant les actions documents, evenements et
+     publication.
+  3. Rafraichissement des donnees en arriere-plan apres mutation sans repasser par
+     l'ecran plein `Chargement du dossier...`.
+- Fichiers principaux : `src/app/admin/market/clients/[id]/page.tsx`,
+  `docs/SUIVI_PROJET.md`.
+- Audit qualite : `npx tsc --noEmit` OK ; `git diff --check` OK ; test Playwright
+  cible sur `http://localhost:3002/app/clients/b9b76b97-8854-488f-b9d4-0a59f7090f3e`
+  OK : depuis l'onglet `Documents Vendeur`, clic `Publier sur l'espace client`
+  avec PATCH intercepte, onglet toujours actif apres rafraichissement et pas de
+  loader plein ecran. Seul le `404` local attendu sur `/_vercel/insights/script.js`
+  apparait.
+- Prochain point : si validation visuelle OK par Alexandre, commiter/pusher cette
+  correction sur `preview`.
+
+### 05/07/2026 00:40 CEST - Diagnostic warning hydration React
+- Base/branche : `preview` alignee avec `origin/preview`, avec uniquement le suivi
+  projet modifie localement depuis le push.
+- Type : diagnostic front / console navigateur.
+- Statut : **a surveiller**.
+- Constat : le message partage par Alexandre n'est pas une erreur Node mais un
+  warning d'hydratation React : des attributs auto-generes Radix (`id`,
+  `aria-controls`) different entre HTML serveur et rendu client.
+- Travail :
+  1. Lecture du stack : `NavUser`, `SidebarMenuButton`, `NotificationsSheet`,
+     `MarketShell`.
+  2. Inspection de la sidebar, du menu utilisateur, de la sheet notifications et du
+     hook `useIsMobile`.
+  3. Reproduction Playwright en profil Chromium propre sur `/app/dashboard` puis sur
+     `/app/clients/b9b76b97-8854-488f-b9d4-0a59f7090f3e`.
+- Audit qualite : warning d'hydratation non reproduit en navigateur propre ; seul le
+  `404` local attendu sur `/_vercel/insights/script.js` apparait. Hypotheses les plus
+  probables : extension navigateur modifiant le DOM avant React, ou etat dev/HMR
+  stale apres recompilation.
+- Prochain point : si le warning persiste apres hard refresh / fenetre privee sans
+  extensions, stabiliser les IDs Radix ou rendre le shell admin uniquement apres
+  montage client.
+
+### 05/07/2026 00:38 CEST - Diagnostic version Node locale
+- Base/branche : `preview` alignee avec `origin/preview` apres le push du commit
+  `336cabc`.
+- Type : diagnostic environnement local / serveur Next.
+- Statut : **fait**.
+- Travail :
+  1. Verification de la version Node locale : `v24.13.1`.
+  2. Verification de la version npm locale : `11.8.0`.
+  3. Verification du binaire utilise : `/usr/local/bin/node`.
+  4. Lecture des logs du serveur Next local sur `http://localhost:3002`.
+- Fichiers principaux : `docs/SUIVI_PROJET.md`.
+- Audit qualite : aucun crash Node observe dans les logs locaux ; le serveur repond
+  sur `/app/dashboard` et le dossier client teste. Le `404` local sur
+  `/_vercel/insights/script.js` reste attendu hors environnement Vercel.
+- Point de vigilance : Node local est sur la branche majeure LTS 24 mais pas sur le
+  tout dernier patch public de la branche ; si une erreur de deploiement mentionne
+  explicitement Node, comparer la version Vercel selectionnee et ajouter au besoin un
+  champ `engines.node` dans `package.json`.
+
 ### 05/07/2026 00:25 CEST - Validation pre-push portail vendeur
 - Base/branche : `preview` alignee avec `origin/preview` en commits apres
   `git fetch --all --prune` (`0 / 0` avance/retard).

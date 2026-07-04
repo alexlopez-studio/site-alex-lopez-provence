@@ -39,6 +39,7 @@ const STATUS_ICON_CLASSES: Record<string, string> = {
 
 const UPLOADABLE_STATUSES = new Set(['missing', 'requested', 'rejected'])
 const PROVIDED_STATUSES = new Set(['uploaded', 'validated'])
+const REQUIRED_STATUSES = new Set(['missing', 'requested'])
 
 export function ClientDocuments({
   dossierId,
@@ -226,6 +227,7 @@ function DocumentRow({
   const statusLabel = STATUS_LABELS[document.status] ?? document.status
   const statusClass = STATUS_PILL_CLASSES[document.status] ?? STATUS_PILL_CLASSES.requested
   const iconClass = STATUS_ICON_CLASSES[document.status] ?? STATUS_ICON_CLASSES.requested
+  const isRequired = REQUIRED_STATUSES.has(document.status)
 
   return (
     <article className="grid gap-4 px-5 py-5 lg:grid-cols-[minmax(0,1fr)_190px] lg:items-start">
@@ -235,12 +237,7 @@ function DocumentRow({
         </span>
 
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h4 className="text-sm font-extrabold leading-tight text-[#0F172A]">{document.label}</h4>
-            <span className="rounded-md border border-[#FECACA] bg-[#FFF1F2] px-2 py-0.5 text-[10px] font-extrabold uppercase leading-none text-[#EF4444]">
-              Requis
-            </span>
-          </div>
+          <h4 className="text-sm font-extrabold leading-tight text-[#0F172A]">{document.label}</h4>
 
           <DocumentMeta document={document} />
 
@@ -261,6 +258,11 @@ function DocumentRow({
       </div>
 
       <div className="flex flex-wrap items-center gap-2 lg:flex-col lg:items-end">
+        {isRequired && (
+          <span className="inline-flex h-7 max-w-full items-center justify-center whitespace-nowrap rounded-full border border-[#FDB9B9] bg-[#FFF1F2] px-3 text-[11px] font-extrabold uppercase leading-none text-[#EF4444]">
+            Requis
+          </span>
+        )}
         <span className={`inline-flex h-7 max-w-full items-center justify-center whitespace-nowrap rounded-full border px-3 text-[11px] font-extrabold uppercase leading-none ${statusClass}`}>
           {statusLabel}
         </span>
