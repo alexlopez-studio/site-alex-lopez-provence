@@ -18,6 +18,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { AcheteursListClient } from '../acheteurs/AcheteursListClient'
 
 interface Prospect {
     id: string
@@ -63,6 +65,7 @@ interface Pagination {
 }
 
 interface CreateDraft {
+    contactType: 'seller' | 'buyer'
     sellerName: string
     phone: string
     email: string
@@ -123,6 +126,8 @@ const SOURCE_LABELS: Record<string, string> = {
     prospection: 'Prospection',
     recommandation: 'Recommandation',
     estimation_site: 'Estimation site',
+    annonce_particulier: 'Annonce particulier',
+    annonce_agence: 'Annonce agence',
     autre: 'Autre',
 }
 
@@ -134,8 +139,9 @@ const PROPERTY_TYPES = [
     { value: 'autre', label: 'Autre' },
 ]
 
-function emptyDraft(): CreateDraft {
+function emptyDraft(contactType: 'seller' | 'buyer' = 'seller'): CreateDraft {
     return {
+        contactType,
         sellerName: '',
         phone: '',
         email: '',
@@ -182,6 +188,7 @@ export default function LeadsListPage() {
     const [priorityFilter, setPriorityFilter] = useState('')
     const [communeFilter, setCommuneFilter] = useState('')
     const [toolFilter, setToolFilter] = useState('vendre')
+    const [contactTab, setContactTab] = useState<'seller' | 'buyer'>('seller')
     const [createOpen, setCreateOpen] = useState(false)
     const [draft, setDraft] = useState<CreateDraft>(emptyDraft())
     const [creating, setCreating] = useState(false)
@@ -208,7 +215,7 @@ export default function LeadsListPage() {
             }
         } catch (err) {
             console.error('[LeadsListPage] fetch error:', err)
-            toast.error('Impossible de charger les leads')
+            toast.error('Impossible de charger les contacts')
         } finally {
             setLoading(false)
         }
@@ -224,7 +231,7 @@ export default function LeadsListPage() {
     }
 
     function openCreate() {
-        setDraft(emptyDraft())
+        setDraft(emptyDraft(contactTab))
         setCreateOpen(true)
     }
 
@@ -235,6 +242,34 @@ export default function LeadsListPage() {
         }
         setCreating(true)
         try {
+            if (draft.contactType === 'buyer') {
+                const res = await fetch('/api/market/buyers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        first_name: draft.sellerName,
+                        email: draft.email || null,
+                        phone: draft.phone || null,
+                        type_bien: draft.typeBien || null,
+                        communes: draft.commune ? draft.commune.split(',').map((value) => value.trim()).filter(Boolean) : null,
+                        budget_max: draft.prixEstime ? Number(draft.prixEstime) : null,
+                        surface_min: draft.surface ? Number(draft.surface) : null,
+                        pieces_min: draft.nbPieces ? Number(draft.nbPieces) : null,
+                        criteres: draft.note ? draft.note.split(',').map((value) => value.trim()).filter(Boolean) : null,
+                        active: true,
+                        stage: 'Nouveau contact',
+                        next_action: draft.nextAction || 'Qualifier la recherche acquéreur',
+                        due_date: draft.dueDate || null,
+                    }),
+                })
+                const json = await res.json()
+                if (!res.ok || !json.success) throw new Error(json.error ?? 'Erreur API')
+                toast.success('Contact acquéreur créé')
+                setCreateOpen(false)
+                router.push(`/app/acheteurs/${json.buyer.lead_id}`)
+                return
+            }
+
             const res = await fetch('/api/leads/manual', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -260,20 +295,26 @@ export default function LeadsListPage() {
             })
             const json = await res.json()
             if (!res.ok || !json.success) throw new Error(json.error ?? 'Erreur API')
-            toast.success('Lead vendeur créé')
+            toast.success('Contact vendeur créé')
             setCreateOpen(false)
-            router.push(`/app/leads/${json.data.lead.id}`)
+            router.push(json.data.opportunity?.id
+                ? `/app/opportunities/${json.data.opportunity.id}`
+                : `/app/leads/${json.data.lead.id}`)
         } catch (err) {
             console.error('[LeadsListPage] create error:', err)
-            toast.error('Impossible de créer le lead')
+            toast.error('Impossible de créer le contact')
         } finally {
             setCreating(false)
         }
     }
 
     async function inviteClient(lead: LeadRow) {
+        if (lead.opportunity?.stage !== 'Mandat signé') {
+            toast.error('Espace client disponible après mandat signé')
+            return
+        }
         if (!lead.prospect.email) {
-            toast.error('Ajoute un email au lead avant invitation')
+            toast.error('Ajoute un email au contact avant invitation')
             return
         }
 
@@ -306,15 +347,28 @@ export default function LeadsListPage() {
         <div className="space-y-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Leads vendeurs</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">Contacts</h1>
                     <p className="text-sm text-muted-foreground mt-1">
-                        Contacts terrain, estimations site et projets vendeurs à qualifier
+                        Contacts vendeurs, estimations site et projets à qualifier
                     </p>
                 </div>
                 <Button onClick={openCreate} className="w-full sm:w-auto">
-                    <Plus className="mr-2 size-4" /> Nouveau lead
+                    <Plus className="mr-2 size-4" /> Ajouter un contact
                 </Button>
             </div>
+
+            <Tabs value={contactTab} onValueChange={(value) => {
+                const next = value === 'buyer' ? 'buyer' : 'seller'
+                setContactTab(next)
+                setToolFilter(next === 'seller' ? 'vendre' : 'acheter')
+                setPagination((p) => ({ ...p, page: 1 }))
+            }}>
+                <TabsList>
+                    <TabsTrigger value="seller">Vendeurs</TabsTrigger>
+                    <TabsTrigger value="buyer">Acquéreurs</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="seller" className="space-y-6">
             <LeadStatsCards />
 
             <div className="flex flex-col gap-4 px-4 lg:px-6">
@@ -380,7 +434,7 @@ export default function LeadsListPage() {
                                     </tr>
                                 ) : leads.length === 0 ? (
                                     <tr>
-                                        <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">Aucun lead vendeur trouvé</td>
+                                        <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">Aucun contact vendeur trouvé</td>
                                     </tr>
                                 ) : (
                                     leads.map((lead) => {
@@ -426,7 +480,7 @@ export default function LeadsListPage() {
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <div className="flex justify-end gap-2">
-                                                        {lead.prospect.email && (
+                                                        {lead.prospect.email && lead.opportunity?.stage === 'Mandat signé' ? (
                                                             <button
                                                                 type="button"
                                                                 onClick={() => inviteClient(lead)}
@@ -436,7 +490,11 @@ export default function LeadsListPage() {
                                                                 {invitingId === lead.id ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
                                                                 Espace
                                                             </button>
-                                                        )}
+                                                        ) : lead.prospect.email ? (
+                                                            <span className="inline-flex items-center rounded-lg border px-3 py-1.5 text-xs font-medium text-muted-foreground">
+                                                                Après mandat signé
+                                                            </span>
+                                                        ) : null}
                                                         <Link href={'/app/leads/' + lead.id} className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent">
                                                             <EyeIcon className="size-3.5" /> Ouvrir
                                                         </Link>
@@ -467,17 +525,34 @@ export default function LeadsListPage() {
                     )}
                 </div>
             </div>
+                </TabsContent>
+
+                <TabsContent value="buyer">
+                    <AcheteursListClient />
+                </TabsContent>
+            </Tabs>
 
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
                 <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>Nouveau lead vendeur</DialogTitle>
-                        <DialogDescription>Ajoute un contact issu du terrain, d’un appel ou d’une recommandation.</DialogDescription>
+                        <DialogTitle>Ajouter un contact</DialogTitle>
+                        <DialogDescription>Choisis vendeur ou acquéreur. Le contact alimentera le bon parcours Affaires.</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
+                        <label className="block space-y-1">
+                            <span className="text-xs font-medium">Type de contact</span>
+                            <select
+                                value={draft.contactType}
+                                onChange={(e) => setDraft(emptyDraft(e.target.value === 'buyer' ? 'buyer' : 'seller'))}
+                                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                            >
+                                <option value="seller">Vendeur</option>
+                                <option value="buyer">Acquéreur</option>
+                            </select>
+                        </label>
                         <div className="grid gap-3 sm:grid-cols-3">
                             <label className="block space-y-1 sm:col-span-2">
-                                <span className="text-xs font-medium">Vendeur</span>
+                                <span className="text-xs font-medium">{draft.contactType === 'buyer' ? 'Acquéreur' : 'Vendeur'}</span>
                                 <Input value={draft.sellerName} onChange={(e) => setDraft((d) => ({ ...d, sellerName: e.target.value }))} placeholder="Nom du contact" />
                             </label>
                             <label className="block space-y-1">
@@ -498,8 +573,8 @@ export default function LeadsListPage() {
 
                         <div className="grid gap-3 sm:grid-cols-4">
                             <label className="block space-y-1 sm:col-span-2">
-                                <span className="text-xs font-medium">Commune</span>
-                                <Input value={draft.commune} onChange={(e) => setDraft((d) => ({ ...d, commune: e.target.value }))} placeholder="Barjols" />
+                                <span className="text-xs font-medium">{draft.contactType === 'buyer' ? 'Communes recherchées' : 'Commune'}</span>
+                                <Input value={draft.commune} onChange={(e) => setDraft((d) => ({ ...d, commune: e.target.value }))} placeholder={draft.contactType === 'buyer' ? 'Barjols, Cotignac' : 'Barjols'} />
                             </label>
                             <label className="block space-y-1">
                                 <span className="text-xs font-medium">Type</span>
@@ -518,7 +593,7 @@ export default function LeadsListPage() {
                                 <Input value={draft.adresse} onChange={(e) => setDraft((d) => ({ ...d, adresse: e.target.value }))} />
                             </label>
                             <label className="block space-y-1">
-                                <span className="text-xs font-medium">Surface</span>
+                                <span className="text-xs font-medium">{draft.contactType === 'buyer' ? 'Surface min.' : 'Surface'}</span>
                                 <Input type="number" min="0" value={draft.surface} onChange={(e) => setDraft((d) => ({ ...d, surface: e.target.value }))} />
                             </label>
                             <label className="block space-y-1">
@@ -530,7 +605,7 @@ export default function LeadsListPage() {
                                 <Input type="number" min="0" value={draft.nbPieces} onChange={(e) => setDraft((d) => ({ ...d, nbPieces: e.target.value }))} />
                             </label>
                             <label className="block space-y-1">
-                                <span className="text-xs font-medium">Prix estimé</span>
+                                <span className="text-xs font-medium">{draft.contactType === 'buyer' ? 'Budget max' : 'Prix estimé'}</span>
                                 <Input type="number" min="0" value={draft.prixEstime} onChange={(e) => setDraft((d) => ({ ...d, prixEstime: e.target.value }))} />
                             </label>
                             <label className="block space-y-1 sm:col-span-2">
@@ -555,8 +630,8 @@ export default function LeadsListPage() {
                         </div>
 
                         <label className="block space-y-1">
-                            <span className="text-xs font-medium">Note</span>
-                            <Textarea value={draft.note} onChange={(e) => setDraft((d) => ({ ...d, note: e.target.value }))} rows={3} placeholder="Contexte de prospection, objection, urgence..." />
+                            <span className="text-xs font-medium">{draft.contactType === 'buyer' ? 'Critères additionnels' : 'Note'}</span>
+                            <Textarea value={draft.note} onChange={(e) => setDraft((d) => ({ ...d, note: e.target.value }))} rows={3} placeholder={draft.contactType === 'buyer' ? 'jardin, plain-pied, garage...' : 'Contexte de prospection, objection, urgence...'} />
                         </label>
                     </div>
                     <DialogFooter>

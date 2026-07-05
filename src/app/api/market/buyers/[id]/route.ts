@@ -6,6 +6,33 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { ensureClientDossierForBuyer } from '@/lib/client-portal'
+
+const BUYER_STAGES = [
+  'Nouveau contact',
+  'Recherche qualifiée',
+  'Matching à faire',
+  'Biens proposés',
+  'Visites',
+  'Offre en cours',
+  'Mandat de recherche signé',
+  'Achat conclu',
+  'Pause / Perdu',
+] as const
+
+const SIGNED_BUYER_MANDATE_STAGE = 'Mandat de recherche signé'
+
+function parseStage(value: unknown): string | undefined {
+  return typeof value === 'string' && BUYER_STAGES.includes(value as typeof BUYER_STAGES[number])
+    ? value
+    : undefined
+}
+
+function parseText(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim()
+  return trimmed || null
+}
 
 export async function GET(
   req: NextRequest,
@@ -52,6 +79,9 @@ export async function PUT(
       pieces_min?: number | null
       criteres?: string[] | null
       active?: boolean
+      stage?: string
+      next_action?: string | null
+      due_date?: string | null
     } = {}
 
     if (type_bien !== undefined) updateData.type_bien = type_bien
@@ -61,6 +91,24 @@ export async function PUT(
     if (pieces_min !== undefined) updateData.pieces_min = pieces_min
     if (criteres !== undefined) updateData.criteres = criteres
     if (active !== undefined) updateData.active = active
+    if (body.stage !== undefined) {
+      const stage = parseStage(body.stage)
+      if (!stage) {
+        return NextResponse.json({ error: 'Statut acquéreur invalide' }, { status: 400 })
+      }
+      if (stage === SIGNED_BUYER_MANDATE_STAGE) {
+        const canCreate = await buyerHasClientEmail(id)
+        if (!canCreate) {
+          return NextResponse.json(
+            { error: 'Email acquéreur requis avant création du dossier client.' },
+            { status: 409 }
+          )
+        }
+      }
+      updateData.stage = stage
+    }
+    if (body.next_action !== undefined) updateData.next_action = parseText(body.next_action)
+    if (body.due_date !== undefined) updateData.due_date = parseText(body.due_date)
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json({ error: 'Aucune donnée à mettre à jour' }, { status: 400 })
@@ -81,11 +129,45 @@ export async function PUT(
       return NextResponse.json({ error: 'Erreur lors de la mise à jour' }, { status: 500 })
     }
 
-    return NextResponse.json({ buyer: data, success: true })
+    let clientDossier = null
+    if (data.stage === SIGNED_BUYER_MANDATE_STAGE) {
+      const result = await ensureClientDossierForBuyer(id)
+      clientDossier = result.dossier
+    }
+
+    return NextResponse.json({ buyer: data, client_dossier: clientDossier, success: true })
   } catch (e) {
     console.error('[API /market/buyers/[id]] PUT exception:', e)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
+}
+
+async function buyerHasClientEmail(buyerLeadId: string) {
+  const { data: buyer, error } = await supabaseAdmin
+    .from('buyer_criteria')
+    .select('lead_id, prospect_id')
+    .eq('lead_id', buyerLeadId)
+    .maybeSingle()
+
+  if (error || !buyer) return false
+
+  if (buyer.prospect_id) {
+    const { data: prospect } = await supabaseAdmin
+      .from('prospects')
+      .select('email')
+      .eq('id', buyer.prospect_id)
+      .maybeSingle()
+    if (prospect?.email) return true
+  }
+
+  const { data: lead } = await supabaseAdmin
+    .from('leads')
+    .select('prospect:prospects!leads_prospect_id_fkey(email)')
+    .eq('id', buyerLeadId)
+    .maybeSingle()
+
+  const record = lead as { prospect?: { email?: string | null } | null } | null
+  return Boolean(record?.prospect?.email)
 }
 
 export async function DELETE(

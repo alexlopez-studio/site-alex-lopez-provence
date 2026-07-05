@@ -66,7 +66,7 @@ export function LeadStatsCards() {
 
     const cards = [
         {
-            title: 'Nouveaux leads',
+            title: 'Nouveaux contacts',
             value: s.nouveaux,
             total: s.total,
             desc: 'En attente de contact',

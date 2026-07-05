@@ -1,10 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, Loader2, Save } from 'lucide-react'
 import Link from 'next/link'
+import { ArrowLeft, Loader2, Search, Save } from 'lucide-react'
+import { toast } from 'sonner'
+
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -14,9 +18,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 import communesData from '@/data/communes.json'
+
+type ContactMode = 'existing' | 'new'
 
 type CommuneEntry = {
   name: string
@@ -25,14 +30,49 @@ type CommuneEntry = {
   region: string
 }
 
+type LeadOption = {
+  id: string
+  tool: string
+  commune: string | null
+  priority: string
+  next_action: string | null
+  prospect: {
+    id: string
+    first_name: string | null
+    last_name: string | null
+    email: string | null
+    phone: string | null
+  }
+}
+
 const COMMUNES: CommuneEntry[] = (communesData as CommuneEntry[]).sort((a, b) =>
-  a.name.localeCompare(b.name, 'fr')
+  a.name.localeCompare(b.name, 'fr'),
 )
+
+const BUYER_STAGES = [
+  'Nouveau contact',
+  'Recherche qualifiée',
+  'Matching à faire',
+  'Biens proposés',
+  'Visites',
+  'Offre en cours',
+  'Mandat de recherche signé',
+  'Achat conclu',
+  'Pause / Perdu',
+]
 
 export default function NouvelAcquereurPage() {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
+  const [mode, setMode] = useState<ContactMode>('existing')
+  const [leadSearch, setLeadSearch] = useState('')
+  const [leadOptions, setLeadOptions] = useState<LeadOption[]>([])
+  const [selectedLeadId, setSelectedLeadId] = useState('')
   const [form, setForm] = useState({
+    first_name: '',
+    last_name: '',
+    phone: '',
+    email: '',
     type_bien: '',
     communes: [] as string[],
     budget_max: '',
@@ -40,17 +80,44 @@ export default function NouvelAcquereurPage() {
     pieces_min: '',
     criteres: [] as string[],
     active: true,
+    stage: 'Nouveau contact',
+    next_action: 'Qualifier la recherche acquéreur',
+    due_date: '',
   })
   const [communeSearch, setCommuneSearch] = useState('')
   const [critereInput, setCritereInput] = useState('')
 
+  const selectedLead = useMemo(
+    () => leadOptions.find((lead) => lead.id === selectedLeadId) ?? null,
+    [leadOptions, selectedLeadId],
+  )
+
   const filteredCommunes = communeSearch
     ? COMMUNES.filter(
-        (c) =>
-          c.name.toLowerCase().includes(communeSearch.toLowerCase()) ||
-          c.postalCode.includes(communeSearch)
-      ).slice(0, 20)
+      (commune) =>
+        commune.name.toLowerCase().includes(communeSearch.toLowerCase()) ||
+        commune.postalCode.includes(communeSearch),
+    ).slice(0, 20)
     : []
+
+  const loadLeads = useCallback(async (q = '') => {
+    try {
+      const params = new URLSearchParams({ page_size: '50' })
+      if (q.trim()) params.set('q', q.trim())
+      const res = await fetch('/api/leads/list?' + params.toString())
+      const data = await res.json()
+      if (data.success) setLeadOptions(data.data ?? [])
+    } catch (error) {
+      console.error('Erreur chargement contacts', error)
+    }
+  }, [])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void loadLeads(leadSearch)
+    }, 250)
+    return () => clearTimeout(timer)
+  }, [leadSearch, loadLeads])
 
   const addCommune = (commune: string) => {
     if (!form.communes.includes(commune)) {
@@ -62,7 +129,7 @@ export default function NouvelAcquereurPage() {
   const removeCommune = (commune: string) => {
     setForm((prev) => ({
       ...prev,
-      communes: prev.communes.filter((c) => c !== commune),
+      communes: prev.communes.filter((item) => item !== commune),
     }))
   }
 
@@ -77,14 +144,16 @@ export default function NouvelAcquereurPage() {
   const removeCritere = (critere: string) => {
     setForm((prev) => ({
       ...prev,
-      criteres: prev.criteres.filter((c) => c !== critere),
+      criteres: prev.criteres.filter((item) => item !== critere),
     }))
   }
 
-  const canSave = form.type_bien || form.communes.length > 0 || form.budget_max
+  const hasNewContact = Boolean(form.first_name.trim() || form.last_name.trim() || form.phone.trim() || form.email.trim())
+  const hasCriteria = Boolean(form.type_bien || form.communes.length > 0 || form.budget_max)
+  const canSave = Boolean(selectedLeadId || (mode === 'new' && hasNewContact) || hasCriteria)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault()
     if (!canSave) return
 
     setSaving(true)
@@ -93,6 +162,12 @@ export default function NouvelAcquereurPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          lead_id: mode === 'existing' ? selectedLeadId || null : null,
+          prospect_id: mode === 'existing' ? selectedLead?.prospect.id ?? null : null,
+          first_name: mode === 'new' ? form.first_name : null,
+          last_name: mode === 'new' ? form.last_name : null,
+          phone: mode === 'new' ? form.phone : null,
+          email: mode === 'new' ? form.email : null,
           type_bien: form.type_bien || null,
           communes: form.communes.length > 0 ? form.communes : null,
           budget_max: form.budget_max ? Number(form.budget_max) : null,
@@ -100,6 +175,9 @@ export default function NouvelAcquereurPage() {
           pieces_min: form.pieces_min ? Number(form.pieces_min) : null,
           criteres: form.criteres.length > 0 ? form.criteres : null,
           active: form.active,
+          stage: form.stage,
+          next_action: form.next_action || null,
+          due_date: form.due_date || null,
         }),
       })
 
@@ -110,10 +188,10 @@ export default function NouvelAcquereurPage() {
         return
       }
 
-      toast.success('Acquéreur créé avec succès')
+      toast.success(data.existing ? 'Acquéreur existant ouvert' : 'Acquéreur créé')
       router.push(`/app/acheteurs/${data.buyer.lead_id}`)
-    } catch (e) {
-      console.error('Erreur création:', e)
+    } catch (error) {
+      console.error('Erreur création acquéreur:', error)
       toast.error('Erreur serveur')
     } finally {
       setSaving(false)
@@ -122,68 +200,142 @@ export default function NouvelAcquereurPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         <Button variant="ghost" size="sm" asChild>
-          <Link href="/app/acheteurs">
-            <ChevronLeft className="h-4 w-4 mr-1" />
+          <Link href="/app/opportunities">
+            <ArrowLeft className="mr-1 h-4 w-4" />
             Retour
           </Link>
         </Button>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Nouvel acquéreur</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Créez un nouveau profil d'acquéreur
+          <p className="mt-1 text-sm text-muted-foreground">
+            Créer une opportunité acquéreur à partir d’un contact et de critères de recherche.
           </p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="space-y-4">
         <Card>
           <CardHeader>
-            <CardTitle>Critères de recherche</CardTitle>
-            <CardDescription>
-              Renseignez les critères de recherche de l'acquéreur
-            </CardDescription>
+            <CardTitle>Contact</CardTitle>
+            <CardDescription>Recherche un contact existant avant de créer une nouvelle fiche.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Type de bien */}
-            <div className="space-y-2">
-              <Label htmlFor="type_bien">Type de bien recherché</Label>
-              <Select
-                value={form.type_bien}
-                onValueChange={(value) => setForm((prev) => ({ ...prev, type_bien: value }))}
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-2 rounded-lg bg-muted/30 p-1">
+              <button
+                type="button"
+                onClick={() => setMode('existing')}
+                className={cn('rounded-md px-3 py-2 text-sm font-medium transition-colors', mode === 'existing' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground')}
               >
-                <SelectTrigger id="type_bien" className="max-w-xs">
-                  <SelectValue placeholder="Tous types" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="maison">Maison</SelectItem>
-                  <SelectItem value="appartement">Appartement</SelectItem>
-                  <SelectItem value="terrain">Terrain</SelectItem>
-                </SelectContent>
-              </Select>
+                Contact existant
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('new')
+                  setSelectedLeadId('')
+                }}
+                className={cn('rounded-md px-3 py-2 text-sm font-medium transition-colors', mode === 'new' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground')}
+              >
+                Nouveau contact
+              </button>
             </div>
 
-            {/* Communes */}
+            {mode === 'existing' ? (
+              <div className="space-y-3">
+                <div className="relative max-w-lg">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input value={leadSearch} onChange={(event) => setLeadSearch(event.target.value)} placeholder="Nom, téléphone, email..." className="pl-9" />
+                </div>
+                <div className="grid max-h-72 gap-2 overflow-y-auto rounded-lg border p-2 md:grid-cols-2">
+                  {leadOptions.length === 0 ? (
+                    <p className="col-span-full px-2 py-8 text-center text-sm text-muted-foreground">Aucun contact trouvé</p>
+                  ) : leadOptions.map((lead) => {
+                    const name = [lead.prospect.first_name, lead.prospect.last_name].filter(Boolean).join(' ').trim() || 'Contact'
+                    const selected = selectedLeadId === lead.id
+                    return (
+                      <button
+                        key={lead.id}
+                        type="button"
+                        onClick={() => setSelectedLeadId(lead.id)}
+                        className={cn('rounded-md border p-3 text-left transition-colors hover:bg-muted/50', selected ? 'border-brand bg-brand-light/50' : 'border-border')}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-sm font-medium">{name}</span>
+                          <Badge variant="outline" className="text-[10px]">{lead.tool}</Badge>
+                        </div>
+                        <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                          {lead.prospect.phone && <span>{lead.prospect.phone}</span>}
+                          {lead.prospect.email && <span>{lead.prospect.email}</span>}
+                          {lead.commune && <span>{lead.commune}</span>}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="first_name">Prénom</Label>
+                  <Input id="first_name" value={form.first_name} onChange={(event) => setForm((prev) => ({ ...prev, first_name: event.target.value }))} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="last_name">Nom</Label>
+                  <Input id="last_name" value={form.last_name} onChange={(event) => setForm((prev) => ({ ...prev, last_name: event.target.value }))} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Téléphone</Label>
+                  <Input id="phone" value={form.phone} onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" type="email" value={form.email} onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))} />
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Projet acquéreur</CardTitle>
+            <CardDescription>Cadre les critères de recherche et la prochaine action.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Type de bien recherché</Label>
+                <Select value={form.type_bien} onValueChange={(value) => setForm((prev) => ({ ...prev, type_bien: value }))}>
+                  <SelectTrigger><SelectValue placeholder="Tous types" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="maison">Maison</SelectItem>
+                    <SelectItem value="appartement">Appartement</SelectItem>
+                    <SelectItem value="terrain">Terrain</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Budget maximum (€)</Label>
+                <Input type="number" placeholder="Ex: 300000" value={form.budget_max} onChange={(event) => setForm((prev) => ({ ...prev, budget_max: event.target.value }))} />
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label>Communes recherchées</Label>
               <div className="relative max-w-md">
-                <Input
-                  placeholder="Rechercher une commune..."
-                  value={communeSearch}
-                  onChange={(e) => setCommuneSearch(e.target.value)}
-                />
+                <Input placeholder="Rechercher une commune..." value={communeSearch} onChange={(event) => setCommuneSearch(event.target.value)} />
                 {communeSearch && filteredCommunes.length > 0 && (
-                  <div className="absolute z-10 mt-1 w-full rounded-md border bg-background shadow-lg max-h-48 overflow-y-auto">
-                    {filteredCommunes.map((c) => (
+                  <div className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-md border bg-background shadow-lg">
+                    {filteredCommunes.map((commune) => (
                       <button
-                        key={`${c.postalCode}-${c.name}`}
+                        key={`${commune.postalCode}-${commune.name}`}
                         type="button"
-                        className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors"
-                        onClick={() => addCommune(c.name)}
+                        className="w-full px-3 py-2 text-left text-sm transition-colors hover:bg-accent"
+                        onClick={() => addCommune(commune.name)}
                       >
-                        {c.name} ({c.postalCode})
+                        {commune.name} ({commune.postalCode})
                       </button>
                     ))}
                   </div>
@@ -191,17 +343,10 @@ export default function NouvelAcquereurPage() {
               </div>
               {form.communes.length > 0 && (
                 <div className="flex flex-wrap gap-1">
-                  {form.communes.map((c) => (
-                    <span
-                      key={c}
-                      className="inline-flex items-center gap-1 rounded-full bg-brand/10 text-brand text-xs px-2.5 py-1"
-                    >
-                      {c}
-                      <button
-                        type="button"
-                        className="hover:text-destructive"
-                        onClick={() => removeCommune(c)}
-                      >
+                  {form.communes.map((commune) => (
+                    <span key={commune} className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-2.5 py-1 text-xs text-brand">
+                      {commune}
+                      <button type="button" className="hover:text-destructive" onClick={() => removeCommune(commune)}>
                         ×
                       </button>
                     </span>
@@ -210,56 +355,27 @@ export default function NouvelAcquereurPage() {
               )}
             </div>
 
-            {/* Budget max */}
-            <div className="space-y-2">
-              <Label htmlFor="budget_max">Budget maximum (€)</Label>
-              <Input
-                id="budget_max"
-                type="number"
-                placeholder="Ex: 300000"
-                value={form.budget_max}
-                onChange={(e) => setForm((prev) => ({ ...prev, budget_max: e.target.value }))}
-                className="max-w-xs"
-              />
-            </div>
-
-            <div className="grid gap-6 sm:grid-cols-2">
-              {/* Surface min */}
+            <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="surface_min">Surface minimale (m²)</Label>
-                <Input
-                  id="surface_min"
-                  type="number"
-                  placeholder="Ex: 70"
-                  value={form.surface_min}
-                  onChange={(e) => setForm((prev) => ({ ...prev, surface_min: e.target.value }))}
-                />
+                <Label>Surface minimale (m²)</Label>
+                <Input type="number" placeholder="Ex: 70" value={form.surface_min} onChange={(event) => setForm((prev) => ({ ...prev, surface_min: event.target.value }))} />
               </div>
-
-              {/* Nb pièces min */}
               <div className="space-y-2">
-                <Label htmlFor="pieces_min">Nombre de pièces minimum</Label>
-                <Input
-                  id="pieces_min"
-                  type="number"
-                  placeholder="Ex: 3"
-                  value={form.pieces_min}
-                  onChange={(e) => setForm((prev) => ({ ...prev, pieces_min: e.target.value }))}
-                />
+                <Label>Nombre de pièces minimum</Label>
+                <Input type="number" placeholder="Ex: 3" value={form.pieces_min} onChange={(event) => setForm((prev) => ({ ...prev, pieces_min: event.target.value }))} />
               </div>
             </div>
 
-            {/* Critères additionnels */}
             <div className="space-y-2">
               <Label>Critères additionnels</Label>
-              <div className="flex gap-2 max-w-md">
+              <div className="flex max-w-md gap-2">
                 <Input
                   placeholder="Ex: avec jardin, piscine..."
                   value={critereInput}
-                  onChange={(e) => setCritereInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault()
+                  onChange={(event) => setCritereInput(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault()
                       addCritere()
                     }
                   }}
@@ -270,17 +386,10 @@ export default function NouvelAcquereurPage() {
               </div>
               {form.criteres.length > 0 && (
                 <div className="flex flex-wrap gap-1">
-                  {form.criteres.map((cr) => (
-                    <span
-                      key={cr}
-                      className="inline-flex items-center gap-1 rounded-full bg-muted text-muted-foreground text-xs px-2.5 py-1"
-                    >
-                      {cr}
-                      <button
-                        type="button"
-                        className="hover:text-destructive"
-                        onClick={() => removeCritere(cr)}
-                      >
+                  {form.criteres.map((critere) => (
+                    <span key={critere} className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs text-muted-foreground">
+                      {critere}
+                      <button type="button" className="hover:text-destructive" onClick={() => removeCritere(critere)}>
                         ×
                       </button>
                     </span>
@@ -289,31 +398,45 @@ export default function NouvelAcquereurPage() {
               )}
             </div>
 
-            {/* Statut actif */}
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="active"
-                checked={form.active}
-                onChange={(e) => setForm((prev) => ({ ...prev, active: e.target.checked }))}
-                className="h-4 w-4 rounded border-gray-300"
-              />
-              <Label htmlFor="active" className="cursor-pointer">
-                Acquéreur actif (pourra être matché avec des biens)
-              </Label>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="space-y-2">
+                <Label>Étape</Label>
+                <Select value={form.stage} onValueChange={(value) => setForm((prev) => ({ ...prev, stage: value }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{BUYER_STAGES.map((stage) => <SelectItem key={stage} value={stage}>{stage}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Échéance</Label>
+                <Input type="date" value={form.due_date} onChange={(event) => setForm((prev) => ({ ...prev, due_date: event.target.value }))} />
+              </div>
+              <div className="flex items-end gap-2 pb-2">
+                <input
+                  type="checkbox"
+                  id="active"
+                  checked={form.active}
+                  onChange={(event) => setForm((prev) => ({ ...prev, active: event.target.checked }))}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <Label htmlFor="active" className="cursor-pointer">
+                  Actif
+                </Label>
+              </div>
+              <div className="space-y-2 md:col-span-3">
+                <Label>Prochaine action</Label>
+                <Input value={form.next_action} onChange={(event) => setForm((prev) => ({ ...prev, next_action: event.target.value }))} />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Actions */}
-        <div className="flex justify-end gap-2 mt-6">
+        <div className="flex justify-end gap-2">
           <Button variant="outline" asChild>
-            <Link href="/app/acheteurs">Annuler</Link>
+            <Link href="/app/opportunities">Annuler</Link>
           </Button>
           <Button type="submit" disabled={!canSave || saving}>
-            {saving && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
-            <Save className="h-4 w-4 mr-1" />
-            Créer l'acquéreur
+            {saving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
+            Créer l’acquéreur
           </Button>
         </div>
       </form>

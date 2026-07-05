@@ -4,11 +4,12 @@ import { usePathname } from 'next/navigation'
 
 const PAGE_TITLES: Record<string, string> = {
   '/app/radar': 'Radar',
-  '/app/leads': 'Leads',
+  '/app/leads': 'Contacts',
   '/app/dashboard': 'Dashboard',
   '/app/properties': 'Marché',
   '/app/dvf': 'DVF',
   '/app/acheteurs': 'Acquéreurs',
+  '/app/liste-chaude': 'Réseau',
   '/app/matching': 'Matching',
   '/app/opportunities': 'Opportunités',
   '/app/rules': 'Règles',

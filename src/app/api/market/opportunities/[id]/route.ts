@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { propertyThumbnailUrl } from '@/lib/market/property-thumbnail'
-import type { Database } from '@/types/supabase'
+import {
+  ensureClientDossierForSignedOpportunity,
+  LOST_STAGE,
+  SIGNED_MANDATE_STAGE,
+} from '@/lib/market/seller-opportunity'
+import type { Database, Json } from '@/types/supabase'
 
 type OpportunitiesUpdate = Database['public']['Tables']['opportunities']['Update']
 type OpportunityEventInsert = Database['public']['Tables']['opportunity_events']['Insert']
@@ -35,6 +40,11 @@ function normalizeNumber(value: unknown) {
   if (value === '' || value === null || value === undefined) return null
   const numberValue = Number(value)
   return Number.isFinite(numberValue) ? numberValue : null
+}
+
+function normalizeJsonObject(value: unknown): Json | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  return value as Json
 }
 
 async function enrichOpportunity(opportunity: Database['public']['Tables']['opportunities']['Row']) {
@@ -177,6 +187,8 @@ export async function PATCH(
     if (body.next_action !== undefined) updateData.next_action = body.next_action
     if (body.due_date !== undefined) updateData.due_date = body.due_date
     if (body.note !== undefined) updateData.note = body.note
+    if (body.property_snapshot !== undefined) updateData.property_snapshot = normalizeJsonObject(body.property_snapshot) ?? {}
+    if (body.professional_opinion !== undefined) updateData.professional_opinion = normalizeJsonObject(body.professional_opinion) ?? {}
     for (const field of SELLER_OPPORTUNITY_FIELDS) {
       if (!(field in body)) continue
       if (
@@ -263,6 +275,21 @@ export async function PATCH(
         metadata: { from: existing.stage, to: body.stage },
         created_by: 'admin',
       })
+
+      if (body.stage === SIGNED_MANDATE_STAGE) {
+        await ensureClientDossierForSignedOpportunity(opportunity)
+      }
+
+      if (body.stage === LOST_STAGE && !normalizeText(body.note) && !normalizeText(opportunity.note)) {
+        await createOpportunityEvent({
+          opportunity_id: id,
+          type: 'task',
+          title: 'Motif de perte à renseigner',
+          content: 'Ajouter le motif de perte pour alimenter les indicateurs d’amélioration continue.',
+          metadata: { quality_control: 'loss_reason_missing' },
+          created_by: 'system',
+        })
+      }
     }
 
     return NextResponse.json({ opportunity: await enrichOpportunity(opportunity) })

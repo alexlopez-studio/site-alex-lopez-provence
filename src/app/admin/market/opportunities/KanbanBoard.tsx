@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Plus,
@@ -132,6 +133,7 @@ interface OpportunityRow {
 }
 
 const STAGES = [
+  { id: 'Veille annonce', label: 'Veille annonce', color: 'bg-zinc-500' },
   { id: 'Nouveau contact', label: 'Nouveau contact', color: 'bg-slate-500' },
   { id: 'Pré-estimation', label: 'Pré-estimation', color: 'bg-blue-500' },
   { id: "Visite d'estimation", label: "Visite d'estimation", color: 'bg-indigo-500' },
@@ -145,6 +147,7 @@ const STAGES = [
 
 const LEGACY_STAGE_MAP: Record<string, string> = {
   'À qualifier': 'Nouveau contact',
+  'Annonce à surveiller': 'Veille annonce',
   'À analyser': 'Pré-estimation',
   'À contacter': 'Nouveau contact',
   Contacté: 'Pré-estimation',
@@ -177,11 +180,14 @@ const TYPE_CONFIG: Record<SignalType, { label: string; icon: typeof AlertTriangl
 }
 
 const SOURCE_OPTIONS = [
+  { value: 'estimation_site', label: 'Estimation site' },
   { value: 'flyer', label: 'Flyer' },
+  { value: 'porte_a_porte', label: 'Porte-à-porte' },
   { value: 'appel_entrant', label: 'Appel entrant' },
   { value: 'prospection', label: 'Prospection' },
   { value: 'recommandation', label: 'Recommandation' },
-  { value: 'annonce', label: 'Annonce' },
+  { value: 'annonce_particulier', label: 'Annonce particulier' },
+  { value: 'annonce_agence', label: 'Annonce agence' },
   { value: 'autre', label: 'Autre' },
 ]
 
@@ -515,6 +521,7 @@ interface PropertyOption {
 export function KanbanBoard() {
   const router = useRouter()
   const [opportunities, setOpportunities] = useState<Opportunity[]>([])
+  const [search, setSearch] = useState('')
   const [leadOptions, setLeadOptions] = useState<LeadOption[]>([])
   const [leadSearch, setLeadSearch] = useState('')
   const [propertyOptions, setPropertyOptions] = useState<PropertyOption[]>([])
@@ -578,8 +585,32 @@ export function KanbanBoard() {
   useEffect(() => { if (dialogOpen) void loadLeads(leadSearch) }, [dialogOpen, leadSearch, loadLeads])
   useEffect(() => { if (dialogOpen) void loadProperties(propertySearch) }, [dialogOpen, propertySearch, loadProperties])
 
+  const filteredOpportunities = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase()
+    if (!normalizedSearch) return opportunities
+    return opportunities.filter((opportunity) => {
+      return [
+        opportunity.title,
+        opportunity.sellerName,
+        opportunity.sellerPhone,
+        opportunity.sellerEmail,
+        opportunity.propertyCity,
+        opportunity.propertyAddress,
+        opportunity.propertyType,
+        opportunity.linkedPropertyTitle,
+        opportunity.linkedPropertyCity,
+        opportunity.nextAction,
+        opportunity.sourceChannel,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+        .includes(normalizedSearch)
+    })
+  }, [opportunities, search])
+
   const activeOpportunity = activeId ? opportunities.find((o) => o.id === activeId) ?? null : null
-  const getStageOpps = (stageId: string) => opportunities.filter((o) => o.stage === stageId)
+  const getStageOpps = (stageId: string) => filteredOpportunities.filter((o) => o.stage === stageId)
   const findStageByOppId = (id: string) => opportunities.find((o) => o.id === id)?.stage
 
   function handleDragStart(event: DragStartEvent) {
@@ -629,7 +660,7 @@ export function KanbanBoard() {
   async function submitCreate() {
     const hasSelectedProperty = Boolean(draft.marketPropertyId)
     if (draft.mode === 'existing' && !draft.leadId && !hasSelectedProperty) {
-      toast.error('Choisis un lead ou un bien à rattacher')
+      toast.error('Choisis un contact ou un bien à rattacher')
       return
     }
     if (draft.mode === 'new' && !draft.sellerName.trim() && !draft.sellerPhone.trim() && !draft.sellerEmail.trim() && !hasSelectedProperty) {
@@ -637,6 +668,20 @@ export function KanbanBoard() {
       return
     }
     const selectedProperty = propertyOptions.find((property) => property.id === draft.marketPropertyId)
+    const duplicateSearchDone = Boolean(
+      draft.leadId ||
+      draft.marketPropertyId ||
+      leadSearch.trim().length >= 2 ||
+      propertySearch.trim().length >= 2,
+    )
+    if (!duplicateSearchDone) {
+      toast.error('Recherche anti-doublon obligatoire avant création')
+      return
+    }
+    const isAgencyWatch = Boolean(selectedProperty?.seller_type === 'agency' && !draft.leadId && draft.mode === 'existing')
+    const sourceChannel = selectedProperty
+      ? (selectedProperty.seller_type === 'agency' ? 'annonce_agence' : 'annonce_particulier')
+      : draft.sourceChannel
     setSaving(true)
     try {
       const res = await fetch('/api/market/opportunities', {
@@ -650,7 +695,7 @@ export function KanbanBoard() {
             seller_name: draft.sellerName,
             phone: draft.sellerPhone,
             email: draft.sellerEmail,
-            source_channel: draft.sourceChannel,
+            source_channel: sourceChannel,
             commune: draft.propertyCity,
             type_bien: draft.propertyType,
             priority: draft.priority,
@@ -658,9 +703,10 @@ export function KanbanBoard() {
           title: draft.mode === 'new'
             ? buildOpportunityTitle(draft)
             : selectedProperty?.title ?? undefined,
-          stage: draft.stage,
+          stage: isAgencyWatch ? 'Veille annonce' : draft.stage,
           priority: draft.priority,
           signal_type: 'manual',
+          source_channel: sourceChannel,
           next_action: draft.nextAction.trim() || null,
           due_date: draft.dueDate || null,
           created_from: 'manual',
@@ -680,8 +726,6 @@ export function KanbanBoard() {
     }
   }
 
-  const total = opportunities.length
-
   return (
     <DndContext
       sensors={sensors}
@@ -691,15 +735,20 @@ export function KanbanBoard() {
     >
       <div className="min-w-0 space-y-6">
         <div className="sticky top-0 z-20 -mx-1 flex flex-col gap-3 bg-background/95 px-1 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Opportunités</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {loading ? '…' : `${total} opportunité${total > 1 ? 's' : ''} vendeur — estimation, visite, mandat`}
-            </p>
+          <div className="relative w-full sm:max-w-sm">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Rechercher un vendeur, une commune..."
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              className="pl-9"
+            />
           </div>
-          <Button onClick={() => openCreate()} className="w-full shrink-0 bg-brand hover:bg-brand-hover sm:w-auto">
-            <Plus className="mr-2 h-4 w-4" />
-            Nouvelle opportunité
+          <Button asChild className="w-full shrink-0 bg-brand hover:bg-brand-hover sm:w-auto">
+            <Link href="/app/opportunities/nouveau">
+              <Plus className="mr-1 h-4 w-4" />
+              Nouveau vendeur
+            </Link>
           </Button>
         </div>
 
@@ -714,8 +763,10 @@ export function KanbanBoard() {
                     <span className="truncate text-sm font-medium">{stage.label}</span>
                     <span className="text-xs text-muted-foreground">({stageOpps.length})</span>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => openCreate(stage.id)}>
-                    <Plus className="h-3.5 w-3.5" />
+                  <Button variant="ghost" size="icon" className="h-6 w-6" asChild>
+                    <Link href={`/app/opportunities/nouveau?stage=${encodeURIComponent(stage.id)}`}>
+                      <Plus className="h-3.5 w-3.5" />
+                    </Link>
                   </Button>
                 </div>
 
@@ -771,10 +822,13 @@ export function KanbanBoard() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Nouvelle opportunité vendeur</DialogTitle>
-            <DialogDescription>Rattache un lead, un bien en annonce, ou les deux.</DialogDescription>
+            <DialogTitle>Ajouter une affaire vendeur</DialogTitle>
+            <DialogDescription>Recherche d’abord un contact ou un bien existant, puis rattache ou crée l’affaire.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+              Recherche anti-doublon requise : saisis au moins un nom, téléphone, email, commune ou annonce avant de créer une nouvelle piste.
+            </div>
             <div className="grid grid-cols-2 gap-2 rounded-lg bg-muted/30 p-1">
               <button
                 type="button"
@@ -788,7 +842,7 @@ export function KanbanBoard() {
                 onClick={() => setDraft((d) => ({ ...d, mode: 'new', leadId: '' }))}
                 className={cn('rounded-md px-3 py-2 text-sm font-medium transition-colors', draft.mode === 'new' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground')}
               >
-                Nouveau lead
+                Nouveau contact
               </button>
             </div>
 
@@ -803,7 +857,7 @@ export function KanbanBoard() {
                 </label>
                 <div className="max-h-64 space-y-2 overflow-y-auto rounded-lg border p-2">
                   {leadOptions.length === 0 ? (
-                    <p className="px-2 py-6 text-center text-sm text-muted-foreground">Aucun lead vendeur trouvé</p>
+                    <p className="px-2 py-6 text-center text-sm text-muted-foreground">Aucun contact vendeur trouvé</p>
                   ) : leadOptions.map((lead) => {
                     const name = [lead.prospect.first_name, lead.prospect.last_name].filter(Boolean).join(' ').trim() || 'Contact vendeur'
                     const selected = draft.leadId === lead.id

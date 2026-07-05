@@ -344,8 +344,8 @@ export function WarmListClient() {
           <Flame className="h-5 w-5" />
         </div>
         <div className="flex-1">
-          <h1 className="text-lg font-bold leading-tight">Liste Chaude</h1>
-          <p className="text-xs text-muted-foreground">Bouche-à-oreille — Suivi du réseau</p>
+          <h1 className="text-lg font-bold leading-tight">Réseau</h1>
+          <p className="text-xs text-muted-foreground">Cercle proche, partenaires, prescripteurs et contacts relationnels</p>
         </div>
         {stats.overdue > 0 && (
           <Badge className="bg-red-50 text-red-600 dark:bg-red-950 dark:text-red-300">

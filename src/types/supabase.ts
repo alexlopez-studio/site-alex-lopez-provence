@@ -294,6 +294,8 @@ export type Database = {
           lead_id: string | null
           seller_property_id: string | null
           opportunity_id: string | null
+          client_type: string
+          buyer_lead_id: string | null
           status: string
           title: string
           property_snapshot: Json
@@ -309,6 +311,8 @@ export type Database = {
           lead_id?: string | null
           seller_property_id?: string | null
           opportunity_id?: string | null
+          client_type?: string
+          buyer_lead_id?: string | null
           status?: string
           title?: string
           property_snapshot?: Json
@@ -324,6 +328,8 @@ export type Database = {
           lead_id?: string | null
           seller_property_id?: string | null
           opportunity_id?: string | null
+          client_type?: string
+          buyer_lead_id?: string | null
           status?: string
           title?: string
           property_snapshot?: Json
@@ -980,6 +986,8 @@ export type Database = {
           visit_at: string | null
           report_delivered_at: string | null
           follow_up_at: string | null
+          property_snapshot: Json
+          professional_opinion: Json
           created_from: string
           created_at: string
           updated_at: string
@@ -1014,6 +1022,8 @@ export type Database = {
           visit_at?: string | null
           report_delivered_at?: string | null
           follow_up_at?: string | null
+          property_snapshot?: Json
+          professional_opinion?: Json
           created_from?: string
           created_at?: string
           updated_at?: string
@@ -1048,6 +1058,8 @@ export type Database = {
           visit_at?: string | null
           report_delivered_at?: string | null
           follow_up_at?: string | null
+          property_snapshot?: Json
+          professional_opinion?: Json
           created_from?: string
           created_at?: string
           updated_at?: string
@@ -1176,6 +1188,9 @@ export type Database = {
           pieces_min: number | null
           criteres: string[] | null
           active: boolean
+          stage: string
+          next_action: string | null
+          due_date: string | null
           matched_at: string | null
           created_at: string
           updated_at: string
@@ -1191,6 +1206,9 @@ export type Database = {
           pieces_min?: number | null
           criteres?: string[] | null
           active?: boolean
+          stage?: string
+          next_action?: string | null
+          due_date?: string | null
           matched_at?: string | null
           created_at?: string
           updated_at?: string
@@ -1206,6 +1224,9 @@ export type Database = {
           pieces_min?: number | null
           criteres?: string[] | null
           active?: boolean
+          stage?: string
+          next_action?: string | null
+          due_date?: string | null
           matched_at?: string | null
           created_at?: string
           updated_at?: string

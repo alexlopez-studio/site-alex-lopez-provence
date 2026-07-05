@@ -6,15 +6,14 @@ import { usePathname } from "next/navigation"
 import {
   Building2Icon,
   BarChart3Icon,
-  GitCompareArrowsIcon,
   KanbanIcon,
   LayoutDashboardIcon,
   SettingsIcon,
-  UsersIcon,
   PackageIcon,
   UserPlusIcon,
   FlameIcon,
   ContactRoundIcon,
+  type LucideIcon,
 } from "lucide-react"
 import type { AdminRole } from "@/types/supabase"
 
@@ -31,28 +30,29 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 
-const OVERVIEW_ITEMS = [
+type SidebarNavItem = {
+  title: string
+  url: string
+  icon: LucideIcon
+}
+
+const PILOTAGE_ITEMS: SidebarNavItem[] = [
   { title: "Dashboard", url: "/app/dashboard", icon: LayoutDashboardIcon },
 ]
 
-const SELLER_ITEMS = [
-  { title: "Liste chaude", url: "/app/liste-chaude", icon: FlameIcon },
-  { title: "Leads", url: "/app/leads", icon: UserPlusIcon },
+const OPPORTUNITY_ITEMS: SidebarNavItem[] = [
   { title: "Opportunités", url: "/app/opportunities", icon: KanbanIcon },
+  { title: "Contacts", url: "/app/leads", icon: UserPlusIcon },
   { title: "Clients", url: "/app/clients", icon: ContactRoundIcon },
+  { title: "Réseau", url: "/app/liste-chaude", icon: FlameIcon },
 ]
 
-const BUYER_ITEMS = [
-  { title: "Acquéreurs", url: "/app/acheteurs", icon: UsersIcon },
-  { title: "Matching", url: "/app/matching", icon: GitCompareArrowsIcon },
-]
-
-const MARKET_ITEMS = [
+const MARKET_ITEMS: SidebarNavItem[] = [
   { title: "Biens", url: "/app/properties", icon: Building2Icon },
-  { title: "DVF", url: "/app/dvf", icon: BarChart3Icon },
+  { title: "Data & BI", url: "/app/dvf", icon: BarChart3Icon },
 ]
 
-const CONFIG_ITEMS = [
+const CONFIG_ITEMS: SidebarNavItem[] = [
   { title: "Paramètres", url: "/app/settings", icon: SettingsIcon },
 ]
 
@@ -69,7 +69,7 @@ export function AppSidebar({ role, email, ...props }: AppSidebarProps) {
     return pathname.startsWith(href)
   }
 
-  const withActiveState = (items: typeof OVERVIEW_ITEMS) =>
+  const withActiveState = (items: SidebarNavItem[]) =>
     items.map((item) => ({
       ...item,
       isActive: isActive(item.url),
@@ -94,10 +94,9 @@ export function AppSidebar({ role, email, ...props }: AppSidebarProps) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain title="Vue d'ensemble" items={withActiveState(OVERVIEW_ITEMS)} />
+        <NavMain title="Pilotage" items={withActiveState(PILOTAGE_ITEMS)} />
+        <NavMain title="Affaires" items={withActiveState(OPPORTUNITY_ITEMS)} />
         <NavMain title="Marché" items={withActiveState(MARKET_ITEMS)} />
-        <NavMain title="Vendeurs" items={withActiveState(SELLER_ITEMS)} />
-        <NavMain title="Acquéreurs" items={withActiveState(BUYER_ITEMS)} />
         <NavMain title="Configuration" items={withActiveState(CONFIG_ITEMS)} />
       </SidebarContent>
       <SidebarFooter>

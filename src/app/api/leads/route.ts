@@ -18,6 +18,7 @@ import { logServerConversionEvent } from '@/lib/server-analytics'
 import { supabaseAdmin } from '@/lib/supabase'
 import { runMatchingForBuyer } from '@/lib/market/matching-engine'
 import { createLead, markMagicLinkSent, upsertProspect } from '@/lib/leads-repo'
+import { ensureSellerOpportunityForLead } from '@/lib/market/seller-opportunity'
 import {
   asNumber,
   asStringArray,
@@ -193,8 +194,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if (tool === 'vendre') {
     try {
       await upsertSellerPropertyForLead({ leadId, prospectId, data: formData })
+      await ensureSellerOpportunityForLead(leadId)
     } catch (err) {
-      console.error('[API /leads] Erreur sauvegarde seller_properties:', err)
+      console.error('[API /leads] Erreur opportunité vendeur:', err)
     }
   }
 

@@ -4,6 +4,8 @@ import { getCurrentAdmin } from '@/lib/auth'
 import { sendClientPortalInviteEmail } from '@/lib/resend'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
 
+const SIGNED_MANDATE_STAGE = 'Mandat signé'
+
 export async function POST(req: NextRequest) {
   try {
     if (process.env.NODE_ENV === 'production') {
@@ -26,8 +28,35 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    const { data: opportunity, error: opportunityError } = await supabaseAdmin
+      .from('opportunities')
+      .select('id, stage, title')
+      .eq('lead_id', leadId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (opportunityError) {
+      console.error('[POST /api/client/invite] opportunity:', opportunityError)
+      return NextResponse.json(
+        { success: false, error: 'Erreur lecture opportunité' },
+        { status: 500 },
+      )
+    }
+
+    if (!opportunity || opportunity.stage !== SIGNED_MANDATE_STAGE) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Le dossier client ne peut être créé qu’après mandat signé.',
+          opportunity,
+        },
+        { status: 409 },
+      )
+    }
+
     const { profile, dossier } = await ensureClientDossierForLead(leadId)
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? req.nextUrl.origin
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? req.nextUrl?.origin ?? new URL(req.url).origin
     const redirectTo = `${siteUrl}/auth/callback?next=/espace-client`
 
     const generated = await supabaseAdmin.auth.admin.generateLink({

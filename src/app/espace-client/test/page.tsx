@@ -62,6 +62,8 @@ function demoDossier(): ClientPortalDossier {
       lead_id: null,
       seller_property_id: null,
       opportunity_id: null,
+      client_type: 'seller',
+      buyer_lead_id: null,
       status: 'active',
       title: 'Projet de vente - Cotignac',
       property_snapshot: {
@@ -161,6 +163,8 @@ function demoDossier(): ClientPortalDossier {
       visit_at: null,
       report_delivered_at: null,
       follow_up_at: null,
+      property_snapshot: {},
+      professional_opinion: {},
       created_from: 'test',
       created_at: now,
       updated_at: now,

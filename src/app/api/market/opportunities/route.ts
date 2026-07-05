@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { createLead } from '@/lib/leads-repo'
+import { NEW_CONTACT_STAGE, WATCH_LISTING_STAGE } from '@/lib/market/seller-opportunity'
 import {
   asNumber,
   asRecord,
@@ -10,7 +11,7 @@ import {
   upsertSellerPropertyForLead,
 } from '@/lib/leads-crm'
 
-const DEFAULT_STAGE = 'Nouveau contact'
+const DEFAULT_STAGE = NEW_CONTACT_STAGE
 const SELLER_OPPORTUNITY_FIELDS = [
   'seller_name',
   'seller_phone',
@@ -143,6 +144,29 @@ async function createLeadFromOpportunity(body: Record<string, unknown>) {
   return lead.id
 }
 
+async function getMarketPropertySnapshot(marketPropertyId: string | null) {
+  if (!marketPropertyId) return null
+  const { data, error } = await supabaseAdmin
+    .from('market_properties')
+    .select('id, title, city, zipcode, property_type, surface, land_surface, rooms, price, seller_type')
+    .eq('id', marketPropertyId)
+    .maybeSingle()
+
+  if (error) throw error
+  return data as {
+    id: string
+    title: string | null
+    city: string | null
+    zipcode: string | null
+    property_type: string | null
+    surface: number | null
+    land_surface: number | null
+    rooms: number | null
+    price: number | null
+    seller_type: string | null
+  } | null
+}
+
 function titleFromLead(snapshot: Awaited<ReturnType<typeof getLeadSnapshot>>) {
   if (!snapshot) return 'Opportunité vendeur'
   const name = [snapshot.prospect?.first_name, snapshot.prospect?.last_name].filter(Boolean).join(' ').trim()
@@ -264,6 +288,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    let marketProperty = null as Awaited<ReturnType<typeof getMarketPropertySnapshot>>
+
     if (marketPropertyId) {
       const { data: existing, error: existingError } = await supabaseAdmin
         .from('opportunities')
@@ -280,6 +306,8 @@ export async function POST(req: NextRequest) {
       if (existing?.[0]) {
         return NextResponse.json({ opportunity: existing[0], existing: true }, { status: 200 })
       }
+
+      marketProperty = await getMarketPropertySnapshot(marketPropertyId)
     }
 
     if (leadId) {
@@ -304,8 +332,13 @@ export async function POST(req: NextRequest) {
     if (leadId && !leadSnapshot) {
       return NextResponse.json({ error: 'Lead introuvable' }, { status: 404 })
     }
-    const title = asText(body.title) ?? titleFromLead(leadSnapshot)
+    const title = asText(body.title) ?? marketProperty?.title ?? titleFromLead(leadSnapshot)
     const sellerName = [leadSnapshot?.prospect?.first_name, leadSnapshot?.prospect?.last_name].filter(Boolean).join(' ').trim()
+    const requestedStage = normalizeText(body.stage)
+    const agencyWatch = Boolean(marketProperty && marketProperty.seller_type === 'agency' && !leadId)
+    const propertySource = marketProperty
+      ? (marketProperty.seller_type === 'agency' ? 'annonce_agence' : 'annonce_particulier')
+      : null
 
     const { data: opportunity, error } = await supabaseAdmin
       .from('opportunities')
@@ -314,7 +347,9 @@ export async function POST(req: NextRequest) {
         lead_id: leadId,
         title,
         description: normalizeText(body.description) ?? '',
-        stage: normalizeText(body.stage) ?? DEFAULT_STAGE,
+        stage: agencyWatch && (!requestedStage || requestedStage === DEFAULT_STAGE)
+          ? WATCH_LISTING_STAGE
+          : requestedStage ?? DEFAULT_STAGE,
         priority: normalizeText(body.priority) ?? 'medium',
         signal_type: normalizeText(body.signal_type),
         next_action: normalizeText(body.next_action),
@@ -335,6 +370,16 @@ export async function POST(req: NextRequest) {
           estimated_price_min: leadSnapshot.sellerProperty?.prix_estime ?? null,
           estimated_price_max: leadSnapshot.sellerProperty?.prix_estime ?? null,
           selling_timeline: leadSnapshot.sellerProperty?.delai ?? null,
+        } : marketProperty ? {
+          source_channel: propertySource,
+          property_city: marketProperty.city,
+          property_zipcode: marketProperty.zipcode,
+          property_type: marketProperty.property_type,
+          property_surface: marketProperty.surface,
+          property_land_surface: marketProperty.land_surface,
+          property_rooms: marketProperty.rooms,
+          estimated_price_min: marketProperty.price,
+          estimated_price_max: marketProperty.price,
         } : {}),
         ...buildSellerPayload(body),
       })

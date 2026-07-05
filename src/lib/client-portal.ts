@@ -10,6 +10,7 @@ type Lead = Database['public']['Tables']['leads']['Row']
 type Prospect = Database['public']['Tables']['prospects']['Row']
 type SellerProperty = Database['public']['Tables']['seller_properties']['Row']
 type Opportunity = Database['public']['Tables']['opportunities']['Row']
+type BuyerCriteria = Database['public']['Tables']['buyer_criteria']['Row']
 
 export type ClientLead = Lead & {
   prospect?: Pick<Prospect, 'id' | 'email' | 'first_name' | 'last_name' | 'phone'> | null
@@ -40,6 +41,13 @@ const DEFAULT_DOCUMENTS = [
   { label: 'Taxe foncière', category: 'fiscalite' },
 ]
 
+const DEFAULT_BUYER_DOCUMENTS = [
+  { label: 'Pièce d’identité', category: 'identite' },
+  { label: 'Mandat de recherche signé', category: 'mandat_recherche' },
+  { label: 'Plan de financement', category: 'financement' },
+  { label: 'Attestation bancaire ou courtier', category: 'financement' },
+]
+
 const DEFAULT_EVENTS = [
   {
     title: 'Dossier vendeur ouvert',
@@ -54,6 +62,24 @@ const DEFAULT_EVENTS = [
   {
     title: 'Avis de valeur conseiller',
     description: 'La valeur retenue sera affinée après analyse terrain et concurrence active.',
+    status: 'todo',
+  },
+]
+
+const DEFAULT_BUYER_EVENTS = [
+  {
+    title: 'Dossier acquéreur ouvert',
+    description: 'Votre recherche est centralisée avec les critères, les biens proposés et les prochaines étapes.',
+    status: 'done',
+  },
+  {
+    title: 'Mandat de recherche signé',
+    description: 'Le mandat permet de piloter la recherche et les propositions de biens.',
+    status: 'done',
+  },
+  {
+    title: 'Sélection des biens compatibles',
+    description: 'Les biens compatibles seront proposés et suivis dans ce dossier.',
     status: 'todo',
   },
 ]
@@ -131,12 +157,14 @@ export async function ensureClientDossierForLead(leadId: string) {
 
   const payload = {
     client_profile_id: (profile as ClientProfile).id,
+    client_type: 'seller',
     lead_id: leadId,
     seller_property_id: sellerProperty?.id ?? null,
     opportunity_id: opportunity?.id ?? null,
     status: 'active',
     title: buildDossierTitle(leadRecord, sellerProperty, opportunity),
     property_snapshot: buildPropertySnapshot(leadRecord, sellerProperty, opportunity) as Json,
+    professional_opinion: buildProfessionalOpinion(opportunity) as Json,
     advisor_note: 'Je garde ce dossier à jour pour vous donner une lecture claire de la vente et des prochaines étapes.',
   }
 
@@ -159,6 +187,78 @@ export async function ensureClientDossierForLead(leadId: string) {
   const dossier = dossierResult.data as ClientDossier
   await ensureDefaultDocuments(dossier.id)
   await ensureDefaultEvents(dossier.id)
+
+  return { profile: profile as ClientProfile, dossier }
+}
+
+export async function ensureClientDossierForBuyer(buyerLeadId: string) {
+  const { data: buyer, error: buyerError } = await supabaseAdmin
+    .from('buyer_criteria')
+    .select('*')
+    .eq('lead_id', buyerLeadId)
+    .maybeSingle()
+
+  if (buyerError) throw new Error(`Lecture acquéreur impossible: ${buyerError.message}`)
+  if (!buyer) throw new Error('Acquéreur introuvable')
+
+  const buyerRecord = buyer as BuyerCriteria
+  const prospect = await loadProspectForBuyer(buyerRecord)
+  const email = prospect?.email?.trim().toLowerCase()
+  if (!email) throw new Error('Cet acquéreur ne contient pas d’email client')
+
+  const { data: profile, error: profileError } = await supabaseAdmin
+    .from('client_profiles')
+    .upsert({
+      email,
+      first_name: prospect?.first_name ?? '',
+      last_name: prospect?.last_name ?? '',
+      phone: prospect?.phone ?? null,
+      is_active: true,
+    } as never, { onConflict: 'email' })
+    .select('*')
+    .single()
+
+  if (profileError) throw new Error(`Préparation profil client acquéreur impossible: ${profileError.message}`)
+  if (!profile) throw new Error('Profil client acquéreur non retourné')
+
+  const existing = await supabaseAdmin
+    .from('client_dossiers')
+    .select('*')
+    .eq('buyer_lead_id', buyerLeadId)
+    .maybeSingle()
+
+  if (existing.error) throw new Error(`Lecture dossier client acquéreur impossible: ${existing.error.message}`)
+
+  const payload = {
+    client_profile_id: (profile as ClientProfile).id,
+    client_type: 'buyer',
+    buyer_lead_id: buyerLeadId,
+    status: 'active',
+    title: buildBuyerDossierTitle(buyerRecord, prospect),
+    property_snapshot: buildBuyerSnapshot(buyerRecord) as Json,
+    professional_opinion: {} as Json,
+    advisor_note: 'Je garde ce dossier à jour pour vous donner une lecture claire de la recherche et des biens proposés.',
+  }
+
+  const dossierResult = existing.data
+    ? await supabaseAdmin
+        .from('client_dossiers')
+        .update(payload as never)
+        .eq('id', (existing.data as ClientDossier).id)
+        .select('*')
+        .single()
+    : await supabaseAdmin
+        .from('client_dossiers')
+        .insert(payload as never)
+        .select('*')
+        .single()
+
+  if (dossierResult.error) throw new Error(`Préparation dossier client acquéreur impossible: ${dossierResult.error.message}`)
+  if (!dossierResult.data) throw new Error('Dossier client acquéreur non retourné')
+
+  const dossier = dossierResult.data as ClientDossier
+  await ensureDefaultDocuments(dossier.id, 'buyer')
+  await ensureDefaultEvents(dossier.id, 'buyer')
 
   return { profile: profile as ClientProfile, dossier }
 }
@@ -346,7 +446,7 @@ async function loadEvents(supabase: SupabaseClient<Database>, dossierId: string)
   return (data ?? []) as ClientDossierEvent[]
 }
 
-async function ensureDefaultDocuments(dossierId: string) {
+async function ensureDefaultDocuments(dossierId: string, clientType: 'seller' | 'buyer' = 'seller') {
   const { count, error } = await supabaseAdmin
     .from('client_documents')
     .select('id', { count: 'exact', head: true })
@@ -357,7 +457,7 @@ async function ensureDefaultDocuments(dossierId: string) {
 
   const { error: insertError } = await supabaseAdmin
     .from('client_documents')
-    .insert(DEFAULT_DOCUMENTS.map((document) => ({
+    .insert((clientType === 'buyer' ? DEFAULT_BUYER_DOCUMENTS : DEFAULT_DOCUMENTS).map((document) => ({
       dossier_id: dossierId,
       label: document.label,
       category: document.category,
@@ -367,7 +467,7 @@ async function ensureDefaultDocuments(dossierId: string) {
   if (insertError) throw new Error(`Création checklist impossible: ${insertError.message}`)
 }
 
-async function ensureDefaultEvents(dossierId: string) {
+async function ensureDefaultEvents(dossierId: string, clientType: 'seller' | 'buyer' = 'seller') {
   const { count, error } = await supabaseAdmin
     .from('client_dossier_events')
     .select('id', { count: 'exact', head: true })
@@ -378,7 +478,7 @@ async function ensureDefaultEvents(dossierId: string) {
 
   const { error: insertError } = await supabaseAdmin
     .from('client_dossier_events')
-    .insert(DEFAULT_EVENTS.map((event) => ({
+    .insert((clientType === 'buyer' ? DEFAULT_BUYER_EVENTS : DEFAULT_EVENTS).map((event) => ({
       dossier_id: dossierId,
       type: 'milestone',
       title: event.title,
@@ -408,18 +508,85 @@ function buildPropertySnapshot(
   opportunity: Opportunity | null,
 ) {
   const formData = isRecord(lead.form_data) ? lead.form_data : {}
+  const opportunitySnapshot = isRecord(opportunity?.property_snapshot ?? null) ? opportunity?.property_snapshot as Record<string, Json | undefined> : {}
   return {
-    adresse: sellerProperty?.adresse ?? text(formData.adresse) ?? opportunity?.property_address ?? null,
-    commune: lead.commune ?? opportunity?.property_city ?? null,
-    type_bien: sellerProperty?.type_bien ?? text(formData.type_bien) ?? opportunity?.property_type ?? null,
-    surface: sellerProperty?.surface ?? numberValue(formData.surface) ?? opportunity?.property_surface ?? null,
-    surface_terrain: sellerProperty?.surface_terrain ?? numberValue(formData.surface_terrain) ?? opportunity?.property_land_surface ?? null,
-    nb_pieces: sellerProperty?.nb_pieces ?? numberValue(formData.nb_pieces) ?? opportunity?.property_rooms ?? null,
-    prix_estime: sellerProperty?.prix_estime ?? numberValue(formData.prix_estime) ?? null,
+    ...opportunitySnapshot,
+    adresse: text(opportunitySnapshot.adresse) ?? sellerProperty?.adresse ?? text(formData.adresse) ?? opportunity?.property_address ?? null,
+    commune: text(opportunitySnapshot.commune) ?? lead.commune ?? opportunity?.property_city ?? null,
+    type_bien: text(opportunitySnapshot.type_bien) ?? sellerProperty?.type_bien ?? text(formData.type_bien) ?? opportunity?.property_type ?? null,
+    surface: numberValue(opportunitySnapshot.surface) ?? sellerProperty?.surface ?? numberValue(formData.surface) ?? opportunity?.property_surface ?? null,
+    surface_terrain: numberValue(opportunitySnapshot.surface_terrain) ?? sellerProperty?.surface_terrain ?? numberValue(formData.surface_terrain) ?? opportunity?.property_land_surface ?? null,
+    nb_pieces: numberValue(opportunitySnapshot.nb_pieces) ?? sellerProperty?.nb_pieces ?? numberValue(formData.nb_pieces) ?? opportunity?.property_rooms ?? null,
+    prix_estime: numberValue(opportunitySnapshot.prix_estime) ?? sellerProperty?.prix_estime ?? numberValue(formData.prix_estime) ?? null,
   }
 }
 
-function isRecord(value: Json): value is Record<string, Json | undefined> {
+function buildProfessionalOpinion(opportunity: Opportunity | null) {
+  return isRecord(opportunity?.professional_opinion ?? null)
+    ? opportunity?.professional_opinion ?? {}
+    : {}
+}
+
+async function loadProspectForBuyer(buyer: BuyerCriteria) {
+  const prospectId = text(buyer.prospect_id)
+  if (prospectId) {
+    const { data, error } = await supabaseAdmin
+      .from('prospects')
+      .select('id, email, first_name, last_name, phone')
+      .eq('id', prospectId)
+      .maybeSingle()
+
+    if (error) throw new Error(`Lecture prospect acquéreur impossible: ${error.message}`)
+    if (data) return data as Pick<Prospect, 'id' | 'email' | 'first_name' | 'last_name' | 'phone'>
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('leads')
+    .select(`
+      prospect:prospects!leads_prospect_id_fkey (
+        id,
+        email,
+        first_name,
+        last_name,
+        phone
+      )
+    `)
+    .eq('id', buyer.lead_id)
+    .maybeSingle()
+
+  if (error) throw new Error(`Lecture lead acquéreur impossible: ${error.message}`)
+  const record = data as { prospect?: Pick<Prospect, 'id' | 'email' | 'first_name' | 'last_name' | 'phone'> | null } | null
+  return record?.prospect ?? null
+}
+
+function buildBuyerDossierTitle(
+  buyer: BuyerCriteria,
+  prospect: Pick<Prospect, 'first_name' | 'last_name'> | null,
+) {
+  const name = [prospect?.first_name, prospect?.last_name].filter(Boolean).join(' ').trim()
+  const place = buyer.communes?.slice(0, 2).join(', ')
+  if (name && place) return `Recherche acquéreur - ${name} - ${place}`
+  if (name) return `Recherche acquéreur - ${name}`
+  if (place) return `Recherche acquéreur - ${place}`
+  return 'Recherche acquéreur'
+}
+
+function buildBuyerSnapshot(buyer: BuyerCriteria) {
+  return {
+    type_projet: 'achat',
+    type_bien: buyer.type_bien,
+    communes: buyer.communes,
+    budget_max: buyer.budget_max,
+    surface_min: buyer.surface_min,
+    pieces_min: buyer.pieces_min,
+    criteres: buyer.criteres,
+    stage: buyer.stage,
+    next_action: buyer.next_action,
+    due_date: buyer.due_date,
+  }
+}
+
+function isRecord(value: Json | null | undefined): value is Record<string, Json | undefined> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 

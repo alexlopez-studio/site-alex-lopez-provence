@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ChevronLeft, Loader2, Save, Trash2 } from 'lucide-react'
+import { ChevronLeft, DoorOpen, Euro, ExternalLink, Loader2, MapPin, Maximize2, RefreshCw, Save, Trash2, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,6 +30,77 @@ const COMMUNES: CommuneEntry[] = (communesData as CommuneEntry[]).sort((a, b) =>
   a.name.localeCompare(b.name, 'fr')
 )
 
+const BUYER_STAGES = [
+  'Nouveau contact',
+  'Recherche qualifiée',
+  'Matching à faire',
+  'Biens proposés',
+  'Visites',
+  'Offre en cours',
+  'Mandat de recherche signé',
+  'Achat conclu',
+  'Pause / Perdu',
+]
+
+interface MatchResult {
+  id: string
+  buyer_lead_id: string
+  property_id: string | null
+  seller_lead_id: string | null
+  property_type: 'market' | 'seller'
+  score: number
+  matched_commune: boolean
+  matched_type: boolean
+  matched_budget: boolean
+  matched_surface: boolean
+  matched_pieces: boolean
+  property: {
+    id: string
+    title?: string | null
+    city?: string | null
+    property_type?: string | null
+    type_bien?: string | null
+    price?: number | null
+    prix_estime?: number | null
+    surface?: number | null
+    rooms?: number | null
+    nb_pieces?: number | null
+  } | null
+}
+
+function formatPrice(price: number | null | undefined): string {
+  if (!price) return '—'
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+    maximumFractionDigits: 0,
+  }).format(price)
+}
+
+function getScoreLabel(score: number): string {
+  if (score >= 80) return 'Excellent'
+  if (score >= 60) return 'Bon'
+  if (score >= 40) return 'Moyen'
+  return 'Faible'
+}
+
+function getScoreClass(score: number): string {
+  if (score >= 80) return 'border-green-200 bg-green-50 text-green-700'
+  if (score >= 60) return 'border-emerald-200 bg-emerald-50 text-emerald-700'
+  if (score >= 40) return 'border-amber-200 bg-amber-50 text-amber-700'
+  return 'border-border bg-muted text-muted-foreground'
+}
+
+function matchReasons(match: MatchResult) {
+  return [
+    match.matched_commune ? 'Commune' : null,
+    match.matched_budget ? 'Budget' : null,
+    match.matched_type ? 'Type' : null,
+    match.matched_surface ? 'Surface' : null,
+    match.matched_pieces ? 'Pièces' : null,
+  ].filter((reason): reason is string => Boolean(reason))
+}
+
 export default function EditAcquereurPage() {
   const params = useParams()
   const router = useRouter()
@@ -45,9 +116,28 @@ export default function EditAcquereurPage() {
     pieces_min: '',
     criteres: [] as string[],
     active: true,
+    stage: 'Nouveau contact',
+    next_action: '',
+    due_date: '',
   })
   const [communeSearch, setCommuneSearch] = useState('')
   const [critereInput, setCritereInput] = useState('')
+  const [matches, setMatches] = useState<MatchResult[]>([])
+  const [matchingLoading, setMatchingLoading] = useState(true)
+  const [runningMatching, setRunningMatching] = useState(false)
+
+  const loadMatches = useCallback(async () => {
+    setMatchingLoading(true)
+    try {
+      const res = await fetch(`/api/market/matching?buyer_lead_id=${leadId}&limit=12&min_score=40`)
+      const data = await res.json()
+      if (res.ok) setMatches(data.matches ?? [])
+    } catch (e) {
+      console.error('Erreur chargement biens compatibles:', e)
+    } finally {
+      setMatchingLoading(false)
+    }
+  }, [leadId])
 
   useEffect(() => {
     const loadBuyer = async () => {
@@ -68,6 +158,9 @@ export default function EditAcquereurPage() {
           pieces_min: buyer.pieces_min?.toString() || '',
           criteres: buyer.criteres || [],
           active: buyer.active,
+          stage: buyer.stage || 'Nouveau contact',
+          next_action: buyer.next_action || '',
+          due_date: buyer.due_date || '',
         })
       } catch (e) {
         console.error('Erreur chargement:', e)
@@ -78,6 +171,10 @@ export default function EditAcquereurPage() {
     }
     loadBuyer()
   }, [leadId, router])
+
+  useEffect(() => {
+    void loadMatches()
+  }, [loadMatches])
 
   const filteredCommunes = communeSearch
     ? COMMUNES.filter(
@@ -131,6 +228,9 @@ export default function EditAcquereurPage() {
           pieces_min: form.pieces_min ? Number(form.pieces_min) : null,
           criteres: form.criteres.length > 0 ? form.criteres : null,
           active: form.active,
+          stage: form.stage,
+          next_action: form.next_action || null,
+          due_date: form.due_date || null,
         }),
       })
 
@@ -159,6 +259,26 @@ export default function EditAcquereurPage() {
     } catch (e) {
       console.error('Erreur désactivation:', e)
       toast.error('Erreur serveur')
+    }
+  }
+
+  const runMatching = async () => {
+    setRunningMatching(true)
+    try {
+      const res = await fetch('/api/market/matching', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ buyer_lead_id: leadId }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Matching impossible')
+      await loadMatches()
+      toast.success('Matching acquéreur mis à jour')
+    } catch (e) {
+      console.error('Erreur matching:', e)
+      toast.error(e instanceof Error ? e.message : 'Erreur matching')
+    } finally {
+      setRunningMatching(false)
     }
   }
 
@@ -357,6 +477,44 @@ export default function EditAcquereurPage() {
             </div>
 
             {/* Statut actif */}
+            <div className="grid gap-6 sm:grid-cols-3">
+              <div className="space-y-2">
+                <Label htmlFor="stage">Statut commercial</Label>
+                <Select
+                  value={form.stage}
+                  onValueChange={(value) => setForm((prev) => ({ ...prev, stage: value }))}
+                >
+                  <SelectTrigger id="stage">
+                    <SelectValue placeholder="Statut" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {BUYER_STAGES.map((stage) => (
+                      <SelectItem key={stage} value={stage}>{stage}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="next_action">Prochaine action</Label>
+                <Input
+                  id="next_action"
+                  value={form.next_action}
+                  onChange={(e) => setForm((prev) => ({ ...prev, next_action: e.target.value }))}
+                  placeholder="Ex: envoyer 3 biens"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="due_date">Échéance</Label>
+                <Input
+                  id="due_date"
+                  type="date"
+                  value={form.due_date}
+                  onChange={(e) => setForm((prev) => ({ ...prev, due_date: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            {/* Statut actif */}
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -384,6 +542,120 @@ export default function EditAcquereurPage() {
           </Button>
         </div>
       </form>
+
+      <Card>
+        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Biens compatibles
+            </CardTitle>
+            <CardDescription>
+              Matching clair par commune, budget, type, surface et pièces.
+            </CardDescription>
+          </div>
+          <Button type="button" variant="outline" size="sm" onClick={runMatching} disabled={runningMatching}>
+            <RefreshCw className={`mr-1 h-4 w-4 ${runningMatching ? 'animate-spin' : ''}`} />
+            Lancer le matching
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {matchingLoading ? (
+            <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Chargement des biens compatibles...
+            </div>
+          ) : matches.length === 0 ? (
+            <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+              Aucun bien compatible pour l’instant.
+            </div>
+          ) : (
+            <div className="grid gap-3 lg:grid-cols-2">
+              {matches.map((match) => {
+                const property = match.property
+                const propertyLink = match.property_type === 'market' && match.property_id
+                  ? `/app/properties/${match.property_id}`
+                  : match.seller_lead_id
+                    ? `/app/leads/${match.seller_lead_id}`
+                    : null
+                const reasons = matchReasons(match)
+
+                return (
+                  <div key={match.id} className="rounded-lg border p-4">
+                    <div className="mb-3 flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">
+                          {property?.title ?? property?.property_type ?? property?.type_bien ?? 'Bien'}
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {match.property_type === 'market' ? 'Bien marché' : 'Opportunité vendeur'}
+                        </p>
+                      </div>
+                      <Badge variant="outline" className={`h-6 text-xs ${getScoreClass(match.score)}`}>
+                        {getScoreLabel(match.score)} · {match.score}%
+                      </Badge>
+                    </div>
+
+                    <div className="mb-3 grid gap-1.5 text-xs text-muted-foreground sm:grid-cols-2">
+                      {property?.city && (
+                        <span className="inline-flex items-center gap-1">
+                          <MapPin className="h-3 w-3" />
+                          {property.city}
+                        </span>
+                      )}
+                      {(property?.price || property?.prix_estime) && (
+                        <span className="inline-flex items-center gap-1">
+                          <Euro className="h-3 w-3" />
+                          {formatPrice(property.price ?? property.prix_estime)}
+                        </span>
+                      )}
+                      {property?.surface && (
+                        <span className="inline-flex items-center gap-1">
+                          <Maximize2 className="h-3 w-3" />
+                          {property.surface} m²
+                        </span>
+                      )}
+                      {(property?.rooms || property?.nb_pieces) && (
+                        <span className="inline-flex items-center gap-1">
+                          <DoorOpen className="h-3 w-3" />
+                          {property.rooms ?? property.nb_pieces} pièces
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="mb-4 flex flex-wrap gap-1">
+                      {reasons.length > 0 ? reasons.map((reason) => (
+                        <Badge key={reason} variant="secondary" className="text-[10px]">
+                          {reason}
+                        </Badge>
+                      )) : (
+                        <span className="text-xs text-muted-foreground">Raisons à recalculer</span>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {propertyLink && (
+                        <Button type="button" variant="outline" size="sm" asChild>
+                          <Link href={propertyLink}>
+                            <ExternalLink className="mr-1 h-3.5 w-3.5" />
+                            Ouvrir le bien
+                          </Link>
+                        </Button>
+                      )}
+                      <Button type="button" variant="outline" size="sm" onClick={() => toast.info('Proposition à journaliser dans la prochaine étape CRM')}>
+                        Proposer
+                      </Button>
+                      <Button type="button" variant="outline" size="sm" onClick={() => toast.info('Planification de visite à relier au calendrier')}>
+                        Planifier visite
+                      </Button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

@@ -13,6 +13,13 @@ const DEFAULT_DOCUMENTS = [
   { label: 'Taxe foncière', category: 'fiscalite' },
 ]
 
+const DEFAULT_BUYER_DOCUMENTS = [
+  { label: 'Pièce d’identité', category: 'identite' },
+  { label: 'Mandat de recherche signé', category: 'mandat_recherche' },
+  { label: 'Plan de financement', category: 'financement' },
+  { label: 'Attestation bancaire ou courtier', category: 'financement' },
+]
+
 const DEFAULT_EVENTS = [
   {
     title: 'Dossier vendeur ouvert',
@@ -26,6 +33,19 @@ const DEFAULT_EVENTS = [
   },
 ]
 
+const DEFAULT_BUYER_EVENTS = [
+  {
+    title: 'Dossier acquéreur ouvert',
+    description: 'Votre espace centralise les critères de recherche, les biens proposés et les prochaines étapes.',
+    status: 'done',
+  },
+  {
+    title: 'Mandat de recherche signé',
+    description: 'Le mandat de recherche est signé.',
+    status: 'done',
+  },
+]
+
 export async function GET(req: NextRequest) {
   const denied = await rejectIfNoAdmin()
   if (denied) return denied
@@ -35,6 +55,7 @@ export async function GET(req: NextRequest) {
     const page = Math.max(1, Number(searchParams.get('page') ?? '1') || 1)
     const pageSize = Math.min(100, Math.max(1, Number(searchParams.get('page_size') ?? '20') || 20))
     const status = searchParams.get('status')?.trim()
+    const clientType = searchParams.get('client_type')?.trim() || 'seller'
     const q = searchParams.get('q')?.trim().toLowerCase()
 
     let query = supabaseAdmin
@@ -42,7 +63,15 @@ export async function GET(req: NextRequest) {
       .select('*, client_profile:client_profiles(*)', { count: 'exact' })
       .order('updated_at', { ascending: false })
 
-    if (status) query = query.eq('status', status)
+    if (status) {
+      query = query.eq('status', status)
+    } else {
+      query = query.in('status', ['active', 'archived'])
+    }
+
+    if (clientType === 'seller' || clientType === 'buyer') {
+      query = query.eq('client_type', clientType)
+    }
 
     const rangeStart = q ? 0 : (page - 1) * pageSize
     const rangeEnd = q ? 249 : rangeStart + pageSize - 1
@@ -90,6 +119,7 @@ export async function POST(req: NextRequest) {
     const body = asRecord(await req.json())
     const profile = asRecord(body.profile)
     const snapshot = compactObject(asRecord(body.property_snapshot))
+    const clientType = text(body.client_type) === 'buyer' ? 'buyer' : 'seller'
     const email = text(profile.email).toLowerCase()
 
     if (!email || !email.includes('@')) {
@@ -116,11 +146,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Erreur création client' }, { status: 500 })
     }
 
-    const title = text(body.title) || buildTitle(snapshot)
+    const title = text(body.title) || buildTitle(snapshot, clientType)
     const { data: dossier, error: dossierError } = await supabaseAdmin
       .from('client_dossiers')
       .insert({
         client_profile_id: clientProfile.id,
+        client_type: clientType,
         status: text(body.status) || 'active',
         title,
         property_snapshot: snapshot as Json,
@@ -137,7 +168,7 @@ export async function POST(req: NextRequest) {
     await Promise.all([
       supabaseAdmin
         .from('client_documents')
-        .insert(DEFAULT_DOCUMENTS.map((document) => ({
+        .insert((clientType === 'buyer' ? DEFAULT_BUYER_DOCUMENTS : DEFAULT_DOCUMENTS).map((document) => ({
           dossier_id: dossier.id,
           label: document.label,
           category: document.category,
@@ -145,7 +176,7 @@ export async function POST(req: NextRequest) {
         })) as never),
       supabaseAdmin
         .from('client_dossier_events')
-        .insert(DEFAULT_EVENTS.map((event) => ({
+        .insert((clientType === 'buyer' ? DEFAULT_BUYER_EVENTS : DEFAULT_EVENTS).map((event) => ({
           dossier_id: dossier.id,
           type: 'milestone',
           title: event.title,
@@ -168,6 +199,7 @@ function dossierMatches(row: AdminClientDossier, q: string) {
   const haystack = [
     row.title,
     row.status,
+    row.client_type,
     row.client_profile.email,
     row.client_profile.first_name,
     row.client_profile.last_name,
@@ -251,7 +283,8 @@ function compactObject(value: Record<string, unknown>) {
   }).filter(([, value]) => value !== null && value !== ''))
 }
 
-function buildTitle(snapshot: Record<string, unknown>) {
+function buildTitle(snapshot: Record<string, unknown>, clientType: 'seller' | 'buyer' = 'seller') {
   const city = text(snapshot.commune)
+  if (clientType === 'buyer') return city ? `Recherche acquéreur - ${city}` : 'Recherche acquéreur'
   return city ? `Projet de vente - ${city}` : 'Projet de vente'
 }

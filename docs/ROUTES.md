@@ -32,17 +32,17 @@ Routes canoniques de navigation locale et backoffice :
 |-------|-------------|
 | `/app/dashboard` | Vue d'ensemble Mandat OS |
 | `/app/radar` | Radar vendeurs / MandatFinder |
-| `/app/leads` | Pipeline leads vendeurs |
-| `/app/clients` | Dossiers clients vendeurs |
-| `/app/clients/[id]` | Detail dossier client vendeur |
-| `/app/liste-chaude` | Liste chaude bouche-a-oreille |
+| `/app/leads` | Contacts vendeurs et acquereurs |
+| `/app/clients` | Dossiers clients vendeurs et acquereurs |
+| `/app/clients/[id]` | Detail dossier client |
+| `/app/liste-chaude` | Reseau relationnel |
 | `/app/properties` | Biens du marche |
 | `/app/properties/[id]` | Detail d'un bien |
 | `/app/acheteurs` | Acquereurs |
 | `/app/acheteurs/[id]` | Detail acquereur |
 | `/app/acheteurs/nouveau` | Creation acquereur |
 | `/app/matching` | Matching biens / acquereurs |
-| `/app/opportunities` | Opportunites |
+| `/app/opportunities` | Opportunites vendeurs et acquereurs |
 | `/app/rules` | Regles d'automatisation |
 | `/app/rules/new` | Creation de regle |
 | `/app/notifications` | Notifications |
@@ -50,6 +50,8 @@ Routes canoniques de navigation locale et backoffice :
 | `/app/settings` | Parametres et controle sync |
 | `/app/utilisateurs` | Gestion utilisateurs admin |
 | `/espace-client/test` | Session test locale espace client vendeur |
+
+Référence processus : `docs/SMQ_PROCESSUS_VENDEUR.md` définit le parcours vendeur cible, avec l'opportunité comme fiche pivot, la recherche anti-doublon avant création et le statut `Veille annonce` pour les annonces sans vendeur exploitable.
 
 Routes historiques conservees en redirection/rewrite :
 

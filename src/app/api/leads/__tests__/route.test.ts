@@ -58,6 +58,13 @@ vi.mock('@/lib/market/matching-engine', () => ({
   runMatchingForBuyer: vi.fn().mockResolvedValue(undefined),
 }))
 
+vi.mock('@/lib/market/seller-opportunity', () => ({
+  ensureSellerOpportunityForLead: vi.fn().mockResolvedValue({
+    opportunity: { id: 'opportunity-1' },
+    existing: false,
+  }),
+}))
+
 vi.mock('@/lib/supabase', () => ({
   supabaseAdmin: {
     from: vi.fn(() => ({
@@ -75,6 +82,7 @@ import {
 } from '@/lib/leads-repo'
 import { sendMagicLinkEmail } from '@/lib/resend'
 import { computeLeadResults } from '@/lib/leads/compute-results'
+import { ensureSellerOpportunityForLead } from '@/lib/market/seller-opportunity'
 import type { NextRequest } from 'next/server'
 
 const mockedUpsertProspect = vi.mocked(upsertProspect)
@@ -82,6 +90,7 @@ const mockedCreateLead = vi.mocked(createLead)
 const mockedMarkMagicLinkSent = vi.mocked(markMagicLinkSent)
 const mockedSendMagicLinkEmail = vi.mocked(sendMagicLinkEmail)
 const mockedComputeLeadResults = vi.mocked(computeLeadResults)
+const mockedEnsureSellerOpportunityForLead = vi.mocked(ensureSellerOpportunityForLead)
 
 function makeRequest(body: unknown): NextRequest {
   return new Request('https://preview.alexlopez-provence.fr/api/leads', {
@@ -220,6 +229,7 @@ describe('POST /api/leads (v2)', () => {
       }),
     )
     expect(mockedMarkMagicLinkSent).toHaveBeenCalledWith('lead-uuid-1')
+    expect(mockedEnsureSellerOpportunityForLead).toHaveBeenCalledWith('lead-uuid-1')
   })
 
   it('does not call markMagicLinkSent when email sending fails', async () => {
@@ -237,6 +247,7 @@ describe('POST /api/leads (v2)', () => {
     expect(json.success).toBe(true)
     expect(json.emailSent).toBe(false)
     expect(mockedMarkMagicLinkSent).not.toHaveBeenCalled()
+    expect(mockedEnsureSellerOpportunityForLead).not.toHaveBeenCalled()
   })
 
   it('500 if persistence fails (upsertProspect throws RepoError)', async () => {

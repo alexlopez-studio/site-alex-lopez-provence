@@ -774,22 +774,22 @@ export function PropertyDetail() {
             </CardContent>
           </Card>
 
-          {/* Acquéreurs potentiels */}
+          {/* Acquéreurs compatibles */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                Acquéreurs potentiels
+                Acquéreurs compatibles
               </CardTitle>
               <CardDescription className="text-[11px]">
-                Leads acheteurs dont les critères matchent ce bien
+                Profils acquéreurs dont les critères sont compatibles avec ce bien
               </CardDescription>
             </CardHeader>
             <CardContent>
               {loadingMatches ? (
                 <p className="text-xs text-muted-foreground">Chargement…</p>
               ) : potentialBuyers.length === 0 ? (
-                <p className="text-xs text-muted-foreground">Aucun acquéreur potentiel trouvé</p>
+                <p className="text-xs text-muted-foreground">Aucun acquéreur compatible trouvé</p>
               ) : (
                 <div className="space-y-2">
                   {potentialBuyers.map((match) => (

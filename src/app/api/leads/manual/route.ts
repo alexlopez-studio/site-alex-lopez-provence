@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { createLead } from '@/lib/leads-repo'
+import { ensureSellerOpportunityForLead } from '@/lib/market/seller-opportunity'
 import {
   asNumber,
   asRecord,
@@ -19,6 +20,8 @@ const VALID_SOURCES = new Set([
   'prospection',
   'recommandation',
   'estimation_site',
+  'annonce_particulier',
+  'annonce_agence',
   'autre',
 ])
 
@@ -107,12 +110,15 @@ export async function POST(req: NextRequest) {
     const { error: eventError } = await supabaseAdmin.from('lead_events').insert(events as never)
     if (eventError) console.error('[API /leads/manual] events:', eventError)
 
+    const sellerOpportunity = await ensureSellerOpportunityForLead(lead.id)
+
     return NextResponse.json({
       success: true,
       data: {
         lead,
         prospect,
         seller_property: sellerProperty,
+        opportunity: sellerOpportunity?.opportunity ?? null,
       },
     }, { status: 201 })
   } catch (err) {

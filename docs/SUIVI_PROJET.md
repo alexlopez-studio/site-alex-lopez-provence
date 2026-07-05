@@ -17,6 +17,261 @@ Decision : Codex reprend seul le developpement et le design pour le moment.
 
 Note : les lots Linear ci-dessous sont historiques et ne refletent plus l'etat reel du code. La memoire courante est dans `docs/MEMOIRE_SESSION.md`.
 
+### 05/07/2026 17:10 CEST - Preparation commit et push preview
+- Base/branche : `preview`, cible `origin/preview`.
+- Type : checkpoint livraison.
+- Statut : **pret a pousser**.
+- Perimetre inclus : SMQ vendeur v1, cockpit pre-mandat opportunite, renommage
+  Leads en Contacts, rubrique Affaires, pipelines vendeurs/acquereurs, clients
+  vendeurs/acquereurs, reseau relationnel, dashboard oriente actions, Data & BI
+  marche, pages dediees de creation vendeur/acquereur.
+- Verifications de session : `npx tsc --noEmit` OK ; tests API cibles OK selon
+  les lots ; `git diff --check` OK ; audits Playwright headless OK sur les
+  pages cles indiquees dans les entrees precedentes.
+
+### 05/07/2026 17:05 CEST - Creation vendeur/acquereur harmonisee en pages dediees
+- Base/branche : `preview`, modifications locales non poussees.
+- Type : UX creation affaires / anti-doublon / harmonisation vendeurs-acquereurs.
+- Statut : **fait**.
+- Decision : les creations vendeur et acquereur passent par une page dediee,
+  plus adaptee qu'une pop-up pour une creation structurante.
+- Travail :
+  1. Nouvelle page `/app/opportunities/nouveau` pour creer un vendeur avec le
+     meme socle que l'acquereur : `Contact existant` / `Nouveau contact`, puis
+     projet commercial.
+  2. Cote vendeur uniquement : rattachement possible a un bien deja importe/en
+     annonce, avec blocage visuel des biens deja lies.
+  3. Page `/app/acheteurs/nouveau` refondue sur le meme modele : contact
+     existant ou nouveau contact, puis criteres/prochaine action, sans
+     rattachement bien.
+  4. API `POST /api/market/buyers` etendue pour accepter un `lead_id` /
+     `prospect_id` existant et renvoyer un acquereur existant si le contact est
+     deja rattache, afin d'eviter les doublons.
+  5. Kanban vendeur : bouton `Nouveau vendeur` et boutons `+` de colonnes
+     ouvrent la page dediee au lieu de lancer la pop-up.
+- Audit qualite : `npx tsc --noEmit` OK ; `git diff --check` OK ; smoke
+  Playwright headless OK sur `/app/opportunities/nouveau` et
+  `/app/acheteurs/nouveau` (titres et sections contact/projet detectes). Une
+  404 parasite de ressource statique reste observee, sans bloquer le rendu.
+
+### 05/07/2026 16:45 CEST - Renommage DVF en Data & BI marche
+- Base/branche : `preview`, modifications locales non poussees.
+- Type : vocabulaire UX / trajectoire BI.
+- Statut : **fait**.
+- Decision : la route technique `/app/dvf` reste conservee, mais le libelle
+  visible devient `Data & BI` dans la sidebar et `Data & BI marche` sur la page.
+  `DVF` reste mentionne comme source de donnees, pas comme nom de rubrique.
+- Travail :
+  1. Sidebar `Marche` : entree `DVF` renommee `Data & BI`.
+  2. Page `/app/dvf` : titre `Data & BI marche`, description orientee analyse
+     des mutations, prix medians et tendances locales.
+  3. Bloc lateral `Communes DVF` renomme `Communes analysees`.
+- Audit qualite : `npx tsc --noEmit` OK ; `git diff --check` OK.
+
+### 05/07/2026 16:30 CEST - Dashboard Mandat OS oriente actions
+- Base/branche : `preview`, modifications locales non poussees.
+- Type : refonte dashboard / pilotage transverse / actions prioritaires.
+- Statut : **fait**.
+- Demande (Alexandre) : reprendre un design dense inspire de la capture et donner
+  de la visibilite sur les actions a venir, en cours et en retard, sans creer de
+  table `tasks` en v1.
+- Travail :
+  1. Nouvelle API `GET /api/market/dashboard` agregant les actions existantes
+     depuis `opportunities`, `buyer_criteria`, `opportunity_events`,
+     `client_dossier_events`, `leads` et `warm_contacts`.
+  2. Nouvelle API `PATCH /api/market/dashboard/actions` pour `complete` ou
+     `postpone` quand la source le supporte deja.
+  3. Refonte de `/app/dashboard` : header compact, recherche visuelle,
+     raccourcis `Nouvelle opportunite` et `Ajouter un contact`, KPI, graphiques
+     30 jours / pipeline, liste `Actions prioritaires`, panneau `Qualite du
+     suivi`.
+  4. Tri actions : retard, aujourd'hui, cette semaine, plus tard, sans echeance.
+  5. Actions rapides : `Ouvrir`, `Fait` pour les evenements completable,
+     `+7j` pour reporter la date source existante.
+- Fichiers principaux : `src/app/admin/market/DashboardCockpit.tsx`,
+  `src/app/admin/market/page.tsx`, `src/app/api/market/dashboard/route.ts`,
+  `src/app/api/market/dashboard/actions/route.ts`.
+- Audit qualite : `npx tsc --noEmit` OK ; `npx vitest run
+  src/app/api/market/dashboard/__tests__/route.test.ts
+  src/app/api/market/dashboard/actions/__tests__/route.test.ts` OK ;
+  `git diff --check` OK ; mini-audit Playwright headless OK sur
+  `/app/dashboard` en desktop 1440x1000 et mobile 390x900 (KPI, graphiques,
+  actions prioritaires, qualite du suivi et focus semaine detectes). Une 404
+  parasite de ressource statique reste observee, sans bloquer le rendu.
+- Prochain point : brancher un vrai choix de date pour `Reporter` si besoin ;
+  la v1 reporte actuellement a J+7 depuis le dashboard.
+
+### 05/07/2026 16:10 CEST - Affaires, contacts et clients scindes Vendeurs / Acquereurs
+- Base/branche : `preview`, modifications locales non poussees.
+- Type : refonte vocabulaire métier / client acquereur / UX contacts-clients.
+- Statut : **fait**.
+- Decision metier : un acquereur devient client uniquement apres signature d'un
+  mandat de recherche, comme un vendeur devient client apres mandat de vente.
+- Travail :
+  1. Sidebar : la grande rubrique devient `Affaires`, avec les sous-rubriques
+     `Opportunites`, `Contacts`, `Clients` et `Reseau`; route technique
+     `/app/opportunities` conservee.
+  2. `/app/opportunities` affiche `Opportunites` avec onglets `Vendeurs` /
+     `Acquereurs`; ajout du stage acquereur `Mandat de recherche signe`.
+  3. `/app/leads` devient une page `Contacts` a onglets `Vendeurs` / `Acquereurs`;
+     bouton principal `Ajouter un contact` avec choix Vendeur ou Acquereur.
+  4. Creation contact acquereur branchee sur `/api/market/buyers`, avec saisie
+     contact + criteres et stage par defaut `Nouveau contact`.
+  5. Migration `025_client_dossiers_buyer_scope.sql` : `client_dossiers.client_type`
+     (`seller`/`buyer`), `buyer_lead_id`, index et contrainte scope etendus.
+  6. Passage acquereur en `Mandat de recherche signe` : creation/rattachement du
+     dossier client acquereur via `ensureClientDossierForBuyer`; refus `409` si
+     aucun email client n'est disponible.
+  7. `/app/clients` affiche `Clients` avec onglets `Vendeurs` / `Acquereurs` et
+     filtre API `client_type`.
+  8. `/app/liste-chaude` est integre a la rubrique `Affaires` et renomme
+     visuellement `Reseau` pour accueillir cercle proche, partenaires,
+     prescripteurs et contacts relationnels.
+- Fichiers principaux : `src/app/admin/market/leads/page.tsx`,
+  `src/app/admin/market/clients/page.tsx`, `src/app/api/market/buyers/[id]/route.ts`,
+  `src/lib/client-portal.ts`, `supabase/migrations/025_client_dossiers_buyer_scope.sql`.
+- Audit qualite : `npx tsc --noEmit` OK ; `npx vitest run
+  src/app/api/leads/__tests__/route.test.ts src/app/api/client/invite/__tests__/route.test.ts
+  src/app/api/market/buyers/[id]/__tests__/route.test.ts` OK ; `git diff --check`
+  OK ; mini-audit Playwright headless OK sur `/app/opportunities`, `/app/leads`,
+  `/app/clients` (titres `Opportunites`, `Contacts`, `Clients` et onglets
+  `Vendeurs` / `Acquereurs` detectes).
+- Prochain point : appliquer migrations 024 et 025 en base, puis tester avec un
+  acquereur reel disposant d'un email avant passage en `Mandat de recherche signe`.
+
+### 05/07/2026 16:18 CEST - Ajustement rubrique Affaires et reseau relationnel
+- Base/branche : `preview`, modifications locales non poussees.
+- Type : correction vocabulaire UX / navigation.
+- Statut : **fait**.
+- Demande (Alexandre) : garder `Affaires` comme nom de rubrique, mais conserver
+  `Opportunites` pour le Kanban et la sous-rubrique; integrer l'ancienne `Liste
+  chaude` dans `Affaires` sous le nom `Reseau`.
+- Travail :
+  1. Sidebar : `Affaires` contient maintenant `Opportunites`, `Contacts`,
+     `Clients`, `Reseau`.
+  2. Suppression de la rubrique sidebar separee `Reseau`.
+  3. `/app/opportunities` redevient visuellement `Opportunites`.
+  4. `/app/liste-chaude` devient visuellement `Reseau`, avec description elargie
+     aux proches, partenaires, prescripteurs et contacts relationnels.
+- Audit qualite : `npx tsc --noEmit` OK ; `git diff --check` OK ; mini-audit
+  Playwright headless OK sur `/app/opportunities` (`Opportunites`, onglets
+  `Vendeurs` / `Acquereurs`) et `/app/liste-chaude` (`Reseau`).
+
+### 05/07/2026 15:55 CEST - Simplification sidebar, contacts, opportunites et matching acquereur
+- Base/branche : `preview`, modifications locales non poussees.
+- Type : simplification UX / pipeline acquereur / matching lisible.
+- Statut : **fait**.
+- Demande (Alexandre) : clarifier l'app autour de `Pilotage`, `Opportunites`,
+  `Marche`, `Reseau`, renommer `Leads` en `Contacts` cote interface, ajouter un
+  Kanban acquereurs dans les opportunites et rendre le matching comprehensible
+  depuis la fiche acquereur.
+- Travail :
+  1. Sidebar reorganisee : `Pilotage` (Dashboard), `Opportunites` (Opportunites,
+     Contacts, Clients), `Marche` (Biens, DVF), `Reseau` (Liste chaude),
+     `Configuration` (Parametres). `Matching` sort du menu principal mais reste
+     accessible par route.
+  2. Renommage UI de `/app/leads` en `Contacts` sans migration technique des URLs,
+     tables ou APIs.
+  3. Ajout de la migration `024_buyer_criteria_pipeline_stage.sql` :
+     `buyer_criteria.stage`, `next_action`, `due_date`.
+  4. Extension des APIs acheteurs pour creer un acquereur en `Nouveau contact` par
+     defaut et mettre a jour le statut/prochaine action/echeance.
+  5. Transformation de `/app/opportunities` en deux onglets : Kanban `Vendeurs`
+     existant et nouveau Kanban `Acquereurs` base sur `buyer_criteria`, avec
+     drag-and-drop persistant.
+  6. Fiche acquereur enrichie : statut commercial, prochaine action, echeance et
+     bloc `Biens compatibles` avec bouton `Lancer le matching`, score lisible,
+     raisons et actions.
+  7. Fiche bien : libelle `Acquereurs compatibles` au lieu d'acquereurs potentiels.
+- Fichiers principaux : `src/components/app-sidebar.tsx`,
+  `src/app/admin/market/opportunities/page.tsx`,
+  `src/app/admin/market/opportunities/BuyerKanbanBoard.tsx`,
+  `src/app/admin/market/acheteurs/[id]/page.tsx`,
+  `src/app/api/market/buyers/route.ts`,
+  `src/app/api/market/buyers/[id]/route.ts`,
+  `supabase/migrations/024_buyer_criteria_pipeline_stage.sql`.
+- Audit qualite : `npx tsc --noEmit` OK ; `npx vitest run
+  src/app/api/leads/__tests__/route.test.ts src/app/api/client/invite/__tests__/route.test.ts`
+  OK ; `git diff --check` OK ; mini-audit Playwright headless OK sur
+  `http://localhost:3001/app/opportunities` (titre `Opportunites`, onglets
+  `Vendeurs` et `Acquereurs` detectes). Les logs stderr restants sont les erreurs
+  attendues des tests 500 simules dans `/api/leads`.
+- Prochain point : appliquer la migration 024 en base puis verifier visuellement
+  `/app/opportunities` onglets vendeurs/acquereurs et `/app/acheteurs/[id]` avec
+  donnees reelles.
+
+### 05/07/2026 15:20 CEST - Cockpit pre-mandat sans doublon client
+- Base/branche : `preview`, modifications locales non poussees.
+- Type : correction architecture UX / donnees pre-mandat / verrou client.
+- Statut : **fait**.
+- Demande (Alexandre) : conserver les informations utiles de `Clients` des le debut
+  du parcours vendeur, sans creer de client ni doublon avant mandat signe.
+- Travail :
+  1. Ajout de la migration `023_opportunity_pre_mandate_workspace.sql` avec
+     `opportunities.property_snapshot` et `opportunities.professional_opinion`.
+  2. Ajout des onglets `Bien & technique` et `Estimation` dans la fiche opportunite
+     pour saisir les donnees pre-mandat directement sur l'opportunite.
+  3. Extension du PATCH opportunite pour sauvegarder ces deux blocs JSON.
+  4. Copie des donnees pre-mandat de l'opportunite vers le dossier client lors de la
+     creation post-`Mandat signé`.
+  5. Verrouillage de `/api/client/invite` : refus `409` tant que l'opportunite liee
+     au lead n'est pas en `Mandat signé`.
+  6. Ajustement liste leads : le bouton espace client est indisponible avant mandat
+     signe et devient un libelle informatif.
+  7. Liste clients : par defaut, lecture des dossiers `active` et `archived`, pas des
+     brouillons.
+  8. Documentation SMQ mise a jour : l'opportunite est la source de verite
+     pre-mandat ; le client est cree apres signature.
+- Fichiers principaux : `src/app/admin/market/opportunities/[id]/page.tsx`,
+  `src/app/api/client/invite/route.ts`, `src/lib/client-portal.ts`,
+  `supabase/migrations/023_opportunity_pre_mandate_workspace.sql`,
+  `docs/SMQ_PROCESSUS_VENDEUR.md`.
+- Audit qualite : `npx tsc --noEmit` OK ; `npx vitest run
+  src/app/api/leads/__tests__/route.test.ts src/app/api/client/invite/__tests__/route.test.ts`
+  OK ; `git diff --check` OK. Les logs stderr restants sont les erreurs attendues
+  des tests 500 simules dans `/api/leads`.
+- Prochain point : audit Playwright sur `/app/opportunities/[id]` apres application
+  de la migration Supabase locale/preview, pour verifier la sauvegarde reelle des
+  onglets pre-mandat et la copie vers client au passage `Mandat signé`.
+
+### 05/07/2026 15:04 CEST - Opportunite pivot vendeur et SMQ v1
+- Base/branche : `preview`, modifications locales non poussees.
+- Type : structuration UX / CRM vendeur / SMQ / anti-doublons.
+- Statut : **fait**.
+- Demande (Alexandre) : clarifier et implementer le parcours lead/prospect vers
+  opportunite vendeur, en limitant les frictions, doublons et complexite, avec une
+  premiere cartographie SMQ orientee amelioration continue.
+- Travail :
+  1. Ajout de `docs/SMQ_PROCESSUS_VENDEUR.md` : processus P1 a P7, statuts,
+     preuves qualite et indicateurs SMQ v1.
+  2. Ajout du statut `Veille annonce` en tete du pipeline opportunites pour les
+     annonces sans vendeur exploitable, notamment les annonces agence.
+  3. Creation du helper serveur `src/lib/market/seller-opportunity.ts` pour creer ou
+     rattacher automatiquement l'opportunite pivot depuis un lead vendeur, eviter les
+     doublons par prospect et preparer le dossier client au passage `Mandat signé`.
+  4. Branchement des estimations site et creations manuelles de leads vendeurs vers
+     l'opportunite pivot ; la creation manuelle renvoie maintenant vers la fiche
+     opportunite quand elle existe.
+  5. Ajustement UX du Kanban : bouton/formulaire `Ajouter une piste vendeur`,
+     recherche anti-doublon requise avant creation, sources `annonce_particulier` et
+     `annonce_agence`.
+  6. Passage `Mandat signé` : preparation/rattachement best-effort du dossier client
+     si un lead avec email est disponible ; sinon creation d'une tache qualite.
+  7. Passage `Perdu / Écarté` sans motif : creation d'une tache qualite demandant le
+     motif de perte.
+- Fichiers principaux : `docs/SMQ_PROCESSUS_VENDEUR.md`,
+  `src/lib/market/seller-opportunity.ts`,
+  `src/app/admin/market/opportunities/KanbanBoard.tsx`,
+  `src/app/api/leads/route.ts`,
+  `src/app/api/market/opportunities/route.ts`,
+  `src/app/api/market/opportunities/[id]/route.ts`.
+- Audit qualite : `npx tsc --noEmit` OK ; `npx vitest run
+  src/app/api/leads/__tests__/route.test.ts` OK ; `git diff --check` OK. Les logs
+  stderr du test sont les erreurs attendues des cas 500 simules.
+- Prochain point : audit Playwright cible sur `/app/opportunities` pour valider le
+  rendu Kanban, la creation avec recherche anti-doublon et le comportement
+  `Veille annonce` sur un bien agence reel.
+
 ### 05/07/2026 01:24 CEST - Normalisation controles Console Admin Pro
 - Base/branche : `preview` apres push du commit `336cabc`, modifications locales
   non poussees.

@@ -418,7 +418,7 @@ export default function ClientDetailPage() {
   return (
     <div className="space-y-6">
       <Link href="/app/clients" className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="size-4" /> Clients vendeurs
+        <ArrowLeft className="size-4" /> Clients
       </Link>
 
       <section className="rounded-[28px] bg-[#0F172A] p-8 text-white shadow-lg">

@@ -164,6 +164,8 @@ const SOURCE_LABELS: Record<string, string> = {
     prospection: 'Prospection',
     recommandation: 'Recommandation',
     estimation_site: 'Estimation site',
+    annonce_particulier: 'Annonce particulier',
+    annonce_agence: 'Annonce agence',
     autre: 'Autre',
 }
 
@@ -265,7 +267,7 @@ export default function LeadDetailPage() {
             setDraft(draftFromLead(json.data))
         } catch (err) {
             console.error('[LeadDetailPage] fetch error:', err)
-            toast.error('Impossible de charger le lead')
+            toast.error('Impossible de charger le contact')
         } finally {
             setLoading(false)
         }
@@ -324,7 +326,7 @@ export default function LeadDetailPage() {
             setLead(json.data)
             setDraft(draftFromLead(json.data))
             await fetchComparables()
-            toast.success('Fiche lead mise à jour')
+            toast.success('Fiche contact mise à jour')
         } catch (err) {
             console.error('[LeadDetailPage] save error:', err)
             toast.error('Impossible de mettre à jour la fiche')
@@ -415,7 +417,7 @@ export default function LeadDetailPage() {
     if (!lead || !draft) {
         return (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 p-8">
-                <p className="text-muted-foreground">Lead introuvable</p>
+                <p className="text-muted-foreground">Contact introuvable</p>
                 <Link href="/app/leads" className="text-sm text-brand underline">Retour à la liste</Link>
             </div>
         )
@@ -428,7 +430,7 @@ export default function LeadDetailPage() {
     return (
         <div className="space-y-6">
             <Link href="/app/leads" className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
-                <ArrowLeft className="size-4" /> Retour aux leads
+                <ArrowLeft className="size-4" /> Retour aux contacts
             </Link>
 
             <div className="rounded-xl border bg-card p-5">
@@ -632,7 +634,7 @@ export default function LeadDetailPage() {
                 <aside className="space-y-6">
                     <div className="rounded-xl border bg-card p-5">
                         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
-                            <RefreshCw className="size-4" /> Statut lead
+                            <RefreshCw className="size-4" /> Statut contact
                         </h2>
                         <div className="flex flex-wrap gap-2">
                             {Object.entries(STATUS_LABELS).map(([key, label]) => (
@@ -674,7 +676,7 @@ export default function LeadDetailPage() {
                             <BadgeEuro className="size-4" /> Résultats estimation
                         </h2>
                         {Object.keys(lead.results ?? {}).length === 0 ? (
-                            <p className="text-sm text-muted-foreground">Aucun résultat calculé pour ce lead.</p>
+                            <p className="text-sm text-muted-foreground">Aucun résultat calculé pour ce contact.</p>
                         ) : (
                             <div className="grid gap-2">
                                 {Object.entries(lead.results).slice(0, 8).map(([key, value]) => {

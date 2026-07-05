@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { asRecord, asText } from '@/lib/leads-crm'
+import { NEW_CONTACT_STAGE } from '@/lib/market/seller-opportunity'
 
 type RouteContext = { params: Promise<{ id: string }> }
 
@@ -70,7 +71,7 @@ export async function POST(_req: Request, context: RouteContext) {
         lead_id: id,
         title,
         description: asText(formData.note) ?? '',
-        stage: 'Nouveau contact',
+        stage: NEW_CONTACT_STAGE,
         priority: lead.priority ?? 'medium',
         signal_type: 'manual',
         next_action: lead.next_action ?? 'Préparer la pré-estimation',

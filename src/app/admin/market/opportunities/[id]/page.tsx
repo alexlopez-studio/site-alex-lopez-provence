@@ -95,6 +95,8 @@ interface Opportunity {
   visit_at: string | null
   report_delivered_at: string | null
   follow_up_at: string | null
+  property_snapshot: Record<string, unknown>
+  professional_opinion: Record<string, unknown>
   created_at: string
   updated_at: string
   lead: LeadInfo | null
@@ -184,7 +186,33 @@ interface EventDraft {
   milestone: string
 }
 
+interface PropertyDraft {
+  mandate_number: string
+  mandate_type: string
+  type_bien: string
+  adresse: string
+  commune: string
+  surface: string
+  surface_terrain: string
+  nb_pieces: string
+  dpe: string
+  etat: string
+  equipements: string
+  contexte: string
+  points_vigilance: string
+}
+
+interface ProfessionalDraft {
+  price: string
+  price_low: string
+  price_high: string
+  summary: string
+  arguments: string
+  comparables_json: string
+}
+
 const STAGES = [
+  'Veille annonce',
   'Nouveau contact',
   'Pré-estimation',
   "Visite d'estimation",
@@ -232,6 +260,31 @@ const PROPERTY_TYPES = [
 const ESTIMATION_MILESTONES = [
   { value: 'estimation_done', label: 'Estimation réalisée' },
 ]
+
+const EMPTY_PROPERTY_DRAFT: PropertyDraft = {
+  mandate_number: '',
+  mandate_type: '',
+  type_bien: '',
+  adresse: '',
+  commune: '',
+  surface: '',
+  surface_terrain: '',
+  nb_pieces: '',
+  dpe: '',
+  etat: '',
+  equipements: '',
+  contexte: '',
+  points_vigilance: '',
+}
+
+const EMPTY_PROFESSIONAL_DRAFT: ProfessionalDraft = {
+  price: '',
+  price_low: '',
+  price_high: '',
+  summary: '',
+  arguments: '',
+  comparables_json: '[]',
+}
 
 function emptyEventDraft(type: OpportunityEventType): EventDraft {
   const now = new Date()
@@ -300,6 +353,95 @@ function milestoneRows(opportunity: Opportunity) {
   ]
 }
 
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {}
+}
+
+function stringify(value: unknown) {
+  if (value == null) return ''
+  if (Array.isArray(value)) return value.join(', ')
+  return String(value)
+}
+
+function nullableNumber(value: string) {
+  const parsed = Number(value.replace(/\s/g, '').replace(',', '.'))
+  return Number.isFinite(parsed) && value.trim() !== '' ? parsed : null
+}
+
+function parseComparables(value: string) {
+  if (!value.trim()) return []
+  try {
+    const parsed = JSON.parse(value)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    toast.error('JSON comparables invalide, les comparables ne sont pas sauvegardés')
+    return []
+  }
+}
+
+function propertyDraftFromOpportunity(opportunity: Opportunity): PropertyDraft {
+  const snapshot = asRecord(opportunity.property_snapshot)
+  const leadProperty = opportunity.lead?.seller_property
+  return {
+    mandate_number: stringify(snapshot.mandate_number),
+    mandate_type: stringify(snapshot.mandate_type),
+    type_bien: stringify(snapshot.type_bien ?? leadProperty?.type_bien ?? opportunity.property_type ?? opportunity.property?.property_type),
+    adresse: stringify(snapshot.adresse ?? leadProperty?.adresse ?? opportunity.property?.title),
+    commune: stringify(snapshot.commune ?? opportunity.property_city ?? opportunity.lead?.commune ?? opportunity.property?.city),
+    surface: stringify(snapshot.surface ?? leadProperty?.surface ?? opportunity.property?.surface),
+    surface_terrain: stringify(snapshot.surface_terrain ?? leadProperty?.surface_terrain ?? opportunity.property?.land_surface),
+    nb_pieces: stringify(snapshot.nb_pieces ?? leadProperty?.nb_pieces ?? opportunity.property?.rooms),
+    dpe: stringify(snapshot.dpe),
+    etat: stringify(snapshot.etat),
+    equipements: stringify(snapshot.equipements),
+    contexte: stringify(snapshot.contexte ?? opportunity.selling_timeline),
+    points_vigilance: stringify(snapshot.points_vigilance),
+  }
+}
+
+function professionalDraftFromOpportunity(opportunity: Opportunity): ProfessionalDraft {
+  const opinion = asRecord(opportunity.professional_opinion)
+  return {
+    price: stringify(opinion.price ?? opinion.price_suggested ?? opportunity.estimated_price_min),
+    price_low: stringify(opinion.price_low ?? opportunity.estimated_price_min),
+    price_high: stringify(opinion.price_high ?? opportunity.estimated_price_max),
+    summary: stringify(opinion.summary),
+    arguments: Array.isArray(opinion.arguments) ? opinion.arguments.map(stringify).filter(Boolean).join('\n') : stringify(opinion.arguments),
+    comparables_json: JSON.stringify(Array.isArray(opinion.comparables) ? opinion.comparables : [], null, 2),
+  }
+}
+
+function normalizePropertyDraft(draft: PropertyDraft) {
+  return {
+    mandate_number: draft.mandate_number.trim() || null,
+    mandate_type: draft.mandate_type.trim() || null,
+    type_bien: draft.type_bien.trim() || null,
+    type_label: draft.type_bien.trim() || null,
+    adresse: draft.adresse.trim() || null,
+    commune: draft.commune.trim() || null,
+    surface: nullableNumber(draft.surface),
+    surface_terrain: nullableNumber(draft.surface_terrain),
+    nb_pieces: nullableNumber(draft.nb_pieces),
+    dpe: draft.dpe.trim() || null,
+    etat: draft.etat.trim() || null,
+    equipements: draft.equipements.trim() || null,
+    contexte: draft.contexte.trim() || null,
+    points_vigilance: draft.points_vigilance.trim() || null,
+  }
+}
+
+function normalizeProfessionalDraft(draft: ProfessionalDraft) {
+  return {
+    price: nullableNumber(draft.price),
+    price_suggested: nullableNumber(draft.price),
+    price_low: nullableNumber(draft.price_low),
+    price_high: nullableNumber(draft.price_high),
+    summary: draft.summary.trim() || null,
+    arguments: draft.arguments.split('\n').map((line) => line.trim()).filter(Boolean),
+    comparables: parseComparables(draft.comparables_json),
+  }
+}
+
 function eventToDraft(event: OpportunityEvent): EventDraft {
   const occurred = new Date(event.occurred_at)
   const due = event.due_at ? new Date(event.due_at) : null
@@ -327,6 +469,9 @@ export default function OpportunityDetailPage() {
   const [opportunity, setOpportunity] = useState<Opportunity | null>(null)
   const [loading, setLoading] = useState(true)
   const [savingStage, setSavingStage] = useState(false)
+  const [propertyDraft, setPropertyDraft] = useState<PropertyDraft>(EMPTY_PROPERTY_DRAFT)
+  const [professionalDraft, setProfessionalDraft] = useState<ProfessionalDraft>(EMPTY_PROFESSIONAL_DRAFT)
+  const [savingPreparation, setSavingPreparation] = useState(false)
 
   const [eventDialogOpen, setEventDialogOpen] = useState(false)
   const [eventDraft, setEventDraft] = useState<EventDraft>(emptyEventDraft('note'))
@@ -355,7 +500,10 @@ export default function OpportunityDetailPage() {
       const res = await fetch('/api/market/opportunities/' + id)
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Erreur API')
-      setOpportunity({ ...data.opportunity, events: data.opportunity.events ?? [] })
+      const loadedOpportunity = { ...data.opportunity, events: data.opportunity.events ?? [] } as Opportunity
+      setOpportunity(loadedOpportunity)
+      setPropertyDraft(propertyDraftFromOpportunity(loadedOpportunity))
+      setProfessionalDraft(professionalDraftFromOpportunity(loadedOpportunity))
     } catch (err) {
       console.error('[OpportunityDetailPage] load:', err)
       toast.error('Impossible de charger l’opportunité')
@@ -454,6 +602,32 @@ export default function OpportunityDetailPage() {
       toast.error('Impossible de modifier l’étape')
     } finally {
       setSavingStage(false)
+    }
+  }
+
+  async function savePreparation() {
+    setSavingPreparation(true)
+    try {
+      const res = await fetch('/api/market/opportunities/' + id, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          property_snapshot: normalizePropertyDraft(propertyDraft),
+          professional_opinion: normalizeProfessionalDraft(professionalDraft),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Erreur API')
+      const updatedOpportunity = { ...data.opportunity, events: data.opportunity.events ?? [] } as Opportunity
+      setOpportunity(updatedOpportunity)
+      setPropertyDraft(propertyDraftFromOpportunity(updatedOpportunity))
+      setProfessionalDraft(professionalDraftFromOpportunity(updatedOpportunity))
+      toast.success('Pré-mandat sauvegardé')
+    } catch (err) {
+      console.error('[OpportunityDetailPage] save preparation:', err)
+      toast.error('Impossible de sauvegarder le pré-mandat')
+    } finally {
+      setSavingPreparation(false)
     }
   }
 
@@ -628,7 +802,7 @@ export default function OpportunityDetailPage() {
       <div className="flex flex-col gap-4 border-b pb-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
           <Link href="/app/opportunities" className="mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="size-4" /> Retour aux opportunités
+            <ArrowLeft className="size-4" /> Retour aux affaires
           </Link>
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="min-w-0 text-2xl font-bold leading-tight">{opportunity.title ?? 'Opportunité vendeur'}</h1>
@@ -665,6 +839,8 @@ export default function OpportunityDetailPage() {
       <Tabs defaultValue="overview" className="space-y-5">
         <TabsList variant="line" className="w-full justify-start rounded-none border-b bg-transparent p-0">
           <TabsTrigger value="overview" className="px-0 sm:px-3">Vue d’ensemble</TabsTrigger>
+          <TabsTrigger value="preparation" className="px-0 sm:px-3">Bien & technique</TabsTrigger>
+          <TabsTrigger value="estimation" className="px-0 sm:px-3">Estimation</TabsTrigger>
           <TabsTrigger value="history" className="px-0 sm:px-3">Historique</TabsTrigger>
         </TabsList>
 
@@ -820,6 +996,71 @@ export default function OpportunityDetailPage() {
           </div>
         </TabsContent>
 
+        <TabsContent value="preparation">
+          <section className="rounded-xl border bg-card p-5">
+            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-base font-semibold">Préparation bien & technique</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Données de travail pré-mandat, conservées sur l’opportunité.</p>
+              </div>
+              <Button onClick={savePreparation} disabled={savingPreparation} className="bg-brand hover:bg-brand-hover">
+                {savingPreparation ? <Loader2 className="mr-1 size-4 animate-spin" /> : null}
+                Sauvegarder
+              </Button>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              <DraftField label="N° mandat" value={propertyDraft.mandate_number} onChange={(value) => setPropertyDraft((draft) => ({ ...draft, mandate_number: value }))} />
+              <DraftField label="Type de mandat prévu" value={propertyDraft.mandate_type} onChange={(value) => setPropertyDraft((draft) => ({ ...draft, mandate_type: value }))} />
+              <DraftField label="Type de bien" value={propertyDraft.type_bien} onChange={(value) => setPropertyDraft((draft) => ({ ...draft, type_bien: value }))} />
+              <DraftField label="Adresse / secteur" value={propertyDraft.adresse} onChange={(value) => setPropertyDraft((draft) => ({ ...draft, adresse: value }))} />
+              <DraftField label="Commune" value={propertyDraft.commune} onChange={(value) => setPropertyDraft((draft) => ({ ...draft, commune: value }))} />
+              <DraftField label="DPE" value={propertyDraft.dpe} onChange={(value) => setPropertyDraft((draft) => ({ ...draft, dpe: value }))} />
+              <DraftField label="Surface habitable" type="number" value={propertyDraft.surface} onChange={(value) => setPropertyDraft((draft) => ({ ...draft, surface: value }))} />
+              <DraftField label="Terrain / extérieur" type="number" value={propertyDraft.surface_terrain} onChange={(value) => setPropertyDraft((draft) => ({ ...draft, surface_terrain: value }))} />
+              <DraftField label="Pièces" type="number" value={propertyDraft.nb_pieces} onChange={(value) => setPropertyDraft((draft) => ({ ...draft, nb_pieces: value }))} />
+            </div>
+
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <DraftArea label="État / travaux" value={propertyDraft.etat} onChange={(value) => setPropertyDraft((draft) => ({ ...draft, etat: value }))} />
+              <DraftArea label="Équipements" value={propertyDraft.equipements} onChange={(value) => setPropertyDraft((draft) => ({ ...draft, equipements: value }))} />
+              <DraftArea label="Contexte vendeur" value={propertyDraft.contexte} onChange={(value) => setPropertyDraft((draft) => ({ ...draft, contexte: value }))} />
+              <DraftArea label="Points de vigilance" value={propertyDraft.points_vigilance} onChange={(value) => setPropertyDraft((draft) => ({ ...draft, points_vigilance: value }))} />
+            </div>
+          </section>
+        </TabsContent>
+
+        <TabsContent value="estimation">
+          <section className="rounded-xl border bg-card p-5">
+            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-base font-semibold">Estimation & avis de valeur</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Prépare l’avis de valeur avant signature, sans créer de client.</p>
+              </div>
+              <Button onClick={savePreparation} disabled={savingPreparation} className="bg-brand hover:bg-brand-hover">
+                {savingPreparation ? <Loader2 className="mr-1 size-4 animate-spin" /> : null}
+                Sauvegarder
+              </Button>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <DraftField label="Prix retenu" type="number" value={professionalDraft.price} onChange={(value) => setProfessionalDraft((draft) => ({ ...draft, price: value }))} />
+              <DraftField label="Estimation basse" type="number" value={professionalDraft.price_low} onChange={(value) => setProfessionalDraft((draft) => ({ ...draft, price_low: value }))} />
+              <DraftField label="Estimation haute" type="number" value={professionalDraft.price_high} onChange={(value) => setProfessionalDraft((draft) => ({ ...draft, price_high: value }))} />
+            </div>
+
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              <DraftArea label="Synthèse de l’avis" value={professionalDraft.summary} onChange={(value) => setProfessionalDraft((draft) => ({ ...draft, summary: value }))} rows={5} />
+              <DraftArea label="Arguments de valeur" value={professionalDraft.arguments} onChange={(value) => setProfessionalDraft((draft) => ({ ...draft, arguments: value }))} rows={5} />
+            </div>
+
+            <label className="mt-4 block space-y-1">
+              <span className="text-xs font-medium text-muted-foreground">Comparables JSON</span>
+              <Textarea value={professionalDraft.comparables_json} onChange={(e) => setProfessionalDraft((draft) => ({ ...draft, comparables_json: e.target.value }))} rows={8} className="font-mono text-xs" />
+            </label>
+          </section>
+        </TabsContent>
+
         <TabsContent value="history">
           <section className="rounded-xl border bg-card p-5">
             <h2 className="text-base font-semibold">Historique complet</h2>
@@ -890,6 +1131,44 @@ function InfoCard({
       </div>
       {children}
     </section>
+  )
+}
+
+function DraftField({
+  label,
+  value,
+  onChange,
+  type = 'text',
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  type?: 'text' | 'number'
+}) {
+  return (
+    <label className="space-y-1">
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      <Input type={type} value={value} onChange={(event) => onChange(event.target.value)} />
+    </label>
+  )
+}
+
+function DraftArea({
+  label,
+  value,
+  onChange,
+  rows = 4,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  rows?: number
+}) {
+  return (
+    <label className="space-y-1">
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      <Textarea value={value} onChange={(event) => onChange(event.target.value)} rows={rows} />
+    </label>
   )
 }
 
@@ -1135,7 +1414,7 @@ function LeadAttachDialog({
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Ajouter un contact</DialogTitle>
-          <DialogDescription>Recherche dans les leads vendeurs déjà présents.</DialogDescription>
+          <DialogDescription>Recherche dans les contacts vendeurs déjà présents.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="relative">

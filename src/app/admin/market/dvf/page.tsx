@@ -233,9 +233,9 @@ export default function DvfPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Observatoire DVF</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Data & BI marché</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Mutations réelles importées par commune depuis les données publiques DVF.
+            Analyse des mutations, prix médians et tendances locales depuis les données DVF.
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={loadDashboard} disabled={loading}>
@@ -289,7 +289,7 @@ export default function DvfPage() {
             <CardContent className="space-y-3 p-4">
               <div className="flex items-center gap-2">
                 <Database className="h-4 w-4 text-brand" />
-                <p className="text-sm font-semibold">Communes DVF</p>
+                <p className="text-sm font-semibold">Communes analysées</p>
               </div>
               {zones.length === 0 ? (
                 <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">

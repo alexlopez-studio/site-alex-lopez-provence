@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
 import type { Json } from '@/types/supabase'
 
@@ -23,6 +24,8 @@ type ClientRow = {
   id: string
   title: string
   status: string
+  client_type: string
+  buyer_lead_id: string | null
   property_snapshot: Json
   updated_at: string
   client_profile: {
@@ -59,6 +62,7 @@ export default function ClientsPage() {
   const [pagination, setPagination] = useState<Pagination>({ page: 1, pageSize: 20, total: 0, totalPages: 0 })
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
+  const [clientType, setClientType] = useState<'seller' | 'buyer'>('seller')
   const [loading, setLoading] = useState(true)
   const [createOpen, setCreateOpen] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -70,6 +74,7 @@ export default function ClientsPage() {
       const params = new URLSearchParams({
         page: String(pagination.page),
         page_size: '20',
+        client_type: clientType,
       })
       if (search.trim()) params.set('q', search.trim())
       if (status) params.set('status', status)
@@ -82,7 +87,7 @@ export default function ClientsPage() {
     } finally {
       setLoading(false)
     }
-  }, [pagination.page, search, status])
+  }, [pagination.page, search, status, clientType])
 
   useEffect(() => {
     const timer = setTimeout(() => void fetchRows(), 250)
@@ -103,6 +108,7 @@ export default function ClientsPage() {
             phone: createDraft.phone,
           },
           title: createDraft.title,
+          client_type: clientType,
           property_snapshot: {
             adresse: createDraft.adresse,
             commune: createDraft.commune,
@@ -131,14 +137,24 @@ export default function ClientsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="app-page-title text-2xl">Clients vendeurs</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Dossiers partagés, documents, bien et suivi visible dans l’espace client.</p>
+          <h1 className="app-page-title text-2xl">Clients</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Dossiers post-mandat, côté vendeurs et acquéreurs.</p>
         </div>
         <Button className="rounded-full" onClick={() => setCreateOpen(true)}>
           <Plus className="mr-2 size-4" />
-          Nouveau dossier
+          Nouveau dossier {clientType === 'buyer' ? 'acquéreur' : 'vendeur'}
         </Button>
       </div>
+
+      <Tabs value={clientType} onValueChange={(value) => {
+        setPagination((p) => ({ ...p, page: 1 }))
+        setClientType(value === 'buyer' ? 'buyer' : 'seller')
+      }}>
+        <TabsList>
+          <TabsTrigger value="seller">Vendeurs</TabsTrigger>
+          <TabsTrigger value="buyer">Acquéreurs</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       <div className="grid gap-3 sm:grid-cols-[minmax(220px,1fr)_180px_auto]">
         <div className="relative">
@@ -193,7 +209,7 @@ export default function ClientsPage() {
                       </div>
                       <div>
                         <p className="font-semibold text-foreground">Aucun dossier client trouvé</p>
-                        <p className="mt-1 text-sm text-muted-foreground">Créez un dossier vendeur manuellement ou préparez un espace depuis un lead.</p>
+                        <p className="mt-1 text-sm text-muted-foreground">Créez un dossier manuellement ou préparez un espace depuis un mandat signé.</p>
                       </div>
                       <Button className="rounded-full" onClick={() => setCreateOpen(true)}>
                         <Plus className="mr-2 size-4" />
@@ -204,7 +220,9 @@ export default function ClientsPage() {
                 </tr>
               ) : rows.map((row) => {
                 const snapshot = asRecord(row.property_snapshot)
-                const clientName = [row.client_profile.first_name, row.client_profile.last_name].filter(Boolean).join(' ').trim() || 'Client vendeur'
+                const clientName = [row.client_profile.first_name, row.client_profile.last_name].filter(Boolean).join(' ').trim() || (row.client_type === 'buyer' ? 'Client acquéreur' : 'Client vendeur')
+                const communes = Array.isArray(snapshot.communes) ? snapshot.communes.filter((value): value is string => typeof value === 'string') : []
+                const location = text(snapshot.commune) || text(snapshot.adresse) || communes.slice(0, 3).join(', ')
                 return (
                   <tr key={row.id} className="border-b transition-colors last:border-0 hover:bg-muted/30">
                     <td className="px-4 py-3">
@@ -227,8 +245,8 @@ export default function ClientsPage() {
                     <td className="px-4 py-3">
                       <div className="font-medium">{text(snapshot.type_bien) || row.title}</div>
                       <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                        {(text(snapshot.commune) || text(snapshot.adresse)) && (
-                          <span className="inline-flex items-center gap-1"><MapPin className="size-3" />{text(snapshot.commune) || text(snapshot.adresse)}</span>
+                        {location && (
+                          <span className="inline-flex items-center gap-1"><MapPin className="size-3" />{location}</span>
                         )}
                         {numberValue(snapshot.surface) && <span>{numberValue(snapshot.surface)} m²</span>}
                       </div>
@@ -274,9 +292,9 @@ export default function ClientsPage() {
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Nouveau dossier client vendeur</DialogTitle>
+            <DialogTitle>Nouveau dossier client {clientType === 'buyer' ? 'acquéreur' : 'vendeur'}</DialogTitle>
             <DialogDescription>
-              Créez un espace vendeur sans partir d’un lead. Vous pourrez compléter l’avis pro, les documents et le suivi ensuite.
+              Créez un espace post-mandat sans partir d’une affaire signée. Vous pourrez compléter les documents et le suivi ensuite.
             </DialogDescription>
           </DialogHeader>
 
