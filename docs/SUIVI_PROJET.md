@@ -17,6 +17,71 @@ Decision : Codex reprend seul le developpement et le design pour le moment.
 
 Note : les lots Linear ci-dessous sont historiques et ne refletent plus l'etat reel du code. La memoire courante est dans `docs/MEMOIRE_SESSION.md`.
 
+### 05/07/2026 18:20 CEST - Lien bidirectionnel opportunite <-> dossier client
+- Base/branche : `preview`, modifications locales non poussees.
+- Type : navigation / continuite affaire / anti-perte de fil.
+- Statut : **fait**.
+- Contexte : une affaire = opportunite (pilotage CRM, du 1er contact a Vendu)
+  + dossier client (espace partage avec le client). Objectif : ne jamais perdre
+  l'opportunite une fois le dossier client cree.
+- Travail :
+  1. Fiche dossier client (`/app/clients/[id]`) : bouton `Voir l'opportunite`
+     (avec l'etape en cours) quand `opportunity` est rattachee.
+  2. Fiche opportunite (`/app/opportunities/[id]`) : carte `Dossier client` en
+     tete de colonne laterale, avec statut, avancement documents
+     (X/Y valides, Z a traiter) et bouton `Ouvrir`. Si mandat signe sans
+     dossier : incitation a le creer ; sinon message d'attente.
+  3. API `GET/PATCH /api/market/opportunities/[id]` : `enrichOpportunity`
+     renvoie desormais `client_dossier` (lookup par `opportunity_id`, repli
+     `lead_id`) avec les stats documents.
+- Verification : `npx tsc --noEmit` OK ; controle donnees reelles OK (dossier
+  rattache a l'opportunite `8c93d418...`, 4 documents ; dossier orphelin sans
+  opportunite -> pas de lien, gere par le conditionnel).
+
+### 05/07/2026 18:52 CEST - Fusion Affaire etape 1 : renommage + onglet Suivi mandat
+- Base/branche : `preview`, modifications locales non poussees.
+- Type : fusion opportunite/dossier (cote admin) / nommage.
+- Statut : **fait** (etape 1/2, cote admin uniquement ; portail non touche).
+- Travail :
+  1. Renommage : nav `Opportunites` -> `Opportunites / Mandats`
+     (`app-sidebar.tsx`) + titre de page `/app/opportunities`.
+  2. Nouveau composant autonome `DossierWorkspace`
+     (`admin/market/clients/DossierWorkspace.tsx`) : panneaux Documents /
+     Plan de vente / Visites / Offres, qui chargent leurs donnees via l'API
+     dossier existante (`/api/market/clients/[id]` + documents/events) a partir
+     d'un `dossierId`.
+  3. Fiche opportunite : nouvel onglet `Suivi mandat` montant `DossierWorkspace`
+     quand un dossier existe ; sinon etat verrouille ("disponible apres mandat").
+  4. Page `Clients` laissee INTACTE (filet de securite) -> duplication
+     temporaire assumee du code des panneaux, a resorber a l'etape 2.
+- Verification : `npx tsc --noEmit` OK ; `next lint` OK (seulement des warnings
+  preexistants, aucun nouveau) ; tests route clients OK (3/3).
+  LIMITE : pas de clic reel possible (pages admin authentifiees) -> a smoke-tester
+  manuellement sur l'opportunite `8c93d418...` (dossier `43c0782c...`, 4 docs)
+  avant de pousser.
+- Reste a faire (etape 2) : brancher le portail client sur la source unique
+  (opportunite, RLS `opportunities_client_portal_select` deja en place) +
+  backfill, puis retirer la page `Clients` et la duplication.
+
+### DECISION STRUCTURANTE 05/07/2026 - Cap "fiche Affaire" a source unique
+- Constat : les ecrans opportunite et dossier client editent DEJA les memes
+  donnees (`property_snapshot` = onglets Bien & technique / Mandat & Technical ;
+  `professional_opinion` = Estimation & avis / Estimation DVF), mais sur DEUX
+  copies independantes -> risque de double-saisie et de divergence.
+- Decision (validee par Alexandre) :
+  1. Cible = une seule fiche `Affaire` cote admin (l'opportunite vit du 1er
+     contact a Vendu ; les onglets Documents / Plan de vente / Visites / Offres /
+     Preview client se debloquent au mandat signe, sur la meme page).
+  2. Bien + estimation = **source unique vivante** (plus de snapshot fige),
+     lus par l'affaire et par le portail client.
+  3. `client_dossiers` reste la **projection cote client** (portail, RLS,
+     documents, evenements visibles client), nourrie depuis l'affaire.
+  4. Rythme choisi = petit pas d'abord (lien bidirectionnel livre ci-dessus),
+     puis la fusion `Affaire` comme chantier suivant a cadrer.
+- A faire (chantier suivant) : cadrer la migration vers la source unique
+  (ou stocker bien+estimation, comment le portail client les lit sans acces
+  aux opportunites, plan de bascule sans casser les dossiers existants).
+
 ### 05/07/2026 18:07 CEST - Correction erreur creation client (migrations manquantes)
 - Base/branche : `preview`, modifications locales non poussees.
 - Type : correctif base de donnees / clients / opportunites.

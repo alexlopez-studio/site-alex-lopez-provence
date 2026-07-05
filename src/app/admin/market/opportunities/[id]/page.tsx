@@ -12,6 +12,8 @@ import {
   Clock,
   Edit,
   ExternalLink,
+  FileText,
+  FolderOpen,
   Home,
   Link2,
   Loader2,
@@ -53,6 +55,7 @@ import {
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
+import { DossierWorkspace } from '../../clients/DossierWorkspace'
 import type { OpportunityEventType } from '@/types/supabase'
 
 type Priority = 'low' | 'medium' | 'high' | 'critical'
@@ -103,6 +106,15 @@ interface Opportunity {
   lead: LeadInfo | null
   property: PropertyInfo | null
   events: OpportunityEvent[]
+  client_dossier: ClientDossierLink | null
+}
+
+interface ClientDossierLink {
+  id: string
+  status: string
+  documents_total: number
+  documents_validated: number
+  documents_missing: number
 }
 
 interface LeadInfo {
@@ -224,6 +236,12 @@ const STAGES = [
   'Vendu',
   'Perdu / Écarté',
 ]
+
+const CLIENT_DOSSIER_STATUS_LABELS: Record<string, string> = {
+  draft: 'Brouillon',
+  active: 'Actif',
+  archived: 'Archivé',
+}
 
 const PRIORITY_LABELS: Record<string, string> = {
   low: 'Basse',
@@ -869,6 +887,7 @@ export default function OpportunityDetailPage() {
           <TabsTrigger value="overview" className="px-0 sm:px-3">Vue d’ensemble</TabsTrigger>
           <TabsTrigger value="preparation" className="px-0 sm:px-3">Bien & technique</TabsTrigger>
           <TabsTrigger value="estimation" className="px-0 sm:px-3">Estimation</TabsTrigger>
+          <TabsTrigger value="dossier" className="px-0 sm:px-3">Suivi mandat</TabsTrigger>
           <TabsTrigger value="history" className="px-0 sm:px-3">Historique</TabsTrigger>
         </TabsList>
 
@@ -940,6 +959,40 @@ export default function OpportunityDetailPage() {
             </main>
 
             <aside className="space-y-5">
+              <InfoCard
+                title="Dossier client"
+                icon={<FolderOpen className="size-4" />}
+                action={opportunity.client_dossier ? (
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={`/app/clients/${opportunity.client_dossier.id}`}><ExternalLink className="mr-1 size-3.5" /> Ouvrir</Link>
+                  </Button>
+                ) : null}
+              >
+                {opportunity.client_dossier ? (
+                  <div className="space-y-3">
+                    <Badge variant="outline" className="text-[11px]">
+                      {CLIENT_DOSSIER_STATUS_LABELS[opportunity.client_dossier.status] ?? opportunity.client_dossier.status}
+                    </Badge>
+                    <div className="flex items-center gap-2 rounded-lg border p-3 text-sm">
+                      <FileText className="size-4 text-brand" />
+                      <span>{opportunity.client_dossier.documents_validated}/{opportunity.client_dossier.documents_total} documents validés</span>
+                    </div>
+                    {opportunity.client_dossier.documents_missing > 0 && (
+                      <p className="text-xs text-amber-700">{opportunity.client_dossier.documents_missing} document(s) à traiter</p>
+                    )}
+                  </div>
+                ) : currentStage === 'Mandat signé' ? (
+                  <div className="space-y-3">
+                    <EmptyCardText>Mandat signé : le dossier client n’est pas encore créé.</EmptyCardText>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href="/app/clients"><Plus className="mr-1 size-3.5" /> Créer le dossier</Link>
+                    </Button>
+                  </div>
+                ) : (
+                  <EmptyCardText>Le dossier client sera créé une fois le mandat signé.</EmptyCardText>
+                )}
+              </InfoCard>
+
               <InfoCard
                 title="Bien"
                 icon={<Home className="size-4" />}
@@ -1087,6 +1140,36 @@ export default function OpportunityDetailPage() {
               <Textarea value={professionalDraft.comparables_json} onChange={(e) => setProfessionalDraft((draft) => ({ ...draft, comparables_json: e.target.value }))} rows={8} className="font-mono text-xs" />
             </label>
           </section>
+        </TabsContent>
+
+        <TabsContent value="dossier">
+          {opportunity.client_dossier ? (
+            <div className="space-y-4">
+              <section className="flex flex-col gap-3 rounded-xl border bg-card p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-base font-semibold">Suivi du mandat</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">Documents, plan de vente, visites et offres — partagés avec le client.</p>
+                </div>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={`/app/clients/${opportunity.client_dossier.id}`}><ExternalLink className="mr-1 size-3.5" /> Ouvrir la fiche client</Link>
+                </Button>
+              </section>
+              <DossierWorkspace dossierId={opportunity.client_dossier.id} />
+            </div>
+          ) : (
+            <section className="rounded-xl border bg-card p-8 text-center">
+              <FolderOpen className="mx-auto size-8 text-muted-foreground" />
+              <h2 className="mt-3 text-base font-semibold">Suivi disponible après le mandat</h2>
+              <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
+                Les documents, le plan de vente, les visites et les offres apparaissent ici une fois l’opportunité passée en « Mandat signé » et le dossier créé.
+              </p>
+              {currentStage === 'Mandat signé' && (
+                <Button variant="outline" size="sm" className="mt-4" asChild>
+                  <Link href="/app/clients"><Plus className="mr-1 size-3.5" /> Créer le dossier</Link>
+                </Button>
+              )}
+            </section>
+          )}
         </TabsContent>
 
         <TabsContent value="history">

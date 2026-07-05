@@ -41,7 +41,7 @@ const PILOTAGE_ITEMS: SidebarNavItem[] = [
 ]
 
 const OPPORTUNITY_ITEMS: SidebarNavItem[] = [
-  { title: "Opportunités", url: "/app/opportunities", icon: KanbanIcon },
+  { title: "Opportunités / Mandats", url: "/app/opportunities", icon: KanbanIcon },
   { title: "Contacts", url: "/app/leads", icon: UserPlusIcon },
   { title: "Clients", url: "/app/clients", icon: ContactRoundIcon },
   { title: "Réseau", url: "/app/liste-chaude", icon: FlameIcon },

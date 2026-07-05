@@ -95,8 +95,11 @@ async function enrichOpportunity(opportunity: Database['public']['Tables']['oppo
     events = eventRows ?? []
   }
 
+  const clientDossier = await loadClientDossierLink(opportunity)
+
   return {
     ...opportunity,
+    client_dossier: clientDossier,
     property: propertyResponse.data
       ? {
         ...propertyResponse.data,
@@ -110,6 +113,53 @@ async function enrichOpportunity(opportunity: Database['public']['Tables']['oppo
       }
       : null,
     events,
+  }
+}
+
+async function loadClientDossierLink(
+  opportunity: Database['public']['Tables']['opportunities']['Row'],
+) {
+  // Le dossier client peut être rattaché par opportunity_id (création directe)
+  // ou, à défaut, par lead_id (rattachement au contact vendeur).
+  let dossier: { id: string; status: string } | null = null
+
+  const byOpportunity = await supabaseAdmin
+    .from('client_dossiers')
+    .select('id, status')
+    .eq('opportunity_id', opportunity.id)
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (byOpportunity.error && byOpportunity.error.code !== 'PGRST116') throw byOpportunity.error
+  dossier = byOpportunity.data ?? null
+
+  if (!dossier && opportunity.lead_id) {
+    const byLead = await supabaseAdmin
+      .from('client_dossiers')
+      .select('id, status')
+      .eq('lead_id', opportunity.lead_id)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (byLead.error && byLead.error.code !== 'PGRST116') throw byLead.error
+    dossier = byLead.data ?? null
+  }
+
+  if (!dossier) return null
+
+  const { data: docs, error: docsError } = await supabaseAdmin
+    .from('client_documents')
+    .select('status')
+    .eq('dossier_id', dossier.id)
+  if (docsError && docsError.code !== 'PGRST205' && docsError.code !== '42P01') throw docsError
+
+  const rows = (docs ?? []) as { status: string }[]
+  return {
+    id: dossier.id,
+    status: dossier.status,
+    documents_total: rows.length,
+    documents_validated: rows.filter((doc) => doc.status === 'validated').length,
+    documents_missing: rows.filter((doc) => ['missing', 'requested', 'rejected'].includes(doc.status)).length,
   }
 }
 

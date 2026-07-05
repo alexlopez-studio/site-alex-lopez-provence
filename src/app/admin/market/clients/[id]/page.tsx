@@ -5,8 +5,10 @@ import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import {
   ArrowLeft,
+  ArrowUpRight,
   BarChart3,
   BookOpen,
+  Briefcase,
   CalendarDays,
   CheckCircle2,
   DollarSign,
@@ -417,9 +419,24 @@ export default function ClientDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Link href="/app/clients" className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="size-4" /> Clients
-      </Link>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <Link href="/app/clients" className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="size-4" /> Clients
+        </Link>
+        {data.opportunity && (
+          <Link
+            href={`/app/opportunities/${data.opportunity.id}`}
+            className="inline-flex items-center gap-1.5 rounded-full border border-[#0077B6]/30 bg-[#0077B6]/5 px-3 py-1 text-sm font-semibold text-[#0077B6] hover:bg-[#0077B6]/10"
+          >
+            <Briefcase className="size-4" />
+            Voir l’opportunité
+            {data.opportunity.stage && (
+              <span className="text-xs font-medium text-[#0077B6]/70">· {data.opportunity.stage}</span>
+            )}
+            <ArrowUpRight className="size-3.5" />
+          </Link>
+        )}
+      </div>
 
       <section className="rounded-[28px] bg-[#0F172A] p-8 text-white shadow-lg">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
