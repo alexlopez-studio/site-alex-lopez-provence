@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ensureClientDossierForBuyer, ensureClientDossierForLead } from '@/lib/client-portal'
 import { rejectIfNoAdmin, type AdminClientDossier } from '@/lib/market/client-admin'
+import { isPortalEligibleStage } from '@/lib/market/seller-stages'
 import { supabaseAdmin } from '@/lib/supabase'
 import type { Database, Json } from '@/types/supabase'
 
@@ -100,8 +101,8 @@ export async function POST(req: NextRequest) {
       if (!opportunity) {
         return NextResponse.json({ success: false, error: 'Opportunité introuvable' }, { status: 404 })
       }
-      if (opportunity.stage !== 'Mandat signé') {
-        return NextResponse.json({ success: false, error: 'Le mandat vendeur doit être signé avant création du client' }, { status: 409 })
+      if (!isPortalEligibleStage(opportunity.stage)) {
+        return NextResponse.json({ success: false, error: 'Le portail client s’ouvre à partir de la visite d’estimation' }, { status: 409 })
       }
       if (!opportunity.lead_id) {
         return NextResponse.json({ success: false, error: 'Cette opportunité n’a pas de contact vendeur rattaché' }, { status: 409 })

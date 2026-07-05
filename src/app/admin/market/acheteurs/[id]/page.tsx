@@ -17,6 +17,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
+import { DossierWorkspace } from '../../clients/DossierWorkspace'
 import communesData from '@/data/communes.json'
 
 type CommuneEntry = {
@@ -125,6 +126,8 @@ export default function EditAcquereurPage() {
   const [matches, setMatches] = useState<MatchResult[]>([])
   const [matchingLoading, setMatchingLoading] = useState(true)
   const [runningMatching, setRunningMatching] = useState(false)
+  const [clientDossier, setClientDossier] = useState<{ id: string; status: string } | null>(null)
+  const [creatingDossier, setCreatingDossier] = useState(false)
 
   const loadMatches = useCallback(async () => {
     setMatchingLoading(true)
@@ -162,6 +165,7 @@ export default function EditAcquereurPage() {
           next_action: buyer.next_action || '',
           due_date: buyer.due_date || '',
         })
+        setClientDossier(data.client_dossier ?? null)
       } catch (e) {
         console.error('Erreur chargement:', e)
         toast.error('Erreur de chargement')
@@ -175,6 +179,27 @@ export default function EditAcquereurPage() {
   useEffect(() => {
     void loadMatches()
   }, [loadMatches])
+
+  async function createDossier() {
+    setCreatingDossier(true)
+    try {
+      const res = await fetch('/api/market/clients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ client_type: 'buyer', buyer_lead_id: leadId }),
+      })
+      const json = await res.json()
+      if (!res.ok || !json.success) throw new Error(json.error ?? 'Création impossible')
+      toast.success('Dossier créé')
+      const refreshed = await fetch(`/api/market/buyers/${leadId}`)
+      const data = await refreshed.json()
+      if (refreshed.ok) setClientDossier(data.client_dossier ?? null)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Création impossible')
+    } finally {
+      setCreatingDossier(false)
+    }
+  }
 
   const filteredCommunes = communeSearch
     ? COMMUNES.filter(
@@ -543,6 +568,27 @@ export default function EditAcquereurPage() {
           </Button>
         </div>
       </form>
+
+      {clientDossier ? (
+        <DossierWorkspace dossierId={clientDossier.id} />
+      ) : (
+        <Card>
+          <CardContent className="p-8 text-center">
+            <h2 className="text-base font-semibold">Suivi du mandat de recherche</h2>
+            <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
+              {form.stage === 'Mandat de recherche signé'
+                ? 'Le mandat de recherche est signé : crée le dossier pour activer documents, plan, visites et offres — partagés avec le client.'
+                : 'Les documents, le plan, les visites et les offres apparaissent ici une fois l’opportunité passée en « Mandat de recherche signé ».'}
+            </p>
+            {form.stage === 'Mandat de recherche signé' && (
+              <Button size="sm" className="mt-4" onClick={createDossier} disabled={creatingDossier}>
+                {creatingDossier ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+                Créer le dossier
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">

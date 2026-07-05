@@ -93,8 +93,8 @@ beforeEach(() => {
 })
 
 describe('POST /api/market/clients', () => {
-  it('refuses seller client creation before signed mandate', async () => {
-    mocks.opportunity = { data: { id: 'opp-1', lead_id: 'lead-1', stage: 'Nouveau contact' }, error: null }
+  it('refuses seller portal opening before the estimation visit', async () => {
+    mocks.opportunity = { data: { id: 'opp-1', lead_id: 'lead-1', stage: 'Pré-estimation' }, error: null }
 
     const res = await POST(makeRequest({ client_type: 'seller', opportunity_id: 'opp-1' }))
     const json = await res.json()
@@ -102,6 +102,18 @@ describe('POST /api/market/clients', () => {
     expect(res.status).toBe(409)
     expect(json.success).toBe(false)
     expect(mockedEnsureClientDossierForLead).not.toHaveBeenCalled()
+  })
+
+  it('opens the seller portal from the estimation visit stage', async () => {
+    mocks.opportunity = { data: { id: 'opp-1', lead_id: 'lead-1', stage: "Visite d'estimation" }, error: null }
+
+    const res = await POST(makeRequest({ client_type: 'seller', opportunity_id: 'opp-1' }))
+    const json = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(json.success).toBe(true)
+    expect(json.data.id).toBe('seller-client-1')
+    expect(mockedEnsureClientDossierForLead).toHaveBeenCalledWith('lead-1', 'opp-1')
   })
 
   it('creates or attaches seller client from signed opportunity', async () => {

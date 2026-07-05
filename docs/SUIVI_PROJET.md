@@ -38,6 +38,98 @@ Note : les lots Linear ci-dessous sont historiques et ne refletent plus l'etat r
   rattache a l'opportunite `8c93d418...`, 4 documents ; dossier orphelin sans
   opportunite -> pas de lien, gere par le conditionnel).
 
+### 06/07/2026 00:50 CEST - Un client, plusieurs opportunites : "Nouveau projet pour ce contact"
+- Base/branche : `preview`, modifications locales non poussees.
+- Type : CRM contacts / rattachement / anti-blocage.
+- Statut : **fait** (vendeur).
+- Constat : le dialogue "Ajouter un contact" bloquait tout contact deja lie a une
+  opportunite ("deja lie"), alors qu'une meme personne peut avoir plusieurs
+  affaires. Contrainte a respecter : `client_dossiers.lead_id` est UNIQUE ->
+  un lead = un portail ; il ne faut donc PAS partager un lead entre opportunites.
+- Decision : meme personne (prospect), projet distinct = lead distinct. Bouton
+  "Nouveau projet pour ce contact" qui cree un lead dedie (meme prospect) et le
+  rattache a l'opportunite courante ; chaque opportunite garde son portail.
+- Travail :
+  1. API `PATCH /api/market/opportunities/[id]` : nouveau param `clone_lead_from`
+     -> helper `cloneLeadForNewProject` (cree un lead `vendre` sur le meme
+     `prospect_id`, sans bien, via `createLead`) puis rattache comme `lead_id`.
+  2. Fiche opportunite : handler `attachAsNewProject` + bouton "Nouveau projet"
+     dans `LeadAttachDialog` a cote de "Voir l'opportunite" pour les contacts
+     deja lies.
+- Verification : `npx tsc --noEmit` OK ; `next lint` OK. Test end-to-end reel
+  (env dev, middleware desactive) : clone du lead `ef53fad8` sur une opp jetable
+  -> nouveau lead pointant le MEME prospect `8024f613`, rattache ; donnees de
+  test supprimees ensuite (0 residu).
+- NB : le "Nouveau vendeur" reutilise deja le prospect par email
+  (`upsertCrmProspect`) -> ce flux creait deja des opportunites distinctes pour
+  une meme personne ; le bouton comble le cas du rattachement depuis une opp
+  existante.
+
+### 06/07/2026 00:30 CEST - Portail client ouvrable des la remise de l'estimation
+- Base/branche : `preview`, modifications locales non poussees.
+- Type : logique metier portail / gate stages / synchro.
+- Statut : **fait** (vendeur ; portail non re-architecture, pont pragmatique).
+- Besoin : ouvrir le portail des la remise de l'estimation pour presenter le
+  rapport au client (avant, il ne naissait qu'au "Mandat signe").
+- Decisions : declencheur = "Visite d'estimation" (ajuste depuis "Remise de
+  l'estimation" apres test d'Alexandre : le portail doit etre pret quand il va
+  voir le client) ; ouverture manuelle (bouton) des ce stade + auto-creation au
+  "Mandat signe" conservee ; synchro auto de l'estimation/bien vers le portail.
+  Seuil centralise dans `PORTAL_OPENING_STAGE` (seller-stages.ts).
+- Travail :
+  1. Nouveau module pur `src/lib/market/seller-stages.ts` : ordre des stades +
+     `ESTIMATION_DELIVERED_STAGE` + `isPortalEligibleStage()`. `seller-opportunity.ts`
+     reexporte depuis ce module.
+  2. Gate `POST /api/market/clients` (seller) : `isPortalEligibleStage(stage)`
+     au lieu de `=== 'Mandat signe'` (409 avant la remise de l'estimation).
+  3. Fiche opportunite : bouton "Ouvrir le portail client" des le stade eligible ;
+     onglet renomme "Suivi mandat" -> "Portail client" ; carte laterale idem
+     (et correction d'un 2e lien mort vers `/app/clients`). En-tete DossierWorkspace
+     -> "Portail client".
+  4. Synchro `PATCH /api/market/opportunities/[id]` : nouveau helper
+     `syncDossierFromOpportunity` (merge `property_snapshot`/`professional_opinion`
+     dans le dossier rattache a chaque sauvegarde bien/estimation).
+- Verification : `npx tsc --noEmit` OK ; `next lint` OK (rien de nouveau) ;
+  tests routes market OK, dont 3 nouveaux cas de seuil (Nouveau contact 409,
+  Visite d'estimation 409, Remise de l'estimation 200) ; smoke dev : page + API
+  opportunite 200, 0 erreur.
+- Ajout infra : `vitest.config.ts` (alias `@` -> `src`) necessaire pour resoudre
+  l'import reel `seller-stages`. NB : cet alias rend chargeable `ademe.test.ts`
+  qui echouait deja (imports non resolus) et revele ses echecs preexistants
+  (mocks API externes) ; + 1 echec preexistant `magic-link-template.test.ts`.
+  Ces echecs sont HORS scope de cette feature.
+
+### 06/07/2026 00:10 CEST - Fusion Affaire etape 2 : Suivi mandat autonome + retrait rubrique Clients
+- Base/branche : `preview`, modifications locales non poussees.
+- Type : fusion opportunite/dossier / correction bug / suppression doublon.
+- Statut : **fait** (cote admin ; portail client non touche).
+- Bug corrige : le bouton "Creer le dossier" de l'onglet Suivi mandat etait un
+  simple lien mort vers `/app/clients` (ne creait rien). Remplace par une
+  creation SUR PLACE (`POST /api/market/clients` avec `opportunity_id`, puis
+  refetch) cote vendeur, et l'equivalent cote acquereur (`buyer_lead_id`).
+- Travail :
+  1. Fiche vendeur (`opportunities/[id]/page.tsx`) : handler `createDossier()`
+     sur place ; retrait du bouton "Ouvrir la fiche client".
+  2. `DossierWorkspace` : en-tete avec actions client rapatriees
+     (Inviter / Apercu client / Acces direct client).
+  3. Miroir acquereur : `GET /api/market/buyers/[id]` renvoie desormais
+     `client_dossier` (nouveau helper `loadBuyerClientDossierLink`) ; section
+     "Suivi mandat" ajoutee sur `acheteurs/[id]/page.tsx` (DossierWorkspace +
+     creation sur place si mandat de recherche signe).
+  4. Retrait rubrique "Clients" : entree supprimee de `app-sidebar.tsx` ;
+     `/app/clients` (liste) et `/app/clients/[id]` (fiche) remplaces par des
+     server components `redirect` (liste -> Opportunites ; fiche -> l'affaire
+     rattachee : opportunite vendeur ou fiche acquereur). Page `/preview`
+     conservee. Fin de la duplication du code des 4 panneaux + editeurs
+     Mandat/Estimation.
+- Verification : `npx tsc --noEmit` OK ; `next lint` OK (warnings preexistants
+  seulement) ; tests routes clients+buyers OK (5/5). Smoke serveur dev :
+  `/app/clients` -> 307 `/app/opportunities` ; `/app/clients/43c0782c...` -> 307
+  `/app/opportunities/8c93d418...` ; fiches vendeur/acquereur/dashboard 200,
+  0 erreur de compilation.
+  LIMITE : interactions authentifiees (clic "Creer le dossier", actions client,
+  rendu du workspace) a valider dans le navigateur connecte d'Alexandre.
+
 ### 05/07/2026 18:52 CEST - Fusion Affaire etape 1 : renommage + onglet Suivi mandat
 - Base/branche : `preview`, modifications locales non poussees.
 - Type : fusion opportunite/dossier (cote admin) / nommage.

@@ -12,7 +12,6 @@ import {
   PackageIcon,
   UserPlusIcon,
   FlameIcon,
-  ContactRoundIcon,
   type LucideIcon,
 } from "lucide-react"
 import type { AdminRole } from "@/types/supabase"
@@ -43,7 +42,6 @@ const PILOTAGE_ITEMS: SidebarNavItem[] = [
 const OPPORTUNITY_ITEMS: SidebarNavItem[] = [
   { title: "Opportunités / Mandats", url: "/app/opportunities", icon: KanbanIcon },
   { title: "Contacts", url: "/app/leads", icon: UserPlusIcon },
-  { title: "Clients", url: "/app/clients", icon: ContactRoundIcon },
   { title: "Réseau", url: "/app/liste-chaude", icon: FlameIcon },
 ]
 

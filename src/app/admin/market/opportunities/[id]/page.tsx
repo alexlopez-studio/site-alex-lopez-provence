@@ -56,6 +56,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 import { DossierWorkspace } from '../../clients/DossierWorkspace'
+import { isPortalEligibleStage } from '@/lib/market/seller-stages'
 import type { OpportunityEventType } from '@/types/supabase'
 
 type Priority = 'low' | 'medium' | 'high' | 'critical'
@@ -488,6 +489,7 @@ export default function OpportunityDetailPage() {
   const [opportunity, setOpportunity] = useState<Opportunity | null>(null)
   const [loading, setLoading] = useState(true)
   const [savingStage, setSavingStage] = useState(false)
+  const [creatingDossier, setCreatingDossier] = useState(false)
   const [propertyDraft, setPropertyDraft] = useState<PropertyDraft>(EMPTY_PROPERTY_DRAFT)
   const [professionalDraft, setProfessionalDraft] = useState<ProfessionalDraft>(EMPTY_PROFESSIONAL_DRAFT)
   const [savingPreparation, setSavingPreparation] = useState(false)
@@ -531,6 +533,25 @@ export default function OpportunityDetailPage() {
       setLoading(false)
     }
   }, [id])
+
+  async function createDossier() {
+    setCreatingDossier(true)
+    try {
+      const res = await fetch('/api/market/clients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ client_type: 'seller', opportunity_id: id }),
+      })
+      const json = await res.json()
+      if (!res.ok || !json.success) throw new Error(json.error ?? 'Création impossible')
+      toast.success('Dossier créé')
+      await load()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Création impossible')
+    } finally {
+      setCreatingDossier(false)
+    }
+  }
 
   const loadLeads = useCallback(async () => {
     setLeadLoading(true)
@@ -785,6 +806,29 @@ export default function OpportunityDetailPage() {
     }
   }
 
+  // Même personne, projet distinct : crée un lead dédié (via clone_lead_from)
+  // et le rattache à cette opportunité, qui garde son propre portail.
+  async function attachAsNewProject(lead: LeadSearchRow) {
+    setAttachingLeadId(lead.id)
+    try {
+      const res = await fetch('/api/market/opportunities/' + id, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clone_lead_from: lead.id }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Erreur API')
+      setOpportunity({ ...data.opportunity, events: data.opportunity.events ?? [] })
+      setLeadDialogOpen(false)
+      toast.success('Nouveau projet rattaché à ce contact')
+    } catch (err) {
+      console.error('[OpportunityDetailPage] attach new project:', err)
+      toast.error(err instanceof Error ? err.message : 'Impossible de créer le nouveau projet')
+    } finally {
+      setAttachingLeadId(null)
+    }
+  }
+
   async function attachProperty(property: PropertySearchRow) {
     if (property.opportunity && property.opportunity.id !== id) {
       toast.error('Ce bien est déjà rattaché à une opportunité')
@@ -887,7 +931,7 @@ export default function OpportunityDetailPage() {
           <TabsTrigger value="overview" className="px-0 sm:px-3">Vue d’ensemble</TabsTrigger>
           <TabsTrigger value="preparation" className="px-0 sm:px-3">Bien & technique</TabsTrigger>
           <TabsTrigger value="estimation" className="px-0 sm:px-3">Estimation</TabsTrigger>
-          <TabsTrigger value="dossier" className="px-0 sm:px-3">Suivi mandat</TabsTrigger>
+          <TabsTrigger value="dossier" className="px-0 sm:px-3">Portail client</TabsTrigger>
           <TabsTrigger value="history" className="px-0 sm:px-3">Historique</TabsTrigger>
         </TabsList>
 
@@ -960,11 +1004,11 @@ export default function OpportunityDetailPage() {
 
             <aside className="space-y-5">
               <InfoCard
-                title="Dossier client"
+                title="Portail client"
                 icon={<FolderOpen className="size-4" />}
                 action={opportunity.client_dossier ? (
                   <Button variant="outline" size="sm" asChild>
-                    <Link href={`/app/clients/${opportunity.client_dossier.id}`}><ExternalLink className="mr-1 size-3.5" /> Ouvrir</Link>
+                    <Link href={`/app/clients/${opportunity.client_dossier.id}/preview`}><ExternalLink className="mr-1 size-3.5" /> Aperçu</Link>
                   </Button>
                 ) : null}
               >
@@ -981,15 +1025,10 @@ export default function OpportunityDetailPage() {
                       <p className="text-xs text-amber-700">{opportunity.client_dossier.documents_missing} document(s) à traiter</p>
                     )}
                   </div>
-                ) : currentStage === 'Mandat signé' ? (
-                  <div className="space-y-3">
-                    <EmptyCardText>Mandat signé : le dossier client n’est pas encore créé.</EmptyCardText>
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href="/app/clients"><Plus className="mr-1 size-3.5" /> Créer le dossier</Link>
-                    </Button>
-                  </div>
+                ) : isPortalEligibleStage(currentStage) ? (
+                  <EmptyCardText>Portail non ouvert. Ouvre-le depuis l’onglet « Portail client » pour présenter l’estimation au client.</EmptyCardText>
                 ) : (
-                  <EmptyCardText>Le dossier client sera créé une fois le mandat signé.</EmptyCardText>
+                  <EmptyCardText>Le portail client s’ouvrira à partir de la visite d’estimation.</EmptyCardText>
                 )}
               </InfoCard>
 
@@ -1144,28 +1183,22 @@ export default function OpportunityDetailPage() {
 
         <TabsContent value="dossier">
           {opportunity.client_dossier ? (
-            <div className="space-y-4">
-              <section className="flex flex-col gap-3 rounded-xl border bg-card p-5 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="text-base font-semibold">Suivi du mandat</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">Documents, plan de vente, visites et offres — partagés avec le client.</p>
-                </div>
-                <Button variant="outline" size="sm" asChild>
-                  <Link href={`/app/clients/${opportunity.client_dossier.id}`}><ExternalLink className="mr-1 size-3.5" /> Ouvrir la fiche client</Link>
-                </Button>
-              </section>
-              <DossierWorkspace dossierId={opportunity.client_dossier.id} />
-            </div>
+            <DossierWorkspace dossierId={opportunity.client_dossier.id} />
           ) : (
             <section className="rounded-xl border bg-card p-8 text-center">
               <FolderOpen className="mx-auto size-8 text-muted-foreground" />
-              <h2 className="mt-3 text-base font-semibold">Suivi disponible après le mandat</h2>
+              <h2 className="mt-3 text-base font-semibold">
+                {isPortalEligibleStage(currentStage) ? 'Ouvrir le portail client' : 'Portail client à venir'}
+              </h2>
               <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
-                Les documents, le plan de vente, les visites et les offres apparaissent ici une fois l’opportunité passée en « Mandat signé » et le dossier créé.
+                {isPortalEligibleStage(currentStage)
+                  ? 'Ouvre le portail pour présenter le rapport d’estimation au client, puis suivre documents, plan de vente, visites et offres.'
+                  : 'Le portail s’ouvrira à partir de la visite d’estimation, pour présenter le rapport directement au client.'}
               </p>
-              {currentStage === 'Mandat signé' && (
-                <Button variant="outline" size="sm" className="mt-4" asChild>
-                  <Link href="/app/clients"><Plus className="mr-1 size-3.5" /> Créer le dossier</Link>
+              {isPortalEligibleStage(currentStage) && (
+                <Button size="sm" className="mt-4 bg-brand hover:bg-brand-hover" onClick={createDossier} disabled={creatingDossier}>
+                  {creatingDossier ? <Loader2 className="mr-1 size-4 animate-spin" /> : <Plus className="mr-1 size-3.5" />}
+                  Ouvrir le portail client
                 </Button>
               )}
             </section>
@@ -1200,6 +1233,7 @@ export default function OpportunityDetailPage() {
         onOpenChange={setLeadDialogOpen}
         onSearchChange={setLeadSearch}
         onAttach={attachLead}
+        onAttachNewProject={attachAsNewProject}
         onOpenOpportunity={(opportunityId) => router.push(`/app/opportunities/${opportunityId}`)}
       />
 
@@ -1507,6 +1541,7 @@ function LeadAttachDialog({
   onOpenChange,
   onSearchChange,
   onAttach,
+  onAttachNewProject,
   onOpenOpportunity,
 }: {
   open: boolean
@@ -1518,6 +1553,7 @@ function LeadAttachDialog({
   onOpenChange: (open: boolean) => void
   onSearchChange: (value: string) => void
   onAttach: (lead: LeadSearchRow) => void
+  onAttachNewProject: (lead: LeadSearchRow) => void
   onOpenOpportunity: (id: string) => void
 }) {
   return (
@@ -1555,7 +1591,13 @@ function LeadAttachDialog({
                       </div>
                     </div>
                     {alreadyLinked ? (
-                      <Button variant="outline" size="sm" onClick={() => onOpenOpportunity(lead.opportunity!.id)}>Voir l’opportunité</Button>
+                      <div className="flex shrink-0 flex-wrap justify-end gap-2">
+                        <Button variant="outline" size="sm" onClick={() => onOpenOpportunity(lead.opportunity!.id)}>Voir l’opportunité</Button>
+                        <Button size="sm" onClick={() => onAttachNewProject(lead)} disabled={attachingId === lead.id} className="bg-brand hover:bg-brand-hover">
+                          {attachingId === lead.id ? <Loader2 className="mr-1 size-4 animate-spin" /> : <Plus className="mr-1 size-4" />}
+                          Nouveau projet
+                        </Button>
+                      </div>
                     ) : (
                       <Button size="sm" onClick={() => onAttach(lead)} disabled={attachingId === lead.id} className="bg-brand hover:bg-brand-hover">
                         {attachingId === lead.id ? <Loader2 className="mr-1 size-4 animate-spin" /> : <Link2 className="mr-1 size-4" />}

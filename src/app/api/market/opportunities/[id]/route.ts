@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { createLead } from '@/lib/leads-repo'
 import { propertyThumbnailUrl } from '@/lib/market/property-thumbnail'
 import {
   ensureClientDossierForSignedOpportunity,
@@ -116,6 +117,52 @@ async function enrichOpportunity(opportunity: Database['public']['Tables']['oppo
   }
 }
 
+async function syncDossierFromOpportunity(
+  opportunity: Database['public']['Tables']['opportunities']['Row'],
+) {
+  // Retrouve le dossier rattaché (par opportunity_id, repli lead_id).
+  let dossier: { id: string; property_snapshot: Json; professional_opinion: Json } | null = null
+
+  const byOpportunity = await supabaseAdmin
+    .from('client_dossiers')
+    .select('id, property_snapshot, professional_opinion')
+    .eq('opportunity_id', opportunity.id)
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (byOpportunity.error && byOpportunity.error.code !== 'PGRST116') throw byOpportunity.error
+  dossier = byOpportunity.data ?? null
+
+  if (!dossier && opportunity.lead_id) {
+    const byLead = await supabaseAdmin
+      .from('client_dossiers')
+      .select('id, property_snapshot, professional_opinion')
+      .eq('lead_id', opportunity.lead_id)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (byLead.error && byLead.error.code !== 'PGRST116') throw byLead.error
+    dossier = byLead.data ?? null
+  }
+
+  if (!dossier) return
+
+  // Fusion : l'opportunité écrase les clés partagées, on préserve les clés
+  // propres au dossier client (ex. mandate_number saisi côté portail).
+  const mergedSnapshot = { ...asObject(dossier.property_snapshot), ...asObject(opportunity.property_snapshot) }
+  const mergedOpinion = { ...asObject(dossier.professional_opinion), ...asObject(opportunity.professional_opinion) }
+
+  const { error } = await supabaseAdmin
+    .from('client_dossiers')
+    .update({ property_snapshot: mergedSnapshot as Json, professional_opinion: mergedOpinion as Json } as never)
+    .eq('id', dossier.id)
+  if (error) console.error('[API /market/opportunities/[id]] sync dossier:', error)
+}
+
+function asObject(value: Json | null | undefined): Record<string, Json | undefined> {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value : {}
+}
+
 async function loadClientDossierLink(
   opportunity: Database['public']['Tables']['opportunities']['Row'],
 ) {
@@ -172,6 +219,31 @@ async function createOpportunityEvent(input: OpportunityEventInsert) {
 }
 
 /**
+ * « Nouveau projet pour ce contact » : crée un lead distinct rattaché au même
+ * prospect que `sourceLeadId`, sans bien (nouveau projet). Chaque opportunité
+ * garde ainsi son propre lead et son propre portail client.
+ */
+async function cloneLeadForNewProject(sourceLeadId: string): Promise<string> {
+  const { data: source, error } = await supabaseAdmin
+    .from('leads')
+    .select('prospect_id, commune, source_channel, priority')
+    .eq('id', sourceLeadId)
+    .maybeSingle()
+  if (error) throw error
+  if (!source || !source.prospect_id) throw new Error('source_lead_not_found')
+
+  const lead = await createLead({
+    prospectId: source.prospect_id,
+    tool: 'vendre',
+    commune: source.commune ?? null,
+    sourceChannel: source.source_channel ?? 'prospection',
+    priority: source.priority ?? 'medium',
+    nextAction: 'Qualifier le nouveau projet vendeur',
+  })
+  return lead.id
+}
+
+/**
  * GET /api/market/opportunities/[id]
  * Détail d'une opportunité.
  */
@@ -224,6 +296,20 @@ export async function PATCH(
 
     if (fetchError || !existing) {
       return NextResponse.json({ error: 'Opportunité introuvable' }, { status: 404 })
+    }
+
+    // « Nouveau projet pour ce contact » : on crée un lead distinct (même
+    // prospect) puis on le rattache comme n'importe quel lead_id ci-dessous.
+    if (typeof body.clone_lead_from === 'string' && body.clone_lead_from) {
+      try {
+        body.lead_id = await cloneLeadForNewProject(body.clone_lead_from)
+      } catch (cloneError) {
+        console.error('[API /market/opportunities/[id]] clone lead error:', cloneError)
+        const message = cloneError instanceof Error && cloneError.message === 'source_lead_not_found'
+          ? 'Contact source introuvable'
+          : 'Impossible de créer le nouveau projet pour ce contact'
+        return NextResponse.json({ error: message }, { status: 400 })
+      }
     }
 
     const updateData: OpportunitiesUpdate = {}
@@ -314,6 +400,12 @@ export async function PATCH(
     if (error) {
       console.error('[API /market/opportunities/[id]] PATCH error:', error)
       return NextResponse.json({ error: 'Erreur mise à jour' }, { status: 500 })
+    }
+
+    // Garde le portail client à jour : toute modif du bien / de l'estimation
+    // est répercutée sur le dossier rattaché (source de vérité = l'opportunité).
+    if (body.property_snapshot !== undefined || body.professional_opinion !== undefined) {
+      await syncDossierFromOpportunity(opportunity)
     }
 
     if (body.stage !== undefined && body.stage && body.stage !== existing.stage) {

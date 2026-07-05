@@ -55,10 +55,39 @@ export async function GET(
       return NextResponse.json({ error: 'Erreur base de données' }, { status: 500 })
     }
 
-    return NextResponse.json({ buyer })
+    const clientDossier = await loadBuyerClientDossierLink(id)
+
+    return NextResponse.json({ buyer, client_dossier: clientDossier })
   } catch (e) {
     console.error('[API /market/buyers/[id]] GET exception:', e)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+  }
+}
+
+async function loadBuyerClientDossierLink(buyerLeadId: string) {
+  const { data: dossier, error } = await supabaseAdmin
+    .from('client_dossiers')
+    .select('id, status')
+    .eq('buyer_lead_id', buyerLeadId)
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (error && error.code !== 'PGRST116') throw error
+  if (!dossier) return null
+
+  const { data: docs, error: docsError } = await supabaseAdmin
+    .from('client_documents')
+    .select('status')
+    .eq('dossier_id', dossier.id)
+  if (docsError && docsError.code !== 'PGRST205' && docsError.code !== '42P01') throw docsError
+
+  const rows = (docs ?? []) as { status: string }[]
+  return {
+    id: dossier.id,
+    status: dossier.status,
+    documents_total: rows.length,
+    documents_validated: rows.filter((doc) => doc.status === 'validated').length,
+    documents_missing: rows.filter((doc) => ['missing', 'requested', 'rejected'].includes(doc.status)).length,
   }
 }
 

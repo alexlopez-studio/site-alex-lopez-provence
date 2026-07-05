@@ -14,10 +14,25 @@ type Lead = Database['public']['Tables']['leads']['Row'] & {
 type SellerProperty = Database['public']['Tables']['seller_properties']['Row']
 type Opportunity = Database['public']['Tables']['opportunities']['Row']
 
-export const WATCH_LISTING_STAGE = 'Veille annonce'
-export const NEW_CONTACT_STAGE = 'Nouveau contact'
-export const SIGNED_MANDATE_STAGE = 'Mandat signé'
-export const LOST_STAGE = 'Perdu / Écarté'
+import {
+  WATCH_LISTING_STAGE,
+  NEW_CONTACT_STAGE,
+  ESTIMATION_DELIVERED_STAGE,
+  SIGNED_MANDATE_STAGE,
+  LOST_STAGE,
+  SELLER_STAGE_ORDER,
+  isPortalEligibleStage,
+} from '@/lib/market/seller-stages'
+
+export {
+  WATCH_LISTING_STAGE,
+  NEW_CONTACT_STAGE,
+  ESTIMATION_DELIVERED_STAGE,
+  SIGNED_MANDATE_STAGE,
+  LOST_STAGE,
+  SELLER_STAGE_ORDER,
+  isPortalEligibleStage,
+}
 
 function titleFromLead(lead: Lead, sellerProperty: SellerProperty | null) {
   const name = [lead.prospect?.first_name, lead.prospect?.last_name].filter(Boolean).join(' ').trim()
