@@ -17,6 +17,166 @@ Decision : Codex reprend seul le developpement et le design pour le moment.
 
 Note : les lots Linear ci-dessous sont historiques et ne refletent plus l'etat reel du code. La memoire courante est dans `docs/MEMOIRE_SESSION.md`.
 
+### 05/07/2026 18:07 CEST - Correction erreur creation client (migrations manquantes)
+- Base/branche : `preview`, modifications locales non poussees.
+- Type : correctif base de donnees / clients / opportunites.
+- Statut : **fait**.
+- Symptome : clic sur `Creer le client` dans la modale -> toast `Creation
+  impossible`. La liste `GET /api/market/clients` renvoyait aussi `500`.
+- Cause racine : base `byrsmbgfkvgxdtdyhrro` appliquee jusqu'a la migration
+  `022` seulement. Les migrations `023`, `024`, `025` etaient presentes dans le
+  repo mais **non appliquees**. Le code insere/lit `client_dossiers.client_type`
+  et `client_dossiers.buyer_lead_id` (inexistants) -> l'INSERT et le SELECT
+  echouaient.
+- Correctif : application des 3 migrations manquantes sur la base en ligne
+  (additives et idempotentes, `add column if not exists`, aucune perte de
+  donnees), avec accord explicite d'Alexandre :
+  1. `023_opportunity_pre_mandate_workspace` : `opportunities.property_snapshot`
+     et `professional_opinion`.
+  2. `024_buyer_criteria_pipeline_stage` : `buyer_criteria.stage`,
+     `next_action`, `due_date` (+ index).
+  3. `025_client_dossiers_buyer_scope` : `client_dossiers.client_type`,
+     `buyer_lead_id`, contraintes `client_type_check` / `scope_check` et index
+     d'unicite acquereur.
+- Verification : colonnes presentes confirmees en base ; lecture
+  `client_type='seller'` OK (2 dossiers) ; `npx tsc --noEmit` OK ;
+  `npx vitest run src/app/api/market/clients/__tests__/route.test.ts` OK (3/3).
+- A faire cote repo : aucune modification de code necessaire. Les migrations
+  023/024/025 restent versionnees ; l'historique Supabase distant est
+  desormais aligne.
+
+### 05/07/2026 17:58 CEST - Creation client depuis opportunite signee
+- Base/branche : `preview`, modifications locales non poussees.
+- Type : clients / opportunites / anti-doublon.
+- Statut : **fait**.
+- Travail :
+  1. Page Clients : remplacement de la creation manuelle par une modale de
+     selection d'opportunite signee.
+  2. Boutons visibles : `Nouveau client vendeur` ou `Nouveau client acquereur`
+     selon l'onglet actif.
+  3. Vendeurs : selection uniquement depuis les opportunites `Mandat signe`.
+  4. Acquereurs : selection uniquement depuis les recherches `Mandat de
+     recherche signe`.
+  5. API `POST /api/market/clients` : creation/rattachement depuis
+     `opportunity_id` ou `buyer_lead_id`, avec refus `409` hors mandat signe.
+  6. Helper vendeur etendu pour rattacher le client a l'opportunite precise
+     selectionnee, pas seulement au lead.
+- Audit qualite : `npx vitest run src/app/api/market/clients/__tests__/route.test.ts`
+  OK ; `npx tsc --noEmit` OK ; `git diff --check` OK.
+- Audit UI : smoke Playwright OK sur chargement `/app/clients` et detection du
+  bouton `Nouveau client`. Limite observee : `GET /api/market/clients` renvoie
+  `500 Erreur lecture clients` en local, deja sur la lecture liste et hors
+  modification du flux de creation.
+
+### 05/07/2026 17:45 CEST - Commandes opportunites compactees
+- Base/branche : `preview`, modifications locales non poussees.
+- Type : UX opportunites / densite verticale.
+- Statut : **fait**.
+- Travail :
+  1. Selecteur de vue `Kanban` / `Tableau` place sur la meme ligne que le
+     bouton `Nouveau vendeur` / `Nouvel acquereur`.
+  2. Vues alignees a gauche, action de creation alignee a droite.
+  3. Barre recherche/filtres conservee seule sur la ligne suivante.
+- Audit qualite : `npx tsc --noEmit` OK ; `git diff --check` OK.
+
+### 05/07/2026 17:42 CEST - Bandeau opportunites clarifie
+- Base/branche : `preview`, modifications locales non poussees.
+- Type : UX opportunites / organisation des controles.
+- Statut : **fait**.
+- Travail :
+  1. Bouton `Nouveau vendeur` / `Nouvel acquereur` isole en haut a droite.
+  2. Barre recherche/filtres reservee uniquement aux criteres de recherche.
+  3. Selecteur `Kanban` / `Tableau` replace en dessous, aligne a gauche.
+- Audit qualite : `npx tsc --noEmit` OK ; `git diff --check` OK.
+
+### 05/07/2026 17:35 CEST - Bandeau opportunites reordonne
+- Base/branche : `preview`, modifications locales non poussees.
+- Type : UX opportunites / hiérarchie des controles.
+- Statut : **fait**.
+- Travail :
+  1. Bandeau `Opportunités` reorganise dans l'ordre voulu : bouton
+     `Nouveau vendeur` / `Nouvel acquéreur`, puis recherche et filtres,
+     puis bascule `Kanban` / `Tableau`.
+  2. Les filtres et la recherche sont remontes au niveau du workspace pour
+     ne plus etre disperses dans les vues.
+  3. Les vues Kanban et Tableau restent synchronisees sur les memes criteres.
+- Audit qualite : `npm exec tsc --noEmit` OK ; `git diff --check` OK.
+
+### 05/07/2026 17:55 CEST - Tableaux opportunites premium et ajout centralise
+- Base/branche : `preview`, modifications locales non poussees.
+- Type : UX opportunites / lisibilite tableau / filtres.
+- Statut : **fait**.
+- Travail :
+  1. Bouton d'ajout vendeur/acquereur remonte dans l'entete de
+     `/app/opportunities`, au-dessus du selecteur `Kanban` / `Tableau`.
+  2. Suppression des boutons d'ajout redondants dans les Kanbans et tableaux.
+  3. Tableaux vendeurs/acquereurs : ajout de filtres indispensables
+     (recherche, statut, echeance; activite en plus cote acquereur).
+  4. Tableaux rendus plus premium : conteneur encadre, header de tableau
+     contraste, lignes plus aerées, badges plus lisibles.
+  5. Ouverture de fiche par clic sur la ligne; suppression de la colonne
+     bouton `Action`.
+- Audit qualite : `npx tsc --noEmit` OK ; `git diff --check` OK ; smoke
+  Playwright headless OK sur les vues tableau vendeurs/acquereurs desktop et
+  tableau vendeurs mobile. Une 404 parasite de ressource statique reste
+  observee, sans bloquer le rendu.
+
+### 05/07/2026 17:45 CEST - Opportunites en vues Kanban/Tableau et archivage page acheteurs
+- Base/branche : `preview`, modifications locales non poussees.
+- Type : simplification navigation / vue operationnelle opportunites.
+- Statut : **fait**.
+- Travail :
+  1. Page liste `/app/acheteurs` archivee par redirection vers
+     `/app/opportunities?tab=acquereurs`.
+  2. Page `/app/opportunities` enrichie avec une bascule `Kanban` / `Tableau`
+     partagee par les onglets `Vendeurs` et `Acquereurs`.
+  3. Ajout d'une vue tableau vendeurs : recherche, statut, contact, bien,
+     prochaine action, echeance et ouverture de fiche.
+  4. Ajout d'une vue tableau acquereurs : recherche, statut, communes, budget,
+     criteres, prochaine action, echeance et ouverture de fiche.
+  5. Les retours de creation/edition acquereur pointent vers l'onglet
+     acquereurs des opportunites.
+- Audit qualite : `npx tsc --noEmit` OK ; `git diff --check` OK ; smoke
+  Playwright headless OK sur `/app/acheteurs`,
+  `/app/opportunities?tab=vendeurs&view=table` et
+  `/app/opportunities?tab=acquereurs&view=table`. Une 404 parasite de ressource
+  statique reste observee, sans bloquer le rendu.
+
+### 05/07/2026 17:35 CEST - Suppression opportunite depuis la fiche
+- Base/branche : `preview`, modifications locales non poussees.
+- Type : action destructive / gestion fiche opportunite.
+- Statut : **fait**.
+- Travail :
+  1. Ajout d'un bouton `Supprimer` sur la fiche opportunite vendeur.
+  2. Confirmation explicite avant suppression.
+  3. Appel `DELETE /api/market/opportunities/[id]` deja disponible,
+     puis retour vers `/app/opportunities`.
+- Audit qualite : `npx tsc --noEmit` OK ; `git diff --check` OK.
+
+### 05/07/2026 17:25 CEST - Clarification retour et entete des fiches
+- Base/branche : `preview`, modifications locales non poussees.
+- Type : micro-ajustement UX / lisibilite des fiches.
+- Statut : **fait**.
+- Travail :
+  1. Fiche vendeur : libelle de retour clarifie en `Retour aux vendeurs`.
+  2. Fiche acquereur : libelle de retour clarifie en `Retour aux acquereurs`.
+  3. Entete allégé : suppression du tag de priorite, conservation du type
+     metier et du statut uniquement.
+  4. Les tags restent places a droite du titre pour garder la lecture rapide.
+- Audit qualite : `npx tsc --noEmit` OK ; `git diff --check` OK.
+
+### 05/07/2026 17:20 CEST - Typage visible des fiches opportunite
+- Base/branche : `preview`, modifications locales non poussees.
+- Type : lisibilite UX / distinction vendeur-acquereur.
+- Statut : **fait**.
+- Travail :
+  1. Fiche vendeur `/app/opportunities/[id]` : ajout d'un badge visible
+     `Opportunite vendeur` en haut de page.
+  2. Fiche acquereur `/app/acheteurs/[id]` : ajout d'un badge
+     `Opportunite acquereur` et remplacement du titre generique
+     `Modifier l'acquereur` par `Opportunite acquereur`.
+- Audit qualite : `npx tsc --noEmit` OK ; `git diff --check` OK.
+
 ### 05/07/2026 17:10 CEST - Preparation commit et push preview
 - Base/branche : `preview`, cible `origin/preview`.
 - Type : checkpoint livraison.

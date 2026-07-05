@@ -22,6 +22,7 @@ import {
   Plus,
   Search,
   StickyNote,
+  Trash2,
   UserRound,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -493,6 +494,7 @@ export default function OpportunityDetailPage() {
   const [propertyRows, setPropertyRows] = useState<PropertySearchRow[]>([])
   const [propertyLoading, setPropertyLoading] = useState(false)
   const [attachingPropertyId, setAttachingPropertyId] = useState<string | null>(null)
+  const [deletingOpportunity, setDeletingOpportunity] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -712,6 +714,26 @@ export default function OpportunityDetailPage() {
     }
   }
 
+  async function deleteOpportunity() {
+    if (!window.confirm('Supprimer cette opportunité ? Cette action est irréversible.')) return
+    setDeletingOpportunity(true)
+    try {
+      const res = await fetch(`/api/market/opportunities/${id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Erreur API')
+      toast.success('Opportunité supprimée')
+      router.push('/app/opportunities')
+    } catch (err) {
+      console.error('[OpportunityDetailPage] delete opportunity:', err)
+      toast.error("Impossible de supprimer l'opportunité")
+    } finally {
+      setDeletingOpportunity(false)
+    }
+  }
+
   async function attachLead(lead: LeadSearchRow) {
     if (lead.opportunity && lead.opportunity.id !== id) {
       toast.error('Ce contact est déjà rattaché à une opportunité')
@@ -802,14 +824,14 @@ export default function OpportunityDetailPage() {
       <div className="flex flex-col gap-4 border-b pb-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
           <Link href="/app/opportunities" className="mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="size-4" /> Retour aux affaires
+            <ArrowLeft className="size-4" /> Retour aux vendeurs
           </Link>
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="min-w-0 text-2xl font-bold leading-tight">{opportunity.title ?? 'Opportunité vendeur'}</h1>
-            <Badge variant="outline">{currentStage}</Badge>
-            <Badge variant="outline" className={cn(PRIORITY_CLASSES[priority] ?? PRIORITY_CLASSES.medium)}>
-              {PRIORITY_LABELS[priority] ?? priority}
+            <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">
+              Opportunité vendeur
             </Badge>
+            <Badge variant="outline">{currentStage}</Badge>
           </div>
           <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted-foreground">
             <span>Créée le {formatDate(opportunity.created_at)}</span>
@@ -818,22 +840,28 @@ export default function OpportunityDetailPage() {
           </div>
         </div>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button className="w-full shrink-0 bg-brand hover:bg-brand-hover sm:w-auto">
-              <Plus className="mr-2 size-4" />
-              Ajouter
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem onClick={() => openEvent('note')}><StickyNote className="mr-2 size-4" /> Ajouter une note</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => openEvent('task')}><CheckCircle2 className="mr-2 size-4" /> Ajouter une tâche</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => openEvent('call')}><Phone className="mr-2 size-4" /> Planifier un appel</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => openEvent('meeting')}><Calendar className="mr-2 size-4" /> Planifier un RDV</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => openEvent('email')}><Mail className="mr-2 size-4" /> Logguer un email</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => openEvent('estimation')}><Building2 className="mr-2 size-4" /> Ajouter une étape estimation</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row">
+          <Button variant="destructive" className="w-full sm:w-auto" onClick={deleteOpportunity} disabled={deletingOpportunity}>
+            {deletingOpportunity ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Trash2 className="mr-2 size-4" />}
+            Supprimer
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="w-full shrink-0 bg-brand hover:bg-brand-hover sm:w-auto">
+                <Plus className="mr-2 size-4" />
+                Ajouter
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={() => openEvent('note')}><StickyNote className="mr-2 size-4" /> Ajouter une note</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => openEvent('task')}><CheckCircle2 className="mr-2 size-4" /> Ajouter une tâche</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => openEvent('call')}><Phone className="mr-2 size-4" /> Planifier un appel</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => openEvent('meeting')}><Calendar className="mr-2 size-4" /> Planifier un RDV</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => openEvent('email')}><Mail className="mr-2 size-4" /> Logguer un email</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => openEvent('estimation')}><Building2 className="mr-2 size-4" /> Ajouter une étape estimation</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       <Tabs defaultValue="overview" className="space-y-5">

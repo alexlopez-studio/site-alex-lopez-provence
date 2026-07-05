@@ -1,7 +1,5 @@
 import type { Metadata } from 'next'
-import { KanbanBoard } from './KanbanBoard'
-import { BuyerKanbanBoard } from './BuyerKanbanBoard'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { OpportunitiesWorkspace } from './OpportunitiesWorkspace'
 
 export const metadata: Metadata = {
   title: 'Opportunités — Mandat OS',
@@ -17,18 +15,7 @@ export default function OpportunitiesPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="vendeurs" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="vendeurs">Vendeurs</TabsTrigger>
-          <TabsTrigger value="acquereurs">Acquéreurs</TabsTrigger>
-        </TabsList>
-        <TabsContent value="vendeurs">
-          <KanbanBoard />
-        </TabsContent>
-        <TabsContent value="acquereurs">
-          <BuyerKanbanBoard />
-        </TabsContent>
-      </Tabs>
+      <OpportunitiesWorkspace />
     </div>
   )
 }

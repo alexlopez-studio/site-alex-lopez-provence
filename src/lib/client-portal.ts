@@ -84,7 +84,7 @@ const DEFAULT_BUYER_EVENTS = [
   },
 ]
 
-export async function ensureClientDossierForLead(leadId: string) {
+export async function ensureClientDossierForLead(leadId: string, opportunityId?: string) {
   const { data: lead, error: leadError } = await supabaseAdmin
     .from('leads')
     .select(`
@@ -109,6 +109,10 @@ export async function ensureClientDossierForLead(leadId: string) {
   const email = prospect?.email?.trim().toLowerCase()
   if (!email) throw new Error('Ce lead ne contient pas d’email client')
 
+  const opportunityQuery = supabaseAdmin
+    .from('opportunities')
+    .select('*')
+
   const [sellerResult, opportunityResult] = await Promise.all([
     supabaseAdmin
       .from('seller_properties')
@@ -117,10 +121,7 @@ export async function ensureClientDossierForLead(leadId: string) {
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle(),
-    supabaseAdmin
-      .from('opportunities')
-      .select('*')
-      .eq('lead_id', leadId)
+    (opportunityId ? opportunityQuery.eq('id', opportunityId) : opportunityQuery.eq('lead_id', leadId))
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle(),

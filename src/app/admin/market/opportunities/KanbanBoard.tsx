@@ -132,6 +132,14 @@ interface OpportunityRow {
   property: { title: string | null; city: string | null; price: number | null } | null
 }
 
+type DueFilter = 'all' | 'overdue' | 'today' | 'week' | 'no_due'
+
+type KanbanBoardProps = {
+  search: string
+  stageFilter: string
+  dueFilter: DueFilter
+}
+
 const STAGES = [
   { id: 'Veille annonce', label: 'Veille annonce', color: 'bg-zinc-500' },
   { id: 'Nouveau contact', label: 'Nouveau contact', color: 'bg-slate-500' },
@@ -213,6 +221,20 @@ function formatDaysAgo(dateStr: string) {
   if (days <= 0) return "Aujourd'hui"
   if (days === 1) return 'Hier'
   return `Il y a ${days}j`
+}
+
+function dueBucket(value: string | null | undefined): DueFilter | 'later' {
+  if (!value) return 'no_due'
+  const due = new Date(value)
+  if (Number.isNaN(due.getTime())) return 'no_due'
+  const today = new Date()
+  const dueDay = new Date(due.getFullYear(), due.getMonth(), due.getDate())
+  const todayDay = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  const diffDays = Math.round((dueDay.getTime() - todayDay.getTime()) / 86_400_000)
+  if (diffDays < 0) return 'overdue'
+  if (diffDays === 0) return 'today'
+  if (diffDays <= 7) return 'week'
+  return 'later'
 }
 
 function normalizePriority(value: string | null): Priority {
@@ -518,10 +540,9 @@ interface PropertyOption {
   opportunity: { id: string; title: string; stage: string | null; priority: string | null } | null
 }
 
-export function KanbanBoard() {
+export function KanbanBoard({ search, stageFilter, dueFilter }: KanbanBoardProps) {
   const router = useRouter()
   const [opportunities, setOpportunities] = useState<Opportunity[]>([])
-  const [search, setSearch] = useState('')
   const [leadOptions, setLeadOptions] = useState<LeadOption[]>([])
   const [leadSearch, setLeadSearch] = useState('')
   const [propertyOptions, setPropertyOptions] = useState<PropertyOption[]>([])
@@ -587,9 +608,8 @@ export function KanbanBoard() {
 
   const filteredOpportunities = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
-    if (!normalizedSearch) return opportunities
     return opportunities.filter((opportunity) => {
-      return [
+      const matchesSearch = !normalizedSearch || [
         opportunity.title,
         opportunity.sellerName,
         opportunity.sellerPhone,
@@ -606,8 +626,12 @@ export function KanbanBoard() {
         .join(' ')
         .toLowerCase()
         .includes(normalizedSearch)
+      const matchesStage = stageFilter === 'all' || opportunity.stage === stageFilter
+      const dueValue = opportunity.dueDate ?? opportunity.followUpAt
+      const matchesDue = dueFilter === 'all' || dueBucket(dueValue) === dueFilter
+      return matchesSearch && matchesStage && matchesDue
     })
-  }, [opportunities, search])
+  }, [dueFilter, opportunities, search, stageFilter])
 
   const activeOpportunity = activeId ? opportunities.find((o) => o.id === activeId) ?? null : null
   const getStageOpps = (stageId: string) => filteredOpportunities.filter((o) => o.stage === stageId)
@@ -734,24 +758,6 @@ export function KanbanBoard() {
       onDragEnd={handleDragEnd}
     >
       <div className="min-w-0 space-y-6">
-        <div className="sticky top-0 z-20 -mx-1 flex flex-col gap-3 bg-background/95 px-1 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative w-full sm:max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Rechercher un vendeur, une commune..."
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              className="pl-9"
-            />
-          </div>
-          <Button asChild className="w-full shrink-0 bg-brand hover:bg-brand-hover sm:w-auto">
-            <Link href="/app/opportunities/nouveau">
-              <Plus className="mr-1 h-4 w-4" />
-              Nouveau vendeur
-            </Link>
-          </Button>
-        </div>
-
         <div className="flex gap-4 overflow-x-auto pb-4" style={{ scrollbarWidth: 'thin' }}>
           {PIPELINE_STAGES.map((stage) => {
             const stageOpps = getStageOpps(stage.id)
@@ -763,11 +769,6 @@ export function KanbanBoard() {
                     <span className="truncate text-sm font-medium">{stage.label}</span>
                     <span className="text-xs text-muted-foreground">({stageOpps.length})</span>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-6 w-6" asChild>
-                    <Link href={`/app/opportunities/nouveau?stage=${encodeURIComponent(stage.id)}`}>
-                      <Plus className="h-3.5 w-3.5" />
-                    </Link>
-                  </Button>
                 </div>
 
                 <SortableContext items={stageOpps.map((o) => o.id)} strategy={verticalListSortingStrategy}>

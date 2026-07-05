@@ -202,7 +202,7 @@ export default function NouvelAcquereurPage() {
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="sm" asChild>
-          <Link href="/app/opportunities">
+          <Link href="/app/opportunities?tab=acquereurs">
             <ArrowLeft className="mr-1 h-4 w-4" />
             Retour
           </Link>
@@ -432,7 +432,7 @@ export default function NouvelAcquereurPage() {
 
         <div className="flex justify-end gap-2">
           <Button variant="outline" asChild>
-            <Link href="/app/opportunities">Annuler</Link>
+            <Link href="/app/opportunities?tab=acquereurs">Annuler</Link>
           </Button>
           <Button type="submit" disabled={!canSave || saving}>
             {saving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}

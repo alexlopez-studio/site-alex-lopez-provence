@@ -1,50 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { ensureClientDossierForBuyer, ensureClientDossierForLead } from '@/lib/client-portal'
 import { rejectIfNoAdmin, type AdminClientDossier } from '@/lib/market/client-admin'
 import { supabaseAdmin } from '@/lib/supabase'
 import type { Database, Json } from '@/types/supabase'
 
 type ClientDocument = Database['public']['Tables']['client_documents']['Row']
 type ClientDossierEvent = Database['public']['Tables']['client_dossier_events']['Row']
-
-const DEFAULT_DOCUMENTS = [
-  { label: 'Titre de propriété', category: 'propriete' },
-  { label: 'Pièce d’identité', category: 'identite' },
-  { label: 'Diagnostics immobiliers', category: 'diagnostics' },
-  { label: 'Taxe foncière', category: 'fiscalite' },
-]
-
-const DEFAULT_BUYER_DOCUMENTS = [
-  { label: 'Pièce d’identité', category: 'identite' },
-  { label: 'Mandat de recherche signé', category: 'mandat_recherche' },
-  { label: 'Plan de financement', category: 'financement' },
-  { label: 'Attestation bancaire ou courtier', category: 'financement' },
-]
-
-const DEFAULT_EVENTS = [
-  {
-    title: 'Dossier vendeur ouvert',
-    description: 'Votre espace centralise les informations utiles pour préparer la vente.',
-    status: 'done',
-  },
-  {
-    title: 'Préparation des pièces',
-    description: 'Les documents demandés apparaissent dans la checklist.',
-    status: 'todo',
-  },
-]
-
-const DEFAULT_BUYER_EVENTS = [
-  {
-    title: 'Dossier acquéreur ouvert',
-    description: 'Votre espace centralise les critères de recherche, les biens proposés et les prochaines étapes.',
-    status: 'done',
-  },
-  {
-    title: 'Mandat de recherche signé',
-    description: 'Le mandat de recherche est signé.',
-    status: 'done',
-  },
-]
 
 export async function GET(req: NextRequest) {
   const denied = await rejectIfNoAdmin()
@@ -117,80 +78,68 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = asRecord(await req.json())
-    const profile = asRecord(body.profile)
-    const snapshot = compactObject(asRecord(body.property_snapshot))
     const clientType = text(body.client_type) === 'buyer' ? 'buyer' : 'seller'
-    const email = text(profile.email).toLowerCase()
+    const opportunityId = text(body.opportunity_id)
+    const buyerLeadId = text(body.buyer_lead_id)
 
-    if (!email || !email.includes('@')) {
-      return NextResponse.json({ success: false, error: 'Email client requis' }, { status: 400 })
-    }
-    if (Object.keys(snapshot).length === 0) {
-      return NextResponse.json({ success: false, error: 'Informations bien requises' }, { status: 400 })
-    }
+    if (clientType === 'seller') {
+      if (!opportunityId) {
+        return NextResponse.json({ success: false, error: 'Opportunité vendeur signée requise' }, { status: 400 })
+      }
 
-    const { data: clientProfile, error: profileError } = await supabaseAdmin
-      .from('client_profiles')
-      .upsert({
-        email,
-        first_name: text(profile.first_name),
-        last_name: text(profile.last_name),
-        phone: text(profile.phone) || null,
-        is_active: true,
-      } as never, { onConflict: 'email' })
-      .select('*')
-      .single()
+      const { data: opportunity, error } = await supabaseAdmin
+        .from('opportunities')
+        .select('id, lead_id, stage')
+        .eq('id', opportunityId)
+        .maybeSingle()
 
-    if (profileError || !clientProfile) {
-      console.error('[POST /api/market/clients] profile:', profileError)
-      return NextResponse.json({ success: false, error: 'Erreur création client' }, { status: 500 })
-    }
+      if (error) {
+        console.error('[POST /api/market/clients] opportunity:', error)
+        return NextResponse.json({ success: false, error: 'Erreur lecture opportunité' }, { status: 500 })
+      }
+      if (!opportunity) {
+        return NextResponse.json({ success: false, error: 'Opportunité introuvable' }, { status: 404 })
+      }
+      if (opportunity.stage !== 'Mandat signé') {
+        return NextResponse.json({ success: false, error: 'Le mandat vendeur doit être signé avant création du client' }, { status: 409 })
+      }
+      if (!opportunity.lead_id) {
+        return NextResponse.json({ success: false, error: 'Cette opportunité n’a pas de contact vendeur rattaché' }, { status: 409 })
+      }
 
-    const title = text(body.title) || buildTitle(snapshot, clientType)
-    const { data: dossier, error: dossierError } = await supabaseAdmin
-      .from('client_dossiers')
-      .insert({
-        client_profile_id: clientProfile.id,
-        client_type: clientType,
-        status: text(body.status) || 'active',
-        title,
-        property_snapshot: snapshot as Json,
-        advisor_note: text(body.advisor_note) || 'Je garde ce dossier à jour pour vous donner une lecture claire de la vente et des prochaines étapes.',
-      } as never)
-      .select('id')
-      .single()
-
-    if (dossierError || !dossier) {
-      console.error('[POST /api/market/clients] dossier:', dossierError)
-      return NextResponse.json({ success: false, error: 'Erreur création dossier' }, { status: 500 })
+      const { dossier } = await ensureClientDossierForLead(opportunity.lead_id, opportunityId)
+      return NextResponse.json({ success: true, data: { id: dossier.id } })
     }
 
-    await Promise.all([
-      supabaseAdmin
-        .from('client_documents')
-        .insert((clientType === 'buyer' ? DEFAULT_BUYER_DOCUMENTS : DEFAULT_DOCUMENTS).map((document) => ({
-          dossier_id: dossier.id,
-          label: document.label,
-          category: document.category,
-          status: 'requested',
-        })) as never),
-      supabaseAdmin
-        .from('client_dossier_events')
-        .insert((clientType === 'buyer' ? DEFAULT_BUYER_EVENTS : DEFAULT_EVENTS).map((event) => ({
-          dossier_id: dossier.id,
-          type: 'milestone',
-          title: event.title,
-          description: event.description,
-          status: event.status,
-          visible_to_client: true,
-          created_by: 'admin',
-        })) as never),
-    ])
+    if (!buyerLeadId) {
+      return NextResponse.json({ success: false, error: 'Opportunité acquéreur signée requise' }, { status: 400 })
+    }
 
+    const { data: buyer, error } = await supabaseAdmin
+      .from('buyer_criteria')
+      .select('lead_id, stage')
+      .eq('lead_id', buyerLeadId)
+      .maybeSingle()
+
+    if (error) {
+      console.error('[POST /api/market/clients] buyer:', error)
+      return NextResponse.json({ success: false, error: 'Erreur lecture acquéreur' }, { status: 500 })
+    }
+    if (!buyer) {
+      return NextResponse.json({ success: false, error: 'Opportunité acquéreur introuvable' }, { status: 404 })
+    }
+    if (buyer.stage !== 'Mandat de recherche signé') {
+      return NextResponse.json({ success: false, error: 'Le mandat de recherche doit être signé avant création du client' }, { status: 409 })
+    }
+
+    const { dossier } = await ensureClientDossierForBuyer(buyerLeadId)
     return NextResponse.json({ success: true, data: { id: dossier.id } })
   } catch (err) {
     console.error('[POST /api/market/clients]', err)
-    return NextResponse.json({ success: false, error: 'Erreur création dossier client' }, { status: 500 })
+    if (err instanceof Error && err.message.toLowerCase().includes('email')) {
+      return NextResponse.json({ success: false, error: err.message }, { status: 409 })
+    }
+    return NextResponse.json({ success: false, error: 'Erreur création client' }, { status: 500 })
   }
 }
 
@@ -266,25 +215,4 @@ function asRecord(value: Json | null | undefined): Record<string, Json | undefin
 
 function text(value: unknown) {
   return typeof value === 'string' ? value.trim() : ''
-}
-
-function compactObject(value: Record<string, unknown>) {
-  return Object.fromEntries(Object.entries(value).map(([key, raw]) => {
-    if (typeof raw === 'string') {
-      const trimmed = raw.trim()
-      const numeric = new Set(['surface', 'surface_terrain', 'nb_pieces', 'prix_estime', 'fourchette_basse', 'fourchette_haute'])
-      if (numeric.has(key)) {
-        const parsed = Number(trimmed.replace(/\s/g, '').replace(',', '.'))
-        return [key, Number.isFinite(parsed) && trimmed !== '' ? parsed : null]
-      }
-      return [key, trimmed || null]
-    }
-    return [key, raw ?? null]
-  }).filter(([, value]) => value !== null && value !== ''))
-}
-
-function buildTitle(snapshot: Record<string, unknown>, clientType: 'seller' | 'buyer' = 'seller') {
-  const city = text(snapshot.commune)
-  if (clientType === 'buyer') return city ? `Recherche acquéreur - ${city}` : 'Recherche acquéreur'
-  return city ? `Projet de vente - ${city}` : 'Projet de vente'
 }

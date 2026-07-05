@@ -145,7 +145,7 @@ export default function EditAcquereurPage() {
         const res = await fetch(`/api/market/buyers/${leadId}`)
         if (!res.ok) {
           toast.error('Acquéreur non trouvé')
-          router.push('/app/acheteurs')
+          router.push('/app/opportunities?tab=acquereurs')
           return
         }
         const data = await res.json()
@@ -297,20 +297,21 @@ export default function EditAcquereurPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" asChild>
-            <Link href="/app/acheteurs">
+            <Link href="/app/opportunities?tab=acquereurs">
               <ChevronLeft className="h-4 w-4 mr-1" />
-              Retour
+              Retour aux acquéreurs
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              Modifier l'acquéreur
-            </h1>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight">Opportunité acquéreur</h1>
+              <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700">
+                Opportunité acquéreur
+              </Badge>
+              <Badge variant="outline">{form.stage}</Badge>
+            </div>
             <p className="text-sm text-muted-foreground mt-1">
               Lead ID: {leadId}
-              <Badge variant={form.active ? 'default' : 'secondary'} className="ml-2 text-[10px]">
-                {form.active ? 'Actif' : 'Inactif'}
-              </Badge>
             </p>
           </div>
         </div>
@@ -533,7 +534,7 @@ export default function EditAcquereurPage() {
         {/* Actions */}
         <div className="flex justify-end gap-2 mt-6">
           <Button variant="outline" asChild>
-            <Link href="/app/acheteurs">Annuler</Link>
+            <Link href="/app/opportunities?tab=acquereurs">Annuler</Link>
           </Button>
           <Button type="submit" disabled={saving}>
             {saving && <Loader2 className="h-4 w-4 animate-spin mr-1" />}

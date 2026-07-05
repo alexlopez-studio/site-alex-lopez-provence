@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Calendar,
@@ -10,9 +9,7 @@ import {
   Loader2,
   MapPin,
   Maximize2,
-  Plus,
   RefreshCw,
-  Search,
 } from 'lucide-react'
 import {
   closestCorners,
@@ -31,9 +28,7 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-
 import { CSS } from '@dnd-kit/utilities'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
 const BUYER_STAGES = [
@@ -67,6 +62,16 @@ interface BuyerCriteria {
   created_at: string
 }
 
+type DueFilter = 'all' | 'overdue' | 'today' | 'week' | 'no_due'
+type ActiveFilter = 'all' | 'active' | 'paused'
+
+type BuyerKanbanBoardProps = {
+  search: string
+  stageFilter: string
+  activeFilter: ActiveFilter
+  dueFilter: DueFilter
+}
+
 function formatPrice(price: number | null | undefined): string {
   if (!price) return 'Budget à qualifier'
   return new Intl.NumberFormat('fr-FR', {
@@ -83,6 +88,20 @@ function formatDate(dateStr: string) {
 function formatMatchedAt(dateStr: string | null) {
   if (!dateStr) return 'Matching non lancé'
   return `Matché le ${formatDate(dateStr)}`
+}
+
+function dueBucket(value: string | null | undefined): DueFilter | 'later' {
+  if (!value) return 'no_due'
+  const due = new Date(value)
+  if (Number.isNaN(due.getTime())) return 'no_due'
+  const today = new Date()
+  const dueDay = new Date(due.getFullYear(), due.getMonth(), due.getDate())
+  const todayDay = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  const diffDays = Math.round((dueDay.getTime() - todayDay.getTime()) / 86_400_000)
+  if (diffDays < 0) return 'overdue'
+  if (diffDays === 0) return 'today'
+  if (diffDays <= 7) return 'week'
+  return 'later'
 }
 
 function normalizeStage(stage: string | null | undefined) {
@@ -220,10 +239,9 @@ function BuyerCardOverlay({ buyer }: { buyer: BuyerCriteria }) {
   )
 }
 
-export function BuyerKanbanBoard() {
+export function BuyerKanbanBoard({ search, stageFilter, activeFilter, dueFilter }: BuyerKanbanBoardProps) {
   const [buyers, setBuyers] = useState<BuyerCriteria[]>([])
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
 
   const sensors = useSensors(
@@ -235,7 +253,6 @@ export function BuyerKanbanBoard() {
     setLoading(true)
     try {
       const params = new URLSearchParams({ active: 'all', limit: '200' })
-      if (search.trim()) params.set('search', search.trim())
       const res = await fetch(`/api/market/buyers?${params.toString()}`)
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Chargement impossible')
@@ -246,7 +263,7 @@ export function BuyerKanbanBoard() {
     } finally {
       setLoading(false)
     }
-  }, [search])
+  }, [])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -259,10 +276,29 @@ export function BuyerKanbanBoard() {
 
   const buyersByStage = useMemo(() => {
     return BUYER_STAGES.reduce<Record<string, BuyerCriteria[]>>((acc, stage) => {
-      acc[stage.id] = buyers.filter((buyer) => normalizeStage(buyer.stage) === stage.id)
+      acc[stage.id] = buyers.filter((buyer) => {
+        const matchesSearch = !search.trim() || [
+          buyer.type_bien,
+          buyer.stage,
+          buyer.next_action,
+          buyer.lead_id,
+          buyer.communes?.join(' '),
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+          .includes(search.trim().toLowerCase())
+        const matchesStage = stageFilter === 'all' || normalizeStage(buyer.stage) === stageFilter
+        const matchesActive =
+          activeFilter === 'all' ||
+          (activeFilter === 'active' && buyer.active) ||
+          (activeFilter === 'paused' && !buyer.active)
+        const matchesDue = dueFilter === 'all' || dueBucket(buyer.due_date) === dueFilter
+        return matchesSearch && matchesStage && matchesActive && matchesDue && normalizeStage(buyer.stage) === stage.id
+      })
       return acc
     }, {})
-  }, [buyers])
+  }, [activeFilter, buyers, dueFilter, search, stageFilter])
 
   function handleDragStart(event: DragStartEvent) {
     setActiveId(event.active.id)
@@ -316,24 +352,6 @@ export function BuyerKanbanBoard() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative w-full sm:max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Rechercher un acquéreur, une commune..."
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <Button asChild>
-          <Link href="/app/acheteurs/nouveau">
-            <Plus className="mr-1 h-4 w-4" />
-            Nouvel acquéreur
-          </Link>
-        </Button>
-      </div>
-
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
