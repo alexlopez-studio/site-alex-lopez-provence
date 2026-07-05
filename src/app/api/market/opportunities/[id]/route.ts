@@ -95,6 +95,19 @@ async function enrichOpportunity(opportunity: Database['public']['Tables']['oppo
     events = eventRows ?? []
   }
 
+  let estimationImports: Database['public']['Tables']['estimation_imports']['Row'][] = []
+  const { data: estimationImportRows, error: estimationImportError } = await supabaseAdmin
+    .from('estimation_imports')
+    .select('*')
+    .eq('opportunity_id', opportunity.id)
+    .order('created_at', { ascending: false })
+
+  if (estimationImportError) {
+    if (estimationImportError.code !== 'PGRST205' && estimationImportError.code !== '42P01') throw estimationImportError
+  } else {
+    estimationImports = estimationImportRows ?? []
+  }
+
   return {
     ...opportunity,
     property: propertyResponse.data
@@ -110,6 +123,7 @@ async function enrichOpportunity(opportunity: Database['public']['Tables']['oppo
       }
       : null,
     events,
+    estimation_imports: estimationImports,
   }
 }
 

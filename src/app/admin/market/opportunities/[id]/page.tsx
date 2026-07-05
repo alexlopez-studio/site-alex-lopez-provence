@@ -102,6 +102,27 @@ interface Opportunity {
   lead: LeadInfo | null
   property: PropertyInfo | null
   events: OpportunityEvent[]
+  estimation_imports: EstimationImport[]
+}
+
+interface EstimationImport {
+  id: string
+  kind: 'pre_estimation' | 'estimation'
+  source: string
+  contact_name: string | null
+  contact_email: string | null
+  contact_phone: string | null
+  property_address: string | null
+  property_city: string | null
+  price_low: number | null
+  price_high: number | null
+  price_m2: number | null
+  confidence: number | null
+  summary: string | null
+  payload: unknown
+  raw_filename: string | null
+  raw_format: string | null
+  created_at: string
 }
 
 interface LeadInfo {
@@ -472,6 +493,7 @@ export default function OpportunityDetailPage() {
   const [propertyDraft, setPropertyDraft] = useState<PropertyDraft>(EMPTY_PROPERTY_DRAFT)
   const [professionalDraft, setProfessionalDraft] = useState<ProfessionalDraft>(EMPTY_PROFESSIONAL_DRAFT)
   const [savingPreparation, setSavingPreparation] = useState(false)
+  const [viewingImport, setViewingImport] = useState<EstimationImport | null>(null)
 
   const [eventDialogOpen, setEventDialogOpen] = useState(false)
   const [eventDraft, setEventDraft] = useState<EventDraft>(emptyEventDraft('note'))
@@ -500,7 +522,11 @@ export default function OpportunityDetailPage() {
       const res = await fetch('/api/market/opportunities/' + id)
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Erreur API')
-      const loadedOpportunity = { ...data.opportunity, events: data.opportunity.events ?? [] } as Opportunity
+      const loadedOpportunity = {
+        ...data.opportunity,
+        events: data.opportunity.events ?? [],
+        estimation_imports: data.opportunity.estimation_imports ?? [],
+      } as Opportunity
       setOpportunity(loadedOpportunity)
       setPropertyDraft(propertyDraftFromOpportunity(loadedOpportunity))
       setProfessionalDraft(professionalDraftFromOpportunity(loadedOpportunity))
@@ -1031,6 +1057,37 @@ export default function OpportunityDetailPage() {
         </TabsContent>
 
         <TabsContent value="estimation">
+          <section className="mb-6 rounded-xl border bg-card p-5">
+            <div className="mb-4">
+              <h2 className="text-base font-semibold">Estimations reçues (Skill Claude)</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Pré-estimations et estimations importées automatiquement depuis la Skill Claude externe.</p>
+            </div>
+            {opportunity.estimation_imports.length === 0 ? (
+              <EmptyCardText>Aucune estimation importée pour cette opportunité.</EmptyCardText>
+            ) : (
+              <div className="space-y-3">
+                {opportunity.estimation_imports.map((item) => (
+                  <div key={item.id} className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Badge variant={item.kind === 'estimation' ? 'default' : 'outline'}>
+                          {item.kind === 'estimation' ? 'Estimation' : 'Pré-estimation'}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">{formatDateTime(item.created_at)}</span>
+                      </div>
+                      {item.summary && <p className="text-sm text-muted-foreground">{item.summary}</p>}
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <Metric label="Fourchette" value={`${formatPrice(item.price_low)} – ${formatPrice(item.price_high)}`} />
+                      <Metric label="Prix / m²" value={formatPrice(item.price_m2)} />
+                      <Button variant="outline" size="sm" onClick={() => setViewingImport(item)}>Voir le détail</Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
           <section className="rounded-xl border bg-card p-5">
             <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -1078,6 +1135,18 @@ export default function OpportunityDetailPage() {
         onDraftChange={setEventDraft}
         onSubmit={saveEvent}
       />
+
+      <Dialog open={Boolean(viewingImport)} onOpenChange={(open) => { if (!open) setViewingImport(null) }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Détail de l&apos;import</DialogTitle>
+            <DialogDescription>Donnée brute complète reçue depuis la Skill Claude.</DialogDescription>
+          </DialogHeader>
+          <pre className="max-h-[60vh] overflow-auto rounded-lg bg-muted/30 p-3 text-xs">
+            {viewingImport ? JSON.stringify(viewingImport.payload, null, 2) : ''}
+          </pre>
+        </DialogContent>
+      </Dialog>
 
       <LeadAttachDialog
         open={leadDialogOpen}

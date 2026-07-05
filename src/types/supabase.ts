@@ -1134,6 +1134,83 @@ export type Database = {
           },
         ]
       }
+      estimation_imports: {
+        Row: {
+          id: string
+          opportunity_id: string | null
+          kind: string
+          source: string
+          contact_name: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          property_address: string | null
+          property_city: string | null
+          property_type: string | null
+          property_surface: number | null
+          price_low: number | null
+          price_high: number | null
+          price_m2: number | null
+          confidence: number | null
+          summary: string | null
+          payload: Json
+          raw_filename: string | null
+          raw_format: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          opportunity_id?: string | null
+          kind: string
+          source?: string
+          contact_name?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          property_address?: string | null
+          property_city?: string | null
+          property_type?: string | null
+          property_surface?: number | null
+          price_low?: number | null
+          price_high?: number | null
+          price_m2?: number | null
+          confidence?: number | null
+          summary?: string | null
+          payload: Json
+          raw_filename?: string | null
+          raw_format?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          opportunity_id?: string | null
+          kind?: string
+          source?: string
+          contact_name?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          property_address?: string | null
+          property_city?: string | null
+          property_type?: string | null
+          property_surface?: number | null
+          price_low?: number | null
+          price_high?: number | null
+          price_m2?: number | null
+          confidence?: number | null
+          summary?: string | null
+          payload?: Json
+          raw_filename?: string | null
+          raw_format?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'estimation_imports_opportunity_id_fkey'
+            columns: ['opportunity_id']
+            isOneToOne: false
+            referencedRelation: 'opportunities'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       property_notes: {
         Row: {
           id: string
