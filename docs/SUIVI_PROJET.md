@@ -65,7 +65,7 @@ Note : les lots Linear ci-dessous sont historiques et ne refletent plus l'etat r
   une meme personne ; le bouton comble le cas du rattachement depuis une opp
   existante.
 
-### 06/07/2026 00:30 CEST - Portail client ouvrable des la remise de l'estimation
+### 06/07/2026 00:30 CEST - Portail client ouvrable des la visite d'estimation
 - Base/branche : `preview`, modifications locales non poussees.
 - Type : logique metier portail / gate stages / synchro.
 - Statut : **fait** (vendeur ; portail non re-architecture, pont pragmatique).
