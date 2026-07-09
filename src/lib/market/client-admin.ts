@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getCurrentAdmin } from '@/lib/auth'
+import { projectClientDossierFromOpportunity } from '@/lib/client-dossier-projection'
 import { supabaseAdmin } from '@/lib/supabase'
 import type { Database } from '@/types/supabase'
 
@@ -56,7 +57,7 @@ export async function loadAdminClientDossier(id: string): Promise<AdminClientDet
   ])
 
   return {
-    dossier: record,
+    dossier: projectClientDossierFromOpportunity(record, opportunity),
     lead,
     seller_property: sellerProperty,
     opportunity,

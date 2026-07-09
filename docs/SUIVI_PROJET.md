@@ -17,6 +17,79 @@ Decision : Codex reprend seul le developpement et le design pour le moment.
 
 Note : les lots Linear ci-dessous sont historiques et ne refletent plus l'etat reel du code. La memoire courante est dans `docs/MEMOIRE_SESSION.md`.
 
+### 09/07/2026 20:32 CEST - Lot 2 source unique : premiere resorption des ecritures concurrentes
+- Base/branche : `preview`, travail local non pousse.
+- Type : architecture API / source unique Affaire.
+- Statut : **fait** pour le premier correctif Lot 2.
+- Constat : l'ecriture concurrente restante sur bien/estimation etait
+  concentree dans `PATCH /api/market/clients/[id]`, capable d'ecrire directement
+  `client_dossiers.property_snapshot` et `professional_opinion`.
+- Travail :
+  1. Si le dossier client est rattache a une opportunite, les patches
+     `property_snapshot` / `professional_opinion` sont desormais fusionnes dans
+     `opportunities.property_snapshot` / `opportunities.professional_opinion`.
+  2. Le fallback sur `client_dossiers` est conserve pour les dossiers sans
+     opportunite, afin de ne pas casser les anciens dossiers ou demos isoles.
+  3. `docs/AFFAIRE_SOURCE_UNIQUE_LOTS.md` mis a jour avec ce premier correctif.
+- Fichiers principaux : `src/app/api/market/clients/[id]/route.ts`,
+  `docs/AFFAIRE_SOURCE_UNIQUE_LOTS.md`, `docs/SUIVI_PROJET.md`.
+- Verification : `npx tsc --noEmit` OK ;
+  `npx vitest run src/lib/__tests__/client-dossier-projection.test.ts src/app/api/market/clients/__tests__/route.test.ts`
+  OK (6/6) ; smoke HTTP local OK sur `/app/dashboard` et
+  `/espace-client/test` (200).
+- Prochain point de reprise : ajouter un test dedie au `PATCH
+  /api/market/clients/[id]` ou faire un smoke navigateur sur une vraie affaire
+  avec portail ouvert pour confirmer l'aller-retour UI.
+
+### 09/07/2026 20:30 CEST - Cadrage lots Affaire + Lot 1 projection vivante
+- Base/branche : `preview`, travail local non pousse.
+- Type : cadrage produit / architecture portail / source unique Affaire.
+- Statut : **fait** pour le cadrage et le premier incrément du Lot 1.
+- Travail :
+  1. Creation de `docs/AFFAIRE_SOURCE_UNIQUE_LOTS.md` avec le decoupage en
+     lots : cadrage, projection vivante, nettoyage ecritures concurrentes,
+     multi-projets client, experience Affaire unifiee, backfill/schema.
+  2. Alignement de `docs/SMQ_PROCESSUS_VENDEUR.md` avec la regle actuelle :
+     portail client ouvrable des la `Visite d'estimation`, auto-ouverture au
+     `Mandat signe` conservee comme filet de securite.
+  3. Ajout du helper pur `projectClientDossierFromOpportunity()` pour fusionner
+     la projection `client_dossiers` avec les donnees vivantes de
+     `opportunities` (`property_snapshot`, `professional_opinion`).
+  4. Branchement du helper dans `getCurrentClientDossier()` et
+     `loadAdminClientDossier()`, afin que le portail connecte et les previews
+     admin/test affichent les donnees d'opportunite quand elles existent.
+  5. Ajout du test unitaire `client-dossier-projection.test.ts`.
+- Fichiers principaux : `docs/AFFAIRE_SOURCE_UNIQUE_LOTS.md`,
+  `docs/SMQ_PROCESSUS_VENDEUR.md`, `src/lib/client-dossier-projection.ts`,
+  `src/lib/client-portal.ts`, `src/lib/market/client-admin.ts`,
+  `src/lib/__tests__/client-dossier-projection.test.ts`.
+- Verification : `npx vitest run src/lib/__tests__/client-dossier-projection.test.ts`
+  OK (2/2) ; `npx tsc --noEmit` OK ; smoke HTTP local OK sur
+  `http://localhost:3002/app/dashboard` et
+  `http://localhost:3002/espace-client/test` (200).
+- Prochain point de reprise : Lot 2, auditer et resorber les ecritures admin qui
+  peuvent encore modifier directement les champs bien/estimation de
+  `client_dossiers`.
+
+### 09/07/2026 16:03 CEST - Reprise de session Mandat OS
+- Base/branche : `preview`, alignee avec `origin/preview` sur `d7cf637`.
+- Type : reprise / verification environnement local.
+- Statut : **fait**.
+- Travail :
+  1. Lecture de `docs/MEMOIRE_SESSION.md`, `docs/START.md`,
+     `docs/BACKLOG.md` et `docs/SUIVI_PROJET.md`.
+  2. `git fetch --all --prune` execute ; aucune divergence locale/distance
+     sur `preview`.
+  3. Serveur Next local lance via `npm run dev -- --port 3002`.
+- Verification : `GET /app/dashboard` et `HEAD /app/dashboard` retournent
+  `200` sur `http://localhost:3002/app/dashboard`.
+- Point a verifier : le HTML de dev contient aussi un fragment Next `404`
+  interne/notFound ; a recontroler au navigateur si un ecran ou une ressource
+  manque visiblement.
+- Prochain point de reprise propose : poursuivre le chantier source unique
+  Affaire / portail client, notamment la bascule bien + estimation vers une
+  source vivante partagee.
+
 ### 05/07/2026 18:20 CEST - Lien bidirectionnel opportunite <-> dossier client
 - Base/branche : `preview`, modifications locales non poussees.
 - Type : navigation / continuite affaire / anti-perte de fil.

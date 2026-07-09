@@ -31,9 +31,13 @@ Les leads, contacts de liste chaude, estimations site et annonces importées son
    - `Décision vendeur` et `Suivi moyen terme` servent à distinguer l'opportunité chaude de la relance longue.
    - En cas de perte, le motif doit être renseigné ou une tâche qualité est créée.
 
-6. **P6 Mandat signé → dossier client**
-   - Le dossier client commence à `Mandat signé`.
-   - Les données pré-mandat déjà saisies sur l'opportunité alimentent le dossier client.
+6. **P6 Visite d'estimation → portail client**
+   - Le portail client peut etre ouvert des la `Visite d'estimation` pour
+     presenter le rapport et preparer la suite avec le vendeur.
+   - L'ouverture automatique au `Mandat signé` reste conservee comme filet de
+     securite.
+   - Les donnees pre-mandat deja saisies sur l'opportunite alimentent le
+     portail client.
    - Si l'opportunité a un lead avec email, le dossier client est préparé ou rattaché automatiquement.
    - Si le lead ou l'email manque, une tâche signale le complément nécessaire.
 
@@ -81,5 +85,5 @@ Les leads, contacts de liste chaude, estimations site et annonces importées son
 - Les sections `Bien & technique` et `Estimation` sont saisies sur l'opportunité avant mandat, pas dans un dossier client.
 - Les annonces agence sans contact sont en `Veille annonce`, pas dans les relances actives.
 - La création rapide reste possible, mais une recherche anti-doublon est demandée avant création.
-- Le dossier client ne démarre pas avant `Mandat signé`.
-- `/api/client/invite` refuse toute création d'espace client tant que l'opportunité liée n'est pas en `Mandat signé`.
+- Le portail client peut demarrer des la `Visite d'estimation`.
+- `/api/market/clients` refuse l'ouverture vendeur avant la `Visite d'estimation`.

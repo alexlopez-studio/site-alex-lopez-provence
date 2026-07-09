@@ -49,12 +49,41 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     for (const key of ['title', 'status', 'advisor_note']) {
       if (key in dossier) dossierPayload[key] = normalizeValue(dossier[key])
     }
-    if ('professional_opinion' in dossier) dossierPayload.professional_opinion = asRecord(dossier.professional_opinion)
 
-    if ('property_snapshot' in body) {
+    const propertySnapshotPatch = 'property_snapshot' in body ? asRecord(body.property_snapshot) : null
+    const professionalOpinionPatch = 'professional_opinion' in dossier ? asRecord(dossier.professional_opinion) : null
+
+    if ((propertySnapshotPatch || professionalOpinionPatch) && current.dossier.opportunity_id && current.opportunity) {
+      const opportunityPayload: Record<string, unknown> = {}
+      if (propertySnapshotPatch) {
+        opportunityPayload.property_snapshot = {
+          ...asRecord(current.opportunity.property_snapshot),
+          ...propertySnapshotPatch,
+        } as Json
+      }
+      if (professionalOpinionPatch) {
+        opportunityPayload.professional_opinion = {
+          ...asRecord(current.opportunity.professional_opinion),
+          ...professionalOpinionPatch,
+        } as Json
+      }
+
+      const { error } = await supabaseAdmin
+        .from('opportunities')
+        .update(opportunityPayload as never)
+        .eq('id', current.dossier.opportunity_id)
+      if (error) {
+        console.error('[PATCH /api/market/clients/[id]] opportunity projection:', error)
+        return NextResponse.json({ success: false, error: 'Erreur mise à jour affaire' }, { status: 500 })
+      }
+    } else if (professionalOpinionPatch) {
+      dossierPayload.professional_opinion = professionalOpinionPatch
+    }
+
+    if (propertySnapshotPatch && (!current.dossier.opportunity_id || !current.opportunity)) {
       dossierPayload.property_snapshot = {
         ...asRecord(current.dossier.property_snapshot),
-        ...asRecord(body.property_snapshot),
+        ...propertySnapshotPatch,
       } as Json
     }
 

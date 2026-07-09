@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { projectClientDossierFromOpportunity } from '@/lib/client-dossier-projection'
 import { supabaseAdmin } from '@/lib/supabase'
 import type { Database, Json } from '@/types/supabase'
 
@@ -299,7 +300,7 @@ export async function getCurrentClientDossier(
 
   return {
     profile,
-    dossier,
+    dossier: projectClientDossierFromOpportunity(dossier, opportunity),
     lead,
     sellerProperty,
     opportunity,
