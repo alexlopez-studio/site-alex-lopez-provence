@@ -416,10 +416,282 @@ function ValuationTab({ vm }: { vm: PortalViewModel }) {
           </section>
 
           <PriceTrendChart trend={vm.estimate.priceTrend} city={vm.summary.commune ?? 'secteur'} />
+
+          {vm.estimate.iadReport && <IadReportSections report={vm.estimate.iadReport} />}
         </div>
       )}
     </div>
   )
+}
+
+function IadReportSections({ report }: { report: PortalIadReport }) {
+  const cover = asRecord(report.cover)
+  const advisor = asRecord(report.advisor)
+  const situation = asRecord(report.situation)
+  const property = asRecord(report.property)
+  const market = asRecord(report.market)
+  const competition = asRecord(report.competition)
+  const comparables = asRecord(report.comparables)
+  const positioning = asRecord(report.positioning)
+  const conclusion = asRecord(report.conclusion)
+  const iadProof = asRecord(report.iad_proof)
+  const services = asRecord(report.services)
+
+  const cadastralRows = recordArray(situation.cadastral_rows)
+  const propertyStats = recordArray(property.stats)
+  const soldComparables = recordArray(comparables.sold)
+  const marketEvolution = recordArray(market.evolution)
+  const iadSold = recordArray(iadProof.sold_properties)
+  const clientReviews = recordArray(iadProof.client_reviews)
+
+  return (
+    <section className="space-y-5 rounded-3xl border border-border bg-white p-5 shadow-sm md:p-6">
+      <div>
+        <p className="portal-label text-primary">Rapport iad complet</p>
+        <h3 className="portal-h2 mt-1 text-foreground">{text(cover.title) ?? 'Avis de valeur'}</h3>
+        <p className="portal-body mt-1 text-muted-foreground">{text(cover.subtitle) ?? 'Rubriques détaillées du rapport conseiller.'}</p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <ReportInfo label="Destinataire" value={text(cover.recipient)} />
+        <ReportInfo label="Date" value={text(cover.date)} />
+        <ReportInfo label="Référence" value={text(cover.reference)} />
+        <ReportInfo label="Contexte" value={text(cover.context)} />
+        <ReportInfo label="Conseiller" value={text(advisor.name)} />
+        <ReportInfo label="Contact" value={[text(advisor.phone), text(advisor.email)].filter(Boolean).join(' · ')} />
+      </div>
+
+      <PortalReportBlock title="Plan de situation et informations cadastrales">
+        <div className="grid gap-3 md:grid-cols-2">
+          <ReportInfo label="Commune" value={text(situation.commune)} />
+          <ReportInfo label="Contenance totale" value={text(situation.cadastral_total)} />
+        </div>
+        {text(situation.plan_note) && <p className="portal-body text-muted-foreground">{text(situation.plan_note)}</p>}
+        {cadastralRows.length > 0 && (
+          <ReportTable
+            columns={['Section', 'Préfixe', 'Numéro', 'Superficie']}
+            rows={cadastralRows.map((row) => [text(row.section), text(row.prefixe), text(row.numero), text(row.superficie)])}
+          />
+        )}
+      </PortalReportBlock>
+
+      <PortalReportBlock title="Présentation du bien">
+        {text(property.title) && <p className="portal-h3 text-foreground">{text(property.title)}</p>}
+        {propertyStats.length > 0 && (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {propertyStats.map((stat, index) => (
+              <ReportInfo key={`${text(stat.label) ?? 'stat'}-${index}`} label={text(stat.label) ?? 'Caractéristique'} value={text(stat.value)} />
+            ))}
+          </div>
+        )}
+        <div className="grid gap-4 lg:grid-cols-2">
+          <ReportList title="Points forts" items={listValue(property.strengths)} />
+          <ReportList title="Points à défendre" items={listValue(property.objections)} />
+        </div>
+      </PortalReportBlock>
+
+      <PortalReportBlock title="Tendance du marché local">
+        {text(market.basis) && <p className="portal-body text-muted-foreground">{text(market.basis)}</p>}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <ReportInfo label="Prix/m² bas" value={formatOptionalCurrency(numberValue(market.price_per_sqm_low), '/m²')} />
+          <ReportInfo label="Prix/m² médian" value={formatOptionalCurrency(numberValue(market.price_per_sqm_median), '/m²')} />
+          <ReportInfo label="Prix/m² haut" value={formatOptionalCurrency(numberValue(market.price_per_sqm_high), '/m²')} />
+          <ReportInfo label="Filtre prix/m²" value={text(market.price_filter)} />
+          <ReportInfo label="Délai rapide" value={formatOptionalDays(numberValue(market.sale_delay_fast))} />
+          <ReportInfo label="Délai médian" value={formatOptionalDays(numberValue(market.sale_delay_median))} />
+          <ReportInfo label="Délai lent" value={formatOptionalDays(numberValue(market.sale_delay_slow))} />
+        </div>
+        {marketEvolution.length > 0 && (
+          <ReportTable
+            columns={['Période', 'Prix médian', 'Variation']}
+            rows={marketEvolution.map((row) => [text(row.period) ?? text(row.year), formatOptionalCurrency(numberValue(row.median) ?? numberValue(row.price), '/m²'), formatOptionalPercent(numberValue(row.change))])}
+          />
+        )}
+      </PortalReportBlock>
+
+      <PortalReportBlock title="Analyse de la concurrence">
+        <ReportList title="Critères de sélection" items={listValue(competition.criteria)} />
+        {text(competition.methodology) && <p className="portal-body text-muted-foreground">{text(competition.methodology)}</p>}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <ReportInfo label="Biens retenus" value={formatOptionalInteger(numberValue(competition.retained_count))} />
+          <ReportInfo label="Bien en vente" value={formatOptionalPrice(numberValue(competition.active_average_price))} />
+          <ReportInfo label="Bien en vente €/m²" value={formatOptionalCurrency(numberValue(competition.active_average_price_per_sqm), '/m²')} />
+          <ReportInfo label="Bien vendu" value={formatOptionalPrice(numberValue(competition.sold_average_price))} />
+          <ReportInfo label="Bien vendu €/m²" value={formatOptionalCurrency(numberValue(competition.sold_average_price_per_sqm), '/m²')} />
+        </div>
+      </PortalReportBlock>
+
+      <PortalReportBlock title="Comparables vendus">
+        {soldComparables.length > 0 && (
+          <ReportTable
+            columns={['Bien', 'Adresse', 'Prix', '€/m²', 'Statut']}
+            rows={soldComparables.map((row) => [
+              text(row.title) ?? text(row.label),
+              text(row.address) ?? text(row.location),
+              formatOptionalPrice(numberValue(row.price)),
+              formatOptionalCurrency(numberValue(row.price_per_sqm), '/m²'),
+              text(row.status) ?? text(row.date_label),
+            ])}
+          />
+        )}
+        <div className="grid gap-3 sm:grid-cols-3">
+          <ReportInfo label="Moyenne sélection" value={formatOptionalCurrency(numberValue(comparables.average_per_sqm), '/m²')} />
+          <ReportInfo label="Prix bas" value={formatOptionalCurrency(numberValue(comparables.low_per_sqm), '/m²')} />
+          <ReportInfo label="Prix haut" value={formatOptionalCurrency(numberValue(comparables.high_per_sqm), '/m²')} />
+        </div>
+      </PortalReportBlock>
+
+      <PortalReportBlock title="Positionnement de votre bien">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <ReportInfo label="Prix de référence" value={formatOptionalPrice(numberValue(positioning.reference_price))} />
+          <ReportInfo label="Prix de référence €/m²" value={formatOptionalCurrency(numberValue(positioning.reference_price_per_sqm), '/m²')} />
+          <ReportInfo label="Moins chers" value={formatOptionalPercent(numberValue(positioning.cheaper_percent))} />
+          <ReportInfo label="Plus grands" value={formatOptionalPercent(numberValue(positioning.larger_percent))} />
+          <ReportInfo label="Moins chers et plus grands" value={formatOptionalPercent(numberValue(positioning.cheaper_larger_percent))} />
+          <ReportInfo label="Moyenne concurrence" value={formatOptionalCurrency(numberValue(positioning.competition_average_per_sqm), '/m²')} />
+          <ReportInfo label="Fourchette basse" value={formatOptionalCurrency(numberValue(positioning.low_per_sqm), '/m²')} />
+          <ReportInfo label="Médiane" value={formatOptionalCurrency(numberValue(positioning.median_per_sqm), '/m²')} />
+          <ReportInfo label="Fourchette haute" value={formatOptionalCurrency(numberValue(positioning.high_per_sqm), '/m²')} />
+          <ReportInfo label="Rang" value={formatRank(positioning)} />
+          <ReportInfo label="10% moins chers" value={formatOptionalPrice(numberValue(positioning.threshold_low_price))} />
+          <ReportInfo label="Prix médian" value={formatOptionalPrice(numberValue(positioning.threshold_median_price))} />
+          <ReportInfo label="10% plus chers" value={formatOptionalPrice(numberValue(positioning.threshold_high_price))} />
+        </div>
+      </PortalReportBlock>
+
+      <PortalReportBlock title="Recommandations et conclusion">
+        <ReportList title="Mes recommandations" items={listValue(conclusion.recommendations)} />
+        {text(conclusion.text) && <p className="portal-body whitespace-pre-wrap text-muted-foreground">{text(conclusion.text)}</p>}
+        {text(conclusion.legal_notice) && (
+          <p className="portal-meta rounded-2xl border border-amber-100 bg-amber-50 p-4 text-amber-800">{text(conclusion.legal_notice)}</p>
+        )}
+      </PortalReportBlock>
+
+      <PortalReportBlock title="Preuves iad et services">
+        {iadSold.length > 0 && (
+          <ReportTable
+            columns={['Bien vendu iad', 'Adresse', 'Prix', '€/m²', 'Date']}
+            rows={iadSold.map((row) => [
+              text(row.title) ?? text(row.label),
+              text(row.address) ?? text(row.location),
+              formatOptionalPrice(numberValue(row.price)),
+              formatOptionalCurrency(numberValue(row.price_per_sqm), '/m²'),
+              text(row.date_label),
+            ])}
+          />
+        )}
+        {clientReviews.length > 0 && (
+          <div className="grid gap-3 md:grid-cols-2">
+            {clientReviews.slice(0, 6).map((review, index) => (
+              <div key={`${text(review.author) ?? 'avis'}-${index}`} className="rounded-2xl border border-border bg-background p-4">
+                <p className="portal-button-text text-foreground">{text(review.title) ?? 'Avis client'}</p>
+                <p className="portal-body mt-1 line-clamp-4 text-muted-foreground">{text(review.content)}</p>
+                <p className="portal-meta mt-2 text-primary">{[text(review.author), formatOptionalRating(numberValue(review.rating)), text(review.date)].filter(Boolean).join(' · ')}</p>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="grid gap-4 lg:grid-cols-2">
+          <ReportList title="Les + iad" items={listValue(services.advantages)} />
+          <ReportList title="Les services iad" items={listValue(services.services)} />
+        </div>
+      </PortalReportBlock>
+    </section>
+  )
+}
+
+function PortalReportBlock({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="space-y-4 rounded-2xl border border-border bg-background p-4">
+      <h4 className="portal-h3 border-b border-border pb-3 text-foreground">{title}</h4>
+      {children}
+    </section>
+  )
+}
+
+function ReportInfo({ label, value }: { label: string; value?: string | null }) {
+  return (
+    <div className="rounded-2xl border border-border bg-white p-4">
+      <p className="portal-label text-muted-foreground">{label}</p>
+      <p className="portal-body mt-1 font-extrabold text-foreground">{value || 'À compléter'}</p>
+    </div>
+  )
+}
+
+function ReportList({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div className="rounded-2xl border border-border bg-white p-4">
+      <p className="portal-label text-muted-foreground">{title}</p>
+      {items.length > 0 ? (
+        <ul className="mt-3 space-y-2 portal-body text-foreground">
+          {items.map((item) => (
+            <li key={item} className="flex gap-2">
+              <Check className="mt-1 size-4 shrink-0 text-primary" />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="portal-body mt-2 text-muted-foreground">À compléter</p>
+      )}
+    </div>
+  )
+}
+
+function ReportTable({ columns, rows }: { columns: string[]; rows: Array<Array<string | null | undefined>> }) {
+  return (
+    <div className="overflow-x-auto rounded-2xl border border-border bg-white">
+      <table className="w-full min-w-[680px] text-left text-sm">
+        <thead className="bg-background text-xs font-extrabold uppercase text-muted-foreground">
+          <tr>
+            {columns.map((column) => <th key={column} className="px-4 py-3">{column}</th>)}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border">
+          {rows.map((row, rowIndex) => (
+            <tr key={`row-${rowIndex}`}>
+              {row.map((cell, cellIndex) => <td key={`cell-${cellIndex}`} className="px-4 py-3 text-foreground">{cell || '—'}</td>)}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function recordArray(value: unknown) {
+  return Array.isArray(value) ? value.map(asRecord).filter((item) => Object.keys(item).length > 0) : []
+}
+
+function formatOptionalInteger(value: number | null) {
+  return value == null ? null : new Intl.NumberFormat('fr-FR').format(value)
+}
+
+function formatOptionalPrice(value: number | null) {
+  return value == null ? null : formatPrice(value)
+}
+
+function formatOptionalCurrency(value: number | null, suffix = '') {
+  return value == null ? null : `${new Intl.NumberFormat('fr-FR').format(value)} €${suffix}`
+}
+
+function formatOptionalDays(value: number | null) {
+  return value == null ? null : `${new Intl.NumberFormat('fr-FR').format(value)} jours`
+}
+
+function formatOptionalPercent(value: number | null) {
+  return value == null ? null : `${new Intl.NumberFormat('fr-FR').format(value)} %`
+}
+
+function formatOptionalRating(value: number | null) {
+  return value == null ? null : `${new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 }).format(value)}/5`
+}
+
+function formatRank(positioning: Record<string, unknown>) {
+  const rank = numberValue(positioning.rank)
+  const total = numberValue(positioning.rank_total)
+  if (rank == null) return null
+  return total == null ? String(rank) : `${rank}/${total}`
 }
 
 function PricePositionGauge({ low, selected, high }: { low: number; selected: number; high: number }) {
@@ -1696,6 +1968,7 @@ function EmptyState({ text }: { text: string }) {
 type PortalViewModel = ReturnType<typeof buildViewModel>
 type PortalEvent = PortalViewModel['visibleEvents'][number]
 type PortalComparable = PortalViewModel['estimate']['comparables'][number]
+type PortalIadReport = NonNullable<PortalViewModel['estimate']['iadReport']>
 
 const TEST_PRICE_TREND = [
   { year: '2021', price: 3120 },
@@ -1996,7 +2269,14 @@ function buildEstimate(data: ClientPortalDossier, mode: PortalMode) {
     arguments: listValue(opinion.arguments).length > 0 ? listValue(opinion.arguments) : fallbackArguments(data),
     comparables: comparableList(opinion.comparables, mode),
     priceTrend: priceTrendList(opinion.price_trend, mode),
+    iadReport: buildIadReport(opinion),
   }
+}
+
+function buildIadReport(opinion: Record<string, unknown>) {
+  const report = asRecord(opinion.iad_report)
+  if (Object.keys(report).length === 0) return null
+  return report
 }
 
 function buildAudience(data: ClientPortalDossier, mode: PortalMode) {

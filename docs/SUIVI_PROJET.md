@@ -17,6 +17,30 @@ Decision : Codex reprend seul le developpement et le design pour le moment.
 
 Note : les lots Linear ci-dessous sont historiques et ne refletent plus l'etat reel du code. La memoire courante est dans `docs/MEMOIRE_SESSION.md`.
 
+### 11/07/2026 00:17 CEST - Avis de valeur iad/Yanport : reprise exhaustive des rubriques PDF
+- Base/branche : `preview`, alignee avec `origin/preview` au depart ; travail local non pousse.
+- Type : fonctionnalite produit / avis de valeur / portail client.
+- Statut : **fait** pour la structure applicative complete et la retranscription Verger dans l'app ; portail client en attente d'email client.
+- Source analysee : `/Users/AlexandreLopez/Downloads/Votre estimation Alain et Yvette VERGER.pdf` (12 pages).
+- Travail :
+  1. Extraction du PDF et inventaire des rubriques : couverture, plan de situation, informations cadastrales, presentation du bien, points forts, points a defendre, tendance du marche local, analyse de la concurrence, methodologie iad, comparables vendus, positionnement du bien, recommandations/conclusion, nos biens vendus, avis clients, les + iad, services iad.
+  2. Extension de l'onglet `Estimation` de `/app/opportunities/[id]` avec un editeur `Avis de valeur complet iad` couvrant toutes ces rubriques, stockees dans `opportunities.professional_opinion.iad_report`.
+  3. Conservation des champs existants `price`, `price_low`, `price_high`, `summary`, `arguments`, `comparables` pour compatibilite avec le portail actuel et la source unique Affaire.
+  4. Ajout du rendu portail client des rubriques completes quand `iad_report` est renseigne : blocs plan/cadastre, presentation, marche, concurrence, comparables, positionnement, conclusion, preuves iad et services.
+  5. Creation/renseignement de l'affaire Verger dans Supabase via l'API locale : `116b26d6-c024-43d5-ab0b-2dcd2032b9a1`, titre `Alain et Yvette Verger - maison Marseille 11e`, stade `Remise de l'estimation`, avis iad complet renseigne.
+- Fichiers principaux : `src/app/admin/market/opportunities/[id]/page.tsx`, `src/app/espace-client/portal-view.tsx`, `docs/SUIVI_PROJET.md`.
+- Verification :
+  - Extraction PDF via `pypdf`/`pdfplumber` apres installation utilisateur des dependances Python.
+  - Controle d'exhaustivite : toutes les rubriques ci-dessus sont retrouvees dans le PDF et ont une correspondance dans le modele app.
+  - `npx tsc --noEmit` OK.
+  - `npm run lint` OK avec warnings historiques/non bloquants.
+  - `npm run build` OK avec warnings historiques/non bloquants.
+  - Audit Playwright desktop/mobile sur `/app/opportunities/4958c8c2-46b0-411e-adfb-1fa04985ef11`, onglet `Estimation` : 10 sections visibles, aucun debordement horizontal detecte.
+  - Verification API sur l'affaire Verger : `iad_report` present, 11 sections stockees, 6 comparables vendus, 9 biens vendus iad, 6 avis clients, 2 lignes cadastrales.
+  - Verification Playwright sur `/app/opportunities/116b26d6-c024-43d5-ab0b-2dcd2032b9a1`, onglet `Estimation` : valeurs Verger presentes dans les inputs/textareas, aucun debordement horizontal desktop.
+- Point d'attention : la creation du portail client Verger echoue correctement avec `Ce lead ne contient pas d’email client`, car le PDF ne fournit pas d'email Verger. Ajouter un email client permettra d'ouvrir le portail.
+- Suite : renseigner l'email client Verger, ouvrir le portail client, puis verifier le rendu public des rubriques `iad_report`.
+
 ### 10/07/2026 15:19 CEST - Lot Affaire : cockpit mandat et portail client integre
 - Base/branche : `preview`, alignee avec `origin/preview` au depart ; travail local non pousse.
 - Type : fonctionnalite produit / opportunites / mandats / portail client.

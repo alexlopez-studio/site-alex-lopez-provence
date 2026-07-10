@@ -224,6 +224,63 @@ interface ProfessionalDraft {
   summary: string
   arguments: string
   comparables_json: string
+  report_title: string
+  report_subtitle: string
+  report_date: string
+  report_reference: string
+  report_recipient: string
+  report_context: string
+  advisor_name: string
+  advisor_phone: string
+  advisor_email: string
+  situation_commune: string
+  situation_plan_note: string
+  cadastral_rows_json: string
+  cadastral_total: string
+  property_presentation_title: string
+  property_stats_json: string
+  strengths: string
+  objections: string
+  market_basis: string
+  market_price_per_sqm_low: string
+  market_price_per_sqm_median: string
+  market_price_per_sqm_high: string
+  market_price_filter: string
+  market_evolution_json: string
+  sale_delay_fast: string
+  sale_delay_median: string
+  sale_delay_slow: string
+  competition_criteria: string
+  competition_methodology: string
+  competition_retained_count: string
+  active_average_price: string
+  active_average_price_per_sqm: string
+  sold_average_price: string
+  sold_average_price_per_sqm: string
+  comparables_summary_average_per_sqm: string
+  comparables_summary_low_per_sqm: string
+  comparables_summary_high_per_sqm: string
+  positioning_reference_price: string
+  positioning_reference_price_per_sqm: string
+  positioning_cheaper_percent: string
+  positioning_larger_percent: string
+  positioning_cheaper_larger_percent: string
+  positioning_competition_average_per_sqm: string
+  positioning_low_per_sqm: string
+  positioning_median_per_sqm: string
+  positioning_high_per_sqm: string
+  positioning_rank: string
+  positioning_rank_total: string
+  positioning_threshold_low_price: string
+  positioning_threshold_median_price: string
+  positioning_threshold_high_price: string
+  recommendations: string
+  conclusion_text: string
+  legal_notice: string
+  iad_sold_properties_json: string
+  client_reviews_json: string
+  iad_advantages: string
+  iad_services: string
 }
 
 interface MandateReadinessItem {
@@ -298,6 +355,63 @@ const EMPTY_PROFESSIONAL_DRAFT: ProfessionalDraft = {
   summary: '',
   arguments: '',
   comparables_json: '[]',
+  report_title: '',
+  report_subtitle: '',
+  report_date: '',
+  report_reference: '',
+  report_recipient: '',
+  report_context: '',
+  advisor_name: '',
+  advisor_phone: '',
+  advisor_email: '',
+  situation_commune: '',
+  situation_plan_note: '',
+  cadastral_rows_json: '[]',
+  cadastral_total: '',
+  property_presentation_title: '',
+  property_stats_json: '[]',
+  strengths: '',
+  objections: '',
+  market_basis: '',
+  market_price_per_sqm_low: '',
+  market_price_per_sqm_median: '',
+  market_price_per_sqm_high: '',
+  market_price_filter: '',
+  market_evolution_json: '[]',
+  sale_delay_fast: '',
+  sale_delay_median: '',
+  sale_delay_slow: '',
+  competition_criteria: '',
+  competition_methodology: '',
+  competition_retained_count: '',
+  active_average_price: '',
+  active_average_price_per_sqm: '',
+  sold_average_price: '',
+  sold_average_price_per_sqm: '',
+  comparables_summary_average_per_sqm: '',
+  comparables_summary_low_per_sqm: '',
+  comparables_summary_high_per_sqm: '',
+  positioning_reference_price: '',
+  positioning_reference_price_per_sqm: '',
+  positioning_cheaper_percent: '',
+  positioning_larger_percent: '',
+  positioning_cheaper_larger_percent: '',
+  positioning_competition_average_per_sqm: '',
+  positioning_low_per_sqm: '',
+  positioning_median_per_sqm: '',
+  positioning_high_per_sqm: '',
+  positioning_rank: '',
+  positioning_rank_total: '',
+  positioning_threshold_low_price: '',
+  positioning_threshold_median_price: '',
+  positioning_threshold_high_price: '',
+  recommendations: '',
+  conclusion_text: '',
+  legal_notice: '',
+  iad_sold_properties_json: '[]',
+  client_reviews_json: '[]',
+  iad_advantages: '',
+  iad_services: '',
 }
 
 function emptyEventDraft(type: OpportunityEventType): EventDraft {
@@ -377,6 +491,12 @@ function stringify(value: unknown) {
   return String(value)
 }
 
+function listValue(value: unknown) {
+  if (Array.isArray(value)) return value.map(stringify).filter(Boolean)
+  if (typeof value === 'string' && value.trim()) return value.split('\n').map((line) => line.trim()).filter(Boolean)
+  return []
+}
+
 function nullableNumber(value: string) {
   const parsed = Number(value.replace(/\s/g, '').replace(',', '.'))
   return Number.isFinite(parsed) && value.trim() !== '' ? parsed : null
@@ -391,6 +511,23 @@ function parseComparables(value: string) {
     toast.error('JSON comparables invalide, les comparables ne sont pas sauvegardés')
     return []
   }
+}
+
+function parseJsonArray(value: string, label: string) {
+  if (!value.trim()) return []
+  try {
+    const parsed = JSON.parse(value)
+    if (Array.isArray(parsed)) return parsed
+    toast.error(`${label} doit être un tableau JSON`)
+    return []
+  } catch {
+    toast.error(`${label} JSON invalide`)
+    return []
+  }
+}
+
+function jsonArrayString(value: unknown) {
+  return JSON.stringify(Array.isArray(value) ? value : [], null, 2)
 }
 
 function propertyDraftFromOpportunity(opportunity: Opportunity): PropertyDraft {
@@ -415,6 +552,18 @@ function propertyDraftFromOpportunity(opportunity: Opportunity): PropertyDraft {
 
 function professionalDraftFromOpportunity(opportunity: Opportunity): ProfessionalDraft {
   const opinion = asRecord(opportunity.professional_opinion)
+  const report = asRecord(opinion.iad_report)
+  const cover = asRecord(report.cover)
+  const advisor = asRecord(report.advisor)
+  const situation = asRecord(report.situation)
+  const property = asRecord(report.property)
+  const market = asRecord(report.market)
+  const competition = asRecord(report.competition)
+  const comparables = asRecord(report.comparables)
+  const positioning = asRecord(report.positioning)
+  const conclusion = asRecord(report.conclusion)
+  const iadProof = asRecord(report.iad_proof)
+  const services = asRecord(report.services)
   return {
     price: stringify(opinion.price ?? opinion.price_suggested ?? opportunity.estimated_price_min),
     price_low: stringify(opinion.price_low ?? opportunity.estimated_price_min),
@@ -422,6 +571,63 @@ function professionalDraftFromOpportunity(opportunity: Opportunity): Professiona
     summary: stringify(opinion.summary),
     arguments: Array.isArray(opinion.arguments) ? opinion.arguments.map(stringify).filter(Boolean).join('\n') : stringify(opinion.arguments),
     comparables_json: JSON.stringify(Array.isArray(opinion.comparables) ? opinion.comparables : [], null, 2),
+    report_title: stringify(cover.title),
+    report_subtitle: stringify(cover.subtitle),
+    report_date: stringify(cover.date),
+    report_reference: stringify(cover.reference),
+    report_recipient: stringify(cover.recipient),
+    report_context: stringify(cover.context),
+    advisor_name: stringify(advisor.name),
+    advisor_phone: stringify(advisor.phone),
+    advisor_email: stringify(advisor.email),
+    situation_commune: stringify(situation.commune),
+    situation_plan_note: stringify(situation.plan_note),
+    cadastral_rows_json: jsonArrayString(situation.cadastral_rows),
+    cadastral_total: stringify(situation.cadastral_total),
+    property_presentation_title: stringify(property.title),
+    property_stats_json: jsonArrayString(property.stats),
+    strengths: listValue(property.strengths).join('\n'),
+    objections: listValue(property.objections).join('\n'),
+    market_basis: stringify(market.basis),
+    market_price_per_sqm_low: stringify(market.price_per_sqm_low),
+    market_price_per_sqm_median: stringify(market.price_per_sqm_median),
+    market_price_per_sqm_high: stringify(market.price_per_sqm_high),
+    market_price_filter: stringify(market.price_filter),
+    market_evolution_json: jsonArrayString(market.evolution),
+    sale_delay_fast: stringify(market.sale_delay_fast),
+    sale_delay_median: stringify(market.sale_delay_median),
+    sale_delay_slow: stringify(market.sale_delay_slow),
+    competition_criteria: listValue(competition.criteria).join('\n'),
+    competition_methodology: stringify(competition.methodology),
+    competition_retained_count: stringify(competition.retained_count),
+    active_average_price: stringify(competition.active_average_price),
+    active_average_price_per_sqm: stringify(competition.active_average_price_per_sqm),
+    sold_average_price: stringify(competition.sold_average_price),
+    sold_average_price_per_sqm: stringify(competition.sold_average_price_per_sqm),
+    comparables_summary_average_per_sqm: stringify(comparables.average_per_sqm),
+    comparables_summary_low_per_sqm: stringify(comparables.low_per_sqm),
+    comparables_summary_high_per_sqm: stringify(comparables.high_per_sqm),
+    positioning_reference_price: stringify(positioning.reference_price),
+    positioning_reference_price_per_sqm: stringify(positioning.reference_price_per_sqm),
+    positioning_cheaper_percent: stringify(positioning.cheaper_percent),
+    positioning_larger_percent: stringify(positioning.larger_percent),
+    positioning_cheaper_larger_percent: stringify(positioning.cheaper_larger_percent),
+    positioning_competition_average_per_sqm: stringify(positioning.competition_average_per_sqm),
+    positioning_low_per_sqm: stringify(positioning.low_per_sqm),
+    positioning_median_per_sqm: stringify(positioning.median_per_sqm),
+    positioning_high_per_sqm: stringify(positioning.high_per_sqm),
+    positioning_rank: stringify(positioning.rank),
+    positioning_rank_total: stringify(positioning.rank_total),
+    positioning_threshold_low_price: stringify(positioning.threshold_low_price),
+    positioning_threshold_median_price: stringify(positioning.threshold_median_price),
+    positioning_threshold_high_price: stringify(positioning.threshold_high_price),
+    recommendations: listValue(conclusion.recommendations).join('\n'),
+    conclusion_text: stringify(conclusion.text),
+    legal_notice: stringify(conclusion.legal_notice),
+    iad_sold_properties_json: jsonArrayString(iadProof.sold_properties),
+    client_reviews_json: jsonArrayString(iadProof.client_reviews),
+    iad_advantages: listValue(services.advantages).join('\n'),
+    iad_services: listValue(services.services).join('\n'),
   }
 }
 
@@ -445,14 +651,99 @@ function normalizePropertyDraft(draft: PropertyDraft) {
 }
 
 function normalizeProfessionalDraft(draft: ProfessionalDraft) {
+  const comparables = parseComparables(draft.comparables_json)
+  const argumentsList = draft.arguments.split('\n').map((line) => line.trim()).filter(Boolean)
+  const recommendations = draft.recommendations.split('\n').map((line) => line.trim()).filter(Boolean)
   return {
     price: nullableNumber(draft.price),
     price_suggested: nullableNumber(draft.price),
     price_low: nullableNumber(draft.price_low),
     price_high: nullableNumber(draft.price_high),
     summary: draft.summary.trim() || null,
-    arguments: draft.arguments.split('\n').map((line) => line.trim()).filter(Boolean),
-    comparables: parseComparables(draft.comparables_json),
+    arguments: argumentsList,
+    comparables,
+    iad_report: {
+      cover: {
+        title: draft.report_title.trim() || null,
+        subtitle: draft.report_subtitle.trim() || null,
+        date: draft.report_date.trim() || null,
+        reference: draft.report_reference.trim() || null,
+        recipient: draft.report_recipient.trim() || null,
+        context: draft.report_context.trim() || null,
+      },
+      advisor: {
+        name: draft.advisor_name.trim() || null,
+        phone: draft.advisor_phone.trim() || null,
+        email: draft.advisor_email.trim() || null,
+      },
+      situation: {
+        commune: draft.situation_commune.trim() || null,
+        plan_note: draft.situation_plan_note.trim() || null,
+        cadastral_rows: parseJsonArray(draft.cadastral_rows_json, 'Informations cadastrales'),
+        cadastral_total: draft.cadastral_total.trim() || null,
+      },
+      property: {
+        title: draft.property_presentation_title.trim() || null,
+        stats: parseJsonArray(draft.property_stats_json, 'Caractéristiques du bien'),
+        strengths: draft.strengths.split('\n').map((line) => line.trim()).filter(Boolean),
+        objections: draft.objections.split('\n').map((line) => line.trim()).filter(Boolean),
+      },
+      market: {
+        basis: draft.market_basis.trim() || null,
+        price_per_sqm_low: nullableNumber(draft.market_price_per_sqm_low),
+        price_per_sqm_median: nullableNumber(draft.market_price_per_sqm_median),
+        price_per_sqm_high: nullableNumber(draft.market_price_per_sqm_high),
+        price_filter: draft.market_price_filter.trim() || null,
+        evolution: parseJsonArray(draft.market_evolution_json, 'Évolution du marché'),
+        sale_delay_fast: nullableNumber(draft.sale_delay_fast),
+        sale_delay_median: nullableNumber(draft.sale_delay_median),
+        sale_delay_slow: nullableNumber(draft.sale_delay_slow),
+      },
+      competition: {
+        criteria: draft.competition_criteria.split('\n').map((line) => line.trim()).filter(Boolean),
+        methodology: draft.competition_methodology.trim() || null,
+        retained_count: nullableNumber(draft.competition_retained_count),
+        active_average_price: nullableNumber(draft.active_average_price),
+        active_average_price_per_sqm: nullableNumber(draft.active_average_price_per_sqm),
+        sold_average_price: nullableNumber(draft.sold_average_price),
+        sold_average_price_per_sqm: nullableNumber(draft.sold_average_price_per_sqm),
+      },
+      comparables: {
+        sold: comparables,
+        average_per_sqm: nullableNumber(draft.comparables_summary_average_per_sqm),
+        low_per_sqm: nullableNumber(draft.comparables_summary_low_per_sqm),
+        high_per_sqm: nullableNumber(draft.comparables_summary_high_per_sqm),
+      },
+      positioning: {
+        reference_price: nullableNumber(draft.positioning_reference_price),
+        reference_price_per_sqm: nullableNumber(draft.positioning_reference_price_per_sqm),
+        cheaper_percent: nullableNumber(draft.positioning_cheaper_percent),
+        larger_percent: nullableNumber(draft.positioning_larger_percent),
+        cheaper_larger_percent: nullableNumber(draft.positioning_cheaper_larger_percent),
+        competition_average_per_sqm: nullableNumber(draft.positioning_competition_average_per_sqm),
+        low_per_sqm: nullableNumber(draft.positioning_low_per_sqm),
+        median_per_sqm: nullableNumber(draft.positioning_median_per_sqm),
+        high_per_sqm: nullableNumber(draft.positioning_high_per_sqm),
+        rank: nullableNumber(draft.positioning_rank),
+        rank_total: nullableNumber(draft.positioning_rank_total),
+        threshold_low_price: nullableNumber(draft.positioning_threshold_low_price),
+        threshold_median_price: nullableNumber(draft.positioning_threshold_median_price),
+        threshold_high_price: nullableNumber(draft.positioning_threshold_high_price),
+      },
+      conclusion: {
+        recommendations,
+        text: draft.conclusion_text.trim() || null,
+        legal_notice: draft.legal_notice.trim() || null,
+      },
+      iad_proof: {
+        sold_properties: parseJsonArray(draft.iad_sold_properties_json, 'Nos biens vendus'),
+        client_reviews: parseJsonArray(draft.client_reviews_json, 'Avis clients'),
+      },
+      services: {
+        advantages: draft.iad_advantages.split('\n').map((line) => line.trim()).filter(Boolean),
+        services: draft.iad_services.split('\n').map((line) => line.trim()).filter(Boolean),
+      },
+    },
   }
 }
 
@@ -1234,10 +1525,7 @@ export default function OpportunityDetailPage() {
               <DraftArea label="Arguments de valeur" value={professionalDraft.arguments} onChange={(value) => setProfessionalDraft((draft) => ({ ...draft, arguments: value }))} rows={5} />
             </div>
 
-            <label className="mt-4 block space-y-1">
-              <span className="text-xs font-medium text-muted-foreground">Comparables JSON</span>
-              <Textarea value={professionalDraft.comparables_json} onChange={(e) => setProfessionalDraft((draft) => ({ ...draft, comparables_json: e.target.value }))} rows={8} className="font-mono text-xs" />
-            </label>
+            <ValuationReportEditor draft={professionalDraft} setDraft={setProfessionalDraft} />
           </section>
         </TabsContent>
 
@@ -1373,6 +1661,200 @@ function DraftArea({
     <label className="space-y-1">
       <span className="text-xs font-medium text-muted-foreground">{label}</span>
       <Textarea value={value} onChange={(event) => onChange(event.target.value)} rows={rows} />
+    </label>
+  )
+}
+
+function ValuationReportEditor({
+  draft,
+  setDraft,
+}: {
+  draft: ProfessionalDraft
+  setDraft: React.Dispatch<React.SetStateAction<ProfessionalDraft>>
+}) {
+  const set = (key: keyof ProfessionalDraft, value: string) => setDraft((current) => ({ ...current, [key]: value }))
+
+  return (
+    <div className="mt-6 space-y-4">
+      <div className="rounded-xl border bg-muted/20 p-4">
+        <h3 className="text-sm font-semibold">Avis de valeur complet iad</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Rubriques reprises du PDF : couverture, situation, présentation, marché, concurrence, comparables, positionnement, conclusion, preuves iad et services.
+        </p>
+      </div>
+
+      <ReportSection title="1. Couverture et destinataire">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <DraftField label="Titre du rapport" value={draft.report_title} onChange={(value) => set('report_title', value)} />
+          <DraftField label="Sous-titre / bien" value={draft.report_subtitle} onChange={(value) => set('report_subtitle', value)} />
+          <DraftField label="Date du rapport" value={draft.report_date} onChange={(value) => set('report_date', value)} />
+          <DraftField label="Référence" value={draft.report_reference} onChange={(value) => set('report_reference', value)} />
+          <DraftField label="Destinataire" value={draft.report_recipient} onChange={(value) => set('report_recipient', value)} />
+          <DraftField label="Contexte" value={draft.report_context} onChange={(value) => set('report_context', value)} />
+          <DraftField label="Conseiller" value={draft.advisor_name} onChange={(value) => set('advisor_name', value)} />
+          <DraftField label="Téléphone conseiller" value={draft.advisor_phone} onChange={(value) => set('advisor_phone', value)} />
+          <DraftField label="Email conseiller" value={draft.advisor_email} onChange={(value) => set('advisor_email', value)} />
+        </div>
+      </ReportSection>
+
+      <ReportSection title="2. Plan de situation et cadastre">
+        <div className="grid gap-4 md:grid-cols-2">
+          <DraftField label="Commune" value={draft.situation_commune} onChange={(value) => set('situation_commune', value)} />
+          <DraftField label="Contenance totale" value={draft.cadastral_total} onChange={(value) => set('cadastral_total', value)} />
+        </div>
+        <DraftArea label="Note plan / vue aérienne" value={draft.situation_plan_note} onChange={(value) => set('situation_plan_note', value)} rows={3} />
+        <DraftJsonArea
+          label="Informations cadastrales JSON"
+          value={draft.cadastral_rows_json}
+          onChange={(value) => set('cadastral_rows_json', value)}
+          placeholder={'[\n  { "section": "D", "prefixe": "865", "numero": "111", "superficie": "276 m²" }\n]'}
+        />
+      </ReportSection>
+
+      <ReportSection title="3. Présentation du bien">
+        <DraftField label="Titre de présentation" value={draft.property_presentation_title} onChange={(value) => set('property_presentation_title', value)} />
+        <DraftJsonArea
+          label="Caractéristiques clés JSON"
+          value={draft.property_stats_json}
+          onChange={(value) => set('property_stats_json', value)}
+          placeholder={'[\n  { "label": "Surface", "value": "125 m²" },\n  { "label": "Pièces", "value": "5" }\n]'}
+        />
+        <div className="grid gap-4 lg:grid-cols-2">
+          <DraftArea label="Points forts" value={draft.strengths} onChange={(value) => set('strengths', value)} rows={5} />
+          <DraftArea label="Points à défendre" value={draft.objections} onChange={(value) => set('objections', value)} rows={5} />
+        </div>
+      </ReportSection>
+
+      <ReportSection title="4. Tendance du marché local">
+        <DraftArea label="Base de l’étude" value={draft.market_basis} onChange={(value) => set('market_basis', value)} rows={3} />
+        <div className="grid gap-4 md:grid-cols-3">
+          <DraftField label="Prix/m² bas" type="number" value={draft.market_price_per_sqm_low} onChange={(value) => set('market_price_per_sqm_low', value)} />
+          <DraftField label="Prix/m² médian" type="number" value={draft.market_price_per_sqm_median} onChange={(value) => set('market_price_per_sqm_median', value)} />
+          <DraftField label="Prix/m² haut" type="number" value={draft.market_price_per_sqm_high} onChange={(value) => set('market_price_per_sqm_high', value)} />
+          <DraftField label="Filtre prix/m²" value={draft.market_price_filter} onChange={(value) => set('market_price_filter', value)} />
+          <DraftField label="Délai rapide (jours)" type="number" value={draft.sale_delay_fast} onChange={(value) => set('sale_delay_fast', value)} />
+          <DraftField label="Délai médian (jours)" type="number" value={draft.sale_delay_median} onChange={(value) => set('sale_delay_median', value)} />
+          <DraftField label="Délai lent (jours)" type="number" value={draft.sale_delay_slow} onChange={(value) => set('sale_delay_slow', value)} />
+        </div>
+        <DraftJsonArea
+          label="Évolution des prix JSON"
+          value={draft.market_evolution_json}
+          onChange={(value) => set('market_evolution_json', value)}
+          placeholder={'[\n  { "period": "T2 2026", "median": 4143, "change": 3.51 }\n]'}
+        />
+      </ReportSection>
+
+      <ReportSection title="5. Analyse de la concurrence">
+        <DraftArea label="Critères de sélection" value={draft.competition_criteria} onChange={(value) => set('competition_criteria', value)} rows={4} />
+        <DraftArea label="Méthodologie iad" value={draft.competition_methodology} onChange={(value) => set('competition_methodology', value)} rows={6} />
+        <div className="grid gap-4 md:grid-cols-3">
+          <DraftField label="Biens retenus" type="number" value={draft.competition_retained_count} onChange={(value) => set('competition_retained_count', value)} />
+          <DraftField label="Bien en vente moyen" type="number" value={draft.active_average_price} onChange={(value) => set('active_average_price', value)} />
+          <DraftField label="Bien en vente €/m²" type="number" value={draft.active_average_price_per_sqm} onChange={(value) => set('active_average_price_per_sqm', value)} />
+          <DraftField label="Bien vendu moyen" type="number" value={draft.sold_average_price} onChange={(value) => set('sold_average_price', value)} />
+          <DraftField label="Bien vendu €/m²" type="number" value={draft.sold_average_price_per_sqm} onChange={(value) => set('sold_average_price_per_sqm', value)} />
+        </div>
+      </ReportSection>
+
+      <ReportSection title="6. Comparables vendus">
+        <DraftJsonArea
+          label="Comparables vendus JSON"
+          value={draft.comparables_json}
+          onChange={(value) => set('comparables_json', value)}
+          rows={10}
+          placeholder={'[\n  { "title": "Maison 7 p. 121 m²", "price": 431600, "price_per_sqm": 3567, "address": "4 Vallon des Eaux Vives", "status": "Vendu", "date_label": "il y a 10 mois" }\n]'}
+        />
+        <div className="grid gap-4 md:grid-cols-3">
+          <DraftField label="Moyenne sélection €/m²" type="number" value={draft.comparables_summary_average_per_sqm} onChange={(value) => set('comparables_summary_average_per_sqm', value)} />
+          <DraftField label="Prix bas €/m²" type="number" value={draft.comparables_summary_low_per_sqm} onChange={(value) => set('comparables_summary_low_per_sqm', value)} />
+          <DraftField label="Prix haut €/m²" type="number" value={draft.comparables_summary_high_per_sqm} onChange={(value) => set('comparables_summary_high_per_sqm', value)} />
+        </div>
+      </ReportSection>
+
+      <ReportSection title="7. Positionnement de votre bien">
+        <div className="grid gap-4 md:grid-cols-3">
+          <DraftField label="Prix de référence" type="number" value={draft.positioning_reference_price} onChange={(value) => set('positioning_reference_price', value)} />
+          <DraftField label="Prix de référence €/m²" type="number" value={draft.positioning_reference_price_per_sqm} onChange={(value) => set('positioning_reference_price_per_sqm', value)} />
+          <DraftField label="% moins chers" type="number" value={draft.positioning_cheaper_percent} onChange={(value) => set('positioning_cheaper_percent', value)} />
+          <DraftField label="% plus grands" type="number" value={draft.positioning_larger_percent} onChange={(value) => set('positioning_larger_percent', value)} />
+          <DraftField label="% moins chers et plus grands" type="number" value={draft.positioning_cheaper_larger_percent} onChange={(value) => set('positioning_cheaper_larger_percent', value)} />
+          <DraftField label="Prix moyen concurrence €/m²" type="number" value={draft.positioning_competition_average_per_sqm} onChange={(value) => set('positioning_competition_average_per_sqm', value)} />
+          <DraftField label="Fourchette basse €/m²" type="number" value={draft.positioning_low_per_sqm} onChange={(value) => set('positioning_low_per_sqm', value)} />
+          <DraftField label="Médiane €/m²" type="number" value={draft.positioning_median_per_sqm} onChange={(value) => set('positioning_median_per_sqm', value)} />
+          <DraftField label="Fourchette haute €/m²" type="number" value={draft.positioning_high_per_sqm} onChange={(value) => set('positioning_high_per_sqm', value)} />
+          <DraftField label="Rang prix/m²" type="number" value={draft.positioning_rank} onChange={(value) => set('positioning_rank', value)} />
+          <DraftField label="Total concurrence" type="number" value={draft.positioning_rank_total} onChange={(value) => set('positioning_rank_total', value)} />
+          <DraftField label="Seuil 10% moins chers" type="number" value={draft.positioning_threshold_low_price} onChange={(value) => set('positioning_threshold_low_price', value)} />
+          <DraftField label="Prix médian" type="number" value={draft.positioning_threshold_median_price} onChange={(value) => set('positioning_threshold_median_price', value)} />
+          <DraftField label="Seuil 10% plus chers" type="number" value={draft.positioning_threshold_high_price} onChange={(value) => set('positioning_threshold_high_price', value)} />
+        </div>
+      </ReportSection>
+
+      <ReportSection title="8. Recommandations et conclusion">
+        <DraftArea label="Mes recommandations" value={draft.recommendations} onChange={(value) => set('recommendations', value)} rows={5} />
+        <DraftArea label="Conclusion" value={draft.conclusion_text} onChange={(value) => set('conclusion_text', value)} rows={7} />
+        <DraftArea label="Avertissement légal" value={draft.legal_notice} onChange={(value) => set('legal_notice', value)} rows={4} />
+      </ReportSection>
+
+      <ReportSection title="9. Preuves iad : biens vendus et avis clients">
+        <DraftJsonArea
+          label="Nos biens vendus JSON"
+          value={draft.iad_sold_properties_json}
+          onChange={(value) => set('iad_sold_properties_json', value)}
+          rows={8}
+          placeholder={'[\n  { "title": "Maison 5 p. 110 m²", "address": "122 Chemin du Vallon des Escourtines", "price": 359000, "price_per_sqm": 3264, "date_label": "il y a un an" }\n]'}
+        />
+        <DraftJsonArea
+          label="Avis clients JSON"
+          value={draft.client_reviews_json}
+          onChange={(value) => set('client_reviews_json', value)}
+          rows={8}
+          placeholder={'[\n  { "title": "Sympathique et bienveillant", "author": "JessicaR", "rating": 5, "date": "3 juillet 2026", "content": "..." }\n]'}
+        />
+      </ReportSection>
+
+      <ReportSection title="10. Les + iad et services iad">
+        <div className="grid gap-4 lg:grid-cols-2">
+          <DraftArea label="Les + iad" value={draft.iad_advantages} onChange={(value) => set('iad_advantages', value)} rows={6} />
+          <DraftArea label="Les services iad" value={draft.iad_services} onChange={(value) => set('iad_services', value)} rows={6} />
+        </div>
+      </ReportSection>
+    </div>
+  )
+}
+
+function ReportSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="space-y-4 rounded-xl border bg-background p-4">
+      <h3 className="border-b pb-3 text-sm font-semibold text-foreground">{title}</h3>
+      {children}
+    </section>
+  )
+}
+
+function DraftJsonArea({
+  label,
+  value,
+  onChange,
+  placeholder,
+  rows = 6,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  placeholder?: string
+  rows?: number
+}) {
+  return (
+    <label className="block space-y-1">
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      <Textarea
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        rows={rows}
+        className="font-mono text-xs"
+      />
     </label>
   )
 }
