@@ -163,7 +163,7 @@ export function SellerOpportunityTable({ search, stageFilter, dueFilter }: Selle
                 key={row.id}
                 role="button"
                 tabIndex={0}
-                className="cursor-pointer hover:bg-brand-light/30"
+                className="cursor-pointer hover:bg-accent/30"
                 onClick={() => router.push(`/app/opportunities/${row.id}`)}
                 onKeyDown={(event) => {
                   if (event.key !== 'Enter' && event.key !== ' ') return

@@ -20,7 +20,7 @@ export function SignOutButton() {
       onClick={signOut}
       aria-label="Déconnexion"
       title="Déconnexion"
-      className="hidden size-9 items-center justify-center rounded-full text-[#64748B] transition-colors hover:bg-[#F8FAFC] hover:text-[#0F172A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0077B6] focus-visible:ring-offset-2 sm:inline-flex"
+      className="hidden size-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-background hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 sm:inline-flex"
     >
       <LogOut className="size-5" />
     </button>

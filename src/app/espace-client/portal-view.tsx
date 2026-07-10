@@ -39,6 +39,15 @@ import { ComparableLeafletMap } from './comparable-leaflet-map'
 import { SignOutButton } from './sign-out-button'
 
 const DEFAULT_CAL_URL = '/contact'
+const PORTAL_CHART_COLORS = {
+  backgroundGrid: 'var(--muted)',
+  border: 'var(--border)',
+  primary: 'var(--primary)',
+  foreground: 'var(--foreground)',
+  muted: 'var(--muted-foreground)',
+  surface: 'var(--card)',
+  violet: 'var(--chart-4)',
+}
 
 type PortalTab = 'dashboard' | 'valuation' | 'documents' | 'tracking'
 type PortalMode = 'session' | 'test' | 'preview'
@@ -66,21 +75,21 @@ export function ClientPortalView({
   const headerClientName = mode === 'test' ? 'Jean-Marc & Sylvie' : vm.clientName
 
   return (
-    <main className="app-product client-portal min-h-screen bg-[#F8FAFC] pb-24 text-foreground">
-      <header className="sticky top-0 z-40 border-b border-[#E2E8F0] bg-white/95 backdrop-blur">
+    <main className="app-product client-portal min-h-screen bg-background pb-24 text-foreground">
+      <header className="sticky top-0 z-40 border-b border-border bg-white/95 backdrop-blur">
         <div className="flex w-full px-3 py-2 sm:px-4 lg:px-6">
           <div className="grid min-h-12 w-full grid-cols-[auto_1fr_auto] items-center gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#0077B6] text-[18px] font-extrabold leading-none text-white shadow-sm">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-[18px] font-extrabold leading-none text-white shadow-sm">
                 iAD
               </span>
               <div className="min-w-0">
-                <p className="truncate text-[17px] font-extrabold leading-none text-[#0F172A]">Alexandre Lopez immobilier</p>
-                <p className="mt-0.5 truncate text-[10px] font-semibold leading-none text-[#64748B]">Provence Verte & Verdon</p>
+                <p className="truncate text-[17px] font-extrabold leading-none text-foreground">Alexandre Lopez immobilier</p>
+                <p className="mt-0.5 truncate text-[10px] font-semibold leading-none text-muted-foreground">Provence Verte & Verdon</p>
               </div>
             </div>
 
-            <nav className="mx-auto hidden rounded-full border border-[#E2E8F0] bg-[#F8FAFC] p-1 shadow-sm md:flex" aria-label="Navigation espace vendeur">
+            <nav className="mx-auto hidden rounded-full border border-border bg-background p-1 shadow-sm md:flex" aria-label="Navigation espace vendeur">
               {TABS.map((tab) => {
                 const Icon = tab.icon
                 const isActive = activeTab === tab.id
@@ -89,8 +98,8 @@ export function ClientPortalView({
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveTab(tab.id)}
-                    className={`inline-flex h-9 items-center gap-2 rounded-full px-4 text-[14px] font-extrabold leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0077B6] focus-visible:ring-offset-2 ${
-                      isActive ? 'bg-[#0077B6] text-white shadow-sm' : 'text-[#64748B] hover:bg-white hover:text-[#0F172A]'
+                    className={`inline-flex h-9 items-center gap-2 rounded-full px-4 text-[14px] font-extrabold leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+                      isActive ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-white hover:text-foreground'
                     }`}
                   >
                     <Icon className="size-4" />
@@ -102,13 +111,13 @@ export function ClientPortalView({
 
             <div className="flex shrink-0 items-center gap-3">
               <div className="hidden flex-col text-right lg:flex">
-                <span className="max-w-44 truncate text-[15px] font-extrabold leading-none text-[#0F172A]">{headerClientName}</span>
-                <span className="mt-0.5 flex items-center justify-end gap-1 text-[12px] font-extrabold leading-none text-[#10B981]">
-                  <span className="size-2 rounded-full bg-[#10B981]" />
+                <span className="max-w-44 truncate text-[15px] font-extrabold leading-none text-foreground">{headerClientName}</span>
+                <span className="mt-0.5 flex items-center justify-end gap-1 text-[12px] font-extrabold leading-none text-success">
+                  <span className="size-2 rounded-full bg-success" />
                   Vendeur
                 </span>
               </div>
-              <span className="hidden size-10 items-center justify-center rounded-full border border-[#B9DFF4] bg-[#E0F0FA] text-[#0077B6] shadow-sm sm:inline-flex">
+              <span className="hidden size-10 items-center justify-center rounded-full border border-primary/20 bg-accent text-primary shadow-sm sm:inline-flex">
                 <User className="size-5" />
               </span>
               {mode === 'session' && <SignOutButton />}
@@ -116,7 +125,7 @@ export function ClientPortalView({
                 <button
                   type="button"
                   aria-label="Déconnexion"
-                  className="hidden size-9 items-center justify-center rounded-full text-[#64748B] transition-colors hover:bg-[#F8FAFC] hover:text-[#0F172A] sm:inline-flex"
+                  className="hidden size-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-background hover:text-foreground sm:inline-flex"
                 >
                   <LogOut className="size-5" />
                 </button>
@@ -127,7 +136,7 @@ export function ClientPortalView({
       </header>
 
       {mode === 'preview' && showPreviewBanner && (
-        <div className="border-b border-[#B9DFF4] bg-[#E0F0FA] px-4 py-2 text-center text-xs font-extrabold text-[#0077B6]">
+        <div className="border-b border-primary/20 bg-accent px-4 py-2 text-center text-xs font-extrabold text-primary">
           Prévisualisation conseiller · les dépôts et actions vendeur sont désactivés.
           {previewBackHref && (
             <a href={previewBackHref} className="ml-2 underline underline-offset-2">
@@ -154,8 +163,8 @@ export function ClientPortalView({
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`portal-meta flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl px-2 font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
-                  isActive ? 'bg-[#E0F0FA] text-[#0077B6]' : 'text-[#64748B]'
+                className={`portal-meta flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl px-2 font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                  isActive ? 'bg-accent text-primary' : 'text-muted-foreground'
                 }`}
               >
                 <Icon className="size-5" />
@@ -242,7 +251,7 @@ function DashboardTab({
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
-          <h2 className="portal-h2 flex items-center gap-2 text-[#0F172A]">
+          <h2 className="portal-h2 flex items-center gap-2 text-foreground">
             <span aria-hidden="true">🤝</span>
             Accompagnement de votre conseiller
           </h2>
@@ -254,8 +263,8 @@ function DashboardTab({
       <PropertyHeroPanel vm={vm} onNavigate={() => onNavigate('valuation')} />
 
       {data.dossier.advisor_note && (
-        <div className="portal-body rounded-3xl border border-[#0077B6]/15 bg-[#E0F0FA] p-5 text-[#005F96]">
-          <strong className="text-[#0F172A]">Message d’Alexandre : </strong>
+        <div className="portal-body rounded-3xl border border-primary/15 bg-accent p-5 text-primary">
+          <strong className="text-foreground">Message d’Alexandre : </strong>
           {data.dossier.advisor_note}
         </div>
       )}
@@ -280,18 +289,18 @@ function ValuationTab({ vm }: { vm: PortalViewModel }) {
 
   return (
     <div className="space-y-8" id="valuation-tab">
-      <section className="flex flex-col justify-between gap-4 rounded-3xl border border-[#E2E8F0] bg-white p-4 sm:flex-row sm:items-center">
+      <section className="flex flex-col justify-between gap-4 rounded-3xl border border-border bg-white p-4 sm:flex-row sm:items-center">
         <div>
-          <h2 className="portal-h2 text-[#0F172A]">Rapport d’estimation du bien</h2>
-          <p className="portal-meta text-[#64748B]">Comparez l’avis d’expert d’Alexandre et l’évaluation automatique.</p>
+          <h2 className="portal-h2 text-foreground">Rapport d’estimation du bien</h2>
+          <p className="portal-meta text-muted-foreground">Comparez l’avis d’expert d’Alexandre et l’évaluation automatique.</p>
         </div>
 
-        <div className="flex w-full rounded-full border border-[#E2E8F0] bg-[#F8FAFC] p-1.5 sm:w-auto">
+        <div className="flex w-full rounded-full border border-border bg-background p-1.5 sm:w-auto">
           <button
             type="button"
             onClick={() => setValuationType('advisor')}
             className={`portal-button-text flex flex-1 items-center justify-center gap-1.5 rounded-full px-5 py-2 transition-all sm:flex-none ${
-              valuationType === 'advisor' ? 'bg-[#0077B6] text-white shadow-sm' : 'text-[#64748B] hover:text-[#0F172A]'
+              valuationType === 'advisor' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <Sparkles className="size-3.5" />
@@ -301,7 +310,7 @@ function ValuationTab({ vm }: { vm: PortalViewModel }) {
             type="button"
             onClick={() => setValuationType('express')}
             className={`portal-button-text flex flex-1 items-center justify-center gap-1.5 rounded-full px-5 py-2 transition-all sm:flex-none ${
-              valuationType === 'express' ? 'bg-[#0F172A] text-white shadow-sm' : 'text-[#64748B] hover:text-[#0F172A]'
+              valuationType === 'express' ? 'bg-foreground text-white shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             Estimation Express iAD
@@ -310,21 +319,21 @@ function ValuationTab({ vm }: { vm: PortalViewModel }) {
       </section>
 
       {valuationType === 'express' ? (
-        <section className="rounded-3xl border border-[#E2E8F0] bg-white p-8 text-center shadow-sm">
-          <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-[#0F172A]/5 text-[#0F172A]">
+        <section className="rounded-3xl border border-border bg-white p-8 text-center shadow-sm">
+          <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-foreground/5 text-foreground">
             <Info className="size-8" />
           </div>
           <div className="mx-auto mt-6 max-w-xl space-y-2">
-            <h3 className="portal-h2 text-[#0F172A]">Estimation en ligne indicative</h3>
-            <p className="portal-body text-[#64748B]">
-              L’algorithme automatique donne un premier repère entre <strong className="text-[#0F172A]">{formatPrice(low)}</strong> et{' '}
-              <strong className="text-[#0F172A]">{formatPrice(high)}</strong>. L’avis conseiller ajuste ce repère avec les prestations réelles, l’environnement et la stratégie de vente.
+            <h3 className="portal-h2 text-foreground">Estimation en ligne indicative</h3>
+            <p className="portal-body text-muted-foreground">
+              L’algorithme automatique donne un premier repère entre <strong className="text-foreground">{formatPrice(low)}</strong> et{' '}
+              <strong className="text-foreground">{formatPrice(high)}</strong>. L’avis conseiller ajuste ce repère avec les prestations réelles, l’environnement et la stratégie de vente.
             </p>
           </div>
           <div className="portal-body mx-auto mt-6 max-w-2xl rounded-2xl border border-amber-100 bg-amber-50 p-4 text-left text-amber-800">
             Les algorithmes ne prennent pas toujours en compte l’exposition, les extérieurs, le calme réel ou les prestations. C’est pourquoi Alexandre affine le prix retenu.
           </div>
-          <Button className="mt-6 rounded-full bg-[#0077B6] hover:bg-[#005F96]" onClick={() => setValuationType('advisor')}>
+          <Button className="mt-6 rounded-full bg-primary hover:bg-primary/90" onClick={() => setValuationType('advisor')}>
             <Sparkles className="mr-2 size-4" />
             Consulter l’avis de valeur révisé d’Alexandre
           </Button>
@@ -332,43 +341,43 @@ function ValuationTab({ vm }: { vm: PortalViewModel }) {
       ) : (
         <div className="space-y-8" id="valuation-advisor-block">
           <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="flex flex-col justify-between space-y-6 rounded-3xl border border-[#E2E8F0] bg-white p-6 shadow-sm md:p-8 lg:col-span-2">
+            <div className="flex flex-col justify-between space-y-6 rounded-3xl border border-border bg-white p-6 shadow-sm md:p-8 lg:col-span-2">
               <div className="space-y-2">
-                <span className="portal-label inline-flex rounded-full bg-[#E0F0FA] px-3 py-1 text-[#0077B6]">
+                <span className="portal-label inline-flex rounded-full bg-accent px-3 py-1 text-primary">
                   Validation Conseiller
                 </span>
-                <h3 className="portal-h3 text-[#0F172A]">Valeur recommandée pour votre bien</h3>
-                <p className="portal-meta text-[#64748B]">Fourchette de commercialisation optimale pour susciter le coup de cœur sans brader.</p>
+                <h3 className="portal-h3 text-foreground">Valeur recommandée pour votre bien</h3>
+                <p className="portal-meta text-muted-foreground">Fourchette de commercialisation optimale pour susciter le coup de cœur sans brader.</p>
               </div>
 
-              <div className="flex flex-wrap items-end gap-6 border-b border-[#E2E8F0] pb-5">
+              <div className="flex flex-wrap items-end gap-6 border-b border-border pb-5">
                 <div>
-                  <p className="portal-label text-[#64748B]">Prix de mise en vente suggéré</p>
-                  <p className="text-[34px] font-extrabold leading-none tracking-tight text-[#0077B6]">{formatPriceCompact(safeSelectedPrice)}</p>
+                  <p className="portal-label text-muted-foreground">Prix de mise en vente suggéré</p>
+                  <p className="text-[34px] font-extrabold leading-none tracking-tight text-primary">{formatPriceCompact(safeSelectedPrice)}</p>
                 </div>
-                <div className="border-l border-[#E2E8F0] py-1 pl-6">
-                  <p className="portal-label text-[#64748B]">Fourchette optimale</p>
-                  <p className="text-lg font-extrabold leading-tight text-[#0F172A]">{formatPrice(low)} – {formatPrice(high)}</p>
+                <div className="border-l border-border py-1 pl-6">
+                  <p className="portal-label text-muted-foreground">Fourchette optimale</p>
+                  <p className="text-lg font-extrabold leading-tight text-foreground">{formatPrice(low)} – {formatPrice(high)}</p>
                 </div>
               </div>
 
               <PricePositionGauge low={low} selected={safeSelectedPrice} high={high} />
 
-              <div className="space-y-3 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+              <div className="space-y-3 rounded-2xl border border-border bg-background p-4">
                 <div className="flex items-center justify-between gap-4">
                   <button
                     type="button"
                     onClick={() => setIsAdjusting((value) => !value)}
-                    className="portal-button-text flex items-center gap-1.5 text-[#0F172A] hover:underline"
+                    className="portal-button-text flex items-center gap-1.5 text-foreground hover:underline"
                   >
-                    <Sliders className="size-4 text-[#0077B6]" />
+                    <Sliders className="size-4 text-primary" />
                     {isAdjusting ? 'Masquer les outils de simulation' : 'Simuler un autre prix de vente'}
                   </button>
-                  <span className="portal-label text-[#64748B]">Simulation Net Vendeur</span>
+                  <span className="portal-label text-muted-foreground">Simulation Net Vendeur</span>
                 </div>
 
                 {isAdjusting && (
-                  <div className="space-y-4 border-t border-[#E2E8F0] pt-3">
+                  <div className="space-y-4 border-t border-border pt-3">
                     <input
                       type="range"
                       min={low}
@@ -376,7 +385,7 @@ function ValuationTab({ vm }: { vm: PortalViewModel }) {
                       step={5000}
                       value={safeSelectedPrice}
                       onChange={(event) => setSelectedPrice(Number(event.target.value))}
-                      className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-slate-200 accent-[#0077B6]"
+                      className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-slate-200 accent-primary"
                     />
                     <div className="grid grid-cols-1 gap-4 text-xs font-semibold sm:grid-cols-3">
                       <MiniValue label="Prix affiché FAI" value={formatPrice(safeSelectedPrice)} />
@@ -418,26 +427,26 @@ function PricePositionGauge({ low, selected, high }: { low: number; selected: nu
 
   return (
     <div className="space-y-4">
-      <div className="portal-meta flex flex-col gap-2 text-[#64748B] sm:flex-row sm:items-center sm:justify-between">
+      <div className="portal-meta flex flex-col gap-2 text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
         <span>Fourchette basse ({formatPrice(low)})</span>
-        <span className="w-fit rounded-full bg-[#E0F0FA] px-3 py-1 font-extrabold text-[#0077B6]">Prix retenu : {formatPrice(selected)}</span>
+        <span className="w-fit rounded-full bg-accent px-3 py-1 font-extrabold text-primary">Prix retenu : {formatPrice(selected)}</span>
         <span>Fourchette haute ({formatPrice(high)})</span>
       </div>
 
       <div className="relative h-4 rounded-full border border-slate-200 bg-slate-100">
-        <div className="absolute inset-y-0 left-[20%] right-[20%] rounded-full border-y border-[#0077B6]/10 bg-[#0077B6]/20" />
-        <div className="absolute top-0 z-10 h-full w-1 bg-[#0077B6]" style={{ left: '50%' }}>
-          <div className="-mt-0.5 size-2.5 rounded-full bg-[#0077B6]" />
+        <div className="absolute inset-y-0 left-[20%] right-[20%] rounded-full border-y border-primary/10 bg-primary/20" />
+        <div className="absolute top-0 z-10 h-full w-1 bg-primary" style={{ left: '50%' }}>
+          <div className="-mt-0.5 size-2.5 rounded-full bg-primary" />
         </div>
         <div
-          className="absolute top-1/2 z-20 size-6 -translate-y-1/2 rounded-full border-4 border-[#0077B6] bg-white shadow-md"
+          className="absolute top-1/2 z-20 size-6 -translate-y-1/2 rounded-full border-4 border-primary bg-white shadow-md"
           style={{ left: `${position}%`, transform: 'translate(-50%, -50%)' }}
         />
       </div>
 
-      <div className="portal-meta flex justify-between text-[#64748B]">
+      <div className="portal-meta flex justify-between text-muted-foreground">
         <span>Vente rapide</span>
-        <span className="font-semibold text-[#0077B6]">Équilibre conseillé</span>
+        <span className="font-semibold text-primary">Équilibre conseillé</span>
         <span>Position haute</span>
       </div>
     </div>
@@ -452,24 +461,24 @@ function AdvisorArgumentsCard({ price, argumentsList }: { price: number; argumen
   ]
 
   return (
-    <section className="relative flex flex-col justify-between overflow-hidden rounded-3xl bg-[#0F172A] p-6 text-white shadow-md md:p-8">
-      <div className="absolute right-0 top-0 size-36 rounded-full bg-[#0077B6]/10 blur-2xl" />
+    <section className="relative flex flex-col justify-between overflow-hidden rounded-3xl bg-foreground p-6 text-white shadow-md md:p-8">
+      <div className="absolute right-0 top-0 size-36 rounded-full bg-primary/10 blur-2xl" />
       <div className="relative space-y-6">
-        <span className="portal-label inline-flex rounded-full bg-[#0077B6]/15 px-4 py-2 text-[#0077B6]">
+        <span className="portal-label inline-flex rounded-full bg-primary/15 px-4 py-2 text-primary">
           Arguments d’Alexandre
         </span>
         <h2 className="portal-h2">Pourquoi ce prix de {formatPriceCompact(price)} ?</h2>
         <ul className="space-y-5 portal-body text-slate-300">
           {visibleArguments.slice(0, 4).map((argument) => (
             <li key={argument} className="flex items-start gap-4">
-              <Check className="mt-1 size-5 shrink-0 text-[#10B981]" />
+              <Check className="mt-1 size-5 shrink-0 text-success" />
               <span>{highlightArgument(argument)}</span>
             </li>
           ))}
         </ul>
       </div>
       <div className="relative mt-8 flex items-center gap-3 border-t border-slate-800 pt-6">
-        <ShieldCheck className="size-6 shrink-0 text-[#10B981]" />
+        <ShieldCheck className="size-6 shrink-0 text-success" />
         <p className="portal-meta text-slate-400">Estimation appuyée par les outils d’évaluation exclusifs du réseau iAD France.</p>
       </div>
     </section>
@@ -503,16 +512,16 @@ function ComparableMap({
   const active = comparables.find((item) => item.id === activeComparable)
 
   return (
-    <section className="space-y-5 rounded-3xl border border-[#E2E8F0] bg-white p-6 shadow-sm lg:col-span-3">
+    <section className="space-y-5 rounded-3xl border border-border bg-white p-6 shadow-sm lg:col-span-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="portal-h2 flex items-center gap-2 text-[#0F172A]">
-            <MapIcon className="size-6 text-[#0077B6]" />
+          <h2 className="portal-h2 flex items-center gap-2 text-foreground">
+            <MapIcon className="size-6 text-primary" />
             Carte des biens comparables vendus
           </h2>
-          <p className="portal-body mt-1 text-[#64748B]">Cliquez sur un repère pour examiner un bien vendu dans le quartier.</p>
+          <p className="portal-body mt-1 text-muted-foreground">Cliquez sur un repère pour examiner un bien vendu dans le quartier.</p>
         </div>
-        <span className="portal-label w-fit rounded-lg bg-slate-50 px-3 py-2 text-[#64748B]">{city}</span>
+        <span className="portal-label w-fit rounded-lg bg-slate-50 px-3 py-2 text-muted-foreground">{city}</span>
       </div>
 
       <div className="relative">
@@ -525,27 +534,27 @@ function ComparableMap({
         />
 
         {active && (
-          <div className="mt-4 flex items-center justify-between gap-4 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 shadow-sm">
+          <div className="mt-4 flex items-center justify-between gap-4 rounded-2xl border border-border bg-background p-4 shadow-sm">
             <div>
-              <p className="portal-label flex items-center gap-1 text-[#0077B6]">
+              <p className="portal-label flex items-center gap-1 text-primary">
                 <MapPin className="size-3" />
                 Comparable · {active.distance}
               </p>
-              <h4 className="portal-h3 mt-1 text-[#0F172A]">{active.title}</h4>
-              <p className="portal-meta text-[#64748B]">
+              <h4 className="portal-h3 mt-1 text-foreground">{active.title}</h4>
+              <p className="portal-meta text-muted-foreground">
                 {active.surface ? `${active.surface} m²` : 'Surface nc'} · {active.rooms ? `${active.rooms} pièces` : 'Pièces nc'} ·{' '}
                 <strong>{active.pricePerSqm ? `${formatNumber(active.pricePerSqm)} €/m²` : 'Prix/m² nc'}</strong>
               </p>
             </div>
             <div className="text-right">
-              <p className="text-base font-extrabold text-[#0F172A]">{active.price ? formatPrice(active.price) : 'Vendu'}</p>
-              <span className="portal-button-text rounded bg-[#10B981]/10 px-2 py-1 text-[#10B981]">Vendu</span>
+              <p className="text-base font-extrabold text-foreground">{active.price ? formatPrice(active.price) : 'Vendu'}</p>
+              <span className="portal-button-text rounded bg-success/10 px-2 py-1 text-success">Vendu</span>
             </div>
           </div>
         )}
 
         {comparables.length === 0 && (
-          <div className="portal-body mt-4 rounded-2xl border border-dashed border-[#E2E8F0] bg-white/85 p-5 text-[#64748B]">
+          <div className="portal-body mt-4 rounded-2xl border border-dashed border-border bg-white/85 p-5 text-muted-foreground">
             Les comparables validés par Alexandre apparaîtront ici.
           </div>
         )}
@@ -565,10 +574,10 @@ function ComparableList({
 }) {
   return (
     <section className="space-y-4 lg:col-span-2">
-      <h2 className="portal-h2 text-[#0F172A]">Détail des ventes récentes</h2>
+      <h2 className="portal-h2 text-foreground">Détail des ventes récentes</h2>
       <div className="space-y-4">
         {comparables.length === 0 && (
-          <div className="portal-body rounded-3xl border border-dashed border-[#E2E8F0] bg-white p-6 text-[#64748B]">
+          <div className="portal-body rounded-3xl border border-dashed border-border bg-white p-6 text-muted-foreground">
             Les ventes récentes seront affichées après validation des comparables.
           </div>
         )}
@@ -580,23 +589,23 @@ function ComparableList({
               type="button"
               onClick={() => setActiveComparable(active ? null : comparable.id)}
               className={`flex w-full items-center justify-between gap-4 rounded-3xl border p-5 text-left transition-all ${
-                active ? 'border-[#0077B6] bg-[#E0F0FA]/30 shadow-sm' : 'border-[#E2E8F0] bg-[#F8FAFC] hover:bg-white hover:shadow-sm'
+                active ? 'border-primary bg-accent/30 shadow-sm' : 'border-border bg-background hover:bg-white hover:shadow-sm'
               }`}
             >
               <div className="min-w-0 space-y-2">
-                <p className="portal-h3 flex items-center gap-2 text-[#0F172A]">
+                <p className="portal-h3 flex items-center gap-2 text-foreground">
                   <span className="portal-button-text flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-200">{index + 1}</span>
                   {comparable.distance}
                 </p>
-                <p className="portal-body line-clamp-1 text-[#64748B]">{comparable.title}</p>
-                <p className="portal-body text-[#64748B]">
+                <p className="portal-body line-clamp-1 text-muted-foreground">{comparable.title}</p>
+                <p className="portal-body text-muted-foreground">
                   {comparable.surface ? `${comparable.surface} m²` : 'Surface nc'} • {comparable.rooms ? `${comparable.rooms} p.` : 'Pièces nc'} •{' '}
-                  <span className="font-semibold text-[#0F172A]">{comparable.pricePerSqm ? `${formatNumber(comparable.pricePerSqm)} €/m²` : 'Prix/m² nc'}</span>
+                  <span className="font-semibold text-foreground">{comparable.pricePerSqm ? `${formatNumber(comparable.pricePerSqm)} €/m²` : 'Prix/m² nc'}</span>
                 </p>
               </div>
               <div className="shrink-0 text-right">
-                <p className="text-base font-extrabold text-[#0F172A]">{comparable.price ? formatPrice(comparable.price) : 'Vendu'}</p>
-                <span className="portal-button-text rounded-lg bg-[#10B981]/10 px-3 py-1 text-[#10B981]">Vendu iAD</span>
+                <p className="text-base font-extrabold text-foreground">{comparable.price ? formatPrice(comparable.price) : 'Vendu'}</p>
+                <span className="portal-button-text rounded-lg bg-success/10 px-3 py-1 text-success">Vendu iAD</span>
               </div>
             </button>
           )
@@ -609,12 +618,12 @@ function ComparableList({
 function PriceTrendChart({ trend, city }: { trend: Array<{ year: string; price: number }>; city: string }) {
   if (trend.length === 0) {
     return (
-      <section className="space-y-4 rounded-3xl border border-[#E2E8F0] bg-white p-6 shadow-sm md:p-8">
-        <h2 className="portal-h2 flex items-center gap-2 text-[#0F172A]">
-          <TrendingUp className="size-6 text-[#0077B6]" />
+      <section className="space-y-4 rounded-3xl border border-border bg-white p-6 shadow-sm md:p-8">
+        <h2 className="portal-h2 flex items-center gap-2 text-foreground">
+          <TrendingUp className="size-6 text-primary" />
           Évolution du prix médian au m²
         </h2>
-        <div className="portal-body rounded-2xl border border-dashed border-[#E2E8F0] bg-[#F8FAFC] p-6 text-[#64748B]">
+        <div className="portal-body rounded-2xl border border-dashed border-border bg-background p-6 text-muted-foreground">
           La tendance de marché sera affichée ici dès que les données conseiller seront renseignées.
         </div>
       </section>
@@ -636,17 +645,17 @@ function PriceTrendChart({ trend, city }: { trend: Array<{ year: string; price: 
   const evolution = first ? Math.round(((last - first) / first) * 1000) / 10 : null
 
   return (
-    <section className="space-y-6 rounded-3xl border border-[#E2E8F0] bg-white p-6 shadow-sm md:p-8">
+    <section className="space-y-6 rounded-3xl border border-border bg-white p-6 shadow-sm md:p-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="portal-h2 flex items-center gap-2 text-[#0F172A]">
-            <TrendingUp className="size-6 text-[#0077B6]" />
+          <h2 className="portal-h2 flex items-center gap-2 text-foreground">
+            <TrendingUp className="size-6 text-primary" />
             Évolution du prix médian au m² (DVF {city})
           </h2>
-          <p className="portal-body mt-1 text-[#64748B]">Données de ventes officielles pour les maisons individuelles.</p>
+          <p className="portal-body mt-1 text-muted-foreground">Données de ventes officielles pour les maisons individuelles.</p>
         </div>
         {evolution !== null && (
-          <span className="portal-button-text w-fit rounded-full bg-[#10B981]/10 px-4 py-2 text-[#10B981]">
+          <span className="portal-button-text w-fit rounded-full bg-success/10 px-4 py-2 text-success">
             +{evolution}% depuis {trend[0]?.year}
           </span>
         )}
@@ -655,24 +664,24 @@ function PriceTrendChart({ trend, city }: { trend: Array<{ year: string; price: 
       <div className="w-full overflow-x-auto pt-4">
         <div className="relative h-44 min-w-[560px]">
           <svg className="size-full" viewBox="0 0 500 150" aria-hidden="true">
-            <line x1="0" y1="28" x2="500" y2="28" stroke="#F1F5F9" strokeWidth="1" />
-            <line x1="0" y1="72" x2="500" y2="72" stroke="#F1F5F9" strokeWidth="1" />
-            <line x1="0" y1="116" x2="500" y2="116" stroke="#E2E8F0" strokeWidth="1.5" />
+            <line x1="0" y1="28" x2="500" y2="28" stroke={PORTAL_CHART_COLORS.backgroundGrid} strokeWidth="1" />
+            <line x1="0" y1="72" x2="500" y2="72" stroke={PORTAL_CHART_COLORS.backgroundGrid} strokeWidth="1" />
+            <line x1="0" y1="116" x2="500" y2="116" stroke={PORTAL_CHART_COLORS.border} strokeWidth="1.5" />
             <defs>
               <linearGradient id="portal-chart-grad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#0077B6" />
-                <stop offset="100%" stopColor="#0077B6" stopOpacity="0" />
+                <stop offset="0%" stopColor={PORTAL_CHART_COLORS.primary} />
+                <stop offset="100%" stopColor={PORTAL_CHART_COLORS.primary} stopOpacity="0" />
               </linearGradient>
             </defs>
             <polygon fill="url(#portal-chart-grad)" opacity="0.12" points={areaPoints} />
-            <polyline fill="none" stroke="#0077B6" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" points={linePoints} />
+            <polyline fill="none" stroke={PORTAL_CHART_COLORS.primary} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" points={linePoints} />
             {points.map((point, index) => {
               const isLast = index === points.length - 1
               return (
                 <g key={point.year}>
-                  <circle cx={point.x} cy={point.y} r="7" fill={isLast ? '#0077B6' : '#FFFFFF'} stroke="#0077B6" strokeWidth="3" />
-                  <text x={point.x} y="139" fontSize="11" fill="#64748B" fontWeight="700" textAnchor="middle">{point.year}</text>
-                  <text x={point.x} y={point.y - 14} fontSize={isLast ? '12' : '11'} fill={isLast ? '#0077B6' : '#0F172A'} fontWeight="800" textAnchor="middle">
+                  <circle cx={point.x} cy={point.y} r="7" fill={isLast ? PORTAL_CHART_COLORS.primary : PORTAL_CHART_COLORS.surface} stroke={PORTAL_CHART_COLORS.primary} strokeWidth="3" />
+                  <text x={point.x} y="139" fontSize="11" fill={PORTAL_CHART_COLORS.muted} fontWeight="700" textAnchor="middle">{point.year}</text>
+                  <text x={point.x} y={point.y - 14} fontSize={isLast ? '12' : '11'} fill={isLast ? PORTAL_CHART_COLORS.primary : PORTAL_CHART_COLORS.foreground} fontWeight="800" textAnchor="middle">
                     {formatNumber(point.price)} €/m²
                   </text>
                 </g>
@@ -682,7 +691,7 @@ function PriceTrendChart({ trend, city }: { trend: Array<{ year: string; price: 
         </div>
       </div>
 
-      <p className="portal-body text-center italic text-[#64748B]">
+      <p className="portal-body text-center italic text-muted-foreground">
         *Note : cette tendance conforte la stratégie de commercialisation et positionne le bien dans une lecture de marché argumentée.
       </p>
     </section>
@@ -759,13 +768,13 @@ type VisitCardModel = {
 
 function TrackingTimelineCard({ steps }: { steps: TrackingStep[] }) {
   return (
-    <section className="rounded-3xl border border-[#E2E8F0] bg-white px-6 py-7 shadow-sm md:px-8 md:py-8">
+    <section className="rounded-3xl border border-border bg-white px-6 py-7 shadow-sm md:px-8 md:py-8">
       <div>
-        <h2 className="text-[20px] font-extrabold leading-tight text-[#0F172A]">Suivi de votre mandat pas à pas</h2>
-        <p className="mt-1 text-[13px] leading-relaxed text-[#64748B]">Suivez la progression chronologique de la vente de votre villa.</p>
+        <h2 className="text-[20px] font-extrabold leading-tight text-foreground">Suivi de votre mandat pas à pas</h2>
+        <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">Suivez la progression chronologique de la vente de votre villa.</p>
       </div>
 
-      <ol className="relative mt-8 space-y-7 pl-10 before:absolute before:bottom-0 before:left-[10px] before:top-3 before:w-px before:bg-[#E2E8F0]">
+      <ol className="relative mt-8 space-y-7 pl-10 before:absolute before:bottom-0 before:left-[10px] before:top-3 before:w-px before:bg-border">
         {steps.map((step) => {
           const current = step.state === 'current'
           const future = step.state === 'future'
@@ -775,19 +784,19 @@ function TrackingTimelineCard({ steps }: { steps: TrackingStep[] }) {
               <TimelineLineDot state={step.state} />
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className={`text-[12px] font-extrabold leading-none ${current ? 'text-[#0077B6]' : 'text-[#64748B]'}`}>
+                  <p className={`text-[12px] font-extrabold leading-none ${current ? 'text-primary' : 'text-muted-foreground'}`}>
                     {step.dateLabel}
                   </p>
                   {step.badge && (
-                    <span className="rounded-full border border-[#B9DFF4] bg-[#E0F0FA] px-3 py-1 text-[9px] font-extrabold uppercase leading-none text-[#6D9FBE]">
+                    <span className="rounded-full border border-primary/20 bg-accent px-3 py-1 text-[9px] font-extrabold uppercase leading-none text-primary">
                       {step.badge}
                     </span>
                   )}
                 </div>
-                <h3 className={`mt-2 text-sm font-extrabold leading-snug ${future ? 'text-[#0F172A]' : current ? 'text-[#0F172A]' : 'text-[#64748B]'}`}>
+                <h3 className={`mt-2 text-sm font-extrabold leading-snug ${future ? 'text-foreground' : current ? 'text-foreground' : 'text-muted-foreground'}`}>
                   {step.title}
                 </h3>
-                <p className="mt-1 text-xs leading-relaxed text-[#8AA0BC]">{step.description}</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{step.description}</p>
               </div>
             </li>
           )
@@ -800,7 +809,7 @@ function TrackingTimelineCard({ steps }: { steps: TrackingStep[] }) {
 function TimelineLineDot({ state }: { state: TrackingStep['state'] }) {
   if (state === 'done') {
     return (
-      <span className="absolute -left-10 top-0.5 z-10 flex size-5 items-center justify-center rounded-full border-[3px] border-white bg-[#E0F0FA] text-[#0077B6] ring-2 ring-[#D4ECFA]">
+      <span className="absolute -left-10 top-0.5 z-10 flex size-5 items-center justify-center rounded-full border-[3px] border-white bg-accent text-primary ring-2 ring-accent">
         <CheckCircle2 className="size-3.5" />
       </span>
     )
@@ -808,14 +817,14 @@ function TimelineLineDot({ state }: { state: TrackingStep['state'] }) {
 
   if (state === 'current') {
     return (
-      <span className="absolute -left-[42px] top-0 z-10 flex size-6 items-center justify-center rounded-full border-[4px] border-[#E0F0FA] bg-[#0077B6] text-white ring-2 ring-white">
+      <span className="absolute -left-[42px] top-0 z-10 flex size-6 items-center justify-center rounded-full border-[4px] border-accent bg-primary text-white ring-2 ring-white">
         <span className="size-2 rounded-full bg-white" />
       </span>
     )
   }
 
   return (
-    <span className="absolute -left-10 top-0.5 z-10 flex size-5 items-center justify-center rounded-full border-[3px] border-white bg-white ring-2 ring-[#CBD5E1]">
+    <span className="absolute -left-10 top-0.5 z-10 flex size-5 items-center justify-center rounded-full border-[3px] border-white bg-white ring-2 ring-border">
       <span className="size-2 rounded-full bg-white" />
     </span>
   )
@@ -828,13 +837,13 @@ function TrackingAudienceCard({ vm }: { vm: PortalViewModel }) {
   const totalViews = sources.slice(1).reduce((sum, source) => sum + source.views, 0)
 
   return (
-    <section className="rounded-3xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
-      <h2 className="text-lg font-extrabold leading-tight text-[#0F172A]">Diffusion & Statistiques</h2>
-      <p className="mt-1 text-xs leading-relaxed text-[#64748B]">
+    <section className="rounded-3xl border border-border bg-white p-6 shadow-sm">
+      <h2 className="text-lg font-extrabold leading-tight text-foreground">Diffusion & Statistiques</h2>
+      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
         Suivez l&apos;audience consolidée (Ombrelle) ou détaillez par portail immobilier.
       </p>
 
-      <div className="mt-5 rounded-2xl bg-[#EEF4FA] p-1">
+      <div className="mt-5 rounded-2xl bg-muted p-1">
         <div className="flex flex-wrap gap-1">
           {sources.map((source) => (
             <button
@@ -843,8 +852,8 @@ function TrackingAudienceCard({ vm }: { vm: PortalViewModel }) {
               onClick={() => setActiveSourceId(source.id)}
               className={`min-h-8 rounded-lg px-3 text-[11px] font-extrabold leading-tight transition-colors ${
                 activeSource.id === source.id
-                  ? 'bg-[#10B981] text-white shadow-[inset_0_0_0_2px_#0077B6]'
-                  : 'text-[#475569] hover:bg-white/70'
+                  ? 'bg-success text-white shadow-[inset_0_0_0_2px_var(--primary)]'
+                  : 'text-muted-foreground hover:bg-white/70'
               }`}
             >
               {source.id === 'global' ? (
@@ -860,10 +869,10 @@ function TrackingAudienceCard({ vm }: { vm: PortalViewModel }) {
         </div>
       </div>
 
-      <div className="mt-5 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
-        <p className="text-[10px] font-extrabold uppercase leading-none text-[#8AA0BC]">Support de diffusion</p>
-        <p className="mt-2 text-sm font-extrabold leading-none text-[#0F172A]">{activeSource.name}</p>
-        <p className="mt-2 text-xs font-semibold leading-relaxed text-[#64748B]">{activeSource.description}</p>
+      <div className="mt-5 rounded-2xl border border-border bg-background p-4">
+        <p className="text-[10px] font-extrabold uppercase leading-none text-muted-foreground">Support de diffusion</p>
+        <p className="mt-2 text-sm font-extrabold leading-none text-foreground">{activeSource.name}</p>
+        <p className="mt-2 text-xs font-semibold leading-relaxed text-muted-foreground">{activeSource.description}</p>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3">
@@ -874,12 +883,12 @@ function TrackingAudienceCard({ vm }: { vm: PortalViewModel }) {
         <DiffusionStat label="Mises en favoris" value={activeSource.favorites} icon={Star} tone="pink" wide />
       </div>
 
-      <div className="mt-5 border-t border-[#E2E8F0] pt-4">
+      <div className="mt-5 border-t border-border pt-4">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-xs font-extrabold text-[#64748B]">Répartition des vues par support</p>
-          <span className="text-[10px] font-extrabold uppercase text-[#0077B6]">Audience active</span>
+          <p className="text-xs font-extrabold text-muted-foreground">Répartition des vues par support</p>
+          <span className="text-[10px] font-extrabold uppercase text-primary">Audience active</span>
         </div>
-        <div className="mt-3 flex h-3 overflow-hidden rounded-full bg-[#E2E8F0]">
+        <div className="mt-3 flex h-3 overflow-hidden rounded-full bg-border">
           {sources.slice(1).map((source) => (
             <span
               key={source.id}
@@ -893,7 +902,7 @@ function TrackingAudienceCard({ vm }: { vm: PortalViewModel }) {
         </div>
         <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2">
           {sources.slice(1).map((source) => (
-            <div key={source.id} className="flex items-center gap-1.5 text-[10px] font-semibold text-[#64748B]">
+            <div key={source.id} className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground">
               <span className="size-2.5 rounded-full" style={{ backgroundColor: source.color }} />
               <span>
                 {source.name} ({source.share}%)
@@ -903,7 +912,7 @@ function TrackingAudienceCard({ vm }: { vm: PortalViewModel }) {
         </div>
       </div>
 
-      <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-[#B26A00]">
+      <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-warning">
         <strong>L&apos;avis d&apos;Alexandre :</strong> L&apos;annonce surpasse de +24% les performances moyennes des villas similaires à Saint-Maximin. L&apos;intérêt est très soutenu.
       </div>
     </section>
@@ -957,7 +966,7 @@ function buildDiffusionSources(vm: PortalViewModel): DiffusionSource[] {
       ...source,
       favorites: `${favoriteCount} ${favoriteCount > 1 ? 'acquéreurs' : 'acquéreur'}`,
       share: supportTotal ? Math.round((source.views / supportTotal) * 1000) / 10 : 0,
-      color: ['#64748B', '#0EA5E9', '#14B8A6'][index % 3],
+      color: [PORTAL_CHART_COLORS.muted, PORTAL_CHART_COLORS.primary, 'var(--chart-2)'][index % 3],
     }
   })
 
@@ -983,7 +992,7 @@ function buildFallbackDiffusionSources(vm: PortalViewModel): DiffusionSource[] {
       messages: Math.max(0, Math.round(contacts * 0.2)),
       favorites: `${Math.max(1, Math.round(contacts * 0.5))} acquéreurs`,
       share: 100,
-      color: '#0077B6',
+      color: PORTAL_CHART_COLORS.primary,
     },
     {
       id: 'seloger',
@@ -995,7 +1004,7 @@ function buildFallbackDiffusionSources(vm: PortalViewModel): DiffusionSource[] {
       messages: Math.max(0, Math.round(contacts * 0.08)),
       favorites: `${Math.max(1, Math.round(contacts * 0.25))} acquéreurs`,
       share: 33.8,
-      color: '#FF2E63',
+      color: 'var(--chart-3)',
     },
     {
       id: 'leboncoin',
@@ -1007,7 +1016,7 @@ function buildFallbackDiffusionSources(vm: PortalViewModel): DiffusionSource[] {
       messages: Math.max(0, Math.round(contacts * 0.1)),
       favorites: `${Math.max(1, Math.round(contacts * 0.3))} acquéreurs`,
       share: 36.6,
-      color: '#FF9F1C',
+      color: 'var(--chart-5)',
     },
     {
       id: 'iad',
@@ -1019,7 +1028,7 @@ function buildFallbackDiffusionSources(vm: PortalViewModel): DiffusionSource[] {
       messages: Math.max(0, Math.round(contacts * 0.06)),
       favorites: `${Math.max(1, Math.round(contacts * 0.18))} acquéreurs`,
       share: 21.8,
-      color: '#123A63',
+      color: PORTAL_CHART_COLORS.primary,
     },
     {
       id: 'bienici',
@@ -1031,7 +1040,7 @@ function buildFallbackDiffusionSources(vm: PortalViewModel): DiffusionSource[] {
       messages: 0,
       favorites: `${Math.max(1, Math.round(contacts * 0.08))} acquéreurs`,
       share: 7.8,
-      color: '#00A896',
+      color: 'var(--chart-2)',
     },
   ]
 }
@@ -1050,7 +1059,7 @@ function DiffusionStat({
   wide?: boolean
 }) {
   const tones = {
-    brand: 'bg-[#E0F0FA] text-[#0077B6]',
+    brand: 'bg-accent text-primary',
     violet: 'bg-violet-50 text-violet-600',
     success: 'bg-emerald-50 text-emerald-600',
     warning: 'bg-orange-50 text-orange-500',
@@ -1058,11 +1067,11 @@ function DiffusionStat({
   }
 
   return (
-    <div className={`rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 ${wide ? 'col-span-2' : ''}`}>
+    <div className={`rounded-2xl border border-border bg-background p-4 ${wide ? 'col-span-2' : ''}`}>
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[10px] font-extrabold uppercase leading-none text-[#8AA0BC]">{label}</p>
-          <p className="mt-2 truncate text-xl font-extrabold leading-none text-[#0F172A]">{value}</p>
+          <p className="text-[10px] font-extrabold uppercase leading-none text-muted-foreground">{label}</p>
+          <p className="mt-2 truncate text-xl font-extrabold leading-none text-foreground">{value}</p>
         </div>
         <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${tones[tone]}`}>
           <Icon className="size-5" />
@@ -1087,15 +1096,15 @@ function TrackingMetricCard({
   tone: 'brand' | 'violet'
   points: number[]
 }) {
-  const color = tone === 'brand' ? '#0077B6' : '#8B5CF6'
+  const color = tone === 'brand' ? PORTAL_CHART_COLORS.primary : PORTAL_CHART_COLORS.violet
   return (
-    <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+    <div className="rounded-2xl border border-border bg-background p-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold text-[#64748B]">{label}</p>
-          <p className="text-xl font-extrabold leading-none text-[#0F172A]">
+          <p className="text-xs font-semibold text-muted-foreground">{label}</p>
+          <p className="text-xl font-extrabold leading-none text-foreground">
             {value === null ? '—' : formatNumber(value)}
-            {change !== null && <span className="ml-1 text-xs font-extrabold text-[#10B981]">(+{change}%)</span>}
+            {change !== null && <span className="ml-1 text-xs font-extrabold text-success">(+{change}%)</span>}
           </p>
         </div>
         <Icon className="size-4" style={{ color }} />
@@ -1124,12 +1133,12 @@ function MiniSparkline({ color, points }: { color: string; points: number[] }) {
 
 function MandateNoticeCard({ mandateType }: { mandateType: string | null }) {
   return (
-    <section className="rounded-3xl border border-[#B9DFF4] bg-[#EAF6FC] p-6">
+    <section className="rounded-3xl border border-primary/20 bg-accent/60 p-6">
       <div className="flex gap-4">
-        <Award className="mt-0.5 size-6 shrink-0 text-[#0077B6]" />
+        <Award className="mt-0.5 size-6 shrink-0 text-primary" />
         <div>
-          <h2 className="text-sm font-extrabold uppercase text-[#0F172A]">{mandateType || 'Mandat de vente exclusif (OS)'}</h2>
-          <p className="mt-2 text-xs leading-relaxed text-[#64748B]">
+          <h2 className="text-sm font-extrabold uppercase text-foreground">{mandateType || 'Mandat de vente exclusif (OS)'}</h2>
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
             Profitez de la force de diffusion nationale du réseau iAD : diffusion illimitée de l&apos;annonce sur plus de 100 portails français et internationaux jusqu&apos;à la signature de l&apos;acte authentique.
           </p>
         </div>
@@ -1140,9 +1149,9 @@ function MandateNoticeCard({ mandateType }: { mandateType: string | null }) {
 
 function OfferManagementSection({ offers }: { offers: OfferCardModel[] }) {
   return (
-    <section className="rounded-3xl border border-[#E2E8F0] bg-white p-6 shadow-sm md:p-8">
-      <h2 className="text-[20px] font-extrabold text-[#0F172A]">Gestion des offres d&apos;achat</h2>
-      <p className="mt-1 text-sm text-[#64748B]">Consultez les offres d&apos;achat écrites transmises par les acquéreurs.</p>
+    <section className="rounded-3xl border border-border bg-white p-6 shadow-sm md:p-8">
+      <h2 className="text-[20px] font-extrabold text-foreground">Gestion des offres d&apos;achat</h2>
+      <p className="mt-1 text-sm text-muted-foreground">Consultez les offres d&apos;achat écrites transmises par les acquéreurs.</p>
       {offers.length > 0 ? (
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
           {offers.map((offer) => <OfferCard key={offer.id} offer={offer} />)}
@@ -1157,38 +1166,38 @@ function OfferManagementSection({ offers }: { offers: OfferCardModel[] }) {
 function OfferCard({ offer }: { offer: OfferCardModel }) {
   const declined = offer.status === 'declined'
   return (
-    <article className={`rounded-2xl border p-6 ${declined ? 'border-[#FDB9B9] bg-white text-[#64748B]' : 'border-[#E2E8F0] bg-white'}`}>
+    <article className={`rounded-2xl border p-6 ${declined ? 'border-destructive/30 bg-white text-muted-foreground' : 'border-border bg-white'}`}>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-extrabold text-[#64748B]">Acheteur :</p>
-          <h3 className="text-base font-extrabold text-[#0F172A]">{offer.buyer}</h3>
-          <p className="text-xs text-[#94A3B8]">Transmise le {offer.dateLabel}</p>
+          <p className="text-xs font-extrabold text-muted-foreground">Acheteur :</p>
+          <h3 className="text-base font-extrabold text-foreground">{offer.buyer}</h3>
+          <p className="text-xs text-muted-foreground">Transmise le {offer.dateLabel}</p>
         </div>
         <div className="text-right">
-          <p className="text-xs font-extrabold text-[#64748B]">Montant proposé :</p>
-          <p className="text-xl font-extrabold text-[#0F172A]">{offer.amount ? formatPriceCompact(offer.amount) : 'À consulter'}</p>
+          <p className="text-xs font-extrabold text-muted-foreground">Montant proposé :</p>
+          <p className="text-xl font-extrabold text-foreground">{offer.amount ? formatPriceCompact(offer.amount) : 'À consulter'}</p>
         </div>
       </div>
 
-      <div className="mt-5 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
-        <p className="flex items-center gap-2 text-xs font-extrabold text-[#0F172A]">
-          <FileText className="size-4 text-[#0077B6]" />
+      <div className="mt-5 rounded-2xl border border-border bg-background p-4">
+        <p className="flex items-center gap-2 text-xs font-extrabold text-foreground">
+          <FileText className="size-4 text-primary" />
           Conditions & Financement :
         </p>
-        <p className="mt-2 text-xs leading-relaxed text-[#334155]">{offer.conditions}</p>
+        <p className="mt-2 text-xs leading-relaxed text-foreground/80">{offer.conditions}</p>
       </div>
 
-      <div className="mt-6 border-t border-[#E2E8F0] pt-5">
+      <div className="mt-6 border-t border-border pt-5">
         {declined ? (
-          <p className="flex items-center gap-2 text-xs font-semibold text-[#EF4444]">
-            <Clock className="size-4 text-[#94A3B8]" />
+          <p className="flex items-center gap-2 text-xs font-semibold text-destructive">
+            <Clock className="size-4 text-muted-foreground" />
             Statut final : Offre déclinée
           </p>
         ) : (
           <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
-            <button type="button" aria-disabled className="h-10 rounded-full bg-[#10B981] px-4 text-xs font-extrabold text-white">Accepter l&apos;offre</button>
-            <button type="button" aria-disabled className="h-10 rounded-full border border-[#E2E8F0] bg-white px-4 text-xs font-extrabold text-[#0F172A]">Contre-proposer</button>
-            <button type="button" aria-disabled className="h-10 rounded-full px-4 text-xs font-extrabold text-[#EF4444]">Refuser</button>
+            <button type="button" aria-disabled className="h-10 rounded-full bg-success px-4 text-xs font-extrabold text-white">Accepter l&apos;offre</button>
+            <button type="button" aria-disabled className="h-10 rounded-full border border-border bg-white px-4 text-xs font-extrabold text-foreground">Contre-proposer</button>
+            <button type="button" aria-disabled className="h-10 rounded-full px-4 text-xs font-extrabold text-destructive">Refuser</button>
           </div>
         )}
       </div>
@@ -1198,9 +1207,9 @@ function OfferCard({ offer }: { offer: OfferCardModel }) {
 
 function VisitReportsSection({ visits }: { visits: VisitCardModel[] }) {
   return (
-    <section className="rounded-3xl border border-[#E2E8F0] bg-white p-6 shadow-sm md:p-8">
-      <h2 className="text-[20px] font-extrabold text-[#0F172A]">Comptes-rendus des visites physiques</h2>
-      <p className="mt-1 text-sm text-[#64748B]">Suivi en temps réel des réactions à chaud des acquéreurs potentiels.</p>
+    <section className="rounded-3xl border border-border bg-white p-6 shadow-sm md:p-8">
+      <h2 className="text-[20px] font-extrabold text-foreground">Comptes-rendus des visites physiques</h2>
+      <p className="mt-1 text-sm text-muted-foreground">Suivi en temps réel des réactions à chaud des acquéreurs potentiels.</p>
       {visits.length > 0 ? (
         <div className="mt-6 space-y-4">
           {visits.map((visit) => <VisitReportCard key={visit.id} visit={visit} />)}
@@ -1215,25 +1224,25 @@ function VisitReportsSection({ visits }: { visits: VisitCardModel[] }) {
 function VisitReportCard({ visit }: { visit: VisitCardModel }) {
   const done = visit.status === 'done'
   return (
-    <article className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-5">
+    <article className="rounded-2xl border border-border bg-background p-5">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="flex items-center gap-1.5 text-xs font-extrabold text-[#64748B]">
-              <CalendarDays className="size-4 text-[#0077B6]" />
+            <span className="flex items-center gap-1.5 text-xs font-extrabold text-muted-foreground">
+              <CalendarDays className="size-4 text-primary" />
               {visit.dateLabel}
             </span>
-            <h3 className="text-sm font-extrabold text-[#0F172A]">{visit.visitor}</h3>
+            <h3 className="text-sm font-extrabold text-foreground">{visit.visitor}</h3>
             <span className={`rounded-full px-3 py-1 text-[10px] font-extrabold uppercase leading-none ${
-              done ? 'bg-[#ECFDF5] text-[#10B981] ring-1 ring-[#9BE7C0]' : 'bg-[#FFF8E8] text-[#B26A00] ring-1 ring-[#F5C56B]'
+              done ? 'bg-success/10 text-success ring-1 ring-success/30' : 'bg-warning-light text-warning ring-1 ring-warning/30'
             }`}>
               {done ? 'Visite effectuée' : 'Visite programmée'}
             </span>
           </div>
-          <p className="mt-3 text-xs leading-relaxed text-[#334155]">{visit.description}</p>
+          <p className="mt-3 text-xs leading-relaxed text-foreground/80">{visit.description}</p>
         </div>
         {visit.rating !== null && (
-          <div className="shrink-0 rounded-xl border border-[#E2E8F0] bg-white px-4 py-2 text-xs font-extrabold text-[#64748B]">
+          <div className="shrink-0 rounded-xl border border-border bg-white px-4 py-2 text-xs font-extrabold text-muted-foreground">
             Intérêt : <span className="text-amber-500">{ratingStars(visit.rating)}</span>
           </div>
         )}
@@ -1246,13 +1255,13 @@ function AdvisorPanel() {
   const [imageError, setImageError] = useState(false)
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-[#E2E8F0] bg-white p-5 shadow-sm transition-shadow hover:shadow-md md:p-6">
-      <div className="absolute right-0 top-0 h-36 w-36 rounded-full bg-[#E0F0FA]/40 blur-2xl" />
+    <section className="relative overflow-hidden rounded-3xl border border-border bg-white p-5 shadow-sm transition-shadow hover:shadow-md md:p-6">
+      <div className="absolute right-0 top-0 h-36 w-36 rounded-full bg-accent/40 blur-2xl" />
       <div className="relative flex flex-col gap-6 md:flex-row md:items-center">
         <div className="relative shrink-0">
-          <div className="relative size-28 overflow-hidden rounded-full border-[3px] border-[#0077B6] bg-[#E0F0FA] shadow-sm">
+          <div className="relative size-28 overflow-hidden rounded-full border-[3px] border-primary bg-accent shadow-sm">
             {imageError ? (
-              <div className="flex size-full items-center justify-center text-2xl font-extrabold text-[#0077B6]">AL</div>
+              <div className="flex size-full items-center justify-center text-2xl font-extrabold text-primary">AL</div>
             ) : (
               <Image
                 src="/alexandre-lopez-face.jpg"
@@ -1265,41 +1274,41 @@ function AdvisorPanel() {
             )}
           </div>
           <span className="absolute bottom-2 right-0 flex size-7 items-center justify-center rounded-full bg-white shadow-sm">
-            <span className="size-5 rounded-full border-2 border-white bg-[#10B981]" />
+            <span className="size-5 rounded-full border-2 border-white bg-success" />
           </span>
         </div>
 
         <div className="min-w-0 flex-1 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="portal-label inline-flex items-center gap-1 rounded-full bg-[#E0F0FA] px-3 py-1 text-[#0077B6]">
+            <span className="portal-label inline-flex items-center gap-1 rounded-full bg-accent px-3 py-1 text-primary">
               <Sparkles className="size-4" />
               Votre conseiller dédié
             </span>
-            <span className="portal-meta rounded-full bg-[#10B981]/10 px-3 py-1 text-[#10B981]">
+            <span className="portal-meta rounded-full bg-success/10 px-3 py-1 text-success">
               Disponible aujourd’hui
             </span>
           </div>
           <div>
-            <h3 className="portal-h2 text-[#0F172A]">Alexandre Lopez</h3>
-            <p className="portal-body mt-2 text-[#64748B]">
+            <h3 className="portal-h2 text-foreground">Alexandre Lopez</h3>
+            <p className="portal-body mt-2 text-muted-foreground">
               Conseiller Immobilier iAD France · Spécialiste Provence Verte
             </p>
           </div>
-          <p className="portal-body max-w-3xl italic text-[#334155]">
+          <p className="portal-body max-w-3xl italic text-foreground/80">
             « Votre projet de vie mérite un accompagnement d’exception. À chaque étape, je m’engage à vos côtés pour valoriser au mieux votre patrimoine. »
           </p>
         </div>
 
         <div className="flex w-full shrink-0 flex-col gap-3 sm:flex-row md:w-auto md:flex-col">
-          <Button asChild className="portal-button-text h-14 flex-1 rounded-full bg-[#0077B6] px-8 hover:bg-[#005F96] md:flex-none">
+          <Button asChild className="portal-button-text h-14 flex-1 rounded-full bg-primary px-8 hover:bg-primary/90 md:flex-none">
             <a href={process.env.NEXT_PUBLIC_CALCOM_URL || DEFAULT_CAL_URL}>
               <CalendarDays className="mr-2 size-5" />
               Prendre RDV
             </a>
           </Button>
-          <Button asChild variant="outline" className="portal-button-text h-14 flex-1 rounded-full border-[#E2E8F0] bg-white px-8 text-[#0F172A] hover:bg-[#F8FAFC] md:flex-none">
+          <Button asChild variant="outline" className="portal-button-text h-14 flex-1 rounded-full border-border bg-white px-8 text-foreground hover:bg-background md:flex-none">
             <a href="tel:0613180168">
-              <Phone className="mr-2 size-5 text-[#0077B6]" />
+              <Phone className="mr-2 size-5 text-primary" />
               Nous appeler
             </a>
           </Button>
@@ -1311,31 +1320,31 @@ function AdvisorPanel() {
 
 function DashboardStatusCard({ vm }: { vm: PortalViewModel }) {
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-[#E2E8F0] bg-white p-5 shadow-sm md:p-6">
-      <div className="absolute left-0 top-0 h-full w-2 bg-[#0077B6]" />
+    <section className="relative overflow-hidden rounded-3xl border border-border bg-white p-5 shadow-sm md:p-6">
+      <div className="absolute left-0 top-0 h-full w-2 bg-primary" />
       <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="portal-label inline-flex items-center gap-1 rounded-full bg-[#E0F0FA] px-3 py-1 text-[#0077B6]">
+            <span className="portal-label inline-flex items-center gap-1 rounded-full bg-accent px-3 py-1 text-primary">
               <Award className="size-3.5" />
               {vm.mandateType || 'Mandat vendeur'}
             </span>
-            <span className="portal-meta text-[#64748B]">Référence : {vm.reference}</span>
+            <span className="portal-meta text-muted-foreground">Référence : {vm.reference}</span>
           </div>
-          <h1 className="portal-h1 text-[#0F172A]">Bonjour, {vm.clientName}</h1>
-          <p className="portal-meta flex items-center gap-1 text-[#64748B]">
-            <MapPin className="size-4 text-[#0077B6]" />
+          <h1 className="portal-h1 text-foreground">Bonjour, {vm.clientName}</h1>
+          <p className="portal-meta flex items-center gap-1 text-muted-foreground">
+            <MapPin className="size-4 text-primary" />
             {vm.summary.adresse ?? vm.summary.commune ?? vm.title}
           </p>
         </div>
 
-        <div className="flex items-center gap-3 rounded-2xl border border-[#10B981]/20 bg-[#10B981]/10 p-3">
-          <span className="flex size-9 items-center justify-center rounded-full bg-[#10B981]/15 text-[#10B981]">
+        <div className="flex items-center gap-3 rounded-2xl border border-success/20 bg-success/10 p-3">
+          <span className="flex size-9 items-center justify-center rounded-full bg-success/15 text-success">
             <CheckCircle2 className="size-4" />
           </span>
           <div>
-            <p className="portal-label text-[#64748B]">Statut commercial</p>
-            <p className="portal-button-text text-[#10B981]">{vm.statusLabel} · {vm.currentStage}</p>
+            <p className="portal-label text-muted-foreground">Statut commercial</p>
+            <p className="portal-button-text text-success">{vm.statusLabel} · {vm.currentStage}</p>
           </div>
         </div>
       </div>
@@ -1361,25 +1370,25 @@ function DashboardKpi({
   onClick: () => void
 }) {
   const tones = {
-    brand: 'bg-[#E0F0FA] text-[#0077B6]',
-    success: 'bg-[#10B981]/10 text-[#10B981]',
-    warning: 'bg-[#B26A00]/10 text-[#B26A00]',
+    brand: 'bg-accent text-primary',
+    success: 'bg-success/10 text-success',
+    warning: 'bg-warning/10 text-warning',
   }
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className="portal-kpi-card group p-5 text-left transition-all hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0077B6] focus-visible:ring-offset-2"
+      className="portal-kpi-card group p-5 text-left transition-all hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
     >
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0 space-y-1">
-          <p className="portal-label text-[#64748B]">{label}</p>
-          <p className="portal-value text-[#0F172A]">
+          <p className="portal-label text-muted-foreground">{label}</p>
+          <p className="portal-value text-foreground">
             {value}
-            {valueSuffix && <span className="portal-meta ml-2 align-middle text-[#64748B]">{valueSuffix}</span>}
+            {valueSuffix && <span className="portal-meta ml-2 align-middle text-muted-foreground">{valueSuffix}</span>}
           </p>
-          <p className="portal-meta flex items-center gap-1 text-[#0077B6] group-hover:underline">
+          <p className="portal-meta flex items-center gap-1 text-primary group-hover:underline">
             {helper}
             <ChevronRight className="size-3.5" />
           </p>
@@ -1402,13 +1411,13 @@ function NextStepsPanel({
   onNavigate: (tab: PortalTab) => void
 }) {
   return (
-    <section className="rounded-3xl border border-[#E2E8F0] bg-white p-5 shadow-sm md:p-6">
+    <section className="rounded-3xl border border-border bg-white p-5 shadow-sm md:p-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
-          <h2 className="portal-h2 text-[#0F172A]">Prochaines étapes conseillées</h2>
-          <p className="portal-body text-[#64748B]">Cochez ou cliquez sur les actions pour avancer sereinement dans la vente.</p>
+          <h2 className="portal-h2 text-foreground">Prochaines étapes conseillées</h2>
+          <p className="portal-body text-muted-foreground">Cochez ou cliquez sur les actions pour avancer sereinement dans la vente.</p>
         </div>
-        <span className="portal-button-text w-fit rounded-full bg-[#E0F0FA] px-3 py-1 text-[#0077B6]">
+        <span className="portal-button-text w-fit rounded-full bg-accent px-3 py-1 text-primary">
           {completed} / {checklist.length} Validées
         </span>
       </div>
@@ -1419,21 +1428,21 @@ function NextStepsPanel({
             key={item.id}
             type="button"
             onClick={() => onNavigate(item.target)}
-            className={`flex w-full items-center justify-between gap-4 rounded-2xl border p-3.5 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0077B6] focus-visible:ring-offset-2 ${
-              item.done ? 'border-[#E2E8F0] bg-slate-50/70 text-[#64748B] opacity-85' : 'border-[#E2E8F0] bg-white hover:border-[#0077B6]'
+            className={`flex w-full items-center justify-between gap-4 rounded-2xl border p-3.5 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+              item.done ? 'border-border bg-slate-50/70 text-muted-foreground opacity-85' : 'border-border bg-white hover:border-primary'
             }`}
           >
             <span className="flex min-w-0 items-center gap-3">
               <span className={`flex size-6 shrink-0 items-center justify-center rounded-full border-2 ${
-                item.done ? 'border-[#10B981] bg-[#10B981] text-white' : 'border-[#CBD5E1] text-transparent'
+                item.done ? 'border-success bg-success text-white' : 'border-border text-transparent'
               }`}>
                 {item.done && <CheckCircle2 className="size-4 stroke-[3]" />}
               </span>
-              <span className={`portal-body ${item.done ? 'line-through text-[#64748B]' : 'text-[#0F172A]'}`}>
+              <span className={`portal-body ${item.done ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                 {item.label}
               </span>
             </span>
-            <span className="portal-button-text flex items-center gap-1 text-[#0077B6]">
+            <span className="portal-button-text flex items-center gap-1 text-primary">
               Gérer
               <ChevronRight className="size-4" />
             </span>
@@ -1454,10 +1463,10 @@ function AudiencePanel({
   onNavigate: () => void
 }) {
   return (
-    <section className="flex flex-col justify-between rounded-3xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+    <section className="flex flex-col justify-between rounded-3xl border border-border bg-white p-5 shadow-sm">
       <div className="space-y-2">
-        <h2 className="portal-h2 text-[#0F172A]">Diffusion & Audience</h2>
-        <p className="portal-body text-[#64748B]">
+        <h2 className="portal-h2 text-foreground">Diffusion & Audience</h2>
+        <p className="portal-body text-muted-foreground">
           Audience consolidée des portails SeLoger, LeBonCoin, Logic-Immo & Réseau iAD.
         </p>
       </div>
@@ -1482,10 +1491,10 @@ function AudiencePanel({
       <button
         type="button"
         onClick={onNavigate}
-        className="portal-button-text mt-6 flex w-full items-center justify-center gap-2 rounded-full border border-[#E2E8F0] bg-white py-3 text-[#0F172A] transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0077B6]"
+        className="portal-button-text mt-6 flex w-full items-center justify-center gap-2 rounded-full border border-border bg-white py-3 text-foreground transition-colors hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       >
         Voir les statistiques détaillées
-        <ArrowRight className="size-4 text-[#0077B6]" />
+        <ArrowRight className="size-4 text-primary" />
       </button>
     </section>
   )
@@ -1505,17 +1514,17 @@ function AudienceMetric({
   tone: 'brand' | 'violet'
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+    <div className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-background p-4">
       <div className="flex items-center gap-4">
-        <span className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${tone === 'brand' ? 'bg-[#E0F0FA] text-[#0077B6]' : 'bg-violet-50 text-violet-600'}`}>
+        <span className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${tone === 'brand' ? 'bg-accent text-primary' : 'bg-violet-50 text-violet-600'}`}>
           <Icon className="size-5" />
         </span>
         <div>
-          <p className="portal-h3 text-[#64748B]">{label}</p>
-          <p className="text-lg font-extrabold tracking-tight text-[#0F172A]">{value === null ? '—' : formatNumber(value)}</p>
+          <p className="portal-h3 text-muted-foreground">{label}</p>
+          <p className="text-lg font-extrabold tracking-tight text-foreground">{value === null ? '—' : formatNumber(value)}</p>
         </div>
       </div>
-      <span className="whitespace-nowrap rounded-full bg-[#10B981]/10 px-2 py-1 text-[11px] font-extrabold leading-none text-[#10B981]">
+      <span className="whitespace-nowrap rounded-full bg-success/10 px-2 py-1 text-[11px] font-extrabold leading-none text-success">
         {change === null ? '+—' : `+${change}%`} cette sem.
       </span>
     </div>
@@ -1524,24 +1533,24 @@ function AudienceMetric({
 
 function PropertyHeroPanel({ vm, onNavigate }: { vm: PortalViewModel; onNavigate: () => void }) {
   return (
-    <section className="overflow-hidden rounded-3xl border border-[#E2E8F0] bg-white shadow-sm">
+    <section className="overflow-hidden rounded-3xl border border-border bg-white shadow-sm">
       <div className="grid grid-cols-1 lg:grid-cols-5">
-        <div className="relative flex min-h-[280px] flex-col justify-between overflow-hidden bg-[#E0F0FA]/55 p-8 lg:col-span-2">
+        <div className="relative flex min-h-[280px] flex-col justify-between overflow-hidden bg-accent/55 p-8 lg:col-span-2">
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-35">
-            <svg viewBox="0 0 100 100" className="h-full w-full scale-110 text-[#0077B6]" fill="currentColor" aria-hidden="true">
+            <svg viewBox="0 0 100 100" className="h-full w-full scale-110 text-primary" fill="currentColor" aria-hidden="true">
               <path d="M10,80 L90,80 L90,40 L50,15 L10,40 Z" />
               <path d="M25,80 L25,55 L35,55 L35,80 Z" />
               <circle cx="50" cy="35" r="8" />
               <path d="M60,50 L75,50 L75,65 L60,65 Z" />
             </svg>
           </div>
-          <span className="portal-label relative z-10 w-fit rounded-full bg-[#0F172A] px-4 py-2 text-white">
+          <span className="portal-label relative z-10 w-fit rounded-full bg-foreground px-4 py-2 text-white">
             {vm.propertyHero.typeLabel}
           </span>
           <div className="relative z-10 space-y-2">
-            <p className="portal-label text-[#0077B6]">{vm.propertyHero.sector}</p>
-            <h2 className="portal-h2 text-[#0F172A]">{vm.propertyHero.title}</h2>
-            <p className="portal-body text-[#64748B]">{vm.propertyHero.city}</p>
+            <p className="portal-label text-primary">{vm.propertyHero.sector}</p>
+            <h2 className="portal-h2 text-foreground">{vm.propertyHero.title}</h2>
+            <p className="portal-body text-muted-foreground">{vm.propertyHero.city}</p>
           </div>
         </div>
 
@@ -1553,14 +1562,14 @@ function PropertyHeroPanel({ vm, onNavigate }: { vm: PortalViewModel; onNavigate
             <PropertyFact label="Terrain" value={vm.summary.surfaceTerrain ? `${vm.summary.surfaceTerrain} m²` : '—'} />
           </div>
 
-          <p className="portal-body line-clamp-4 text-[#334155]">{vm.propertyHero.description}</p>
+          <p className="portal-body line-clamp-4 text-foreground/80">{vm.propertyHero.description}</p>
 
-          <div className="flex flex-col gap-4 border-t border-[#E2E8F0] pt-5 md:flex-row md:items-center md:justify-between">
-            <span className="portal-body text-[#64748B]">{vm.propertyHero.features.join(' • ')}</span>
+          <div className="flex flex-col gap-4 border-t border-border pt-5 md:flex-row md:items-center md:justify-between">
+            <span className="portal-body text-muted-foreground">{vm.propertyHero.features.join(' • ')}</span>
             <button
               type="button"
               onClick={onNavigate}
-              className="portal-button-text flex items-center gap-2 text-[#0077B6] hover:underline"
+              className="portal-button-text flex items-center gap-2 text-primary hover:underline"
             >
               Fiche complète du bien
               <ChevronRight className="size-5" />
@@ -1574,25 +1583,24 @@ function PropertyHeroPanel({ vm, onNavigate }: { vm: PortalViewModel; onNavigate
 
 function PropertyFact({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3 text-center">
-      <p className="portal-label text-[#64748B]">{label}</p>
-      <p className="mt-1 text-sm font-extrabold leading-tight text-[#0F172A]">{value}</p>
+    <div className="rounded-2xl border border-border bg-background p-3 text-center">
+      <p className="portal-label text-muted-foreground">{label}</p>
+      <p className="mt-1 text-sm font-extrabold leading-tight text-foreground">{value}</p>
     </div>
   )
 }
 
 function DashboardCta() {
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-[#0077B6]/15 bg-[#E0F0FA] p-6 shadow-sm md:p-8">
-      <div className="pointer-events-none absolute -bottom-10 -right-10 size-44 rounded-full bg-[#0077B6]/5 blur-xl" />
+    <section className="relative overflow-hidden rounded-3xl border border-primary/15 bg-accent p-6 shadow-sm md:p-8">
       <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
         <div className="space-y-1">
-          <h2 className="portal-h2 text-[#0F172A]">Une question ou besoin d’ajustements ?</h2>
-          <p className="portal-body text-[#005F96]">Alexandre Lopez est disponible pour vous guider au quotidien.</p>
+          <h2 className="portal-h2 text-foreground">Une question ou besoin d’ajustements ?</h2>
+          <p className="portal-body text-primary">Alexandre Lopez est disponible pour vous guider au quotidien.</p>
         </div>
         <a
           href={process.env.NEXT_PUBLIC_CALCOM_URL || DEFAULT_CAL_URL}
-          className="portal-button-text flex shrink-0 items-center gap-2 rounded-full bg-[#0077B6] px-6 py-3.5 text-white shadow-sm transition-all hover:bg-[#005F96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0077B6] focus-visible:ring-offset-2"
+          className="portal-button-text flex shrink-0 items-center gap-2 rounded-full bg-primary px-6 py-3.5 text-white shadow-sm transition-all hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           Prendre un rendez-vous rapide
           <ArrowRight className="size-4" />
@@ -1605,8 +1613,8 @@ function DashboardCta() {
 function Panel({ children, tone = 'default' }: { children: React.ReactNode; tone?: 'default' | 'brand' }) {
   return (
     <Card
-      className={`app-panel rounded-3xl border-[#E2E8F0] shadow-sm transition-shadow ${
-        tone === 'brand' ? 'bg-[#E0F0FA]/65' : 'bg-white'
+      className={`app-panel rounded-3xl border-border shadow-sm transition-shadow ${
+        tone === 'brand' ? 'bg-accent/65' : 'bg-white'
       }`}
     >
       <CardContent className="p-4 sm:p-5">{children}</CardContent>
@@ -1616,13 +1624,13 @@ function Panel({ children, tone = 'default' }: { children: React.ReactNode; tone
 
 function MiniInfo({ label, value, icon: Icon }: { label: string; value: string; icon: typeof Home }) {
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#E0F0FA] text-[#0077B6]">
+    <div className="flex items-center gap-3 rounded-2xl border border-border bg-background p-3">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-accent text-primary">
         <Icon className="size-4" />
       </span>
       <span className="min-w-0">
-        <span className="portal-label block text-[#64748B]">{label}</span>
-        <span className="portal-button-text mt-1 block truncate text-[#0F172A]">{value}</span>
+        <span className="portal-label block text-muted-foreground">{label}</span>
+        <span className="portal-button-text mt-1 block truncate text-foreground">{value}</span>
       </span>
     </div>
   )
@@ -1630,9 +1638,9 @@ function MiniInfo({ label, value, icon: Icon }: { label: string; value: string; 
 
 function MiniValue({ label, value, tone }: { label: string; value: string; tone?: 'brand' | 'warning' }) {
   return (
-    <div className={`rounded-2xl border p-3 ${tone === 'brand' ? 'border-[#0077B6]/15 bg-[#E0F0FA]' : 'border-[#E2E8F0] bg-white'}`}>
-      <p className="portal-label text-[#64748B]">{label}</p>
-      <p className={`portal-button-text mt-1 ${tone === 'brand' ? 'text-[#0077B6]' : tone === 'warning' ? 'text-[#B26A00]' : 'text-[#0F172A]'}`}>{value}</p>
+    <div className={`rounded-2xl border p-3 ${tone === 'brand' ? 'border-primary/15 bg-accent' : 'border-border bg-white'}`}>
+      <p className="portal-label text-muted-foreground">{label}</p>
+      <p className={`portal-button-text mt-1 ${tone === 'brand' ? 'text-primary' : tone === 'warning' ? 'text-warning' : 'text-foreground'}`}>{value}</p>
     </div>
   )
 }
@@ -1640,21 +1648,21 @@ function MiniValue({ label, value, tone }: { label: string; value: string; tone?
 function TimelineList({ events, compact = false }: { events: PortalEvent[]; compact?: boolean }) {
   if (events.length === 0) return <EmptyState text="Les jalons visibles seront ajoutés par Alexandre." />
   return (
-    <ol className={`relative ml-4 mt-5 border-l-2 border-[#E2E8F0] pl-5 ${compact ? 'space-y-4' : 'space-y-6'}`}>
+    <ol className={`relative ml-4 mt-5 border-l-2 border-border pl-5 ${compact ? 'space-y-4' : 'space-y-6'}`}>
       {events.map((event) => {
         const isDone = event.status === 'done'
         return (
           <li key={event.id} className="relative">
-            <span className={`absolute -left-[31px] top-1 flex size-5 items-center justify-center rounded-full border-4 border-white ${isDone ? 'bg-[#10B981] text-white' : 'bg-white text-[#64748B] ring-1 ring-[#E2E8F0]'}`}>
+            <span className={`absolute -left-[31px] top-1 flex size-5 items-center justify-center rounded-full border-4 border-white ${isDone ? 'bg-success text-white' : 'bg-white text-muted-foreground ring-1 ring-border'}`}>
               {isDone ? <CheckCircle2 className="size-3" /> : <Clock className="size-3" />}
             </span>
             <div className="flex flex-wrap items-center gap-2">
-              {event.event_date && <span className="portal-meta text-[#0077B6]">{formatDate(event.event_date)}</span>}
-              <Badge variant="outline" className="rounded-full border-[#E2E8F0] bg-white text-[#64748B]">{event.typeLabel}</Badge>
-              {event.status !== 'done' && <Badge variant="outline" className="rounded-full border-[#0077B6]/20 bg-[#E0F0FA] text-[#0077B6]">En cours</Badge>}
+              {event.event_date && <span className="portal-meta text-primary">{formatDate(event.event_date)}</span>}
+              <Badge variant="outline" className="rounded-full border-border bg-white text-muted-foreground">{event.typeLabel}</Badge>
+              {event.status !== 'done' && <Badge variant="outline" className="rounded-full border-primary/20 bg-accent text-primary">En cours</Badge>}
             </div>
-            <h3 className="portal-h3 mt-1 text-[#0F172A]">{event.title}</h3>
-            {event.description && <p className="portal-body mt-1 text-[#64748B]">{event.description}</p>}
+            <h3 className="portal-h3 mt-1 text-foreground">{event.title}</h3>
+            {event.description && <p className="portal-body mt-1 text-muted-foreground">{event.description}</p>}
           </li>
         )
       })}
@@ -1667,14 +1675,14 @@ function EventCards({ events, empty }: { events: PortalEvent[]; empty: string })
   return (
     <div className="mt-4 space-y-3">
       {events.map((event) => (
-        <div key={event.id} className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+        <div key={event.id} className="rounded-2xl border border-border bg-background p-4">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline" className="rounded-full border-[#E2E8F0] bg-white text-[#64748B]">{event.typeLabel}</Badge>
-            {event.event_date && <span className="portal-meta text-[#0077B6]">{formatDate(event.event_date)}</span>}
+            <Badge variant="outline" className="rounded-full border-border bg-white text-muted-foreground">{event.typeLabel}</Badge>
+            {event.event_date && <span className="portal-meta text-primary">{formatDate(event.event_date)}</span>}
           </div>
-          <h3 className="portal-h3 mt-2 text-[#0F172A]">{event.title}</h3>
-          {event.description && <p className="portal-body mt-1 text-[#64748B]">{event.description}</p>}
-          {event.payloadSummary && <p className="portal-meta mt-2 font-semibold text-[#0F172A]">{event.payloadSummary}</p>}
+          <h3 className="portal-h3 mt-2 text-foreground">{event.title}</h3>
+          {event.description && <p className="portal-body mt-1 text-muted-foreground">{event.description}</p>}
+          {event.payloadSummary && <p className="portal-meta mt-2 font-semibold text-foreground">{event.payloadSummary}</p>}
         </div>
       ))}
     </div>
@@ -1682,7 +1690,7 @@ function EventCards({ events, empty }: { events: PortalEvent[]; empty: string })
 }
 
 function EmptyState({ text }: { text: string }) {
-  return <div className="portal-body mt-4 rounded-2xl border border-dashed border-[#E2E8F0] bg-[#F8FAFC] p-5 text-[#64748B]">{text}</div>
+  return <div className="portal-body mt-4 rounded-2xl border border-dashed border-border bg-background p-5 text-muted-foreground">{text}</div>
 }
 
 type PortalViewModel = ReturnType<typeof buildViewModel>

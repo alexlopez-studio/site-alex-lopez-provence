@@ -464,7 +464,7 @@ export default function LeadsListPage() {
                                                         {lead.commune && <span className="inline-flex items-center gap-1"><MapPin className="size-3" />{lead.commune}</span>}
                                                         {seller?.surface != null && <span>{seller.surface} m²</span>}
                                                         {price && <span>{price}</span>}
-                                                        {lead.opportunity && <span className="text-brand">Opportunité créée</span>}
+                                                        {lead.opportunity && <span className="text-primary">Opportunité créée</span>}
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-3">
@@ -485,7 +485,7 @@ export default function LeadsListPage() {
                                                                 type="button"
                                                                 onClick={() => inviteClient(lead)}
                                                                 disabled={invitingId === lead.id}
-                                                                className="inline-flex items-center gap-1 rounded-lg border border-brand/25 px-3 py-1.5 text-xs font-medium text-brand transition-colors hover:bg-brand-light disabled:cursor-not-allowed disabled:opacity-60"
+                                                                className="inline-flex items-center gap-1 rounded-lg border border-primary/25 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
                                                             >
                                                                 {invitingId === lead.id ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
                                                                 Espace

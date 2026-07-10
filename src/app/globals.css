@@ -247,6 +247,7 @@ body {
   --color-brand:         #0077B6;
   --color-brand-hover:   #005F96;
   --color-brand-light:   #E0F0FA;
+  --color-brand-dark:    #005F96;
   --color-foreground:    #0F172A;
   --color-muted:         #64748B;
   --color-border:        #E2E8F0;
@@ -266,11 +267,13 @@ body {
   --foreground:          #0F172A;
   --card:                #FFFFFF;
   --card-foreground:     #0F172A;
+  --popover:             #FFFFFF;
+  --popover-foreground:  #0F172A;
   --primary:             #0077B6;
   --primary-foreground:  #FFFFFF;
-  --secondary:           #EEF6FA;
+  --secondary:           #EAF4FA;
   --secondary-foreground:#0F172A;
-  --muted:               #EEF3F7;
+  --muted:               #EDF4F8;
   --muted-foreground:    #64748B;
   --accent:              #E0F0FA;
   --accent-foreground:   #0F172A;
@@ -279,6 +282,12 @@ body {
   --border:              #E2E8F0;
   --input:               #E2E8F0;
   --ring:                #0077B6;
+  --chart-1:             #0077B6;
+  --chart-2:             #10B981;
+  --chart-3:             #B26A00;
+  --chart-4:             #0F172A;
+  --chart-5:             #64748B;
+  --radius:              0.625rem;
   --sidebar:             #FFFFFF;
   --sidebar-foreground:  #334155;
   --sidebar-primary:     #0077B6;
@@ -302,20 +311,56 @@ body {
   font-family: var(--font-jakarta), var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: #F8FAFC;
   color: #0F172A;
+  --radius: 1rem;
 }
 
-.app-product [data-slot="card"],
-.app-panel {
-  border-radius: 1.5rem;
-  border-color: #E2E8F0;
-  background: #FFFFFF;
-  box-shadow: 0 1px 2px rgb(15 23 42 / 0.06);
+.app-product [data-slot="card"] {
+  border-color: var(--border);
+  background: var(--card);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.05);
+}
+
+.app-product .app-panel {
+  border-radius: 0.875rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.05);
 }
 
 .app-page-title {
   color: var(--foreground);
   letter-spacing: 0;
   font-weight: 800;
+}
+
+.app-product [data-slot="button"],
+.app-product [data-slot="input"],
+.app-product [data-slot="textarea"],
+.app-product [data-slot="select-trigger"] {
+  box-shadow: 0 1px 1px rgb(15 23 42 / 0.03);
+}
+
+.app-product [data-slot="table-container"] {
+  border-color: var(--border);
+}
+
+.app-product [data-slot="table-head"] {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.app-product [data-slot="tabs-list"] {
+  border: 1px solid color-mix(in srgb, var(--border) 88%, white);
+}
+
+.app-product [data-slot="dialog-content"],
+.app-product [data-slot="select-content"],
+.app-product [data-slot="sheet-content"] {
+  border: 1px solid var(--border);
+  box-shadow: 0 24px 60px -36px rgb(15 23 42 / 0.42);
 }
 
 .client-portal [data-slot="button"],
@@ -406,6 +451,13 @@ body {
   border: 1px solid var(--color-border);
   border-radius: 1.5rem;
   background: #FFFFFF;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.06);
+}
+
+.client-portal [data-slot="card"],
+.client-portal .app-panel {
+  border-radius: 1.5rem;
+  border-color: #E2E8F0;
   box-shadow: 0 1px 2px rgb(15 23 42 / 0.06);
 }
 

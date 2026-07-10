@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import {
   Building2Icon,
   BarChart3Icon,
+  BotIcon,
   KanbanIcon,
   LayoutDashboardIcon,
   SettingsIcon,
@@ -37,6 +38,7 @@ type SidebarNavItem = {
 
 const PILOTAGE_ITEMS: SidebarNavItem[] = [
   { title: "Dashboard", url: "/app/dashboard", icon: LayoutDashboardIcon },
+  { title: "Assistant IA", url: "/app/assistant", icon: BotIcon },
 ]
 
 const OPPORTUNITY_ITEMS: SidebarNavItem[] = [
@@ -83,8 +85,8 @@ export function AppSidebar({ role, email, ...props }: AppSidebarProps) {
               className="min-w-0 flex-1 data-[slot=sidebar-menu-button]:!p-1.5 group-data-[collapsible=icon]:flex-none"
             >
               <Link href="/app/dashboard">
-                <PackageIcon className="h-5 w-5 text-brand" />
-                <span className="text-base font-semibold">Mandat OS</span>
+                <PackageIcon className="h-5 w-5 text-primary" />
+                <span className="text-base font-extrabold">Mandat OS</span>
               </Link>
             </SidebarMenuButton>
             <SidebarTrigger className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground group-data-[collapsible=icon]:mt-1" />

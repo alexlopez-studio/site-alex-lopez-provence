@@ -161,7 +161,7 @@ function SortableBuyerCard({ buyer }: { buyer: BuyerCriteria }) {
         openCard()
       }}
       className={cn(
-        'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 active:cursor-grabbing',
+        'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:cursor-grabbing',
         isDragging && 'cursor-grabbing',
       )}
     >

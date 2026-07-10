@@ -36,7 +36,7 @@ export function NavMain({
                 asChild
                 tooltip={item.title}
                 className={cn(
-                  item.isActive && "bg-brand/10 text-brand font-medium"
+                  item.isActive && "bg-accent text-primary font-bold"
                 )}
               >
                 <Link href={item.url}>

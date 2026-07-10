@@ -9,7 +9,7 @@ type StatusPillProps = React.ComponentProps<typeof Badge> & {
 
 const toneClasses = {
   neutral: 'border-border bg-muted text-muted-foreground',
-  brand: 'border-brand/20 bg-brand-light/60 text-brand-dark',
+  brand: 'border-primary/20 bg-accent text-primary',
   success: 'border-emerald-200 bg-emerald-50 text-emerald-700',
   warning: 'border-amber-200 bg-amber-50 text-amber-800',
   danger: 'border-red-200 bg-red-50 text-red-700',
@@ -24,7 +24,7 @@ function StatusPill({
     <Badge
       variant="outline"
       className={cn(
-        'h-6 rounded-md px-2 text-xs font-medium',
+        'h-6 rounded-full px-2.5 text-xs font-bold',
         toneClasses[tone],
         className
       )}

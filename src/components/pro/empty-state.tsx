@@ -21,18 +21,18 @@ function EmptyState({
   return (
     <div
       className={cn(
-        'flex min-h-64 flex-col items-center justify-center rounded-lg border border-dashed border-border bg-surface/60 px-6 py-10 text-center',
+        'flex min-h-56 flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/35 px-6 py-10 text-center',
         className
       )}
       {...props}
     >
       {Icon ? (
-        <div className="mb-4 flex size-10 items-center justify-center rounded-lg bg-background ring-1 ring-border">
-          <Icon className="size-5 text-brand" aria-hidden="true" />
+        <div className="mb-4 flex size-10 items-center justify-center rounded-md bg-accent text-primary ring-1 ring-border">
+          <Icon className="size-5 text-primary" aria-hidden="true" />
         </div>
       ) : null}
       <div className="max-w-md space-y-1.5">
-        <h2 className="text-base font-semibold text-foreground">{title}</h2>
+        <h2 className="text-base font-bold text-foreground">{title}</h2>
         {description ? (
           <p className="text-sm leading-6 text-muted-foreground">
             {description}

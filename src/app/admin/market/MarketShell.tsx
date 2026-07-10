@@ -18,8 +18,8 @@ export function MarketShell({
   return (
     <SidebarProvider>
       <AppSidebar role={role} email={email} />
-      <SidebarInset className="app-product min-w-0 bg-background">
-        <header className="flex h-12 shrink-0 items-center gap-2 border-b bg-card/90 px-4 backdrop-blur lg:px-6">
+      <SidebarInset className="app-product min-w-0 bg-background text-foreground">
+        <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border bg-card/95 px-4 backdrop-blur lg:px-6">
           <SidebarTrigger className="-ml-1" />
           <div className="ml-auto">
             <NotificationsSheet />

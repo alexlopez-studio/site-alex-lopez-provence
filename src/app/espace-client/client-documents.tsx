@@ -22,19 +22,19 @@ const STATUS_LABELS: Record<string, string> = {
 }
 
 const STATUS_PILL_CLASSES: Record<string, string> = {
-  missing: 'border-[#F5C56B] bg-[#FFF8E8] text-[#B26A00]',
-  requested: 'border-[#F5C56B] bg-[#FFF8E8] text-[#B26A00]',
-  uploaded: 'border-[#B9DFF4] bg-[#E0F0FA] text-[#0077B6]',
-  validated: 'border-[#9BE7C0] bg-[#ECFDF5] text-[#10B981]',
-  rejected: 'border-[#FDB9B9] bg-[#FFF1F2] text-[#EF4444]',
+  missing: 'border-warning/30 bg-warning-light text-warning',
+  requested: 'border-warning/30 bg-warning-light text-warning',
+  uploaded: 'border-primary/20 bg-accent text-primary',
+  validated: 'border-success/30 bg-success/10 text-success',
+  rejected: 'border-destructive/30 bg-destructive/10 text-destructive',
 }
 
 const STATUS_ICON_CLASSES: Record<string, string> = {
-  missing: 'bg-[#FFF8E8] text-[#B26A00]',
-  requested: 'bg-[#FFF8E8] text-[#B26A00]',
-  uploaded: 'bg-[#E0F0FA] text-[#0077B6]',
-  validated: 'bg-[#ECFDF5] text-[#10B981]',
-  rejected: 'bg-[#FFF1F2] text-[#EF4444]',
+  missing: 'bg-warning-light text-warning',
+  requested: 'bg-warning-light text-warning',
+  uploaded: 'bg-accent text-primary',
+  validated: 'bg-success/10 text-success',
+  rejected: 'bg-destructive/10 text-destructive',
 }
 
 const UPLOADABLE_STATUSES = new Set(['missing', 'requested', 'rejected'])
@@ -93,27 +93,27 @@ export function ClientDocuments({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-3xl border border-[#E2E8F0] bg-white p-6 shadow-sm md:p-8">
+      <section className="rounded-3xl border border-border bg-white p-6 shadow-sm md:p-8">
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="max-w-3xl">
-            <h2 className="text-[19px] font-extrabold leading-tight text-[#0F172A]">
+            <h2 className="text-[19px] font-extrabold leading-tight text-foreground">
               Dossier administratif & Pièces justificatives
             </h2>
-            <p className="mt-3 text-sm leading-relaxed text-[#64748B]">
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
               La constitution précoce d&apos;un dossier complet évite de perdre des acquéreurs potentiels.
               Chaque pièce fournie est vérifiée par Alexandre Lopez avant d&apos;être transmise au notaire.
             </p>
           </div>
 
-          <div className="w-full rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 md:w-64">
-            <div className="flex items-center justify-between text-[11px] font-extrabold uppercase text-[#64748B]">
+          <div className="w-full rounded-2xl border border-border bg-background p-4 md:w-64">
+            <div className="flex items-center justify-between text-[11px] font-extrabold uppercase text-muted-foreground">
               <span>Avancement</span>
-              <span className="text-[#0077B6]">{provided} / {total} documents</span>
+              <span className="text-primary">{provided} / {total} documents</span>
             </div>
-            <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-[#DCE5EE]">
-              <div className="h-full rounded-full bg-[#0077B6]" style={{ width: `${progress}%` }} />
+            <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-border">
+              <div className="h-full rounded-full bg-primary" style={{ width: `${progress}%` }} />
             </div>
-            <p className="mt-3 text-center text-[11px] leading-snug text-[#64748B]">
+            <p className="mt-3 text-center text-[11px] leading-snug text-muted-foreground">
               {progress === 100 ? 'Votre dossier est complet.' : 'Encore un effort pour finaliser votre dossier.'}
             </p>
           </div>
@@ -127,21 +127,21 @@ export function ClientDocuments({
       />
 
       {error && (
-        <p className="rounded-2xl border border-[#EF4444]/20 bg-[#EF4444]/10 px-4 py-3 text-sm text-[#EF4444]">
+        <p className="rounded-2xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {error}
         </p>
       )}
 
-      <section className="overflow-hidden rounded-3xl border border-[#E2E8F0] bg-white shadow-sm">
-        <div className="flex flex-col gap-2 border-b border-[#E2E8F0] bg-[#F8FAFC] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <h3 className="text-[13px] font-extrabold uppercase tracking-normal text-[#64748B]">
+      <section className="overflow-hidden rounded-3xl border border-border bg-white shadow-sm">
+        <div className="flex flex-col gap-2 border-b border-border bg-background px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <h3 className="text-[13px] font-extrabold uppercase tracking-normal text-muted-foreground">
             Liste des pièces réglementaires
           </h3>
-          <p className="text-xs font-semibold text-[#64748B]">Trier par : Obligatoires d&apos;abord</p>
+          <p className="text-xs font-semibold text-muted-foreground">Trier par : Obligatoires d&apos;abord</p>
         </div>
 
         {documents.length > 0 ? (
-          <div className="divide-y divide-[#E2E8F0]">
+          <div className="divide-y divide-border">
             {documents.map((document) => (
               <DocumentRow
                 key={document.id}
@@ -153,18 +153,18 @@ export function ClientDocuments({
             ))}
           </div>
         ) : (
-          <div className="px-5 py-10 text-center text-sm text-[#64748B]">
+          <div className="px-5 py-10 text-center text-sm text-muted-foreground">
             La checklist documentaire sera ajoutée par Alexandre.
           </div>
         )}
       </section>
 
-      <section className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-5">
-        <h3 className="flex items-center gap-2 text-[13px] font-extrabold uppercase text-[#0F172A]">
-          <Info className="size-4 text-[#0077B6]" />
+      <section className="rounded-2xl border border-border bg-background p-5">
+        <h3 className="flex items-center gap-2 text-[13px] font-extrabold uppercase text-foreground">
+          <Info className="size-4 text-primary" />
           Détails sur les diagnostics requis à {diagnosticsLocation}
         </h3>
-        <p className="mt-4 text-xs leading-relaxed text-[#64748B]">
+        <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
           Pour une maison individuelle construite avant 1997 en Provence Verte, les diagnostics Amiante,
           DPE (Diagnostic Performance Énergétique), Électricité et Termites sont généralement requis.
           Les termites font l&apos;objet d&apos;un arrêté préfectoral spécifique dans le Var (83) ; le rapport
@@ -185,14 +185,14 @@ function UploadDropzone({
   onFile: (file: File | null) => void
 }) {
   const content = (
-    <div className="flex min-h-40 flex-col items-center justify-center rounded-3xl border border-dashed border-[#D5E1EC] bg-white px-6 py-10 text-center transition-colors hover:border-[#B9DFF4] hover:bg-[#F8FAFC]">
-      <span className="flex size-12 items-center justify-center rounded-full bg-[#E0F0FA] text-[#0077B6]">
+    <div className="flex min-h-40 flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-white px-6 py-10 text-center transition-colors hover:border-primary/20 hover:bg-background">
+      <span className="flex size-12 items-center justify-center rounded-full bg-accent text-primary">
         {uploading ? <Loader2 className="size-6 animate-spin" /> : <Upload className="size-6" />}
       </span>
-      <p className="mt-4 text-sm font-extrabold text-[#0F172A]">
+      <p className="mt-4 text-sm font-extrabold text-foreground">
         Glissez-déposez une pièce ou cliquez ici
       </p>
-      <p className="mt-1 text-xs text-[#64748B]">Formats acceptés : PDF, PNG, JPEG jusqu&apos;à 10 Mo</p>
+      <p className="mt-1 text-xs text-muted-foreground">Formats acceptés : PDF, PNG, JPEG jusqu&apos;à 10 Mo</p>
     </div>
   )
 
@@ -237,15 +237,15 @@ function DocumentRow({
         </span>
 
         <div className="min-w-0 flex-1">
-          <h4 className="text-sm font-extrabold leading-tight text-[#0F172A]">{document.label}</h4>
+          <h4 className="text-sm font-extrabold leading-tight text-foreground">{document.label}</h4>
 
           <DocumentMeta document={document} />
 
           {document.notes && (
             <p className={`mt-3 flex w-full max-w-[680px] rounded-xl border px-3 py-2 text-xs leading-relaxed ${
               document.status === 'rejected'
-                ? 'border-[#FDB9B9] bg-[#FFF1F2] text-[#EF4444]'
-                : 'border-[#E2E8F0] bg-[#F8FAFC] text-[#64748B]'
+                ? 'border-destructive/30 bg-destructive/10 text-destructive'
+                : 'border-border bg-background text-muted-foreground'
             }`}>
               {document.status === 'rejected' && <AlertTriangle className="mr-2 mt-0.5 size-3.5 shrink-0" />}
               <span>
@@ -259,7 +259,7 @@ function DocumentRow({
 
       <div className="flex flex-wrap items-center gap-2 lg:flex-col lg:items-end">
         {isRequired && (
-          <span className="inline-flex h-7 max-w-full items-center justify-center whitespace-nowrap rounded-full border border-[#FDB9B9] bg-[#FFF1F2] px-3 text-[11px] font-extrabold uppercase leading-none text-[#EF4444]">
+          <span className="inline-flex h-7 max-w-full items-center justify-center whitespace-nowrap rounded-full border border-destructive/30 bg-destructive/10 px-3 text-[11px] font-extrabold uppercase leading-none text-destructive">
             Requis
           </span>
         )}
@@ -273,15 +273,15 @@ function DocumentRow({
               href={document.signed_url}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#E2E8F0] bg-white px-3 text-xs font-extrabold text-[#0F172A] transition-colors hover:bg-[#F8FAFC]"
+              className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border bg-white px-3 text-xs font-extrabold text-foreground transition-colors hover:bg-background"
             >
               Voir
-              <ArrowUpRight className="size-3.5 text-[#0077B6]" />
+              <ArrowUpRight className="size-3.5 text-primary" />
             </a>
           )}
 
           {!readOnly && canUpload && (
-            <label className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full bg-[#0077B6] px-3 text-xs font-extrabold text-white transition-colors hover:bg-[#005F96]">
+            <label className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full bg-primary px-3 text-xs font-extrabold text-white transition-colors hover:bg-primary/90">
               {uploading ? <Loader2 className="size-3.5 animate-spin" /> : <UploadCloud className="size-3.5" />}
               {document.status === 'rejected' ? 'Remplacer' : 'Téléverser'}
               <input
@@ -301,11 +301,11 @@ function DocumentRow({
 
 function DocumentMeta({ document }: { document: ClientDocumentWithUrl }) {
   if (!document.file_name && ['missing', 'requested'].includes(document.status)) {
-    return <p className="mt-1 text-xs font-medium text-[#B26A00]">Non fourni à ce jour</p>
+    return <p className="mt-1 text-xs font-medium text-warning">Non fourni à ce jour</p>
   }
 
   return (
-    <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#64748B]">
+    <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
       {document.uploaded_at && <span>Fourni le {formatDate(document.uploaded_at)}</span>}
       {document.file_name && !document.uploaded_at && <span>{document.file_name}</span>}
       {document.file_size && (

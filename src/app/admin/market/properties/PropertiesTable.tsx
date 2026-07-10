@@ -280,7 +280,7 @@ export function PropertiesTable({ initialZipcode }: { initialZipcode?: string })
       </div>
 
       {zipcodeFilter && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-brand-light/60 px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-accent/60 px-4 py-3">
           <div>
             <p className="text-sm font-semibold text-foreground">
               {zoneContext ? `Biens synchronisés pour ${zoneContext.name}` : 'Biens filtrés par zone surveillée'}
@@ -446,7 +446,7 @@ export function PropertiesTable({ initialZipcode }: { initialZipcode?: string })
                       <td className="p-4">
                         <Link
                           href={`/app/properties/${prop.id}`}
-                          className="font-medium hover:text-brand transition-colors"
+                          className="font-medium hover:text-primary transition-colors"
                         >
                           {prop.title || 'Bien sans titre'}
                         </Link>

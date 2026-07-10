@@ -249,7 +249,7 @@ export default function DvfPage() {
           <Card>
             <CardContent className="space-y-3 p-4">
               <div className="flex items-center gap-2">
-                <Search className="h-4 w-4 text-brand" />
+                <Search className="h-4 w-4 text-primary" />
                 <p className="text-sm font-semibold">Ajouter une commune</p>
               </div>
               <Input
@@ -288,7 +288,7 @@ export default function DvfPage() {
           <Card>
             <CardContent className="space-y-3 p-4">
               <div className="flex items-center gap-2">
-                <Database className="h-4 w-4 text-brand" />
+                <Database className="h-4 w-4 text-primary" />
                 <p className="text-sm font-semibold">Communes analysées</p>
               </div>
               {zones.length === 0 ? (
@@ -298,7 +298,7 @@ export default function DvfPage() {
               ) : (
                 <div className="space-y-2">
                   {zones.map((zone) => (
-                    <div key={zone.id} className={`rounded-md border p-3 ${selectedInsee === zone.insee_code ? 'border-brand bg-brand-light/40' : 'bg-white'}`}>
+                    <div key={zone.id} className={`rounded-md border p-3 ${selectedInsee === zone.insee_code ? 'border-primary bg-accent/40' : 'bg-white'}`}>
                       <button type="button" onClick={() => setSelectedInsee(zone.insee_code)} className="w-full text-left">
                         <div className="flex items-center justify-between gap-2">
                           <p className="text-sm font-semibold">{zone.name}</p>
@@ -386,7 +386,7 @@ export default function DvfPage() {
                           <span className="text-muted-foreground">{item.count} · {formatNumber(item.median_price_per_m2, ' €/m²')}</span>
                         </div>
                         <div className="h-2 rounded-full bg-muted">
-                          <div className="h-2 rounded-full bg-brand" style={{ width: `${Math.max(4, (item.count / max) * 100)}%` }} />
+                          <div className="h-2 rounded-full bg-primary" style={{ width: `${Math.max(4, (item.count / max) * 100)}%` }} />
                         </div>
                       </div>
                     )

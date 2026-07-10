@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {
+  BrainCircuit,
   CheckCircle2,
   Clock3,
   Import,
@@ -19,6 +20,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { AiIntegrationsSettings } from './AiIntegrationsSettings'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -131,12 +133,13 @@ type SyncTarget = {
   inseeCode: string | null
 }
 
-type SettingsSection = 'import' | 'communes' | 'consommation' | 'profil'
+type SettingsSection = 'import' | 'communes' | 'consommation' | 'ia' | 'profil'
 
 const SECTIONS: Array<{ id: SettingsSection; label: string; icon: typeof Import; hint: string }> = [
   { id: 'import', label: 'Importer une commune', icon: Import, hint: 'Rechercher et importer' },
   { id: 'communes', label: 'Communes surveillées', icon: MapPin, hint: 'Gérer les zones' },
   { id: 'consommation', label: 'Consommation', icon: WalletCards, hint: 'Items du mois & historique' },
+  { id: 'ia', label: 'IA & intégrations', icon: BrainCircuit, hint: 'Modèles, clés, Google, Granola' },
   { id: 'profil', label: 'Informations personnelles', icon: UserRound, hint: 'Profil & contact' },
 ]
 
@@ -298,7 +301,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     const requestedSection = searchParams.get('section')
-    if (requestedSection === 'import' || requestedSection === 'communes' || requestedSection === 'consommation' || requestedSection === 'profil') {
+    if (requestedSection === 'import' || requestedSection === 'communes' || requestedSection === 'consommation' || requestedSection === 'ia' || requestedSection === 'profil') {
       setSection(requestedSection)
     }
   }, [searchParams])
@@ -603,7 +606,7 @@ export default function SettingsPage() {
     <div className="space-y-5">
       <div className="flex flex-col gap-3 border-b pb-5 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand">Paramètres</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Paramètres</p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground md:text-3xl">Réglages Mandat OS</h1>
           <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">
             Importer une commune, surveiller les zones, suivre la consommation Stream Estate, et gérer le profil.
@@ -627,7 +630,7 @@ export default function SettingsPage() {
                 type="button"
                 onClick={() => setSection(item.id)}
                 className={`flex shrink-0 items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors md:w-full ${
-                  active ? 'border-brand bg-brand-light/60 text-foreground' : 'border-transparent text-muted-foreground hover:bg-muted'
+                  active ? 'border-primary bg-accent/60 text-foreground' : 'border-transparent text-muted-foreground hover:bg-muted'
                 }`}
               >
                 <Icon className="size-4 shrink-0" aria-hidden="true" />
@@ -643,7 +646,7 @@ export default function SettingsPage() {
         {/* Contenu de la section active */}
         <div className="min-w-0 space-y-4">
           {section === 'import' ? (
-            <Card className="border-brand/20">
+            <Card className="border-primary/20">
               <CardHeader>
                 <CardTitle>Importer une commune</CardTitle>
                 <CardDescription>
@@ -696,7 +699,7 @@ export default function SettingsPage() {
                           key={zipcode}
                           type="button"
                           onClick={() => chooseZip(selectedCommune, zipcode)}
-                          className={`rounded-md border px-2 py-1 text-xs font-medium ${selectedZip === zipcode ? 'border-brand bg-brand text-white' : 'border-border bg-background text-foreground hover:bg-muted'}`}
+                          className={`rounded-md border px-2 py-1 text-xs font-medium ${selectedZip === zipcode ? 'border-primary bg-primary text-white' : 'border-border bg-background text-foreground hover:bg-muted'}`}
                         >
                           {zipcode}
                         </button>
@@ -720,7 +723,7 @@ export default function SettingsPage() {
                           onClick={() => togglePropertyType(option.value)}
                           className={`rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
                             active
-                              ? 'border-brand bg-brand text-white'
+                              ? 'border-primary bg-primary text-white'
                               : 'border-border bg-background text-foreground hover:bg-muted'
                           }`}
                         >
@@ -866,7 +869,7 @@ export default function SettingsPage() {
                       ) : (
                         <>
                           <div className="flex min-w-0 items-start gap-3">
-                            <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-md bg-brand-light/70 text-brand">
+                            <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-md bg-accent/70 text-primary">
                               <MapPin className="size-4" aria-hidden="true" />
                             </span>
                             <div className="min-w-0">
@@ -927,7 +930,7 @@ export default function SettingsPage() {
           {section === 'consommation' ? (
             <div className="space-y-4">
               <div className="grid gap-3 md:grid-cols-3">
-                <Card className="border-brand/20">
+                <Card className="border-primary/20">
                   <CardContent className="p-4">
                     <p className="text-xs font-medium uppercase text-muted-foreground">Items consommés ce mois</p>
                     <p className="mt-2 text-2xl font-semibold tabular-nums text-foreground">{fmt(monthItems)}</p>
@@ -957,7 +960,7 @@ export default function SettingsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-base">
-                    <Clock3 className="size-4 text-brand" aria-hidden="true" />
+                    <Clock3 className="size-4 text-primary" aria-hidden="true" />
                     Historique récent
                   </CardTitle>
                   <CardDescription>Les dernières synchronisations Stream Estate.</CardDescription>
@@ -997,6 +1000,8 @@ export default function SettingsPage() {
               </Card>
             </div>
           ) : null}
+
+          {section === 'ia' ? <AiIntegrationsSettings /> : null}
 
           {section === 'profil' ? (
             <Card>

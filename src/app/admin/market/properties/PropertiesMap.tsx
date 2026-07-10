@@ -16,13 +16,13 @@ interface Property {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-    nouveau: '#0077B6',
-    actif: '#10B981',
-    prix_en_baisse: '#EF4444',
-    opportunite: '#F59E0B',
-    stagne: '#6B7280',
-    expire: '#64748B',
-    retire: '#64748B',
+    nouveau: 'var(--chart-1)',
+    actif: 'var(--chart-2)',
+    prix_en_baisse: 'var(--destructive)',
+    opportunite: 'var(--chart-3)',
+    stagne: 'var(--muted-foreground)',
+    expire: 'var(--muted-foreground)',
+    retire: 'var(--muted-foreground)',
 }
 
 interface PropertiesMapProps {
@@ -92,7 +92,7 @@ export function PropertiesMap({ properties, height = '420px' }: PropertiesMapPro
             const markers: any[] = []
 
             properties.forEach((prop) => {
-                const color = STATUS_COLORS[prop.status] ?? '#6B7280'
+                const color = STATUS_COLORS[prop.status] ?? 'var(--muted-foreground)'
                 const marker = L.marker([prop.lat, prop.lng], {
                     icon: L.divIcon({
                         className: 'custom-marker',
@@ -111,9 +111,9 @@ export function PropertiesMap({ properties, height = '420px' }: PropertiesMapPro
                 marker.bindPopup(`
                     <div style="font-family:system-ui,sans-serif;min-width:180px;">
                         <p style="font-weight:600;margin:0 0 4px;font-size:13px;">${prop.title}</p>
-                        <p style="margin:0 0 2px;font-size:12px;color:#64748B;">${prop.city} · ${prop.propertyType} · ${prop.rooms} pièces</p>
-                        <p style="margin:0 0 2px;font-size:12px;color:#64748B;">${prop.surface} m²</p>
-                        <p style="margin:0;font-size:14px;font-weight:700;color:#0077B6;">${priceFormatted}</p>
+                        <p style="margin:0 0 2px;font-size:12px;color:var(--muted-foreground);">${prop.city} · ${prop.propertyType} · ${prop.rooms} pièces</p>
+                        <p style="margin:0 0 2px;font-size:12px;color:var(--muted-foreground);">${prop.surface} m²</p>
+                        <p style="margin:0;font-size:14px;font-weight:700;color:var(--primary);">${priceFormatted}</p>
                     </div>
                 `)
 

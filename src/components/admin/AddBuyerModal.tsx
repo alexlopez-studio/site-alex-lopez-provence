@@ -191,7 +191,7 @@ export function AddBuyerModal({ onBuyerAdded, onBuyerSelected }: AddBuyerModalPr
                 {form.communes.map((c) => (
                   <span
                     key={c}
-                    className="inline-flex items-center gap-1 rounded-full bg-brand/10 text-brand text-xs px-2.5 py-1"
+                    className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary text-xs px-2.5 py-1"
                   >
                     {c}
                     <button

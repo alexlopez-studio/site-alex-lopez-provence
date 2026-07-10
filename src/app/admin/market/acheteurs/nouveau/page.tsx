@@ -259,7 +259,7 @@ export default function NouvelAcquereurPage() {
                         key={lead.id}
                         type="button"
                         onClick={() => setSelectedLeadId(lead.id)}
-                        className={cn('rounded-md border p-3 text-left transition-colors hover:bg-muted/50', selected ? 'border-brand bg-brand-light/50' : 'border-border')}
+                        className={cn('rounded-md border p-3 text-left transition-colors hover:bg-muted/50', selected ? 'border-primary bg-accent/50' : 'border-border')}
                       >
                         <div className="flex items-center justify-between gap-3">
                           <span className="text-sm font-medium">{name}</span>
@@ -344,7 +344,7 @@ export default function NouvelAcquereurPage() {
               {form.communes.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                   {form.communes.map((commune) => (
-                    <span key={commune} className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-2.5 py-1 text-xs text-brand">
+                    <span key={commune} className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs text-primary">
                       {commune}
                       <button type="button" className="hover:text-destructive" onClick={() => removeCommune(commune)}>
                         ×

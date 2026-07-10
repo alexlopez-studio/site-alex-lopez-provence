@@ -343,7 +343,7 @@ export function PropertyDetail() {
       <div className="flex flex-col items-center justify-center gap-3 py-24 text-center">
         <Home className="h-10 w-10 text-muted-foreground/30" />
         <p className="text-sm font-medium">Bien introuvable</p>
-        <Link href="/app/properties" className="text-sm text-brand hover:underline">Retour au marché</Link>
+        <Link href="/app/properties" className="text-sm text-primary hover:underline">Retour au marché</Link>
       </div>
     )
   }
@@ -594,7 +594,7 @@ export function PropertyDetail() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Link2 className="h-4 w-4 text-brand" />
+                <Link2 className="h-4 w-4 text-primary" />
                 Diffusions
               </CardTitle>
               <CardDescription className="text-[11px]">
@@ -674,7 +674,7 @@ export function PropertyDetail() {
                           </div>
                         )}
                         <div className="mt-3 flex flex-wrap gap-2">
-                          <Button size="sm" className="bg-brand hover:bg-brand-hover" onClick={() => resolveDuplicate(candidate, 'merge')} disabled={merging || rejecting}>
+                          <Button size="sm" className="bg-primary hover:bg-primary/90" onClick={() => resolveDuplicate(candidate, 'merge')} disabled={merging || rejecting}>
                             {merging ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-1 h-4 w-4" />}
                             Rapprocher
                           </Button>
@@ -699,7 +699,7 @@ export function PropertyDetail() {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <TrendingDown className="h-4 w-4 text-brand" />
+                  <TrendingDown className="h-4 w-4 text-primary" />
                   Score mandat
                 </CardTitle>
                 <CardDescription className="text-xs">
@@ -752,7 +752,7 @@ export function PropertyDetail() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Tag className="h-4 w-4 text-brand" />
+                <Tag className="h-4 w-4 text-primary" />
                 Profil du bien
               </CardTitle>
               <CardDescription className="text-xs">

@@ -909,7 +909,7 @@ export default function OpportunityDetailPage() {
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button className="w-full shrink-0 bg-brand hover:bg-brand-hover sm:w-auto">
+              <Button className="w-full shrink-0 bg-primary hover:bg-primary/90 sm:w-auto">
                 <Plus className="mr-2 size-4" />
                 Ajouter
               </Button>
@@ -954,7 +954,7 @@ export default function OpportunityDetailPage() {
                   </Select>
                 </div>
                 <div className="mt-4 h-2 w-full rounded-full bg-muted">
-                  <div className="h-full rounded-full bg-brand transition-all" style={{ width: `${progress}%` }} />
+                  <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${progress}%` }} />
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">
                   Ouverte depuis le {formatDate(opportunity.created_at)}.
@@ -1018,7 +1018,7 @@ export default function OpportunityDetailPage() {
                       {CLIENT_DOSSIER_STATUS_LABELS[opportunity.client_dossier.status] ?? opportunity.client_dossier.status}
                     </Badge>
                     <div className="flex items-center gap-2 rounded-lg border p-3 text-sm">
-                      <FileText className="size-4 text-brand" />
+                      <FileText className="size-4 text-primary" />
                       <span>{opportunity.client_dossier.documents_validated}/{opportunity.client_dossier.documents_total} documents validés</span>
                     </div>
                     {opportunity.client_dossier.documents_missing > 0 && (
@@ -1123,7 +1123,7 @@ export default function OpportunityDetailPage() {
                 <h2 className="text-base font-semibold">Préparation bien & technique</h2>
                 <p className="mt-1 text-sm text-muted-foreground">Données de travail pré-mandat, conservées sur l’opportunité.</p>
               </div>
-              <Button onClick={savePreparation} disabled={savingPreparation} className="bg-brand hover:bg-brand-hover">
+              <Button onClick={savePreparation} disabled={savingPreparation} className="bg-primary hover:bg-primary/90">
                 {savingPreparation ? <Loader2 className="mr-1 size-4 animate-spin" /> : null}
                 Sauvegarder
               </Button>
@@ -1157,7 +1157,7 @@ export default function OpportunityDetailPage() {
                 <h2 className="text-base font-semibold">Estimation & avis de valeur</h2>
                 <p className="mt-1 text-sm text-muted-foreground">Prépare l’avis de valeur avant signature, sans créer de client.</p>
               </div>
-              <Button onClick={savePreparation} disabled={savingPreparation} className="bg-brand hover:bg-brand-hover">
+              <Button onClick={savePreparation} disabled={savingPreparation} className="bg-primary hover:bg-primary/90">
                 {savingPreparation ? <Loader2 className="mr-1 size-4 animate-spin" /> : null}
                 Sauvegarder
               </Button>
@@ -1196,7 +1196,7 @@ export default function OpportunityDetailPage() {
                   : 'Le portail s’ouvrira à partir de la visite d’estimation, pour présenter le rapport directement au client.'}
               </p>
               {isPortalEligibleStage(currentStage) && (
-                <Button size="sm" className="mt-4 bg-brand hover:bg-brand-hover" onClick={createDossier} disabled={creatingDossier}>
+                <Button size="sm" className="mt-4 bg-primary hover:bg-primary/90" onClick={createDossier} disabled={creatingDossier}>
                   {creatingDossier ? <Loader2 className="mr-1 size-4 animate-spin" /> : <Plus className="mr-1 size-3.5" />}
                   Ouvrir le portail client
                 </Button>
@@ -1431,7 +1431,7 @@ function Timeline({
     <div className="mt-4 space-y-4">
       {events.map((event) => (
         <div key={event.id} className="relative pl-6">
-          <div className="absolute left-0 top-2 size-2 rounded-full bg-brand" />
+          <div className="absolute left-0 top-2 size-2 rounded-full bg-primary" />
           <div className="absolute bottom-[-18px] left-[3px] top-4 w-px bg-border last:hidden" />
           <ActivityRow
             event={event}
@@ -1521,7 +1521,7 @@ function EventDialog({
 
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={saving}>Annuler</Button>
-          <Button onClick={onSubmit} disabled={saving} className="bg-brand hover:bg-brand-hover">
+          <Button onClick={onSubmit} disabled={saving} className="bg-primary hover:bg-primary/90">
             {saving ? <Loader2 className="mr-1 size-4 animate-spin" /> : <Plus className="mr-1 size-4" />}
             {editing ? 'Enregistrer' : 'Ajouter'}
           </Button>
@@ -1593,13 +1593,13 @@ function LeadAttachDialog({
                     {alreadyLinked ? (
                       <div className="flex shrink-0 flex-wrap justify-end gap-2">
                         <Button variant="outline" size="sm" onClick={() => onOpenOpportunity(lead.opportunity!.id)}>Voir l’opportunité</Button>
-                        <Button size="sm" onClick={() => onAttachNewProject(lead)} disabled={attachingId === lead.id} className="bg-brand hover:bg-brand-hover">
+                        <Button size="sm" onClick={() => onAttachNewProject(lead)} disabled={attachingId === lead.id} className="bg-primary hover:bg-primary/90">
                           {attachingId === lead.id ? <Loader2 className="mr-1 size-4 animate-spin" /> : <Plus className="mr-1 size-4" />}
                           Nouveau projet
                         </Button>
                       </div>
                     ) : (
-                      <Button size="sm" onClick={() => onAttach(lead)} disabled={attachingId === lead.id} className="bg-brand hover:bg-brand-hover">
+                      <Button size="sm" onClick={() => onAttach(lead)} disabled={attachingId === lead.id} className="bg-primary hover:bg-primary/90">
                         {attachingId === lead.id ? <Loader2 className="mr-1 size-4 animate-spin" /> : <Link2 className="mr-1 size-4" />}
                         Ajouter
                       </Button>
@@ -1724,7 +1724,7 @@ function PropertyAttachDialog({
                     {alreadyLinked ? (
                       <Button variant="outline" size="sm" onClick={() => onOpenOpportunity(property.opportunity!.id)}>Voir l’opportunité</Button>
                     ) : (
-                      <Button size="sm" onClick={() => onAttach(property)} disabled={attachingId === property.id} className="bg-brand hover:bg-brand-hover">
+                      <Button size="sm" onClick={() => onAttach(property)} disabled={attachingId === property.id} className="bg-primary hover:bg-primary/90">
                         {attachingId === property.id ? <Loader2 className="mr-1 size-4 animate-spin" /> : <Link2 className="mr-1 size-4" />}
                         Ajouter
                       </Button>

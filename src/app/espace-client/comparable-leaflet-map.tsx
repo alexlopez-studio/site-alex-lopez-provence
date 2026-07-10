@@ -176,10 +176,10 @@ export function ComparableLeafletMap({
   }, [activeComparable, center, city, displayPoints, mapCenter.lat, mapCenter.lng, setActiveComparable])
 
   return (
-    <div className="relative h-80 overflow-hidden rounded-3xl border border-[#E2E8F0] bg-[#F8FAFC] shadow-inner">
+    <div className="relative h-80 overflow-hidden rounded-3xl border border-border bg-background shadow-inner">
       <div ref={mapRef} className="h-full w-full" aria-label="Carte des biens comparables vendus" />
       <div className="pointer-events-none absolute left-4 top-4 z-[450] rounded-full border border-white/80 bg-white/95 px-3 py-1.5 shadow-sm">
-        <span className="portal-label text-[#64748B]">Positions indicatives</span>
+        <span className="portal-label text-muted-foreground">Positions indicatives</span>
       </div>
       <style jsx global>{`
         .portal-leaflet-marker {

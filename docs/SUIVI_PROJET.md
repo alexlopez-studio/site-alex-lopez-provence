@@ -17,6 +17,66 @@ Decision : Codex reprend seul le developpement et le design pour le moment.
 
 Note : les lots Linear ci-dessous sont historiques et ne refletent plus l'etat reel du code. La memoire courante est dans `docs/MEMOIRE_SESSION.md`.
 
+### 10/07/2026 12:26 CEST - Assistant IA plug-and-play Mandat OS
+- Base/branche : `preview`, travail local non pousse, avec modifications locales preexistantes conservees.
+- Type : fonctionnalite produit / IA / integrations.
+- Statut : **fait** pour le socle V1, schema non applique a Supabase distante.
+- Travail :
+  1. Ajout du cockpit admin `/app/assistant` : conversation, choix fournisseur/modele, contexte dossier client, file d'actions a valider.
+  2. Ajout de la section `/app/settings?section=ia` : catalogue IA hybride, ajout/revocation de cle API, fournisseur par defaut, connexion Google Workspace, sync Granola.
+  3. Ajout de la passerelle serveur `src/lib/ai/*` : catalogue fournisseurs directs + OpenRouter, chiffrement AES-GCM des secrets, routage chat, contexte dossier, file d'actions.
+  4. Ajout des routes `/api/ai/providers`, `/api/ai/credentials`, `/api/ai/chat`, `/api/ai/actions`, `/api/market/clients/[id]/ai-context`, `/api/integrations/google/oauth/*`, `/api/integrations/granola/sync`.
+  5. Ajout de la migration `026_ai_assistant_integrations.sql` pour `ai_credentials`, `ai_threads`, `ai_messages`, `ai_action_queue`, connexions Google/Granola, transcripts externes et insights dossier.
+  6. Granola importe les notes recentes, classe par heuristique vers `client_dossiers`, puis cree une action a valider avant insertion dans la timeline dossier.
+- Fichiers principaux : `supabase/migrations/026_ai_assistant_integrations.sql`, `src/lib/ai/*`, `src/lib/integrations/granola.ts`, `src/app/api/ai/*`, `src/app/api/integrations/*`, `src/app/admin/market/assistant/*`, `src/app/admin/market/settings/AiIntegrationsSettings.tsx`, `src/components/app-sidebar.tsx`, `.env.example`.
+- Verification :
+  - `npx vitest run src/lib/__tests__/ai-crypto.test.ts src/lib/__tests__/ai-actions.test.ts` OK (4/4).
+  - `npx tsc --noEmit` OK.
+  - `npm run build` OK avec warnings preexistants/non bloquants.
+  - HTTP local sur serveur frais `http://localhost:3004` : `/app/assistant` OK (200), `/app/settings?section=ia` OK (200), `/api/ai/providers` OK avant migration, `/api/ai/actions?status=proposed` OK avant migration.
+  - Smoke Playwright headless : pages `/app/assistant` et `/app/settings?section=ia` chargees en 200 ; warnings console preexistants observes sur layout global (Radix hydration IDs + ressource 404 locale), sans blocage de rendu.
+- Point d'attention : appliquer `supabase/migrations/026_ai_assistant_integrations.sql` sur Supabase avant d'enregistrer des cles, lancer des chats persistants, synchroniser Granola ou executer les actions IA.
+- Serveur local : instance propre active sur `http://localhost:3004/app/assistant`.
+- Suite : appliquer la migration en environnement cible, renseigner `AI_CREDENTIALS_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, puis tester une cle OpenRouter et un transcript Granola reel.
+
+### 10/07/2026 11:31 CEST - Harmonisation shadcn Mandat OS + portail client
+- Base/branche : `preview`, alignee avec `origin/preview` au depart ; travail local non pousse.
+- Type : design system / harmonisation UI.
+- Statut : **fait** pour le lot d'harmonisation demande.
+- Travail :
+  1. Initialisation shadcn controlee via `npx shadcn@latest init` ; refus de l'ecrasement de `components.json`, donc aucun reset des alias ni des tokens existants.
+  2. Consolidation des tokens `.app-product` et `.client-portal` dans `src/app/globals.css` autour de la charte `#0077B6`, `#005F96`, `#E0F0FA`, `#0F172A`, `#64748B`, `#E2E8F0`, `#F8FAFC`.
+  3. Alignement des composants shadcn de base (`Button`, `Card`, `Badge`, `Input`, `Textarea`, `Tabs`, `Select`) et des composants pro (`PageHeader`, `DataToolbar`, `MetricCard`, `StatusPill`, `EmptyState`) sur des rayons, bordures, focus states et densites coherents.
+  4. Harmonisation des surfaces Mandat OS dans `/admin/market/*`, la sidebar/header, dashboard, opportunites, leads, biens, zones, settings, notifications et composants admin concernes.
+  5. Harmonisation du portail client `/espace-client/*` : conservation d'une identite plus douce, remplacement des hex repetes par tokens, stabilisation cards/boutons/badges/etats vides et microcopy UI.
+  6. Aucun changement backend ni schema Supabase ; site vitrine public non refondu.
+- Fichiers principaux : `src/app/globals.css`, `src/components/ui/*`, `src/components/pro/*`, `src/components/app-sidebar.tsx`, `src/components/nav-main.tsx`, `src/app/admin/market/*`, `src/components/admin/*`, `src/app/espace-client/*`.
+- Verification :
+  - `npx tsc --noEmit` OK.
+  - `npx vitest run src/lib/__tests__/client-dossier-projection.test.ts src/app/api/market/clients/__tests__/route.test.ts` OK (6/6).
+  - `git diff --check` OK.
+  - `npm run lint` OK avec warnings existants/non bloquants.
+  - `npm run build` OK avec warnings existants/non bloquants.
+  - Smoke HTTP local apres redemarrage serveur : `/app/dashboard`, `/app/opportunities?tab=vendeurs&view=kanban`, `/espace-client/test` OK (200).
+  - Audit Playwright desktop/mobile : dashboard et portail sans debordement document ; opportunites avec scroll horizontal interne attendu du kanban ; seul 404 local observe : `/_vercel/insights/script.js`.
+- Serveur local : relance finale sur `http://localhost:3002`.
+- Prochain point de reprise : revue visuelle utilisateur sur `localhost:3002`, puis commit/push uniquement apres validation explicite.
+
+### 10/07/2026 08:51 CEST - Reprise apres push source unique Affaire
+- Base/branche : `preview`, alignee avec `origin/preview` sur `adee66a`.
+- Type : reprise / verification environnement local.
+- Statut : **fait**.
+- Travail :
+  1. `git fetch --all --prune` execute ; aucune divergence locale/distance.
+  2. Serveur Next local lance via `npm run dev -- --port 3002`.
+  3. Dernier commit confirme : `adee66a feat(affaire): cadrer la source unique
+     et projeter le portail`.
+- Verification : `http://localhost:3002/app/dashboard` OK (200) ;
+  `http://localhost:3002/espace-client/test` OK (200 apres compilation initiale).
+- Prochain point de reprise : poursuivre le Lot 2 avec un test dedie au `PATCH
+  /api/market/clients/[id]`, puis smoke navigateur sur une vraie affaire avec
+  portail ouvert.
+
 ### 09/07/2026 20:32 CEST - Lot 2 source unique : premiere resorption des ecritures concurrentes
 - Base/branche : `preview`, travail local non pousse.
 - Type : architecture API / source unique Affaire.
@@ -2883,5 +2943,5 @@ Deployment: Work, declenche un deployment Vercel pour la branche preview.
 - Progression globale: 0%
 
 ---
-Derniere mise a jour: 03/07/2026
+Derniere mise a jour: 10/07/2026
 Maintenu par: Codex (sur `preview`)

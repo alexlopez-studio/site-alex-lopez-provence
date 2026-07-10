@@ -78,11 +78,19 @@ const BUCKET_LABELS: Record<ActionBucket, string> = {
 }
 
 const BUCKET_STYLES: Record<ActionBucket, string> = {
-  overdue: 'border-black bg-black text-white',
-  today: 'border-neutral-900 bg-neutral-100 text-neutral-950',
-  week: 'border-neutral-300 bg-white text-neutral-700',
-  later: 'border-neutral-200 bg-neutral-50 text-neutral-500',
-  no_due: 'border-dashed border-neutral-300 bg-white text-neutral-500',
+  overdue: 'border-destructive bg-destructive text-destructive-foreground',
+  today: 'border-primary/25 bg-accent text-primary',
+  week: 'border-border bg-white text-foreground',
+  later: 'border-border bg-muted text-muted-foreground',
+  no_due: 'border-dashed border-border bg-white text-muted-foreground',
+}
+
+const CHART_COLORS = {
+  border: 'var(--border)',
+  muted: 'var(--muted-foreground)',
+  primary: 'var(--chart-1)',
+  success: 'var(--chart-2)',
+  surface: 'var(--background)',
 }
 
 export function DashboardCockpit() {
@@ -161,21 +169,21 @@ export function DashboardCockpit() {
   ]
 
   return (
-    <div className="flex flex-1 flex-col bg-neutral-50 text-neutral-950">
+    <div className="flex flex-1 flex-col bg-background text-foreground">
       <div className="mx-auto flex w-full max-w-[1500px] flex-1 flex-col gap-3 px-4 py-4 md:px-6">
-        <header className="flex flex-col gap-3 border-b border-neutral-200 pb-3 lg:flex-row lg:items-center lg:justify-between">
+        <header className="flex flex-col gap-3 border-b border-border pb-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-500">Mandat OS</p>
-            <h1 className="text-2xl font-semibold tracking-normal text-neutral-950">Dashboard</h1>
+            <p className="text-xs font-bold uppercase tracking-normal text-primary">Mandat OS</p>
+            <h1 className="text-2xl font-extrabold tracking-normal text-foreground">Dashboard</h1>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <div className="relative w-full sm:w-72">
-              <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
+              <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Rechercher une action..."
-                className="h-9 rounded-md border-neutral-300 bg-white pl-8"
+                className="pl-8"
               />
             </div>
             <Button variant="outline" size="sm" onClick={loadDashboard} disabled={loading}>
@@ -199,14 +207,14 @@ export function DashboardCockpit() {
 
         <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
           {kpis.map((kpi) => (
-            <Card key={kpi.label} className="rounded-lg border border-neutral-200 bg-white py-3 shadow-none ring-0" size="sm">
+            <Card key={kpi.label} className="py-3 shadow-sm" size="sm">
               <CardHeader className="px-3">
-                <CardTitle className="text-xs font-medium text-neutral-500">{kpi.label}</CardTitle>
+                <CardTitle className="text-xs font-bold text-muted-foreground">{kpi.label}</CardTitle>
               </CardHeader>
               <CardContent className="px-3">
                 <div className="flex items-end justify-between gap-3">
-                  <span className="text-3xl font-semibold leading-none">{formatNumber(kpi.value)}</span>
-                  <span className="max-w-28 text-right text-[11px] leading-tight text-neutral-500">{kpi.detail}</span>
+                  <span className="text-3xl font-extrabold leading-none">{formatNumber(kpi.value)}</span>
+                  <span className="max-w-28 text-right text-[11px] leading-tight text-muted-foreground">{kpi.detail}</span>
                 </div>
               </CardContent>
             </Card>
@@ -214,23 +222,23 @@ export function DashboardCockpit() {
         </section>
 
         <section className="grid grid-cols-1 gap-3 xl:grid-cols-[1.35fr_1fr]">
-          <Card className="rounded-lg border border-neutral-200 bg-white shadow-none ring-0">
-            <CardHeader className="flex-row items-start justify-between border-b border-neutral-100">
+          <Card>
+            <CardHeader className="flex-row items-start justify-between border-b border-border">
               <div>
                 <CardTitle>Activité 30 jours</CardTitle>
-                <p className="text-xs text-neutral-500">Opportunités créées et actions planifiées</p>
+                <p className="text-xs text-muted-foreground">Opportunités créées et actions planifiées</p>
               </div>
             </CardHeader>
             <CardContent className="h-64 pt-3">
               {payload ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={payload.activity_30d} margin={{ left: -20, right: 8, top: 10, bottom: 0 }}>
-                    <CartesianGrid stroke="#e5e5e5" vertical={false} />
-                    <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#737373' }} />
-                    <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#737373' }} />
-                    <Tooltip cursor={{ stroke: '#111', strokeWidth: 1 }} />
-                    <Line type="monotone" dataKey="opportunities" name="Opportunités" stroke="#111111" strokeWidth={2} dot={false} />
-                    <Line type="monotone" dataKey="actions" name="Actions" stroke="#8a8a8a" strokeWidth={2} dot={false} />
+                    <CartesianGrid stroke={CHART_COLORS.border} vertical={false} />
+                    <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: CHART_COLORS.muted }} />
+                    <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: CHART_COLORS.muted }} />
+                    <Tooltip cursor={{ stroke: CHART_COLORS.primary, strokeWidth: 1 }} />
+                    <Line type="monotone" dataKey="opportunities" name="Opportunités" stroke={CHART_COLORS.primary} strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="actions" name="Actions" stroke={CHART_COLORS.success} strokeWidth={2} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
@@ -239,21 +247,21 @@ export function DashboardCockpit() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-lg border border-neutral-200 bg-white shadow-none ring-0">
-            <CardHeader className="border-b border-neutral-100">
+          <Card>
+            <CardHeader className="border-b border-border">
               <CardTitle>Répartition pipeline</CardTitle>
-              <p className="text-xs text-neutral-500">Vendeurs et acquéreurs par statut</p>
+              <p className="text-xs text-muted-foreground">Vendeurs et acquéreurs par statut</p>
             </CardHeader>
             <CardContent className="h-64 pt-3">
               {payload ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={pipelineData.slice(0, 10)} margin={{ left: -20, right: 8, top: 10, bottom: 0 }}>
-                    <CartesianGrid stroke="#e5e5e5" vertical={false} />
-                    <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#737373' }} interval={0} height={52} />
-                    <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#737373' }} />
-                    <Tooltip cursor={{ fill: '#f5f5f5' }} />
-                    <Bar dataKey="vendeurs" name="Vendeurs" fill="#111111" radius={[3, 3, 0, 0]} />
-                    <Bar dataKey="acquereurs" name="Acquéreurs" fill="#a3a3a3" radius={[3, 3, 0, 0]} />
+                    <CartesianGrid stroke={CHART_COLORS.border} vertical={false} />
+                    <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: CHART_COLORS.muted }} interval={0} height={52} />
+                    <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: CHART_COLORS.muted }} />
+                    <Tooltip cursor={{ fill: CHART_COLORS.surface }} />
+                    <Bar dataKey="vendeurs" name="Vendeurs" fill={CHART_COLORS.primary} radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="acquereurs" name="Acquéreurs" fill={CHART_COLORS.success} radius={[3, 3, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
@@ -264,26 +272,26 @@ export function DashboardCockpit() {
         </section>
 
         <section className="grid grid-cols-1 gap-3 xl:grid-cols-[1fr_340px]">
-          <Card className="rounded-lg border border-neutral-200 bg-white shadow-none ring-0">
-            <CardHeader className="flex-row items-center justify-between border-b border-neutral-100">
+          <Card>
+            <CardHeader className="flex-row items-center justify-between border-b border-border">
               <div>
                 <CardTitle>Actions prioritaires</CardTitle>
-                <p className="text-xs text-neutral-500">{filteredActions.length} action(s) dans le poste de pilotage</p>
+                <p className="text-xs text-muted-foreground">{filteredActions.length} action(s) dans le poste de pilotage</p>
               </div>
-              <CalendarClockIcon className="size-4 text-neutral-500" />
+              <CalendarClockIcon className="size-4 text-muted-foreground" />
             </CardHeader>
             <CardContent className="px-0">
               {loading && !payload ? (
-                <div className="flex h-48 items-center justify-center text-sm text-neutral-500">
+                <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
                   <Loader2Icon className="mr-2 size-4 animate-spin" />
                   Chargement
                 </div>
               ) : filteredActions.length === 0 ? (
-                <div className="flex h-48 items-center justify-center px-4 text-center text-sm text-neutral-500">
+                <div className="flex h-48 items-center justify-center px-4 text-center text-sm text-muted-foreground">
                   Aucune action prioritaire à afficher.
                 </div>
               ) : (
-                <div className="divide-y divide-neutral-100">
+                <div className="divide-y divide-border">
                   {filteredActions.map((action) => (
                     <ActionRow
                       key={`${action.source}:${action.id}`}
@@ -298,8 +306,8 @@ export function DashboardCockpit() {
           </Card>
 
           <aside className="flex flex-col gap-3">
-            <Card className="rounded-lg border border-neutral-200 bg-white shadow-none ring-0">
-              <CardHeader className="border-b border-neutral-100">
+            <Card>
+              <CardHeader className="border-b border-border">
                 <CardTitle>Qualité du suivi</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -310,11 +318,11 @@ export function DashboardCockpit() {
               </CardContent>
             </Card>
 
-            <div className="rounded-lg border border-neutral-900 bg-neutral-950 py-4 text-white">
+            <div className="rounded-lg border border-primary/20 bg-foreground py-4 text-white">
               <div className="border-b border-white/10 px-4 pb-4">
                 <h2 className="font-heading text-base font-medium leading-snug text-white">Focus semaine</h2>
               </div>
-              <div className="space-y-3 px-4 pt-4 text-sm text-neutral-200">
+              <div className="space-y-3 px-4 pt-4 text-sm text-white/80">
                 <FocusLine label="En retard" value={filteredActions.filter((action) => action.bucket === 'overdue').length} />
                 <FocusLine label="Aujourd’hui" value={filteredActions.filter((action) => action.bucket === 'today').length} />
                 <FocusLine label="Cette semaine" value={filteredActions.filter((action) => action.bucket === 'week').length} />
@@ -345,14 +353,14 @@ function ActionRow({
         <Badge variant="outline" className={cn('rounded-md', BUCKET_STYLES[action.bucket])}>
           {BUCKET_LABELS[action.bucket]}
         </Badge>
-        <span className="text-xs text-neutral-500">{action.source_label}</span>
+        <span className="text-xs text-muted-foreground">{action.source_label}</span>
       </div>
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
-          <p className="truncate text-sm font-medium text-neutral-950">{action.title}</p>
-          <span className="text-xs text-neutral-400">{action.priority}</span>
+          <p className="truncate text-sm font-semibold text-foreground">{action.title}</p>
+          <span className="text-xs text-muted-foreground">{action.priority}</span>
         </div>
-        <p className="truncate text-xs text-neutral-500">
+        <p className="truncate text-xs text-muted-foreground">
           {action.object_label} · {formatDueDate(action.due_date, action.bucket)}
         </p>
       </div>
@@ -384,11 +392,11 @@ function QualityLine({ label, value, progress }: { label: string; value: string;
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between gap-3 text-sm">
-        <span className="text-neutral-600">{label}</span>
-        <span className="font-medium text-neutral-950">{value}</span>
+        <span className="text-muted-foreground">{label}</span>
+        <span className="font-semibold text-foreground">{value}</span>
       </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-neutral-100">
-        <div className="h-full rounded-full bg-neutral-950" style={{ width: `${Math.max(2, Math.min(progress, 100))}%` }} />
+      <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+        <div className="h-full rounded-full bg-primary" style={{ width: `${Math.max(2, Math.min(progress, 100))}%` }} />
       </div>
     </div>
   )
@@ -404,7 +412,7 @@ function FocusLine({ label, value }: { label: string; value: number }) {
 }
 
 function ChartSkeleton() {
-  return <div className="h-full w-full animate-pulse rounded-md bg-neutral-100" />
+  return <div className="h-full w-full animate-pulse rounded-md bg-muted" />
 }
 
 function formatNumber(value: number) {

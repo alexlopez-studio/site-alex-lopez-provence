@@ -240,7 +240,7 @@ export default function MatchingPage() {
                   key={buyer.lead_id}
                   onClick={() => setSelectedBuyer(buyer.lead_id)}
                   className={`w-full text-left rounded-lg border p-3 transition-colors text-sm hover:bg-accent/50 ${
-                    selectedBuyer === buyer.lead_id ? 'border-brand bg-brand/5' : 'border-border'
+                    selectedBuyer === buyer.lead_id ? 'border-primary bg-primary/5' : 'border-border'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
@@ -397,7 +397,7 @@ function ScoreBar({ label, value, max, matched }: { label: string; value: number
       <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
         <div
           className={`h-full rounded-full transition-all ${
-            matched ? 'bg-brand' : 'bg-muted-foreground/30'
+            matched ? 'bg-primary' : 'bg-muted-foreground/30'
           }`}
           style={{ width: `${pct}%` }}
         />

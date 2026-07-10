@@ -20,7 +20,7 @@ function DataToolbar({
   return (
     <div
       className={cn(
-        'flex flex-col gap-3 rounded-lg border border-border bg-card p-3 md:flex-row md:items-center md:justify-between',
+        'flex flex-col gap-3 rounded-lg border border-border bg-card p-3 shadow-sm md:flex-row md:items-center md:justify-between',
         className
       )}
       {...props}
@@ -28,7 +28,7 @@ function DataToolbar({
       {(title || description) ? (
         <div className="min-w-0 space-y-0.5">
           {title ? (
-            <h2 className="truncate text-sm font-semibold text-foreground">
+            <h2 className="truncate text-sm font-bold text-foreground">
               {title}
             </h2>
           ) : null}

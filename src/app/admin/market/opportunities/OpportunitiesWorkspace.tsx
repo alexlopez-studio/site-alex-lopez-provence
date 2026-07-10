@@ -76,7 +76,7 @@ export function OpportunitiesWorkspace() {
       </TabsList>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="inline-flex w-full rounded-lg bg-muted p-1 sm:w-auto">
+        <div className="inline-flex w-full rounded-md border border-border bg-muted p-1 sm:w-auto">
           <Button
             type="button"
             variant={view === 'kanban' ? 'default' : 'ghost'}
@@ -99,7 +99,7 @@ export function OpportunitiesWorkspace() {
           </Button>
         </div>
 
-        <Button asChild className="w-full bg-brand hover:bg-brand-hover sm:w-auto">
+        <Button asChild className="w-full sm:w-auto">
           <Link href={createHref}>
             <Plus className="mr-1 h-4 w-4" />
             {createLabel}

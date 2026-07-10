@@ -279,7 +279,7 @@ function CommuneSearch({ onSelect }: { onSelect: (c: CommuneResult, zip: string)
                 onClick={() => setSelectedZip(zip)}
                 className={`rounded-full border px-3 py-1 text-sm transition-colors ${
                   selectedZip === zip
-                    ? 'bg-brand text-white border-brand'
+                    ? 'bg-primary text-white border-primary'
                     : 'border-input hover:bg-accent'
                 }`}
               >
@@ -883,7 +883,7 @@ export default function ZonesPage() {
             <Card key={zone.id} className={zone.active ? '' : 'opacity-60'}>
               <CardContent className="flex items-center justify-between p-4">
                 <div className="flex items-start gap-3">
-                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="text-sm font-semibold">{zone.name}</p>

@@ -327,7 +327,7 @@ export default function NouveauVendeurPage() {
                         onClick={() => selectLead(lead)}
                         className={cn(
                           'rounded-md border p-3 text-left transition-colors',
-                          selected ? 'border-brand bg-brand-light/50' : 'border-border hover:bg-muted/50',
+                          selected ? 'border-primary bg-accent/50' : 'border-border hover:bg-muted/50',
                           lead.opportunity && 'cursor-not-allowed opacity-60 hover:bg-transparent',
                         )}
                       >
@@ -400,7 +400,7 @@ export default function NouveauVendeurPage() {
                     onClick={() => selectProperty(property)}
                     className={cn(
                       'rounded-md border p-3 text-left transition-colors',
-                      selected ? 'border-brand bg-brand-light/50' : 'border-border hover:bg-muted/50',
+                      selected ? 'border-primary bg-accent/50' : 'border-border hover:bg-muted/50',
                       alreadyLinked && 'cursor-not-allowed opacity-60 hover:bg-transparent',
                     )}
                   >

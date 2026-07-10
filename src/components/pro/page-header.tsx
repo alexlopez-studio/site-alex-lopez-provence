@@ -20,19 +20,19 @@ function PageHeader({
   return (
     <header
       className={cn(
-        'flex flex-col gap-4 border-b border-border/80 pb-5 md:flex-row md:items-end md:justify-between',
+        'flex flex-col gap-4 border-b border-border/80 pb-4 md:flex-row md:items-end md:justify-between',
         className
       )}
       {...props}
     >
       <div className="min-w-0 space-y-2">
         {eyebrow ? (
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand">
+          <p className="text-xs font-bold uppercase tracking-normal text-primary">
             {eyebrow}
           </p>
         ) : null}
         <div className="space-y-1">
-          <h1 className="text-balance text-2xl font-medium leading-tight text-foreground">
+            <h1 className="text-balance text-2xl font-extrabold leading-tight text-foreground">
             {title}
           </h1>
           {description ? (

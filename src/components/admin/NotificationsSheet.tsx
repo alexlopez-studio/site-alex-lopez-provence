@@ -212,7 +212,7 @@ export function NotificationsSheet() {
                   key={notif.id}
                   className={cn(
                     'flex gap-3 rounded-lg border p-3 transition-colors',
-                    unread ? 'border-l-2 border-l-brand bg-brand/5' : 'opacity-90',
+                    unread ? 'border-l-2 border-l-brand bg-primary/5' : 'opacity-90',
                   )}
                 >
                   <div className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full', meta.tint)}>
@@ -223,7 +223,7 @@ export function NotificationsSheet() {
                       <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                         {meta.label}
                       </span>
-                      {unread && <span className="h-1.5 w-1.5 rounded-full bg-brand" />}
+                      {unread && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
                       <span className="ml-auto text-[10px] text-muted-foreground shrink-0">
                         {formatTimeAgo(notif.created_at)}
                       </span>

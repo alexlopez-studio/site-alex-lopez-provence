@@ -418,7 +418,7 @@ export default function LeadDetailPage() {
         return (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 p-8">
                 <p className="text-muted-foreground">Contact introuvable</p>
-                <Link href="/app/leads" className="text-sm text-brand underline">Retour à la liste</Link>
+                <Link href="/app/leads" className="text-sm text-primary underline">Retour à la liste</Link>
             </div>
         )
     }
@@ -645,8 +645,8 @@ export default function LeadDetailPage() {
                                     className={
                                         'rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ' +
                                         (key === lead.status
-                                            ? 'border-brand bg-brand text-white'
-                                            : 'border-border text-muted-foreground hover:border-brand hover:text-brand')
+                                            ? 'border-primary bg-primary text-white'
+                                            : 'border-border text-muted-foreground hover:border-primary hover:text-primary')
                                     }
                                 >
                                     {label}
@@ -705,7 +705,7 @@ export default function LeadDetailPage() {
                             ) : (
                                 <p>Aucun email renseigné pour ce contact.</p>
                             )}
-                            <a href={'/resultats/' + lead.id} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-brand underline">
+                            <a href={'/resultats/' + lead.id} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary underline">
                                 /resultats/{lead.id.slice(0, 8)}... <ExternalLink className="size-3" />
                             </a>
                         </div>

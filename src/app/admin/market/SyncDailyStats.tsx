@@ -45,7 +45,7 @@ export function SyncDailyStats() {
       <CardHeader className="flex flex-row items-start justify-between gap-2">
         <div>
           <CardTitle className="flex items-center gap-2">
-            <DownloadCloud className="h-5 w-5 text-brand" />
+            <DownloadCloud className="h-5 w-5 text-primary" />
             Synchronisation Stream Estate
           </CardTitle>
           <CardDescription>Leads téléchargés et mis à jour, par jour.</CardDescription>

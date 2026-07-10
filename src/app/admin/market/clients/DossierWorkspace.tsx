@@ -262,7 +262,7 @@ export function DossierWorkspace({ dossierId }: { dossierId: string }) {
     <Tabs value={tab} onValueChange={setTab} className="space-y-6">
       <section className="flex flex-col gap-3 rounded-2xl border bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-base font-semibold text-[#0F172A]">Portail client</h2>
+          <h2 className="text-base font-semibold text-foreground">Portail client</h2>
           <p className="mt-0.5 text-sm text-muted-foreground">Estimation, documents, plan de vente, visites et offres — partagés avec le client.</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -307,7 +307,7 @@ export function DossierWorkspace({ dossierId }: { dossierId: string }) {
                 onUpload={uploadDocument}
               />
             ))}
-            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed bg-white p-5 text-sm font-semibold text-[#0077B6] hover:bg-[#E0F0FA]/50">
+            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed bg-white p-5 text-sm font-semibold text-primary hover:bg-accent/50">
               {uploadingId === 'new' ? <Loader2 className="size-4 animate-spin" /> : <FileUp className="size-4" />}
               Ajouter un fichier libre
               <input type="file" className="sr-only" onChange={(event) => uploadDocument(null, event.target.files?.[0] ?? null)} />
@@ -336,7 +336,7 @@ export function DossierWorkspace({ dossierId }: { dossierId: string }) {
 
 function WorkspaceTab({ value, icon: Icon, label }: { value: string; icon: typeof FileText; label: string }) {
   return (
-    <TabsTrigger value={value} className="gap-2 rounded-xl px-4 py-2 data-[state=active]:bg-[#0077B6] data-[state=active]:text-white">
+    <TabsTrigger value={value} className="gap-2 rounded-xl px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-white">
       <Icon className="size-4" />
       {label}
     </TabsTrigger>
@@ -346,8 +346,8 @@ function WorkspaceTab({ value, icon: Icon, label }: { value: string; icon: typeo
 function Section({ title, icon: Icon, children }: { title: string; icon: typeof FileText; children: React.ReactNode }) {
   return (
     <section className="rounded-3xl border bg-white p-6 shadow-sm">
-      <h2 className="mb-5 flex items-center gap-2 border-b pb-4 text-lg font-extrabold text-[#0F172A]">
-        <Icon className="size-4 text-[#0077B6]" />
+      <h2 className="mb-5 flex items-center gap-2 border-b pb-4 text-lg font-extrabold text-foreground">
+        <Icon className="size-4 text-primary" />
         {title}
       </h2>
       {children}
@@ -443,7 +443,7 @@ function DocumentRow({
   onUpload: (document: ClientDocument | null, file: File | null) => void
 }) {
   return (
-    <div className="grid gap-3 rounded-2xl border bg-[#F8FAFC] p-4 lg:grid-cols-[1fr_180px_160px_auto] lg:items-center">
+    <div className="grid gap-3 rounded-2xl border bg-background p-4 lg:grid-cols-[1fr_180px_160px_auto] lg:items-center">
       <div className="min-w-0">
         <div className="font-semibold text-foreground">{document.label}</div>
         <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
@@ -563,7 +563,7 @@ function EventList({
       <div className="space-y-3">
         {events.length === 0 && <p className="rounded-2xl border border-dashed p-5 text-sm text-muted-foreground">Aucune donnée pour le moment.</p>}
         {events.map((event) => (
-          <div key={event.id} className="grid gap-3 rounded-2xl border bg-[#F8FAFC] p-4 md:grid-cols-[1fr_auto]">
+          <div key={event.id} className="grid gap-3 rounded-2xl border bg-background p-4 md:grid-cols-[1fr_auto]">
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-semibold">{event.title}</span>

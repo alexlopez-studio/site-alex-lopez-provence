@@ -352,7 +352,7 @@ function SortableOpportunityCard({
         openCard()
       }}
       className={cn(
-        'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 active:cursor-grabbing',
+        'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:cursor-grabbing',
         isDragging && 'cursor-grabbing',
       )}
     >
@@ -874,7 +874,7 @@ export function KanbanBoard({ search, stageFilter, dueFilter }: KanbanBoardProps
                           propertyType: lead.seller_property?.type_bien ?? '',
                           nextAction: lead.next_action ?? d.nextAction,
                         }))}
-                        className={cn('w-full rounded-md border p-3 text-left transition-colors hover:bg-muted/50', selected ? 'border-brand bg-brand-light/50' : 'border-border')}
+                        className={cn('w-full rounded-md border p-3 text-left transition-colors hover:bg-muted/50', selected ? 'border-primary bg-accent/50' : 'border-border')}
                       >
                         <div className="flex items-center justify-between gap-3">
                           <span className="text-sm font-medium">{name}</span>
@@ -975,7 +975,7 @@ export function KanbanBoard({ search, stageFilter, dueFilter }: KanbanBoardProps
                       }))}
                       className={cn(
                         'w-full rounded-md border p-3 text-left transition-colors',
-                        selected ? 'border-brand bg-brand-light/50' : 'border-border hover:bg-muted/50',
+                        selected ? 'border-primary bg-accent/50' : 'border-border hover:bg-muted/50',
                         alreadyLinked && 'cursor-not-allowed opacity-60 hover:bg-transparent',
                       )}
                     >
@@ -1052,7 +1052,7 @@ export function KanbanBoard({ search, stageFilter, dueFilter }: KanbanBoardProps
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setDialogOpen(false)} disabled={saving}>Annuler</Button>
-            <Button onClick={submitCreate} disabled={saving} className="bg-brand hover:bg-brand-hover">
+            <Button onClick={submitCreate} disabled={saving} className="bg-primary hover:bg-primary/90">
               {saving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Plus className="mr-1 h-4 w-4" />}
               Créer
             </Button>
