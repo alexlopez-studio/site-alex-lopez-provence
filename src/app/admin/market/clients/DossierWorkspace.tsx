@@ -257,6 +257,9 @@ export function DossierWorkspace({ dossierId }: { dossierId: string }) {
   const planEvents = events.filter((event) => !['visit', 'offer'].includes(event.type))
   const visitEvents = events.filter((event) => event.type === 'visit')
   const offerEvents = events.filter((event) => event.type === 'offer')
+  const missingDocuments = documents.filter((document) => ['missing', 'requested', 'rejected'].includes(document.status)).length
+  const validatedDocuments = documents.filter((document) => document.status === 'validated').length
+  const visibleEvents = events.filter((event) => event.visible_to_client).length
 
   return (
     <Tabs value={tab} onValueChange={setTab} className="space-y-6">
@@ -278,6 +281,13 @@ export function DossierWorkspace({ dossierId }: { dossierId: string }) {
             Accès direct client
           </Button>
         </div>
+      </section>
+
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <PortalKpi icon={FileText} label="Documents validés" value={`${validatedDocuments}/${documents.length}`} helper={missingDocuments > 0 ? `${missingDocuments} à traiter` : 'Dossier à jour'} />
+        <PortalKpi icon={BookOpen} label="Plan publié" value={String(planEvents.length)} helper={`${visibleEvents} élément(s) visibles client`} />
+        <PortalKpi icon={CalendarDays} label="Visites" value={String(visitEvents.length)} helper={visitEvents.some((event) => event.status === 'planned') ? 'Visite programmée' : 'Historique visites'} />
+        <PortalKpi icon={CheckCircle2} label="Offres" value={String(offerEvents.length)} helper={offerEvents.some((event) => ['new', 'pending', 'counter'].includes(event.status)) ? 'À suivre' : 'Suivi commercial'} />
       </section>
 
       <TabsList className="flex h-auto flex-wrap justify-start rounded-2xl border bg-white p-1 shadow-sm">
@@ -331,6 +341,29 @@ export function DossierWorkspace({ dossierId }: { dossierId: string }) {
         <EventList title="Offres transmises" events={offerEvents} onUpdate={updateEvent} onDelete={deleteEvent} />
       </TabsContent>
     </Tabs>
+  )
+}
+
+function PortalKpi({
+  icon: Icon,
+  label,
+  value,
+  helper,
+}: {
+  icon: typeof FileText
+  label: string
+  value: string
+  helper: string
+}) {
+  return (
+    <div className="rounded-2xl border bg-white p-4 shadow-sm">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-xs font-extrabold uppercase text-muted-foreground">{label}</span>
+        <Icon className="size-4 text-primary" />
+      </div>
+      <p className="mt-2 text-2xl font-extrabold leading-none text-foreground">{value}</p>
+      <p className="mt-1 text-xs font-semibold text-muted-foreground">{helper}</p>
+    </div>
   )
 }
 

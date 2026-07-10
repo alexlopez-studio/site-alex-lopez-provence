@@ -17,10 +17,37 @@ Decision : Codex reprend seul le developpement et le design pour le moment.
 
 Note : les lots Linear ci-dessous sont historiques et ne refletent plus l'etat reel du code. La memoire courante est dans `docs/MEMOIRE_SESSION.md`.
 
+### 10/07/2026 15:19 CEST - Lot Affaire : cockpit mandat et portail client integre
+- Base/branche : `preview`, alignee avec `origin/preview` au depart ; travail local non pousse.
+- Type : fonctionnalite produit / opportunites / mandats / portail client.
+- Statut : **fait** pour cet increment UI.
+- Travail :
+  1. Ajout sur `/app/opportunities/[id]` d'un panneau `Preparation mandat & portail` qui resume les points prets ou manquants : stade portail, contact vendeur, bien cadre, avis de valeur, portail ouvert, documents suivis, prochaine action.
+  2. Ajout d'actions portail directement dans la fiche affaire : ouvrir le portail quand le stade le permet, inviter le client, ouvrir/copier l'acces presentation client.
+  3. Renforcement du `DossierWorkspace` embarque avec 4 KPI immediats : documents valides, plan publie, visites, offres.
+  4. Ajustement mobile des onglets de fiche affaire pour eviter les libelles tronques sur petit ecran.
+- Fichiers principaux : `src/app/admin/market/opportunities/[id]/page.tsx`, `src/app/admin/market/clients/DossierWorkspace.tsx`, `docs/SUIVI_PROJET.md`.
+- Verification :
+  - `npx tsc --noEmit` OK.
+  - `npm run lint` OK avec warnings historiques hors fichiers modifies.
+  - `npm run build` OK avec warnings preexistants/non bloquants.
+  - Smoke HTTP local sur `http://localhost:3005` : `/app/opportunities`, `/app/opportunities/4958c8c2-46b0-411e-adfb-1fa04985ef11`, `/api/market/opportunities/4958c8c2-46b0-411e-adfb-1fa04985ef11`, `/espace-client/test` OK.
+  - Audit Playwright desktop/mobile : fiche affaire et onglet `Portail client` charges en 200, nouveaux blocs visibles, aucun debordement horizontal detecte.
+- Point d'attention : une ancienne activite systeme visible dans la timeline indique une erreur Supabase historique `client_type` manquant ; elle n'est pas creee par cet increment mais merite nettoyage/backfill plus tard.
+- Suite : poursuivre le coeur mandat avec une vraie timeline affaire unifiee (opportunite + events portail) et des actions rapides pour documents manquants / compte rendu vendeur.
+
+### 10/07/2026 15:19 CEST - Regularisation suivi : migration Supabase assistant IA appliquee
+- Base/branche : `preview`, sans modification code.
+- Type : operation base de donnees / Supabase.
+- Statut : **fait**.
+- Travail : application ciblee de `supabase/migrations/026_ai_assistant_integrations.sql` sur le projet Supabase lie `byrsmbgfkvgxdtdyhrro`, puis marquage de la version `026` comme appliquee dans l'historique Supabase.
+- Verification : 9 tables IA/integrations presentes, 12 fournisseurs IA inseres dont `openrouter`, RLS active sur les 9 tables, `supabase migration list` affiche `026` en local et remote.
+- Point d'attention : les divergences historiques entre anciennes migrations locales et migrations distantes timestampées preexistaient ; seule `026` a ete reparee/appliquee.
+
 ### 10/07/2026 12:26 CEST - Assistant IA plug-and-play Mandat OS
 - Base/branche : `preview`, travail local non pousse, avec modifications locales preexistantes conservees.
 - Type : fonctionnalite produit / IA / integrations.
-- Statut : **fait** pour le socle V1, schema non applique a Supabase distante.
+- Statut : **fait** pour le socle V1, schema applique ensuite a Supabase distante.
 - Travail :
   1. Ajout du cockpit admin `/app/assistant` : conversation, choix fournisseur/modele, contexte dossier client, file d'actions a valider.
   2. Ajout de la section `/app/settings?section=ia` : catalogue IA hybride, ajout/revocation de cle API, fournisseur par defaut, connexion Google Workspace, sync Granola.
@@ -35,7 +62,7 @@ Note : les lots Linear ci-dessous sont historiques et ne refletent plus l'etat r
   - `npm run build` OK avec warnings preexistants/non bloquants.
   - HTTP local sur serveur frais `http://localhost:3004` : `/app/assistant` OK (200), `/app/settings?section=ia` OK (200), `/api/ai/providers` OK avant migration, `/api/ai/actions?status=proposed` OK avant migration.
   - Smoke Playwright headless : pages `/app/assistant` et `/app/settings?section=ia` chargees en 200 ; warnings console preexistants observes sur layout global (Radix hydration IDs + ressource 404 locale), sans blocage de rendu.
-- Point d'attention : appliquer `supabase/migrations/026_ai_assistant_integrations.sql` sur Supabase avant d'enregistrer des cles, lancer des chats persistants, synchroniser Granola ou executer les actions IA.
+- Point d'attention : renseigner les variables serveur (`AI_CREDENTIALS_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`) avant d'enregistrer des cles, lancer des chats persistants, synchroniser Granola ou executer les actions IA.
 - Serveur local : instance propre active sur `http://localhost:3004/app/assistant`.
 - Suite : appliquer la migration en environnement cible, renseigner `AI_CREDENTIALS_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, puis tester une cle OpenRouter et un transcript Granola reel.
 

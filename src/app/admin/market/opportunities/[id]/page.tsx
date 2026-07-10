@@ -11,6 +11,7 @@ import {
   ChevronDown,
   Clock,
   Edit,
+  Eye,
   ExternalLink,
   FileText,
   FolderOpen,
@@ -225,6 +226,13 @@ interface ProfessionalDraft {
   comparables_json: string
 }
 
+interface MandateReadinessItem {
+  id: string
+  label: string
+  detail: string
+  done: boolean
+}
+
 const STAGES = [
   'Veille annonce',
   'Nouveau contact',
@@ -242,20 +250,6 @@ const CLIENT_DOSSIER_STATUS_LABELS: Record<string, string> = {
   draft: 'Brouillon',
   active: 'Actif',
   archived: 'Archivé',
-}
-
-const PRIORITY_LABELS: Record<string, string> = {
-  low: 'Basse',
-  medium: 'Moyenne',
-  high: 'Haute',
-  critical: 'Urgente',
-}
-
-const PRIORITY_CLASSES: Record<string, string> = {
-  low: 'bg-gray-50 text-gray-600 border-gray-200',
-  medium: 'bg-blue-50 text-blue-700 border-blue-200',
-  high: 'bg-orange-50 text-orange-700 border-orange-200',
-  critical: 'bg-red-50 text-red-700 border-red-200',
 }
 
 const EVENT_CONFIG: Record<OpportunityEventType, { label: string; icon: typeof StickyNote; className: string }> = {
@@ -490,6 +484,8 @@ export default function OpportunityDetailPage() {
   const [loading, setLoading] = useState(true)
   const [savingStage, setSavingStage] = useState(false)
   const [creatingDossier, setCreatingDossier] = useState(false)
+  const [invitingClient, setInvitingClient] = useState(false)
+  const [openingClientLink, setOpeningClientLink] = useState(false)
   const [propertyDraft, setPropertyDraft] = useState<PropertyDraft>(EMPTY_PROPERTY_DRAFT)
   const [professionalDraft, setProfessionalDraft] = useState<ProfessionalDraft>(EMPTY_PROFESSIONAL_DRAFT)
   const [savingPreparation, setSavingPreparation] = useState(false)
@@ -550,6 +546,43 @@ export default function OpportunityDetailPage() {
       toast.error(err instanceof Error ? err.message : 'Création impossible')
     } finally {
       setCreatingDossier(false)
+    }
+  }
+
+  async function inviteClientFromOpportunity() {
+    const dossierId = opportunity?.client_dossier?.id
+    if (!dossierId) return
+    setInvitingClient(true)
+    try {
+      const res = await fetch(`/api/market/clients/${dossierId}/invite`, { method: 'POST' })
+      const json = await res.json()
+      if (!res.ok || !json.success) throw new Error(json.error ?? 'Invitation impossible')
+      if (json.data?.action_link) {
+        await navigator.clipboard?.writeText(json.data.action_link)
+        toast.success('Lien d’invitation copié')
+      } else {
+        toast.success('Invitation envoyée')
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Invitation impossible')
+    } finally {
+      setInvitingClient(false)
+    }
+  }
+
+  async function openClientPortalLinkFromOpportunity() {
+    const dossierId = opportunity?.client_dossier?.id
+    if (!dossierId) return
+    setOpeningClientLink(true)
+    try {
+      const href = `${window.location.origin}/espace-client/preview/${dossierId}?presentation=1`
+      await navigator.clipboard?.writeText(href)
+      window.open(href, '_blank', 'noopener,noreferrer')
+      toast.success('Interface client ouverte et lien copié')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Ouverture impossible')
+    } finally {
+      setOpeningClientLink(false)
     }
   }
 
@@ -875,11 +908,12 @@ export default function OpportunityDetailPage() {
   const currentStage = opportunity.stage ?? STAGES[0]
   const stageIndex = Math.max(0, STAGES.indexOf(currentStage))
   const progress = Math.max(8, ((stageIndex + 1) / STAGES.length) * 100)
-  const priority = opportunity.priority ?? 'medium'
   const editableProperty = isUserEditableProperty(opportunity.property)
   const estimate = opportunity.estimated_price_min || opportunity.estimated_price_max
     ? [opportunity.estimated_price_min, opportunity.estimated_price_max].filter((value): value is number => value != null).map(formatPrice).join(' - ')
     : null
+  const mandateReadiness = buildMandateReadiness(opportunity, currentStage, upcomingEvents)
+  const mandateReadinessDone = mandateReadiness.filter((item) => item.done).length
 
   return (
     <div className="space-y-5">
@@ -927,12 +961,12 @@ export default function OpportunityDetailPage() {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-5">
-        <TabsList variant="line" className="w-full justify-start rounded-none border-b bg-transparent p-0">
-          <TabsTrigger value="overview" className="px-0 sm:px-3">Vue d’ensemble</TabsTrigger>
-          <TabsTrigger value="preparation" className="px-0 sm:px-3">Bien & technique</TabsTrigger>
-          <TabsTrigger value="estimation" className="px-0 sm:px-3">Estimation</TabsTrigger>
-          <TabsTrigger value="dossier" className="px-0 sm:px-3">Portail client</TabsTrigger>
-          <TabsTrigger value="history" className="px-0 sm:px-3">Historique</TabsTrigger>
+        <TabsList variant="line" className="h-auto w-full flex-wrap justify-start gap-2 rounded-none border-b bg-transparent p-0">
+          <TabsTrigger value="overview" className="px-1 py-2 sm:px-3">Vue d’ensemble</TabsTrigger>
+          <TabsTrigger value="preparation" className="px-1 py-2 sm:px-3">Bien & technique</TabsTrigger>
+          <TabsTrigger value="estimation" className="px-1 py-2 sm:px-3">Estimation</TabsTrigger>
+          <TabsTrigger value="dossier" className="px-1 py-2 sm:px-3">Portail client</TabsTrigger>
+          <TabsTrigger value="history" className="px-1 py-2 sm:px-3">Historique</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -969,6 +1003,17 @@ export default function OpportunityDetailPage() {
                   ))}
                 </div>
               </section>
+
+              <MandateReadinessPanel
+                items={mandateReadiness}
+                completed={mandateReadinessDone}
+                total={mandateReadiness.length}
+                currentStage={currentStage}
+                eligible={isPortalEligibleStage(currentStage)}
+                hasPortal={Boolean(opportunity.client_dossier)}
+                creatingDossier={creatingDossier}
+                onCreateDossier={createDossier}
+              />
 
               <section className="rounded-xl border bg-card p-5">
                 <h2 className="text-base font-semibold">Activités à venir</h2>
@@ -1007,8 +1052,19 @@ export default function OpportunityDetailPage() {
                 title="Portail client"
                 icon={<FolderOpen className="size-4" />}
                 action={opportunity.client_dossier ? (
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href={`/app/clients/${opportunity.client_dossier.id}/preview`}><ExternalLink className="mr-1 size-3.5" /> Aperçu</Link>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={`/app/clients/${opportunity.client_dossier.id}/preview`}><ExternalLink className="mr-1 size-3.5" /> Aperçu</Link>
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={inviteClientFromOpportunity} disabled={invitingClient}>
+                      {invitingClient ? <Loader2 className="mr-1 size-3.5 animate-spin" /> : <Mail className="mr-1 size-3.5" />}
+                      Inviter
+                    </Button>
+                  </div>
+                ) : isPortalEligibleStage(currentStage) ? (
+                  <Button variant="outline" size="sm" onClick={createDossier} disabled={creatingDossier}>
+                    {creatingDossier ? <Loader2 className="mr-1 size-3.5 animate-spin" /> : <Plus className="mr-1 size-3.5" />}
+                    Ouvrir
                   </Button>
                 ) : null}
               >
@@ -1024,6 +1080,10 @@ export default function OpportunityDetailPage() {
                     {opportunity.client_dossier.documents_missing > 0 && (
                       <p className="text-xs text-amber-700">{opportunity.client_dossier.documents_missing} document(s) à traiter</p>
                     )}
+                    <Button variant="outline" size="sm" className="w-full" onClick={openClientPortalLinkFromOpportunity} disabled={openingClientLink}>
+                      {openingClientLink ? <Loader2 className="mr-1 size-4 animate-spin" /> : <Eye className="mr-1 size-4" />}
+                      Accès présentation client
+                    </Button>
                   </div>
                 ) : isPortalEligibleStage(currentStage) ? (
                   <EmptyCardText>Portail non ouvert. Ouvre-le depuis l’onglet « Portail client » pour présenter l’estimation au client.</EmptyCardText>
@@ -1323,6 +1383,148 @@ function Metric({ label, value }: { label: string; value: string }) {
       <p className="text-[10px] font-semibold uppercase text-muted-foreground">{label}</p>
       <p className="mt-1 truncate font-medium">{value}</p>
     </div>
+  )
+}
+
+function buildMandateReadiness(
+  opportunity: Opportunity,
+  currentStage: string,
+  upcomingEvents: OpportunityEvent[],
+): MandateReadinessItem[] {
+  const property = propertyDraftFromOpportunity(opportunity)
+  const opinion = professionalDraftFromOpportunity(opportunity)
+  const hasContact = Boolean(
+    opportunity.lead ||
+    opportunity.seller_name ||
+    opportunity.seller_email ||
+    opportunity.seller_phone,
+  )
+  const hasCoreProperty = Boolean(
+    property.type_bien ||
+    property.adresse ||
+    property.commune ||
+    property.surface,
+  )
+  const hasValuation = Boolean(
+    opinion.price ||
+    opinion.price_low ||
+    opinion.price_high ||
+    opinion.summary,
+  )
+  const hasNextAction = Boolean(opportunity.next_action || opportunity.due_date || upcomingEvents.length > 0)
+  const hasPortal = Boolean(opportunity.client_dossier)
+  const documentsReady = Boolean(
+    opportunity.client_dossier &&
+    opportunity.client_dossier.documents_total > 0 &&
+    opportunity.client_dossier.documents_missing === 0,
+  )
+
+  return [
+    {
+      id: 'stage',
+      label: 'Stade portail atteint',
+      detail: isPortalEligibleStage(currentStage) ? currentStage : "Attendre la visite d'estimation",
+      done: isPortalEligibleStage(currentStage),
+    },
+    {
+      id: 'contact',
+      label: 'Contact vendeur rattaché',
+      detail: hasContact ? leadName(opportunity.lead) : 'Ajouter ou créer le vendeur',
+      done: hasContact,
+    },
+    {
+      id: 'property',
+      label: 'Bien cadré',
+      detail: hasCoreProperty ? [property.type_bien, property.commune].filter(Boolean).join(' · ') || 'Informations bien présentes' : 'Compléter bien & technique',
+      done: hasCoreProperty,
+    },
+    {
+      id: 'valuation',
+      label: 'Avis de valeur prêt',
+      detail: hasValuation ? opinion.price ? formatPrice(nullableNumber(opinion.price)) : 'Estimation renseignée' : 'Compléter l’estimation',
+      done: hasValuation,
+    },
+    {
+      id: 'portal',
+      label: 'Portail client ouvert',
+      detail: hasPortal ? 'Dossier client actif ou brouillon' : 'Ouvrir le portail depuis cette affaire',
+      done: hasPortal,
+    },
+    {
+      id: 'documents',
+      label: 'Pièces vendeur suivies',
+      detail: opportunity.client_dossier
+        ? `${opportunity.client_dossier.documents_validated}/${opportunity.client_dossier.documents_total} validées`
+        : 'Disponible après ouverture portail',
+      done: documentsReady,
+    },
+    {
+      id: 'next_action',
+      label: 'Prochaine action posée',
+      detail: opportunity.next_action || upcomingEvents[0]?.title || 'Créer une tâche, un appel ou un RDV',
+      done: hasNextAction,
+    },
+  ]
+}
+
+function MandateReadinessPanel({
+  items,
+  completed,
+  total,
+  currentStage,
+  eligible,
+  hasPortal,
+  creatingDossier,
+  onCreateDossier,
+}: {
+  items: MandateReadinessItem[]
+  completed: number
+  total: number
+  currentStage: string
+  eligible: boolean
+  hasPortal: boolean
+  creatingDossier: boolean
+  onCreateDossier: () => void
+}) {
+  const progress = total > 0 ? Math.round((completed / total) * 100) : 0
+
+  return (
+    <section className="rounded-xl border bg-card p-5">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <h2 className="text-base font-semibold">Préparation mandat & portail</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Affaire au stade {currentStage}. {completed}/{total} points prêts avant présentation client.
+          </p>
+        </div>
+        {!hasPortal && eligible && (
+          <Button size="sm" onClick={onCreateDossier} disabled={creatingDossier} className="bg-primary hover:bg-primary/90">
+            {creatingDossier ? <Loader2 className="mr-1 size-4 animate-spin" /> : <Plus className="mr-1 size-4" />}
+            Ouvrir le portail
+          </Button>
+        )}
+      </div>
+
+      <div className="mt-4 h-2 w-full rounded-full bg-muted">
+        <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${Math.max(8, progress)}%` }} />
+      </div>
+
+      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {items.map((item) => (
+          <div key={item.id} className={cn('rounded-lg border p-3', item.done ? 'bg-emerald-50/70 border-emerald-200' : 'bg-muted/20')}>
+            <div className="flex items-start gap-2">
+              <span className={cn('mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border', item.done ? 'border-emerald-300 bg-emerald-100 text-emerald-700' : 'border-border bg-background text-muted-foreground')}>
+                {item.done ? <CheckCircle2 className="size-3.5" /> : <Clock className="size-3.5" />}
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold">{item.label}</p>
+                <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{item.detail}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
   )
 }
 
