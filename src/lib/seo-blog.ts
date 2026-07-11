@@ -7,7 +7,7 @@ export function generateArticleJsonLd(post: BlogPost) {
   const authorName = post.authorInfo ? post.authorInfo.name : post.author
   const authorRole = post.authorInfo ? post.authorInfo.role : undefined
   const authorLinkedin = post.authorInfo ? post.authorInfo.linkedinUrl : undefined
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://alexlopez-provence.fr'
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://alexandrelopez.fr'
 
   return {
     '@context': 'https://schema.org',

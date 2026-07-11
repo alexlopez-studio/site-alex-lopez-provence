@@ -3,8 +3,8 @@ import { env } from '@/lib/env'
 
 export const metadata: Metadata = {
   title: 'Mentions légales — Alexandre Lopez',
-  description: 'Mentions légales du site alexlopez-provence.fr.',
-  alternates: { canonical: (env.app.siteUrl || 'https://alexlopez-provence.fr') + '/mentions-legales' },
+  description: 'Mentions légales du site alexandrelopez.fr.',
+  alternates: { canonical: (env.app.siteUrl || 'https://alexandrelopez.fr') + '/mentions-legales' },
 }
 
 export default function MentionsLegalesPage() {
@@ -17,7 +17,7 @@ export default function MentionsLegalesPage() {
         <div className="space-y-8 text-sm leading-relaxed text-muted">
           <section>
             <h2 className="mb-3 text-lg font-bold text-foreground">Éditeur du site</h2>
-            <p>Le site alexlopez-provence.fr est édité par Alexandre Lopez, conseiller en immobilier iad, exerçant en tant qu’agent commercial indépendant.</p>
+            <p>Le site alexandrelopez.fr est édité par Alexandre Lopez, conseiller en immobilier iad, exerçant en tant qu’agent commercial indépendant.</p>
             <p className="mt-2">Email : <a href="mailto:alex@alexlopez-provence.fr" className="text-brand hover:underline">alex@alexlopez-provence.fr</a></p>
             <p>Téléphone : <a href="tel:+33613180168" className="text-brand hover:underline">06 13 18 01 68</a></p>
           </section>

@@ -11,10 +11,10 @@ import {
   ShieldCheck,
   Sparkles,
 } from 'lucide-react'
-import { env } from '@/lib/env'
+import { env, ESTIMATION_URL } from '@/lib/env'
 import { siteVisuals } from '@/lib/site-visuals'
 
-const siteUrl = env.app.siteUrl || 'https://alexlopez-provence.fr'
+const siteUrl = env.app.siteUrl || 'https://alexandrelopez.fr'
 const pageUrl = siteUrl + '/avis-de-valeur-immobilier'
 const PHONE_RAW = '+33613180168'
 const PHONE_DISPLAY = '06 13 18 01 68'
@@ -197,7 +197,7 @@ export default function AvisDeValeurPage() {
                 Une analyse locale et argumentée pour comprendre la valeur réelle de votre maison, éviter les erreurs de prix et préparer une vente plus sereine.
               </p>
               <div className="mt-9 flex flex-col gap-4 sm:flex-row">
-                <PrimaryLink href="/outils/vendre">Demander mon avis de valeur <ArrowRight size={18} /></PrimaryLink>
+                <PrimaryLink href={ESTIMATION_URL}>Demander mon avis de valeur <ArrowRight size={18} /></PrimaryLink>
                 <OutlinePhone />
               </div>
               <div className="mt-8 flex flex-wrap gap-2">
@@ -347,7 +347,7 @@ export default function AvisDeValeurPage() {
               Lancez l’outil d’estimation, puis je pourrai affiner l’analyse selon votre bien, votre commune et votre calendrier de vente.
             </p>
             <div className="mt-9 flex flex-col justify-center gap-4 sm:flex-row">
-              <Link href="/outils/vendre" className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-4 text-sm font-bold text-brand transition-colors hover:bg-[#f4f7f8]">
+              <Link href={ESTIMATION_URL} className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-4 text-sm font-bold text-brand transition-colors hover:bg-[#f4f7f8]">
                 Demander mon avis de valeur <ArrowRight size={16} />
               </Link>
               <a href={'tel:' + PHONE_RAW} className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-white px-8 py-4 text-sm font-bold text-white transition-colors hover:bg-white hover:text-brand">

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { CSSProperties } from 'react'
 import Link from 'next/link'
+import { ESTIMATION_URL } from '@/lib/env'
 import { motion } from 'framer-motion'
 import {
   Phone,
@@ -195,7 +196,7 @@ export default function ResultatsClient({ initialData }: ResultatsClientProps = 
     return (
       <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
         <p className="mb-6 text-muted">Estimation indisponible. Reprenez le simulateur pour relancer le calcul.</p>
-        <Button asChild variant="primary"><Link href="/outils/vendre">Refaire une estimation</Link></Button>
+        <Button asChild variant="primary"><Link href={ESTIMATION_URL}>Refaire une estimation</Link></Button>
       </div>
     )
   }
@@ -279,7 +280,7 @@ function VendreResults({ data, est }: { data: LeadData; est: EstimResult }) {
         <CardEnvironnement />
         <CardCtaFinale />
         <div className="pt-2 text-center">
-          <Link href="/outils/vendre" className="text-sm text-muted transition-colors hover:text-brand">
+          <Link href={ESTIMATION_URL} className="text-sm text-muted transition-colors hover:text-brand">
             Faire une nouvelle estimation
           </Link>
         </div>

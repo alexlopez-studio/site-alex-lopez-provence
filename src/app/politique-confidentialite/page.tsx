@@ -3,8 +3,8 @@ import { env } from '@/lib/env'
 
 export const metadata: Metadata = {
   title: 'Politique de confidentialité — Alexandre Lopez',
-  description: 'Politique de confidentialité du site alexlopez-provence.fr.',
-  alternates: { canonical: (env.app.siteUrl || 'https://alexlopez-provence.fr') + '/politique-confidentialite' },
+  description: 'Politique de confidentialité du site alexandrelopez.fr.',
+  alternates: { canonical: (env.app.siteUrl || 'https://alexandrelopez.fr') + '/politique-confidentialite' },
 }
 
 export default function PolitiqueConfidentialitePage() {

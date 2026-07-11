@@ -1,9 +1,11 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import {
   ArrowRight,
+  ArrowUp,
   Award,
   CalendarDays,
   Check,
@@ -16,6 +18,7 @@ import {
   Home,
   Info,
   LogOut,
+  Mail,
   Map as MapIcon,
   MapPin,
   MessageCircle,
@@ -53,7 +56,7 @@ type PortalTab = 'dashboard' | 'valuation' | 'documents' | 'tracking'
 type PortalMode = 'session' | 'test' | 'preview'
 
 const TABS: Array<{ id: PortalTab; label: string; mobileLabel: string; icon: typeof Home }> = [
-  { id: 'dashboard', label: 'Tableau de bord', mobileLabel: 'Accueil', icon: Home },
+  { id: 'dashboard', label: 'Accueil', mobileLabel: 'Accueil', icon: Home },
   { id: 'valuation', label: 'Mon estimation', mobileLabel: 'Prix', icon: TrendingUp },
   { id: 'documents', label: 'Mes documents', mobileLabel: 'Docs', icon: FileText },
   { id: 'tracking', label: 'Suivi de mandat', mobileLabel: 'Suivi', icon: CheckCircle2 },
@@ -71,66 +74,51 @@ export function ClientPortalView({
   showPreviewBanner?: boolean
 }) {
   const [activeTab, setActiveTab] = useState<PortalTab>('dashboard')
+  const [showScrollTop, setShowScrollTop] = useState(false)
+  const shouldReduceMotion = useReducedMotion()
   const vm = useMemo(() => buildViewModel(data, mode), [data, mode])
   const headerClientName = mode === 'test' ? 'Jean-Marc & Sylvie' : vm.clientName
 
+  // Monitor scroll for back-to-top button
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function navigateTo(tab: PortalTab) {
+    setActiveTab(tab)
+    window.scrollTo({ top: 0, behavior: shouldReduceMotion ? 'auto' : 'smooth' })
+  }
+
   return (
-    <main className="app-product client-portal min-h-screen bg-background pb-24 text-foreground">
-      <header className="sticky top-0 z-40 border-b border-border bg-white/95 backdrop-blur">
-        <div className="flex w-full px-3 py-2 sm:px-4 lg:px-6">
-          <div className="grid min-h-12 w-full grid-cols-[auto_1fr_auto] items-center gap-3">
-            <div className="flex min-w-0 items-center gap-3">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-[18px] font-extrabold leading-none text-white shadow-sm">
-                iAD
-              </span>
-              <div className="min-w-0">
-                <p className="truncate text-[17px] font-extrabold leading-none text-foreground">Alexandre Lopez immobilier</p>
-                <p className="mt-0.5 truncate text-[10px] font-semibold leading-none text-muted-foreground">Provence Verte & Verdon</p>
-              </div>
-            </div>
+    <main className="app-product client-portal min-h-screen bg-surface pb-24 text-foreground lg:pb-0 lg:pl-72">
+      <PortalDesktopSidebar activeTab={activeTab} onNavigate={navigateTo} clientName={headerClientName} mode={mode} />
 
-            <nav className="mx-auto hidden rounded-full border border-border bg-background p-1 shadow-sm md:flex" aria-label="Navigation espace vendeur">
-              {TABS.map((tab) => {
-                const Icon = tab.icon
-                const isActive = activeTab === tab.id
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`inline-flex h-9 items-center gap-2 rounded-full px-4 text-[14px] font-extrabold leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
-                      isActive ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-white hover:text-foreground'
-                    }`}
-                  >
-                    <Icon className="size-4" />
-                    {tab.label}
-                  </button>
-                )
-              })}
-            </nav>
-
-            <div className="flex shrink-0 items-center gap-3">
-              <div className="hidden flex-col text-right lg:flex">
-                <span className="max-w-44 truncate text-[15px] font-extrabold leading-none text-foreground">{headerClientName}</span>
-                <span className="mt-0.5 flex items-center justify-end gap-1 text-[12px] font-extrabold leading-none text-success">
-                  <span className="size-2 rounded-full bg-success" />
-                  Vendeur
-                </span>
-              </div>
-              <span className="hidden size-10 items-center justify-center rounded-full border border-primary/20 bg-accent text-primary shadow-sm sm:inline-flex">
-                <User className="size-5" />
-              </span>
-              {mode === 'session' && <SignOutButton />}
-              {mode === 'test' && (
-                <button
-                  type="button"
-                  aria-label="Déconnexion"
-                  className="hidden size-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-background hover:text-foreground sm:inline-flex"
-                >
-                  <LogOut className="size-5" />
-                </button>
-              )}
+      {/* Mobile Header with Sticky Design */}
+      <header className="sticky top-0 bg-white/90 backdrop-blur-md border-b border-slate-100 z-20 lg:hidden px-2 py-2">
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-primary/15 bg-white shadow-sm">
+              <Image src="/IAD_LOGO_BLEU.png" alt="Alexandre Lopez" width={38} height={26} className="h-6 w-auto object-contain" />
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-[13px] font-extrabold leading-none text-foreground">Votre espace vendeur</p>
+              <p className="mt-0.5 truncate text-[10px] font-semibold leading-none text-muted-foreground">Alexandre Lopez · iad France</p>
             </div>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-2">
+            <a href="tel:+33613180168" className="flex items-center justify-center size-9 rounded-xl bg-primary text-white shadow-sm" aria-label="Appeler Alexandre">
+              <Phone className="size-4" />
+            </a>
+            {mode === 'session' && <SignOutButton />}
           </div>
         </div>
       </header>
@@ -146,35 +134,201 @@ export function ClientPortalView({
         </div>
       )}
 
-      <div className="mx-auto max-w-[1180px] px-4 py-5 sm:px-5 lg:px-6">
-        {activeTab === 'dashboard' && <DashboardTab data={data} vm={vm} onNavigate={setActiveTab} />}
-        {activeTab === 'valuation' && <ValuationTab vm={vm} />}
-        {activeTab === 'documents' && <DocumentsTab data={data} vm={vm} readOnly={mode !== 'session'} />}
-        {activeTab === 'tracking' && <TrackingTab vm={vm} mode={mode} />}
+      <div className="mx-auto max-w-[1280px] px-4 py-5 sm:px-5 lg:px-8 lg:py-8">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={activeTab}
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={shouldReduceMotion ? undefined : { opacity: 0, y: -8 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {activeTab === 'dashboard' && <DashboardTab data={data} vm={vm} onNavigate={navigateTo} />}
+            {activeTab === 'valuation' && <ValuationTab vm={vm} />}
+            {activeTab === 'documents' && <DocumentsTab data={data} vm={vm} readOnly={mode !== 'session'} />}
+            {activeTab === 'tracking' && <TrackingTab vm={vm} mode={mode} />}
+          </motion.div>
+        </AnimatePresence>
       </div>
 
+      {/* Footer Branding */}
+      <footer className="mt-auto py-6 px-8 border-t border-slate-200 bg-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-[11px] text-slate-400 font-medium" id="app-footer">
+        <div className="flex items-center gap-2" id="footer-branding-row">
+          <Image src="/IAD_LOGO_BLEU.png" alt="iad France" width={28} height={18} className="h-5 w-auto object-contain" />
+          <span>© 2026 iad France — Alexandre Lopez · Document d'accompagnement à caractère indicatif.</span>
+        </div>
+        <div className="flex items-center gap-4" id="footer-links">
+          <a href="https://www.iadfrance.fr" target="_blank" rel="noreferrer" className="hover:text-primary transition-colors">iadfrance.fr</a>
+          <span>•</span>
+          <span>Réseau de mandataires immobiliers</span>
+        </div>
+      </footer>
+
+      {/* Mobile bottom navigation */}
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white px-2 py-2 shadow-lg md:hidden" aria-label="Navigation mobile espace vendeur">
         <div className="mx-auto grid max-w-md grid-cols-4 gap-1">
           {TABS.map((tab) => {
             const Icon = tab.icon
             const isActive = activeTab === tab.id
             return (
-              <button
+              <motion.button
                 key={tab.id}
                 type="button"
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => navigateTo(tab.id)}
+                whileTap={{ scale: 0.94 }}
                 className={`portal-meta flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl px-2 font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                   isActive ? 'bg-accent text-primary' : 'text-muted-foreground'
                 }`}
               >
                 <Icon className="size-5" />
                 {tab.mobileLabel}
-              </button>
+              </motion.button>
             )
           })}
         </div>
       </nav>
+
+      {/* Back to top button */}
+      <AnimatePresence>
+        {showScrollTop && (
+          <motion.button
+            id="btn-scroll-top"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            onClick={scrollToTop}
+            className="fixed bottom-20 right-6 p-3.5 bg-slate-900 text-white rounded-full shadow-2xl hover:bg-slate-800 transition-all z-20 md:bottom-6"
+            title="Retour en haut"
+          >
+            <ArrowUp className="w-5 h-5" />
+          </motion.button>
+        )}
+      </AnimatePresence>
     </main>
+  )
+}
+
+function PortalDesktopSidebar({
+  activeTab,
+  onNavigate,
+  clientName,
+  mode,
+}: {
+  activeTab: PortalTab
+  onNavigate: (tab: PortalTab) => void
+  clientName: string
+  mode: PortalMode
+}) {
+  const mainCategories = [
+    { 
+      id: 'dashboard' as const, 
+      label: 'Tableau de bord', 
+      icon: Home,
+      isActive: activeTab === 'dashboard',
+      onClick: () => onNavigate('dashboard')
+    },
+    { 
+      id: 'valuation' as const, 
+      label: 'Mon estimation', 
+      icon: TrendingUp,
+      isActive: activeTab === 'valuation',
+      onClick: () => onNavigate('valuation')
+    },
+    { 
+      id: 'documents' as const, 
+      label: 'Mes documents', 
+      icon: FileText,
+      isActive: activeTab === 'documents',
+      onClick: () => onNavigate('documents')
+    },
+    { 
+      id: 'tracking' as const, 
+      label: 'Suivi de vente', 
+      icon: CheckCircle2,
+      isActive: activeTab === 'tracking',
+      onClick: () => onNavigate('tracking')
+    }
+  ]
+
+  return (
+    <aside 
+      className="hidden lg:flex flex-col w-72 bg-slate-900 text-white h-screen fixed left-0 top-0 border-r border-slate-800 z-30" 
+      id="desktop-sidebar"
+    >
+      {/* Sidebar Header with Logo */}
+      <div className="p-6 border-b border-slate-800 flex flex-col items-center justify-center bg-slate-950/40" id="sidebar-logo-container">
+        <Image src="/IAD_LOGO_BLANC.png" alt="Alexandre Lopez" width={112} height={54} className="h-12 w-auto object-contain brightness-0 invert" priority />
+        <span className="text-[10px] text-slate-400 font-mono tracking-wider mt-2">PORTAIL DE SUIVI CLIENT</span>
+      </div>
+
+      {/* Navigation Links */}
+      <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-6" id="sidebar-navigation">
+        <div>
+          <span className="text-[9px] font-mono font-bold text-slate-500 uppercase tracking-widest px-4 block mb-3">NAVIGATION PRINCIPALE</span>
+          <div className="space-y-1.5">
+            {mainCategories.map((cat) => {
+              const Icon = cat.icon
+              return (
+                <button
+                  key={cat.id}
+                  id={`nav-item-${cat.id}`}
+                  onClick={cat.onClick}
+                  className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-xs font-semibold transition-all duration-300 group ${
+                    cat.isActive 
+                      ? 'bg-primary text-white shadow-lg shadow-primary/20 translate-x-1' 
+                      : 'text-slate-400 hover:bg-slate-800/60 hover:text-white'
+                  }`}
+                >
+                  <Icon 
+                    className={`w-4 h-4 transition-transform duration-300 ${
+                      cat.isActive ? 'scale-110' : 'group-hover:scale-110 text-slate-500 group-hover:text-white'
+                    }`} 
+                  />
+                  <span className="truncate">{cat.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </nav>
+
+      {/* Advisor Quick Card */}
+      <div className="p-5 border-t border-slate-800 bg-slate-950/40 m-4 rounded-2xl flex flex-col gap-3" id="sidebar-advisor-card">
+        <div className="flex items-center gap-3">
+          <Image 
+            src="/alexandre-lopez-face.jpg" 
+            alt="Alexandre Lopez" 
+            width={40}
+            height={40}
+            className="w-10 h-10 rounded-full object-cover object-top border-2 border-primary/30 shadow-md"
+            id="sidebar-advisor-avatar"
+          />
+          <div className="min-w-0">
+            <h4 className="text-xs font-bold text-white truncate">Alexandre Lopez</h4>
+            <p className="text-[10px] text-slate-400 truncate">Votre conseiller iad</p>
+          </div>
+        </div>
+        <div className="flex flex-col gap-1.5 text-xs text-slate-300 mt-1">
+          <a 
+            href="tel:+33613180168" 
+            className="flex items-center gap-2 hover:text-primary transition-colors"
+            id="sidebar-advisor-phone"
+          >
+            <Phone className="w-3.5 h-3.5 text-primary shrink-0" />
+            <span>06 13 18 01 68</span>
+          </a>
+          <a 
+            href="mailto:alexandre.lopez@iadfrance.fr" 
+            className="flex items-center gap-2 hover:text-primary transition-colors truncate"
+            id="sidebar-advisor-email"
+          >
+            <Mail className="w-3.5 h-3.5 text-primary shrink-0" />
+            <span className="truncate">alexandre.lopez@iadfrance.fr</span>
+          </a>
+        </div>
+        {mode === 'session' && <div className="mt-2 flex justify-center"><SignOutButton /></div>}
+      </div>
+    </aside>
   )
 }
 
@@ -216,10 +370,17 @@ function DashboardTab({
 
   return (
     <div className="space-y-6">
-      <DashboardStatusCard vm={vm} />
+      <PropertyAccompagnementSection
+        data={data}
+        vm={vm}
+        onStart={() => onNavigate('valuation')}
+      />
 
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-3" id="dashboard-kpis">
-        <DashboardKpi
+      <DashboardCover vm={vm} onStart={() => onNavigate('valuation')} />
+
+      <Reveal>
+        <section className="grid grid-cols-1 gap-4 md:grid-cols-3" id="dashboard-kpis">
+          <DashboardKpi
           label="Prix retenu"
           value={vm.estimate.median ? formatPriceCompact(vm.estimate.median) : 'À confirmer'}
           helper="Voir l’estimation"
@@ -227,7 +388,7 @@ function DashboardTab({
           tone="brand"
           onClick={() => onNavigate('valuation')}
         />
-        <DashboardKpi
+          <DashboardKpi
           label="Visites physiques"
           value={String(visits.length)}
           valueSuffix={visits.length > 1 ? 'effectuées' : 'effectuée'}
@@ -236,7 +397,7 @@ function DashboardTab({
           tone="success"
           onClick={() => onNavigate('tracking')}
         />
-        <DashboardKpi
+          <DashboardKpi
           label="Offre d’achat"
           value={String(offers.length)}
           valueSuffix={offers.length > 0 ? 'En attente' : 'À venir'}
@@ -244,37 +405,43 @@ function DashboardTab({
           icon={FileText}
           tone="warning"
           onClick={() => onNavigate('tracking')}
-        />
-      </section>
+          />
+        </section>
+      </Reveal>
 
-      <NextStepsPanel checklist={checklist} completed={completedChecklist} onNavigate={onNavigate} />
+      <Reveal><NextStepsPanel checklist={checklist} completed={completedChecklist} onNavigate={onNavigate} /></Reveal>
 
-      <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="space-y-4 lg:col-span-2">
-          <h2 className="portal-h2 flex items-center gap-2 text-foreground">
-            <span aria-hidden="true">🤝</span>
-            Accompagnement de votre conseiller
-          </h2>
-          <AdvisorPanel />
-        </div>
-        <AudiencePanel views={vm.audience.views} contacts={vm.audience.contacts} onNavigate={() => onNavigate('tracking')} />
-      </section>
+      <Reveal>
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="space-y-4 lg:col-span-2">
+            <h2 className="portal-h2 flex items-center gap-2 text-foreground">
+              <span aria-hidden="true">🤝</span>
+              Accompagnement de votre conseiller
+            </h2>
+            <AdvisorPanel />
+          </div>
+          <AudiencePanel views={vm.audience.views} contacts={vm.audience.contacts} onNavigate={() => onNavigate('tracking')} />
+        </section>
+      </Reveal>
 
-      <PropertyHeroPanel vm={vm} onNavigate={() => onNavigate('valuation')} />
+      <Reveal><PropertyHeroPanel vm={vm} onNavigate={() => onNavigate('valuation')} /></Reveal>
 
       {data.dossier.advisor_note && (
-        <div className="portal-body rounded-3xl border border-primary/15 bg-accent p-5 text-primary">
-          <strong className="text-foreground">Message d’Alexandre : </strong>
-          {data.dossier.advisor_note}
-        </div>
+        <Reveal>
+          <div className="portal-body rounded-3xl border border-primary/15 bg-accent p-5 text-primary">
+            <strong className="text-foreground">Message d’Alexandre : </strong>
+            {data.dossier.advisor_note}
+          </div>
+        </Reveal>
       )}
 
-      <DashboardCta />
+      <Reveal><DashboardCta /></Reveal>
     </div>
   )
 }
 
 function ValuationTab({ vm }: { vm: PortalViewModel }) {
+  const shouldReduceMotion = useReducedMotion()
   const [valuationType, setValuationType] = useState<'advisor' | 'express'>('advisor')
   const [selectedPrice, setSelectedPrice] = useState(vm.estimate.median ?? vm.estimate.low ?? 0)
   const [isAdjusting, setIsAdjusting] = useState(false)
@@ -288,18 +455,18 @@ function ValuationTab({ vm }: { vm: PortalViewModel }) {
   const netSeller = safeSelectedPrice && fees ? safeSelectedPrice - fees : null
 
   return (
-    <div className="space-y-8" id="valuation-tab">
-      <section className="flex flex-col justify-between gap-4 rounded-3xl border border-border bg-white p-4 sm:flex-row sm:items-center">
-        <div>
-          <h2 className="portal-h2 text-foreground">Rapport d’estimation du bien</h2>
-          <p className="portal-meta text-muted-foreground">Comparez l’avis d’expert d’Alexandre et l’évaluation automatique.</p>
-        </div>
-
-        <div className="flex w-full rounded-full border border-border bg-background p-1.5 sm:w-auto">
+    <div className="space-y-6" id="valuation-tab">
+      <PortalPageHeader
+        eyebrow="Estimation immobilière"
+        title="Rapport d’estimation du bien"
+        description="Retrouvez l’avis de valeur d’Alexandre, le marché local, les comparables et le positionnement recommandé."
+        icon={TrendingUp}
+        action={
+        <div className="flex w-full rounded-2xl border border-slate-100 bg-slate-50 p-1.5 sm:w-auto">
           <button
             type="button"
             onClick={() => setValuationType('advisor')}
-            className={`portal-button-text flex flex-1 items-center justify-center gap-1.5 rounded-full px-5 py-2 transition-all sm:flex-none ${
+            className={`portal-button-text flex flex-1 items-center justify-center gap-1.5 rounded-xl px-5 py-2 transition-all sm:flex-none ${
               valuationType === 'advisor' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -309,16 +476,25 @@ function ValuationTab({ vm }: { vm: PortalViewModel }) {
           <button
             type="button"
             onClick={() => setValuationType('express')}
-            className={`portal-button-text flex flex-1 items-center justify-center gap-1.5 rounded-full px-5 py-2 transition-all sm:flex-none ${
+            className={`portal-button-text flex flex-1 items-center justify-center gap-1.5 rounded-xl px-5 py-2 transition-all sm:flex-none ${
               valuationType === 'express' ? 'bg-foreground text-white shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             Estimation Express iAD
           </button>
         </div>
-      </section>
+        }
+      />
 
-      {valuationType === 'express' ? (
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={valuationType}
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={shouldReduceMotion ? undefined : { opacity: 0, y: -8 }}
+          transition={{ duration: shouldReduceMotion ? 0 : 0.24 }}
+        >
+          {valuationType === 'express' ? (
         <section className="rounded-3xl border border-border bg-white p-8 text-center shadow-sm">
           <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-foreground/5 text-foreground">
             <Info className="size-8" />
@@ -419,7 +595,9 @@ function ValuationTab({ vm }: { vm: PortalViewModel }) {
 
           {vm.estimate.iadReport && <IadReportSections report={vm.estimate.iadReport} />}
         </div>
-      )}
+          )}
+        </motion.div>
+      </AnimatePresence>
     </div>
   )
 }
@@ -980,12 +1158,20 @@ function DocumentsTab({
   readOnly: boolean
 }) {
   return (
-    <ClientDocuments
-      dossierId={data.dossier.id}
-      documents={data.documents}
-      readOnly={readOnly}
-      commune={vm.summary.commune}
-    />
+    <div className="space-y-6">
+      <PortalPageHeader
+        eyebrow="Dossier vendeur"
+        title="Documents et pièces justificatives"
+        description="Centralisez les documents nécessaires et suivez leur validation par Alexandre."
+        icon={FileText}
+      />
+      <ClientDocuments
+        dossierId={data.dossier.id}
+        documents={data.documents}
+        readOnly={readOnly}
+        commune={vm.summary.commune}
+      />
+    </div>
   )
 }
 
@@ -996,6 +1182,12 @@ function TrackingTab({ vm, mode }: { vm: PortalViewModel; mode: PortalMode }) {
 
   return (
     <div className="space-y-6">
+      <PortalPageHeader
+        eyebrow="Commercialisation"
+        title="Suivi de votre vente"
+        description="Consultez les étapes du mandat, les performances de diffusion, les visites et les offres reçues."
+        icon={CheckCircle2}
+      />
       <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_410px]">
         <TrackingTimelineCard steps={timeline} />
 
@@ -1590,37 +1782,257 @@ function AdvisorPanel() {
   )
 }
 
-function DashboardStatusCard({ vm }: { vm: PortalViewModel }) {
+function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const shouldReduceMotion = useReducedMotion()
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-border bg-white p-5 shadow-sm md:p-6">
-      <div className="absolute left-0 top-0 h-full w-2 bg-primary" />
-      <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-        <div className="space-y-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="portal-label inline-flex items-center gap-1 rounded-full bg-accent px-3 py-1 text-primary">
-              <Award className="size-3.5" />
-              {vm.mandateType || 'Mandat vendeur'}
-            </span>
-            <span className="portal-meta text-muted-foreground">Référence : {vm.reference}</span>
-          </div>
-          <h1 className="portal-h1 text-foreground">Bonjour, {vm.clientName}</h1>
-          <p className="portal-meta flex items-center gap-1 text-muted-foreground">
-            <MapPin className="size-4 text-primary" />
-            {vm.summary.adresse ?? vm.summary.commune ?? vm.title}
+    <motion.div
+      initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.12 }}
+      transition={{ duration: shouldReduceMotion ? 0 : 0.42, delay: shouldReduceMotion ? 0 : delay, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {children}
+    </motion.div>
+  )
+}
+
+function PortalPageHeader({
+  eyebrow,
+  title,
+  description,
+  icon: Icon,
+  action,
+}: {
+  eyebrow: string
+  title: string
+  description: string
+  icon: typeof Home
+  action?: React.ReactNode
+}) {
+  const shouldReduceMotion = useReducedMotion()
+  return (
+    <motion.header
+      initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: shouldReduceMotion ? 0 : 0.32, ease: [0.22, 1, 0.36, 1] }}
+      className="flex flex-col gap-4 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6 md:flex-row md:items-center md:justify-between"
+    >
+      <div className="flex min-w-0 items-start gap-4">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <Icon className="size-5" />
+        </span>
+        <div className="min-w-0">
+          <p className="portal-label text-primary">{eyebrow}</p>
+          <h1 className="mt-1 text-2xl font-extrabold leading-tight tracking-tight text-foreground">{title}</h1>
+          <p className="portal-body mt-1 max-w-3xl text-muted-foreground">{description}</p>
+        </div>
+      </div>
+      {action && <div className="shrink-0">{action}</div>}
+    </motion.header>
+  )
+}
+
+function PropertyAccompagnementSection({
+  data,
+  vm,
+  onStart,
+}: {
+  data: ClientPortalDossier
+  vm: PortalViewModel
+  onStart: () => void
+}) {
+  const snapshot = asRecord(data.dossier.property_snapshot)
+  const bedrooms = numberValue(snapshot.nb_chambres) ?? numberValue(snapshot.bedrooms)
+  const landParcels = numberValue(snapshot.nb_parcelles) ?? numberValue(snapshot.parcelles)
+  const shouldReduceMotion = useReducedMotion()
+
+  return (
+    <motion.section
+      initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: shouldReduceMotion ? 0 : 0.48, ease: [0.22, 1, 0.36, 1] }}
+      className="rounded-3xl border border-border bg-white p-6 shadow-sm md:p-8"
+      id="property-accompagnement"
+    >
+      <div className="mb-8 space-y-2">
+        <h1 className="portal-h2 text-foreground">Dossier d'accompagnement & Suivi de vente</h1>
+        <p className="portal-body text-muted-foreground">Maison de {vm.summary.surface ? `${vm.summary.surface} m² habitables` : 'surface nc'} • {vm.summary.rooms ? `${vm.summary.rooms} pièces` : 'pièces nc'} • Terrain {vm.summary.surfaceTerrain ? `${vm.summary.surfaceTerrain} m²` : 'nc'}</p>
+      </div>
+
+      <div className="mb-8 grid gap-4 md:grid-cols-3">
+        <PropertyInfoBox label="Adresse du bien" value={vm.summary.adresse ?? 'À compléter'} />
+        <PropertyInfoBox label="Date de réalisation" value={formatDate(data.dossier.created_at)} />
+        <PropertyInfoBox label="À l'attention de" value={[data.profile.first_name, data.profile.last_name].filter(Boolean).join(' / ').trim()} />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <PropertyStatCard
+          label="Surface totale"
+          mainValue={vm.summary.surface}
+          mainUnit={vm.summary.surface ? 'm² habitables' : ''}
+          icon={TrendingUp}
+        />
+        <PropertyStatCard
+          label="Configuration"
+          mainValue={vm.summary.rooms}
+          mainUnit={vm.summary.rooms ? 'pièces' : ''}
+          secondaryValue={bedrooms}
+          secondaryUnit={bedrooms ? 'ch.' : ''}
+          icon={Home}
+        />
+        <PropertyStatCard
+          label="Terrain cadastral"
+          mainValue={vm.summary.surfaceTerrain}
+          mainUnit={vm.summary.surfaceTerrain ? 'm²' : ''}
+          secondaryValue={landParcels}
+          secondaryUnit={landParcels ? `parcelle${landParcels > 1 ? 's' : ''}` : ''}
+          icon={MapPin}
+        />
+      </div>
+
+      <div className="mt-8">
+        <Button onClick={onStart} className="w-full bg-primary hover:bg-primary/90">
+          Démarrer la Présentation
+          <ArrowRight className="ml-2 size-4" />
+        </Button>
+      </div>
+    </motion.section>
+  )
+}
+
+function PropertyInfoBox({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-border bg-background p-4">
+      <p className="portal-label text-muted-foreground">{label}</p>
+      <p className="portal-body mt-2 font-semibold text-foreground">{value}</p>
+    </div>
+  )
+}
+
+function PropertyStatCard({
+  label,
+  mainValue,
+  mainUnit,
+  secondaryValue,
+  secondaryUnit,
+  icon: Icon,
+}: {
+  label: string
+  mainValue: number | null | undefined
+  mainUnit: string
+  secondaryValue?: number | null | undefined
+  secondaryUnit?: string
+  icon: typeof Home
+}) {
+  const displayValue = mainValue ? String(mainValue) : 'À compléter'
+  const displayUnit = mainValue && mainUnit ? mainUnit : ''
+  const displaySecondary = secondaryValue ? ` • ${secondaryValue} ${secondaryUnit}` : ''
+
+  return (
+    <div className="rounded-2xl border border-border bg-background p-6">
+      <p className="portal-label text-muted-foreground">{label}</p>
+      <div className="mt-3 flex items-end justify-between">
+        <div>
+          <p className="text-2xl font-extrabold leading-none text-foreground">
+            {displayValue}
+            {displayUnit && <span className="ml-1 text-lg text-muted-foreground">{displayUnit}</span>}
+            {displaySecondary && <span className="text-lg text-muted-foreground">{displaySecondary}</span>}
           </p>
         </div>
+        <div className="flex size-10 items-center justify-center rounded-lg bg-accent text-primary">
+          <Icon className="size-5" />
+        </div>
+      </div>
+    </div>
+  )
+}
 
-        <div className="flex items-center gap-3 rounded-2xl border border-success/20 bg-success/10 p-3">
-          <span className="flex size-9 items-center justify-center rounded-full bg-success/15 text-success">
-            <CheckCircle2 className="size-4" />
-          </span>
+function DashboardCover({ vm, onStart }: { vm: PortalViewModel; onStart: () => void }) {
+  const fallbackImage = '/maison-bleue-cotignac.jpg'
+  const [imageSrc, setImageSrc] = useState(vm.propertyHero.imageUrl || fallbackImage)
+  const shouldReduceMotion = useReducedMotion()
+
+  return (
+    <motion.section
+      initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: shouldReduceMotion ? 0 : 0.48, ease: [0.22, 1, 0.36, 1] }}
+      className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm"
+      id="portal-dashboard-cover"
+    >
+      <div className="grid min-h-[430px] lg:grid-cols-[minmax(0,1.15fr)_minmax(420px,0.85fr)]">
+        <div className="relative min-h-[330px] overflow-hidden bg-slate-900 lg:min-h-full">
+          <motion.img
+            src={imageSrc}
+            alt={`Bien de ${vm.clientName}`}
+            className="absolute inset-0 h-full w-full object-cover"
+            onError={() => { if (imageSrc !== fallbackImage) setImageSrc(fallbackImage) }}
+            whileHover={shouldReduceMotion ? undefined : { scale: 1.035 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.7, ease: [0.22, 1, 0.36, 1] }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/30 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 p-6 text-white sm:p-8">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="portal-label rounded-lg bg-primary px-3 py-1.5 text-white">{vm.propertyHero.typeLabel}</span>
+              <span className="portal-label rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-white backdrop-blur">{vm.propertyHero.sector}</span>
+            </div>
+            <h1 className="mt-4 max-w-2xl text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">{vm.propertyHero.title}</h1>
+            <p className="mt-2 flex items-center gap-2 text-sm font-semibold text-white/80">
+              <MapPin className="size-4 text-primary" />
+              {vm.summary.adresse ?? vm.summary.commune ?? vm.propertyHero.city}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-col justify-between gap-7 p-6 sm:p-8">
           <div>
-            <p className="portal-label text-muted-foreground">Statut commercial</p>
-            <p className="portal-button-text text-success">{vm.statusLabel} · {vm.currentStage}</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="portal-label inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-2 text-primary">
+                <Award className="size-3.5" /> {vm.mandateType || 'Dossier vendeur'}
+              </span>
+              <span className="portal-meta text-muted-foreground">Réf. {vm.reference}</span>
+            </div>
+            <p className="mt-5 portal-meta text-muted-foreground">Bienvenue dans votre espace personnel</p>
+            <h2 className="mt-1 text-2xl font-extrabold leading-tight text-foreground">Bonjour, {vm.clientName}</h2>
+
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <CoverFact label="Surface" value={vm.summary.surface ? `${vm.summary.surface} m²` : 'À compléter'} />
+              <CoverFact label="Pièces" value={vm.summary.rooms ? `${vm.summary.rooms} pièces` : 'À compléter'} />
+              <CoverFact label="Terrain" value={vm.summary.surfaceTerrain ? `${vm.summary.surfaceTerrain} m²` : 'À compléter'} />
+              <CoverFact label="Dossier actualisé" value={vm.updatedLabel} />
+            </div>
+
+            <div className="mt-5 flex items-center gap-3 rounded-2xl border border-success/20 bg-success/10 p-3">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-success/15 text-success">
+                <CheckCircle2 className="size-4" />
+              </span>
+              <div>
+                <p className="portal-label text-muted-foreground">Statut commercial</p>
+                <p className="portal-button-text text-success">{vm.statusLabel} · {vm.currentStage}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 border-t border-border pt-5 sm:flex-row">
+            <Button onClick={onStart} className="flex-1 bg-primary hover:bg-primary/90">
+              Consulter mon estimation <ArrowRight className="ml-2 size-4" />
+            </Button>
+            <a href="tel:+33613180168" className="portal-button-text flex min-h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-white px-4 text-foreground transition-colors hover:border-primary hover:text-primary">
+              <Phone className="size-4 text-primary" /> Appeler Alexandre
+            </a>
           </div>
         </div>
       </div>
-    </section>
+    </motion.section>
+  )
+}
+
+function CoverFact({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3">
+      <p className="portal-label text-muted-foreground">{label}</p>
+      <p className="mt-1 text-sm font-extrabold leading-tight text-foreground">{value}</p>
+    </div>
   )
 }
 
@@ -2176,6 +2588,7 @@ function buildViewModel(data: ClientPortalDossier, mode: PortalMode) {
     statusLabel: data.dossier.status === 'active' ? 'Dossier actif' : data.dossier.status,
     mandateType: text(asRecord(data.dossier.property_snapshot).mandate_type) ?? text(asRecord(data.dossier.professional_opinion).mandate_type),
     reference: text(asRecord(data.dossier.property_snapshot).mandate_number) ?? text(asRecord(data.dossier.professional_opinion).mandate_number) ?? (mode === 'test' ? 'M-2026-0814' : data.dossier.id.slice(0, 8)),
+    updatedLabel: formatDate(data.dossier.updated_at),
     currentStage: data.opportunity?.stage ?? data.lead?.status ?? 'En préparation',
     nextAction: data.opportunity?.next_action ?? data.lead?.next_action ?? 'Compléter les pièces utiles au dossier',
     summary,
@@ -2324,6 +2737,7 @@ function buildPropertyHero(data: ClientPortalDossier, summary: ReturnType<typeof
     : [text(snapshot.exposition) ?? (mode === 'test' ? 'Exposition Sud' : null), text(snapshot.etat) ?? (mode === 'test' ? 'Calme absolu' : null), text(snapshot.equipements)?.split(',')[0]?.trim() ?? (mode === 'test' ? 'Piscine' : null)].filter((item): item is string => Boolean(item))
 
   return {
+    imageUrl: text(snapshot.hero_image_url) ?? text(snapshot.image_url) ?? '/maison-bleue-cotignac.jpg',
     typeLabel: text(snapshot.type_label) ?? text(snapshot.type_bien) ?? (mode === 'test' ? 'Villa Provençale Contemporaine' : 'Bien vendeur'),
     sector: text(snapshot.sector) ?? text(snapshot.territoire) ?? (mode === 'test' ? 'Provence Verte' : summary.commune ?? 'Secteur'),
     title: text(snapshot.hero_title) ?? data.dossier.title ?? (mode === 'test' ? 'Maison Provençale Plain-pied' : 'Projet de vente'),

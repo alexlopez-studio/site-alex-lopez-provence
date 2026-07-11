@@ -7,7 +7,7 @@ import { env } from '@/lib/env'
 export const metadata: Metadata = {
   title: 'Zone d’intervention — Provence Verte & Verdon',
   description: 'Alexandre Lopez accompagne vos projets immobiliers en Provence Verte & Verdon, de Brignoles aux portes du Verdon.',
-  alternates: { canonical: (env.app.siteUrl || 'https://alexlopez-provence.fr') + '/marche' },
+  alternates: { canonical: (env.app.siteUrl || 'https://alexandrelopez.fr') + '/marche' },
 }
 
 const COMMUNES = ['Brignoles', 'Saint-Maximin', 'Barjols', 'Cotignac', 'Aups', 'Salernes', 'Vinon-sur-Verdon', 'Rians', 'Le Val', 'Carcès', 'Montmeyan', 'Fox-Amphoux', 'Tourtour', 'Sillans-la-Cascade', 'Villecroze', 'Tavernes']

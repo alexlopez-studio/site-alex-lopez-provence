@@ -50,6 +50,7 @@ export function ComparableLeafletMap({
 
   useEffect(() => {
     let cancelled = false
+    let invalidateTimer: number | null = null
 
     async function initMap() {
       const L = await import('leaflet')
@@ -79,13 +80,16 @@ export function ComparableLeafletMap({
       markerLayerRef.current = L.layerGroup().addTo(map)
       mapInstanceRef.current = map
 
-      window.setTimeout(() => map.invalidateSize(), 80)
+      invalidateTimer = window.setTimeout(() => {
+        if (!cancelled && mapInstanceRef.current === map) map.invalidateSize()
+      }, 80)
     }
 
     initMap()
 
     return () => {
       cancelled = true
+      if (invalidateTimer !== null) window.clearTimeout(invalidateTimer)
       if (clickHandlerRef.current) {
         document.removeEventListener('click', clickHandlerRef.current)
         clickHandlerRef.current = null
@@ -219,10 +223,10 @@ export function ComparableLeafletMap({
           width: 42px;
           height: 42px;
           border-radius: 999px;
-          border: 4px solid #0077b6;
+          border: 4px solid #00A0E2;
           background: #ffffff;
-          color: #0077b6;
-          font-family: var(--font-jakarta), var(--font-inter), system-ui, sans-serif;
+          color: #00A0E2;
+          font-family: system-ui, -apple-system, sans-serif;
           font-size: 16px;
           font-weight: 800;
           box-shadow: 0 12px 24px rgba(15, 23, 42, 0.2);
@@ -233,21 +237,21 @@ export function ComparableLeafletMap({
         .portal-comparable-marker:hover,
         .portal-comparable-marker.is-active {
           transform: scale(1.08);
-          background: #0077b6;
+          background: #00A0E2;
           color: #ffffff;
           border-color: #ffffff;
-          box-shadow: 0 0 0 6px rgba(0, 119, 182, 0.18), 0 16px 30px rgba(15, 23, 42, 0.24);
+          box-shadow: 0 0 0 6px rgba(0, 160, 226, 0.18), 0 16px 30px rgba(15, 23, 42, 0.24);
         }
 
         .portal-map-popup {
           min-width: 180px;
-          font-family: var(--font-jakarta), var(--font-inter), system-ui, sans-serif;
+          font-family: system-ui, -apple-system, sans-serif;
           color: #0f172a;
         }
 
         .portal-map-popup-label {
           margin: 0 0 4px;
-          color: #0077b6;
+          color: #00A0E2;
           font-size: 11px;
           font-weight: 800;
           text-transform: uppercase;

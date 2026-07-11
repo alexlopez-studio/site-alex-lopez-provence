@@ -9,7 +9,7 @@ import {
   ArrowRight, BookOpen, Calculator, Check, ClipboardCheck, Home, Search,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { appUrl, env } from '@/lib/env'
+import { appUrl, env, ESTIMATION_URL } from '@/lib/env'
 import { fadeInUp, VP as vpOnce } from '@/lib/animations'
 
 type TabKey = 'sell' | 'buy' | 'estimation' | 'blog'
@@ -146,7 +146,7 @@ export default function ServicesTabs() {
   const [active, setActive] = useState<TabKey>('sell')
   const baseId = useId()
 
-  const vendre = resolveAppHref('/vendre')
+  const vendre = { href: ESTIMATION_URL, external: true }
   const acheter = resolveAppHref('/acheter')
   const audit = resolveAppHref('/audit')
   const calcomUrl = env.app.calcomUrl

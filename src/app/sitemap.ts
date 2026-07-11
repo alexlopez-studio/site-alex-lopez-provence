@@ -3,7 +3,7 @@ import { env } from '@/lib/env'
 import { getAllArticleSlugs } from '@/lib/sanity.queries'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = env.app.siteUrl || 'https://alexlopez-provence.fr'
+  const siteUrl = env.app.siteUrl || 'https://alexandrelopez.fr'
   const now = new Date()
   const staticRoutes = [
     '',
@@ -12,7 +12,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/acheter',
     '/audit',
     '/outils',
-    '/outils/vendre',
     '/outils/acheter',
     '/outils/audit',
     '/blog',

@@ -308,10 +308,17 @@ body {
 }
 
 .client-portal {
-  font-family: var(--font-jakarta), var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: #F8FAFC;
   color: #0F172A;
-  --radius: 1rem;
+  --radius: 0.75rem;
+  --primary: #00A0E2;
+  --color-primary: #00A0E2;
+  --color-brand: #00A0E2;
+  --ring: #00A0E2;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
 }
 
 .app-product [data-slot="card"] {
@@ -365,10 +372,44 @@ body {
 
 .client-portal [data-slot="button"],
 .client-portal .portal-button {
-  border-radius: 9999px;
+  min-height: 2.5rem;
+  border-radius: 0.75rem;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.2;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.08);
+}
+
+.client-portal button.rounded-full,
+.client-portal a.rounded-full {
+  border-radius: 0.75rem;
+}
+
+.client-portal button {
+  cursor: pointer;
+}
+
+.client-portal button,
+.client-portal a {
+  transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+  transition-duration: 180ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.client-portal button:active:not(:disabled),
+.client-portal a:active {
+  transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .client-portal *,
+  .client-portal *::before,
+  .client-portal *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 .client-portal [data-slot="badge"],
@@ -386,8 +427,8 @@ body {
 }
 
 .client-portal [data-slot="input"]:focus-visible {
-  border-color: #0077B6;
-  box-shadow: 0 0 0 3px rgb(0 119 182 / 0.12);
+  border-color: #00A0E2;
+  box-shadow: 0 0 0 3px rgb(0 160 226 / 0.12);
 }
 
 .client-portal .portal-h1 {
@@ -412,6 +453,7 @@ body {
 }
 
 .client-portal .portal-value {
+  font-family: 'Courier New', Courier, monospace;
   font-size: 18px;
   font-weight: 800;
   line-height: 1.15;
@@ -440,30 +482,32 @@ body {
 }
 
 .client-portal .portal-label {
+  font-family: 'Courier New', Courier, monospace;
   font-size: 11px;
   font-weight: 600;
   line-height: 1.2;
-  letter-spacing: 0;
+  letter-spacing: 0.08em;
+  color: #94A3B8;
   text-transform: uppercase;
 }
 
 .client-portal .portal-kpi-card {
-  border: 1px solid var(--color-border);
+  border: 1px solid #F1F5F9;
   border-radius: 1.5rem;
   background: #FFFFFF;
-  box-shadow: 0 1px 2px rgb(15 23 42 / 0.06);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 }
 
 .client-portal [data-slot="card"],
 .client-portal .app-panel {
   border-radius: 1.5rem;
-  border-color: #E2E8F0;
-  box-shadow: 0 1px 2px rgb(15 23 42 / 0.06);
+  border-color: #F1F5F9;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 }
 
 .client-portal .portal-kpi-card:hover,
 .client-portal .app-panel:hover {
-  box-shadow: 0 14px 32px -28px rgb(15 23 42 / 0.42);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
 .client-status-badge {

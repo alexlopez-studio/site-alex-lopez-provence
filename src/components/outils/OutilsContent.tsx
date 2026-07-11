@@ -15,6 +15,7 @@ import {
   Target,
 } from 'lucide-react'
 import { VP as vpOnce, fadeInUp, scaleIn, stagger, staggerFast } from '@/lib/animations'
+import { ESTIMATION_URL } from '@/lib/env'
 
 const PROFILE_IMAGE = '/alexandre-lopez-no-background.png'
 const hoverCard = { y: -3 }
@@ -22,7 +23,7 @@ const springFast = { type: 'spring' as const, stiffness: 420, damping: 28 }
 
 const tools = [
   {
-    href: '/outils/vendre',
+    href: ESTIMATION_URL,
     icon: Home,
     title: 'Estimer mon bien',
     duration: '3 min',

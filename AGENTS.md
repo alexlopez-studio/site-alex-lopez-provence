@@ -11,7 +11,8 @@ Avant de modifier l'interface, lire :
 Branche de travail :
 
 - travailler localement sur `preview` par defaut ;
-- pousser uniquement vers `origin/preview` quand Alexandre le demande explicitement ;
+- ne rien pousser sans demande explicite d'Alexandre ;
+- quand Alexandre demande explicitement une livraison, integrer `preview` vers `main` puis pousser `origin/main` ;
 - ne plus creer de branches `design/*`, `ux/*`, `ui/*`, `a11y/*`, `feat/*` ou `fix/*` sauf decision explicite.
 
 Les changements doivent rester centres sur l'experience utilisateur sauf demande explicite.
