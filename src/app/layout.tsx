@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import type { CSSProperties } from 'react'
-import { Inter, Allura, Plus_Jakarta_Sans } from 'next/font/google'
+import { Inter, Allura } from 'next/font/google'
 import Script from 'next/script'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages } from 'next-intl/server'
@@ -16,13 +16,6 @@ import { LOCALE_META, type Locale } from '@/i18n/config'
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
-  display: 'swap',
-  weight: ['300', '400', '500', '600', '700', '800'],
-})
-
-const jakarta = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  variable: '--font-jakarta',
   display: 'swap',
   weight: ['300', '400', '500', '600', '700', '800'],
 })
@@ -80,7 +73,7 @@ export default async function RootLayout({
   const htmlLang = LOCALE_META[locale]?.htmlLang || 'fr-FR'
 
   return (
-    <html lang={htmlLang} className={inter.variable + ' ' + buffalo.variable + ' ' + jakarta.variable}>
+    <html lang={htmlLang} className={inter.variable + ' ' + buffalo.variable}>
       <head>
         <script dangerouslySetInnerHTML={gtmScript} />
       </head>
