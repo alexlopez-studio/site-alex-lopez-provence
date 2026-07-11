@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   description:
     'Conseiller en immobilier iad en Provence Verte et Verdon. Avis de valeur de votre bien offert, vente et achat dans le Var. Contactez-moi au 06 13 18 01 68.',
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? 'https://alexlopez-provence.fr'
+    process.env.NEXT_PUBLIC_SITE_URL ?? 'https://alexandrelopez.fr'
   ),
   openGraph: {
     type: 'website',

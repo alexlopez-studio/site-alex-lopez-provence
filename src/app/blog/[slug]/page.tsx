@@ -19,7 +19,7 @@ import ArticleSidebar from '@/components/blog/ArticleSidebar'
 import JsonLd from '@/components/blog/JsonLd'
 import { PortableTextRenderer } from '@/components/blog/PortableTextRenderer'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://alexlopez-provence.fr'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://alexandrelopez.fr'
 
 export const revalidate = 3600
 export const dynamicParams = true

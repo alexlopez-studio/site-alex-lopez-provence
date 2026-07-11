@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: 'Contact — Alexandre Lopez, conseiller immobilier iad Provence Verte & Verdon',
   description:
     'Contactez Alexandre Lopez, conseiller immobilier iad France en Provence Verte et Verdon. Estimation gratuite, réponse sous 24h. Appelez le 06 13 18 01 68.',
-  alternates: { canonical: (env.app.siteUrl || 'https://alexlopez-provence.fr') + '/contact' },
+  alternates: { canonical: (env.app.siteUrl || 'https://alexandrelopez.fr') + '/contact' },
 }
 
 const PHONE_RAW = '+33613180168'
@@ -21,7 +21,7 @@ const contactJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'ContactPage',
   name: 'Contact — Alexandre Lopez conseiller immobilier iad France',
-  url: (env.app.siteUrl || 'https://alexlopez-provence.fr') + '/contact',
+  url: (env.app.siteUrl || 'https://alexandrelopez.fr') + '/contact',
   mainEntity: {
     '@type': 'Person',
     name: 'Alexandre Lopez',

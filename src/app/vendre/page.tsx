@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import EditorialPage from '@/components/editorial/EditorialPage'
 import { alignTerritory } from '@/lib/territory'
+import { ESTIMATION_URL } from '@/lib/env'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('vendre')
@@ -34,7 +35,7 @@ export default async function VendrePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={jsonLdProps}
       />
-      <EditorialPage namespace="vendre" simulatorHref="/outils/vendre" />
+      <EditorialPage namespace="vendre" simulatorHref={ESTIMATION_URL} />
     </>
   )
 }

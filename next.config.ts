@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: '/outils/vendre',
+        destination: 'https://www.iadfrance.fr/conseiller-immobilier/alexandre.lopez/estimation',
+        permanent: false,
+      },
+      {
         source: '/admin/market',
         destination: '/app/dashboard',
         permanent: false,

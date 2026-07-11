@@ -73,7 +73,7 @@ export function classifyTrackedLink(args: {
 
   if (!isInternal) return null
 
-  if (url.pathname === '/outils/vendre') {
+  if (url.pathname === '/outils/vendre' || (url.hostname === 'www.iadfrance.fr' && url.pathname === '/conseiller-immobilier/alexandre.lopez/estimation')) {
     return { name: 'cta_click', params: { ...baseParams, cta_destination: 'seller_estimation_tool' } }
   }
 

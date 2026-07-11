@@ -5,13 +5,14 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ESTIMATION_URL } from '@/lib/env'
 import { LocaleSwitcher } from './LocaleSwitcher'
 
 export function Header() {
   const t = useTranslations('header')
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
-  const assistantUrl = '/outils'
+  const estimationUrl = ESTIMATION_URL
 
   const NAV_LINKS = [
     { label: t('navSell'), href: '/vendre' },
@@ -64,7 +65,7 @@ export function Header() {
         <div className="hidden lg:flex items-center gap-4 shrink-0">
           <LocaleSwitcher />
           <Button asChild size="sm" variant="primary">
-            <Link href={assistantUrl}>
+            <Link href={estimationUrl}>
               {t('ctaEstimate')}
             </Link>
           </Button>
@@ -97,7 +98,7 @@ export function Header() {
             <div className="pt-4 border-t border-border mt-4">
               <Button asChild size="default" variant="primary" className="w-full">
                 <Link
-                  href={assistantUrl}
+                  href={estimationUrl}
                   onClick={function () { setMenuOpen(false) }}>
                   {t('ctaEstimate')}
                 </Link>

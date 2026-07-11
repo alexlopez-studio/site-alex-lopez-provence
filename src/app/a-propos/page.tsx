@@ -9,7 +9,7 @@ import { siteVisuals } from '@/lib/site-visuals'
 export const metadata: Metadata = {
   title: 'Mon approche — Alexandre Lopez, conseiller immobilier iad Provence Verte & Verdon',
   description: 'Alexandre Lopez, conseiller immobilier iad France en Provence Verte et Verdon. Une approche locale, claire et structurée pour vendre, acheter ou estimer un bien.',
-  alternates: { canonical: (env.app.siteUrl || 'https://alexlopez-provence.fr') + '/a-propos' },
+  alternates: { canonical: (env.app.siteUrl || 'https://alexandrelopez.fr') + '/a-propos' },
 }
 const PHONE_RAW = '+33613180168'
 const PHONE_DISPLAY = '06 13 18 01 68'

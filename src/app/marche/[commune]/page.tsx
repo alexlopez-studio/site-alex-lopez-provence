@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight, BarChart3, CheckCircle2, Globe2, Home, Languages, MapPin, ShieldCheck } from 'lucide-react'
-import { env } from '@/lib/env'
+import { env, ESTIMATION_URL } from '@/lib/env'
 
 type PageProps = { params: Promise<{ commune: string }> }
 
@@ -24,7 +24,7 @@ type LocalPage = {
   faq: Array<{ question: string; answer: string }>
 }
 
-const siteUrl = env.app.siteUrl || 'https://alexlopez-provence.fr'
+const siteUrl = env.app.siteUrl || 'https://alexandrelopez.fr'
 
 const LOCAL_PAGES: Record<string, LocalPage> = {
   barjols: {
@@ -322,7 +322,7 @@ export default async function CommunePage({ params }: PageProps) {
             <p className="mx-auto mt-6 max-w-3xl text-lg leading-relaxed text-muted">{page.intro}</p>
             <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
               <Link href="/avis-de-valeur-immobilier" className="inline-flex items-center justify-center gap-2 rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-hover">Demander un avis de valeur <ArrowRight size={16} /></Link>
-              <Link href="/outils/vendre" className="inline-flex items-center justify-center rounded-full border-2 border-brand px-6 py-3 text-sm font-semibold text-brand transition-colors hover:bg-brand hover:text-white">Estimer mon bien</Link>
+              <Link href={ESTIMATION_URL} className="inline-flex items-center justify-center rounded-full border-2 border-brand px-6 py-3 text-sm font-semibold text-brand transition-colors hover:bg-brand hover:text-white">Estimer mon bien</Link>
             </div>
           </div>
         </section>
@@ -412,7 +412,7 @@ export default async function CommunePage({ params }: PageProps) {
             <h2 className="text-3xl font-bold leading-tight tracking-[-0.04em] md:text-5xl">Vous vendez à {page.name} ? Commencez par un avis de valeur clair.</h2>
             <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-white/88">L’objectif : fixer une stratégie réaliste, comprendre les comparables et éviter les erreurs de prix avant la mise en vente.</p>
             <div className="mt-9 flex flex-col justify-center gap-4 sm:flex-row">
-              <Link href="/outils/vendre" className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-4 text-sm font-bold text-brand transition-colors hover:bg-[#f4f7f8]">Estimer mon bien <ArrowRight size={16} /></Link>
+              <Link href={ESTIMATION_URL} className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-4 text-sm font-bold text-brand transition-colors hover:bg-[#f4f7f8]">Estimer mon bien <ArrowRight size={16} /></Link>
               <Link href="/avis-de-valeur-immobilier" className="inline-flex items-center justify-center rounded-full border-2 border-white px-8 py-4 text-sm font-bold text-white transition-colors hover:bg-white hover:text-brand">Voir la méthode</Link>
             </div>
           </div>

@@ -1,4 +1,47 @@
-# Suivi Projet - Mandat OS MVP
+# Suivi Projet - Site public Alexandre Lopez
+
+## État actuel - 12/07/2026
+
+Le repo `site-alex-lopez-provence` devient la base dédiée au site public et aux contenus marketing.
+
+- Repo : `alexlopez-studio/site-alex-lopez-provence`
+- Branche de travail locale : `preview`
+- Domaine public : `https://alexandrelopez.fr`
+- Rôle produit : site vitrine, SEO local, pages éditoriales, génération de contacts et redirections vers les espaces dédiés.
+- Mandat OS est désormais séparé dans `mandat-os-alexandre-lopez`.
+- Le portail client est désormais séparé dans `espace-client-alexandre-lopez`.
+- Ne pas réintégrer de routes applicatives Mandat OS ou portail client dans ce repo.
+- Les liens publics pourront pointer vers :
+  - Mandat OS interne : `https://app.alexandrelopez.fr`
+  - Portail client : `https://espace.alexandrelopez.fr`
+
+### Avancement
+
+- Site public existant conservé.
+- Redirection temporaire de l’estimation en ligne vers iAD en place dans les changements locaux.
+- Nettoyage du site public à faire dans une passe séparée après stabilisation des deux projets extraits.
+
+### Prochaines étapes
+
+1. Valider les changements locaux en attente sur `preview`.
+2. Nettoyer les références obsolètes au portail client intégré, uniquement après validation du nouveau portail autonome.
+3. Vérifier les CTA publics vers `espace.alexandrelopez.fr` quand le portail client sera prêt.
+4. Garder `alexandrelopez.fr` centré sur acquisition, réassurance, SEO et contact.
+
+### 12/07/2026 - Cohérence URLs, sitemap et robots
+
+- Domaine canonique confirmé : `https://alexandrelopez.fr`.
+- Remplacement des anciens fallbacks SEO `alexlopez-provence.fr` par `alexandrelopez.fr`.
+- Sitemap public conservé uniquement pour les pages marketing/SEO du site.
+- `robots.txt` Next mis à jour pour désindexer les anciens périmètres applicatifs : `/admin`, `/app`, `/dashboard`, `/espace-client`.
+- Les emails `@alexlopez-provence.fr` n’ont pas été modifiés afin de ne pas casser une configuration mail existante.
+- Vérification : `npm run lint` OK avec warnings historiques.
+
+### Règle de suivi
+
+- Ajouter une entrée datée à ce fichier après chaque décision structurante, livraison ou audit.
+- Ne pas pousser sans demande explicite d’Alexandre.
+- Conserver les notes historiques ci-dessous comme mémoire de l’évolution du projet.
 
 ## Regle actuelle - 17/06/2026
 
@@ -16,6 +59,87 @@ Decision : Codex reprend seul le developpement et le design pour le moment.
 - Apres un changement significatif, lancer l'audit Playwright adapte et tracer le resultat.
 
 Note : les lots Linear ci-dessous sont historiques et ne refletent plus l'etat reel du code. La memoire courante est dans `docs/MEMOIRE_SESSION.md`.
+
+### 11/07/2026 21:59 CEST - Animations et micro-interactions du portail vendeur
+- Base/branche : `preview`, changements locaux preexistants conserves ; aucun push.
+- Source d'inspiration : animations `motion/react` du prototype `outil-estimation-portail-client`, transposees avec `framer-motion` deja installe dans le projet.
+- Type : UX motion / feedback interaction / accessibilite.
+- Statut : **fait**.
+- Travail :
+  1. Transition entree/sortie entre Tableau de bord, Estimation, Documents et Suivi de vente avec `AnimatePresence`.
+  2. Retour fluide en haut de page lors d'un changement de rubrique.
+  3. Feedback `whileTap` sur la navigation mobile, deplacement horizontal discret au survol de la sidebar et feedback actif sur les boutons/liens.
+  4. Apparition progressive au scroll des groupes du tableau de bord, une seule fois par session d'affichage.
+  5. Animation de la couverture et zoom tres leger de la photo au survol desktop.
+  6. Transition animee entre `Avis de valeur Conseiller` et `Estimation Express iAD`.
+  7. Respect de `prefers-reduced-motion` dans les animations JS et CSS.
+  8. Correction d'une course de nettoyage Leaflet : annulation du timer `invalidateSize` lors du demontage rapide de la carte.
+- Fichiers principaux : `src/app/espace-client/portal-view.tsx`, `src/app/espace-client/comparable-leaflet-map.tsx`, `src/app/globals.css`.
+- Verification : `npx tsc --noEmit` OK ; lint cible OK avec warnings historiques ; `git diff --check` OK ; audit Chromium en mouvement normal et reduit, transitions estimation conseiller/express + changement de rubrique + scroll bas de page sans erreur console ni debordement horizontal.
+- Suite : build Next final puis revue visuelle Alexandre ; aucun commit/push sans demande explicite.
+
+### 11/07/2026 21:51 CEST - Main group et hierarchie visuelle du portail vendeur
+- Base/branche : `preview`, changements locaux preexistants (redirection estimation iad + redesign portail) conserves ; aucun push.
+- Type : design produit / accueil portail / hierarchie des contenus.
+- Statut : **fait** selon le plan valide.
+- Travail :
+  1. Ajout en tete du tableau de bord d'une couverture complete du dossier : photo, type de bien, secteur, titre, adresse, reference, client, caracteristiques, date d'actualisation, statut et actions estimation/appel.
+  2. Source image : `property_snapshot.hero_image_url`, puis `property_snapshot.image_url`, puis fallback local `/maison-bleue-cotignac.jpg`, sans migration ni nouveau store.
+  3. Reorganisation de l'accueil selon l'ordre couverture, KPI, prochaines etapes, accompagnement/audience, synthese du bien, message conseiller et CTA final.
+  4. Ajout d'un en-tete de page commun au langage du prototype pour Estimation, Documents et Suivi de vente : eyebrow bleu, icone, titre fort et description courte.
+  5. Main group limite a 1280 px avec rythme vertical de 24 px ; onglet interne conseiller/express repris en conteneur blanc/slate et boutons actifs rectangulaires.
+  6. Les quatre espaces et toutes les donnees Supabase existantes restent inchanges fonctionnellement.
+- Fichiers principaux : `src/app/espace-client/portal-view.tsx`, `src/app/espace-client/test/page.tsx`, `src/app/globals.css`.
+- Verification : `npx tsc --noEmit` OK ; lint cible OK avec warnings historiques et warning `<img>` attendu pour supporter les URLs libres ; `git diff --check` OK ; `npm run build` OK avec warnings historiques ; audit Chromium desktop 1440 px et mobile 390 px sur Verger sans debordement ; navigation et donnees controlees dans les quatre espaces (prix 400 000 EUR, titre de propriete, diffusion/statistiques) ; dossier sans photo affiche le fallback ; URL volontairement invalide dans `/espace-client/test` retombe correctement sur le fallback.
+- Suite : revue Alexandre sur localhost 3002 ; aucun commit/push sans demande explicite.
+
+### 11/07/2026 19:00 CEST - Alignement visuel portail sur l'app outil estimation
+- Base/branche : `preview`, changements locaux preexistants conserves ; aucun push.
+- Source de design : `/Users/AlexandreLopez/Documents/GitHub/outil-estimation-portail-client`.
+- Type : design system / sidebar / boutons / cards / onglets portail vendeur.
+- Statut : **fait**.
+- Travail :
+  1. Sidebar desktop reprise fidelement du prototype : fond `slate-900`, header iad, separation dossier/navigation, navigation active bleu iad, pictogrammes encadres et carte conseiller sombre persistante.
+  2. Accent portail aligne sur le bleu lumineux `#00A0E2` de l'app outil estimation.
+  3. Boutons shadcn et boutons `rounded-full` du portail ramenes vers un rayon de 12 px, graisse 700, hauteur minimale 40 px et ombre discrete.
+  4. Cards/KPI renforcees avec bordure slate legere et ombre multicouche tres douce, sans modifier la structure des donnees ni les interactions.
+  5. Badges et indicateurs de statut restent en pills afin de conserver leur semantique distincte des actions.
+- Fichiers principaux : `src/app/espace-client/portal-view.tsx`, `src/app/globals.css`.
+- Verification : `npx tsc --noEmit` OK ; lint cible OK avec warnings historiques ; `git diff --check` OK ; audit visuel Chromium desktop 1440 px et mobile 390 px sur le dossier Verger, aucun debordement horizontal et navigation conservee.
+- Suite : revue visuelle Alexandre, puis commit/push uniquement sur demande explicite.
+
+### 11/07/2026 18:50 CEST - Reprise de l'interface du nouveau prototype dans le portail client
+- Base/branche : `preview`, modifications locales preexistantes sur la redirection estimation conservees ; travail local non pousse.
+- Source de design exploree : `/Users/AlexandreLopez/Documents/GitHub/outil-estimation-portail-client` (prototype Vite/React cree le 11/07).
+- Type : design produit / UX portail vendeur / responsive.
+- Statut : **fait** pour le nouveau shell de navigation V1.
+- Direction reprise : hierarchie en trois espaces (identite dossier, navigation metier, conseiller permanent), separation claire Accueil / Estimation / Documents / Suivi de vente et densite plus proche d'un portail de suivi que d'une landing page.
+- Adaptation a la charte : sidebar desktop claire plutot que sombre, accent bleu iad, fonds `surface`, logo iad officiel, aucune grande section sombre ajoutee, telephone `06 13 18 01 68` conserve en HTML.
+- Travail :
+  1. Remplacement de la navigation desktop en header par une sidebar fixe de 288 px avec logo iad, identite du dossier actif et quatre destinations metier.
+  2. Ajout d'une carte conseiller persistante avec portrait et contact direct.
+  3. Conservation d'un header compact et de la navigation basse sur mobile.
+  4. Elargissement controle du contenu a 1320 px pour mieux exploiter les tableaux, graphiques et rapports sans perdre la lisibilite.
+  5. Aucune duplication du store local du prototype : tous les contenus restent alimentes par le ViewModel et les donnees Supabase du portail reel.
+- Fichier principal : `src/app/espace-client/portal-view.tsx`.
+- Verification : `npx tsc --noEmit` OK ; lint cible OK avec cinq warnings historiques de composants inutilises ; `git diff --check` OK ; audit visuel Chromium sur le vrai dossier Verger en 1440 x 1000 et 390 x 844 ; aucun debordement horizontal ; navigation fonctionnelle vers `Mon estimation`, `Mes documents`, `Suivi de vente` et retour `Tableau de bord`.
+- Suite possible : reprendre dans un second lot la couverture editoriale du prototype (hero photo du bien) et enrichir les statistiques avec les metriques `consultations detaillees` / `clics telephone` lorsque ces donnees seront disponibles.
+- Push : aucun sans demande explicite.
+
+### 11/07/2026 16:16 CEST - Bascule temporaire de l'estimation en ligne vers iad
+- Base/branche : `preview`, alignee avec `origin/preview` au depart ; travail local non pousse.
+- Type : parcours public / conversion estimation / redirection externe.
+- Statut : **fait**.
+- Decision Alexandre : l'outil d'estimation interne n'etant pas encore finalise, tous les CTA directs d'estimation en ligne doivent pointer temporairement vers `https://www.iadfrance.fr/conseiller-immobilier/alexandre.lopez/estimation`.
+- Travail :
+  1. Centralisation de la destination dans `ESTIMATION_URL` (`src/lib/env.ts`).
+  2. Remplacement des liens directs vers `/outils/vendre` sur le CTA du header public (desktop et menu mobile), la homepage, la page vendre, le hub outils, la page avis de valeur, les pages marche locales, les resultats d'estimation et les onglets services.
+  3. Ajout d'une redirection temporaire HTTP depuis `/outils/vendre` pour couvrir les anciens liens, favoris et URLs deja diffusees.
+  4. Retrait de `/outils/vendre` du sitemap et maintien du tracking `seller_estimation_tool` sur la destination iad.
+  5. Les pages editoriales `/vendre` et `/avis-de-valeur-immobilier` restent accessibles ; seuls leurs CTA d'estimation basculent vers iad.
+- Fichiers principaux : `src/lib/env.ts`, `next.config.ts`, `src/components/layout/Header.tsx`, `src/components/home/HomepageContent.tsx`, `src/components/outils/OutilsContent.tsx`, `src/components/sections/ServicesTabs.tsx`, `src/app/vendre/page.tsx`, `src/app/avis-de-valeur-immobilier/page.tsx`, `src/app/marche/[commune]/page.tsx`, `src/app/resultats/[token]/resultats-client.tsx`, `src/app/sitemap.ts`, `src/lib/analytics.ts`.
+- Verification : `npx tsc --noEmit` OK ; lint cible OK avec un warning image historique ; `git diff --check` OK ; `npm run build` OK avec warnings historiques ; `/outils/vendre` retourne `307` vers l'URL iad exacte ; HTML local controle avec 5 occurrences du lien sur la homepage et 3 sur `/vendre`.
+- Suite : remettre `ESTIMATION_URL` sur l'outil interne et retirer la redirection lorsque l'outil sera finalise ; aucun push sans demande explicite.
 
 ### 11/07/2026 15:58 CEST - Validation de promotion preview vers main
 - Base/branche : `preview`, `origin/main` confirme ancetre direct, sans divergence ; 66 commits de retard avant promotion.
