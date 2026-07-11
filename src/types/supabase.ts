@@ -1134,6 +1134,56 @@ export type Database = {
           },
         ]
       }
+      opportunity_audience_snapshots: {
+        Row: {
+          id: string
+          opportunity_id: string
+          portal: string
+          captured_on: string
+          views: number
+          contacts: number
+          favorites: number
+          visits: number
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          opportunity_id: string
+          portal: string
+          captured_on?: string
+          views?: number
+          contacts?: number
+          favorites?: number
+          visits?: number
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          opportunity_id?: string
+          portal?: string
+          captured_on?: string
+          views?: number
+          contacts?: number
+          favorites?: number
+          visits?: number
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'opportunity_audience_snapshots_opportunity_id_fkey'
+            columns: ['opportunity_id']
+            isOneToOne: false
+            referencedRelation: 'opportunities'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       property_notes: {
         Row: {
           id: string

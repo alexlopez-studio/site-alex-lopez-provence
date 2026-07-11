@@ -57,6 +57,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 import { DossierWorkspace } from '../../clients/DossierWorkspace'
+import { AudienceTrackingPanel } from './AudienceTrackingPanel'
 import { isPortalEligibleStage } from '@/lib/market/seller-stages'
 import type { OpportunityEventType } from '@/types/supabase'
 
@@ -1252,12 +1253,15 @@ export default function OpportunityDetailPage() {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-5">
-        <TabsList variant="line" className="h-auto w-full flex-wrap justify-start gap-2 rounded-none border-b bg-transparent p-0">
-          <TabsTrigger value="overview" className="px-1 py-2 sm:px-3">Vue d’ensemble</TabsTrigger>
-          <TabsTrigger value="preparation" className="px-1 py-2 sm:px-3">Bien & technique</TabsTrigger>
-          <TabsTrigger value="estimation" className="px-1 py-2 sm:px-3">Estimation</TabsTrigger>
-          <TabsTrigger value="dossier" className="px-1 py-2 sm:px-3">Portail client</TabsTrigger>
-          <TabsTrigger value="history" className="px-1 py-2 sm:px-3">Historique</TabsTrigger>
+        <TabsList
+          variant="line"
+          className="h-auto w-full justify-start gap-1 overflow-x-auto rounded-lg border border-border bg-surface p-1"
+        >
+          <TabsTrigger value="overview" className="min-h-10 flex-none rounded-md px-4 py-2 text-muted-foreground after:hidden data-active:bg-background data-active:text-brand data-active:shadow-sm sm:flex-1">Vue d’ensemble</TabsTrigger>
+          <TabsTrigger value="preparation" className="min-h-10 flex-none rounded-md px-4 py-2 text-muted-foreground after:hidden data-active:bg-background data-active:text-brand data-active:shadow-sm sm:flex-1">Bien & technique</TabsTrigger>
+          <TabsTrigger value="estimation" className="min-h-10 flex-none rounded-md px-4 py-2 text-muted-foreground after:hidden data-active:bg-background data-active:text-brand data-active:shadow-sm sm:flex-1">Estimation</TabsTrigger>
+          <TabsTrigger value="dossier" className="min-h-10 flex-none rounded-md px-4 py-2 text-muted-foreground after:hidden data-active:bg-background data-active:text-brand data-active:shadow-sm sm:flex-1">Portail client</TabsTrigger>
+          <TabsTrigger value="history" className="min-h-10 flex-none rounded-md px-4 py-2 text-muted-foreground after:hidden data-active:bg-background data-active:text-brand data-active:shadow-sm sm:flex-1">Historique</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -1530,10 +1534,12 @@ export default function OpportunityDetailPage() {
         </TabsContent>
 
         <TabsContent value="dossier">
-          {opportunity.client_dossier ? (
-            <DossierWorkspace dossierId={opportunity.client_dossier.id} />
-          ) : (
-            <section className="rounded-xl border bg-card p-8 text-center">
+          <div className="space-y-5">
+            <AudienceTrackingPanel opportunityId={opportunity.id} />
+            {opportunity.client_dossier ? (
+              <DossierWorkspace dossierId={opportunity.client_dossier.id} />
+            ) : (
+              <section className="rounded-xl border bg-card p-8 text-center">
               <FolderOpen className="mx-auto size-8 text-muted-foreground" />
               <h2 className="mt-3 text-base font-semibold">
                 {isPortalEligibleStage(currentStage) ? 'Ouvrir le portail client' : 'Portail client à venir'}
@@ -1549,8 +1555,9 @@ export default function OpportunityDetailPage() {
                   Ouvrir le portail client
                 </Button>
               )}
-            </section>
-          )}
+              </section>
+            )}
+          </div>
         </TabsContent>
 
         <TabsContent value="history">

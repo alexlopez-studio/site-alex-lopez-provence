@@ -17,6 +17,38 @@ Decision : Codex reprend seul le developpement et le design pour le moment.
 
 Note : les lots Linear ci-dessous sont historiques et ne refletent plus l'etat reel du code. La memoire courante est dans `docs/MEMOIRE_SESSION.md`.
 
+### 11/07/2026 15:58 CEST - Validation de promotion preview vers main
+- Base/branche : `preview`, `origin/main` confirme ancetre direct, sans divergence ; 66 commits de retard avant promotion.
+- Type : livraison Git / production.
+- Statut : **valide pour push** a la demande explicite d'Alexandre.
+- Perimetre final controle : harmonisation des onglets de fiche affaire et statistiques de diffusion historisees, avec migration Supabase `027` deja appliquee.
+- Verification avant livraison : working tree attendu uniquement sur les fichiers du chantier ; `git diff --check` OK ; TypeScript, lint cible, build et audits desktop/mobile deja valides dans les entrees precedentes.
+- Action autorisee : commit sur `preview`, push vers `origin/preview`, puis fast-forward de `origin/main` sur le meme commit.
+
+### 11/07/2026 12:58 CEST - Statistiques de diffusion historisees par affaire
+- Base/branche : `preview`, travail local non pousse ; migration ciblee appliquee au projet Supabase lie `byrsmbgfkvgxdtdyhrro`.
+- Type : fonctionnalite produit / affaire / portail vendeur / statistiques.
+- Statut : **fait** pour la saisie manuelle et le suivi temporel V1.
+- Travail :
+  1. Ajout de la table `opportunity_audience_snapshots` : un releve cumulatif par affaire, portail et date, avec vues, contacts, favoris, visites et note interne ; correction d'un releve par upsert sur la meme date.
+  2. Ajout de `GET/POST /api/market/opportunities/[id]/audience` avec validation, calcul des derniers totaux par portail, chronologie consolidee et variations par rapport au point precedent.
+  3. Ajout dans l'onglet `Portail client` de la fiche affaire du bloc `Diffusion & statistiques` : formulaire de saisie, KPI, courbe vues/contacts et liste des derniers releves.
+  4. Projection automatique du dernier etat dans `professional_opinion.audience` pour conserver l'affichage `Diffusion & Statistiques` du portail vendeur ; lecture portail etendue aux supports additionnels.
+  5. Migration `027_opportunity_audience_snapshots.sql` executee de facon ciblee puis marquee appliquee ; aucune ancienne migration divergente rejouee.
+- Fichiers principaux : `supabase/migrations/027_opportunity_audience_snapshots.sql`, `src/app/api/market/opportunities/[id]/audience/route.ts`, `src/app/admin/market/opportunities/[id]/AudienceTrackingPanel.tsx`, `src/app/admin/market/opportunities/[id]/page.tsx`, `src/app/espace-client/portal-view.tsx`, `src/types/supabase.ts`.
+- Verification : `npx tsc --noEmit` OK ; lint cible OK (seulement warnings historiques dans `portal-view.tsx`) ; `npm run build` OK avec warnings historiques ; API GET vide 200 et validation 400 ; test fonctionnel temporaire de 3 releves sur 2 dates/2 portails OK (totaux 350 vues, 14 contacts, chronologie 100 -> 350, projection SeLoger/Leboncoin correcte), puis suppression confirmee des donnees temporaires ; audit Chromium desktop 1440 px et mobile 390 px sans debordement horizontal, formulaire utilisable dans les deux formats.
+- Utilisation : affaire > onglet `Portail client` > `Diffusion & statistiques` > `Nouveau releve`.
+- Suite possible : import automatique depuis les portails si une source/API exploitable est disponible ; aucun push sans demande explicite.
+
+### 11/07/2026 12:34 CEST - Harmonisation des onglets de la fiche affaire
+- Base/branche : `preview`, alignee avec `origin/preview` au depart ; travail local non pousse.
+- Type : design UI / navigation affaire.
+- Statut : **fait**.
+- Travail : remplacement du style encadre a soulignement noir des onglets de `/app/opportunities/[id]` par une navigation segmentee conforme a la charte : fond surface, bordure legere, onglet actif blanc avec accent bleu iad, rayons coherents et defilement horizontal utilisable sur mobile.
+- Fichier principal : `src/app/admin/market/opportunities/[id]/page.tsx`.
+- Verification : `npx tsc --noEmit` OK ; lint cible OK sans avertissement ; `git diff --check` OK ; audit visuel Chromium desktop 1440 px et mobile 390 px sur l'affaire Verger, avec repartition reguliere sur desktop et defilement horizontal sans compression des libelles sur mobile.
+- Suite : recueillir le retour visuel d'Alexandre ; aucun push sans demande explicite.
+
 ### 11/07/2026 00:17 CEST - Avis de valeur iad/Yanport : reprise exhaustive des rubriques PDF
 - Base/branche : `preview`, alignee avec `origin/preview` au depart ; travail local non pousse.
 - Type : fonctionnalite produit / avis de valeur / portail client.

@@ -2297,10 +2297,8 @@ function buildAudience(data: ClientPortalDossier, mode: PortalMode) {
 
 function audiencePortalList(value: Json | undefined): Array<Omit<DiffusionSource, 'share' | 'color'>> {
   const portals = asRecord(value)
-  const ids = ['global', 'seloger', 'leboncoin', 'iad', 'bienici', 'autre']
-
-  return ids.flatMap((id) => {
-    const portal = asRecord(portals[id])
+  return Object.entries(portals).flatMap(([id, value]) => {
+    const portal = asRecord(value)
     const views = numberValue(portal.views)
     if (views === null) return []
     const name = text(portal.name)
