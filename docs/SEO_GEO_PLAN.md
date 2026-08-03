@@ -425,7 +425,19 @@ commune est le mot-clé**, pas le label régional.
 
 ## Préalable avant de rouvrir le sujet
 
-Ouvrir l'accès à la **Search Console**. Sans elle, on ignore les requêtes sur
+Les données de la **Search Console**. Sans elles, on ignore les requêtes sur
 lesquelles le site apparaît déjà et leurs positions. Une page bloquée en 2e page
 sur une requête à fort volume vaudrait mieux que dix nouvelles pages — et
 l'ordre ci-dessus s'en trouverait modifié.
+
+La propriété est **déjà vérifiée** : un enregistrement DNS
+`google-site-verification` est en place sur `alexandrelopez.fr`. De la donnée
+s'accumule donc depuis la mise en ligne, il n'y aura pas de délai d'amorçage.
+
+Aucun accès permanent n'est nécessaire — trois exports CSV suffisent :
+
+| Export | Ce qu'il tranche |
+| --- | --- |
+| Performances → Requêtes, 6 mois | Les termes réellement générateurs d'impressions, leur position et leur taux de clic. Peut renverser l'ordre d'attaque ci-dessus. |
+| Performances → Pages | Quelles pages travaillent déjà, lesquelles sont inertes. |
+| Indexation → Pages | **Le plus déterminant** : les 10 communes hors sitemap sont-elles indexées ou non ? L'écart 1 repose sur l'hypothèse qu'elles ne le sont pas ou mal ; cet export la confirme ou l'infirme. |
