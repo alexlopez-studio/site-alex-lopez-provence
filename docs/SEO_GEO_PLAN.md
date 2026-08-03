@@ -35,6 +35,12 @@ Le site ne doit pas seulement capter des recherches génériques comme `estimati
 
 ## Clusters d’intention
 
+> ⚠️ **Trois cibles P0 de cette section sont erronées.** Voir « Correction des
+> cibles — 3 août 2026 » en fin de document : `estimation maison + commune` n'a
+> pas de demande mesurable, `estimation maison Provence Verte` non plus, et
+> `combien vaut ma maison` est sous-priorisée. Les tables ci-dessous sont
+> conservées à titre d'historique.
+
 ### 1. Avis de valeur / estimation maison
 
 **Objectif :** capter les propriétaires proches de la décision.
@@ -441,3 +447,99 @@ Aucun accès permanent n'est nécessaire — trois exports CSV suffisent :
 | Performances → Requêtes, 6 mois | Les termes réellement générateurs d'impressions, leur position et leur taux de clic. Peut renverser l'ordre d'attaque ci-dessus. |
 | Performances → Pages | Quelles pages travaillent déjà, lesquelles sont inertes. |
 | Indexation → Pages | **Le plus déterminant** : les 10 communes hors sitemap sont-elles indexées ou non ? L'écart 1 repose sur l'hypothèse qu'elles ne le sont pas ou mal ; cet export la confirme ou l'infirme. |
+
+---
+
+# Correction des cibles — 3 août 2026
+
+> **Ces constats corrigent les tables de la section « Clusters d'intention »
+> ci-dessus, qui restent en l'état à titre d'historique.** Trois cibles P0 y
+> sont erronées.
+>
+> Méthode : interrogation de l'API d'autocomplétion Google (`suggestqueries`),
+> en français, géolocalisée France. Elle donne les formulations réelles et la
+> popularité **relative** — pas les volumes absolus. L'absence de suggestion
+> indique un volume faible, elle ne prouve pas un volume nul.
+
+## « Conseiller immobilier » attire des candidats, pas des clients
+
+Suggestions Google sur ce terme : *salaire*, *formation*, *iad*, *indépendant*,
+*safti*. L'intention dominante est **la recherche d'emploi**, pas la recherche
+d'un professionnel.
+
+Le site est 3e sur `conseiller immobilier provence verte`. Bonne position, trafic
+sans valeur commerciale. À ne plus traiter comme un objectif de classement — le
+terme reste pertinent pour la marque et les mentions légales, pas pour le SEO.
+
+## « Provence Verte » n'est pas une requête
+
+`immobilier provence verte` ne renvoie que deux suggestions, dont une pour
+Pourrières. Aucune demande mesurable.
+
+À l'inverse, `immobilier haut var` renvoie une famille complète : *haut var 83*,
+*maison haut var à vendre*, *achat immobilier haut var*, *prix immobilier haut
+var*, *leboncoin immobilier haut var*.
+
+**Provence Verte & Verdon reste le positionnement de marque. Haut-Var devient le
+terme territorial SEO.**
+
+## La cible P0 des pages communes était fausse
+
+Le plan ci-dessus fait de `estimation maison + commune` la cible prioritaire de
+chaque page locale. Or `estimation maison barjols` ne déclenche **aucune
+suggestion**.
+
+Demande réelle par commune, du plus fort au plus faible :
+
+| Requête | Signal observé |
+| --- | --- |
+| `maison a vendre {commune}` | 6-7 suggestions (variantes : *le bon coin*, *83670*, *maison de village*, *villa*, *avec piscine*) |
+| `immobilier {commune}` | 5-8 suggestions |
+| `prix immobilier {commune}` | présente sur toutes les communes testées |
+| `agence immobilière {commune}` | présente — **« agence », pas « agent »** |
+| `estimation maison {commune}` | quasi nulle |
+
+### Nouvelle cible P0 : `prix immobilier {commune}`
+
+Seule requête qui cumule demande réelle et double intention. Un vendeur qui
+prépare sa mise en vente cherche le prix du marché avant de chercher une
+estimation : c'est le prospect au stade de la recherche.
+
+Argument décisif : **les données DVF permettent d'y répondre mieux que la
+concurrence** — transactions réelles, prix médian au m², évolution. C'est le type
+de contenu factuel que les moteurs génératifs citent, ce qui sert directement
+l'objectif GEO.
+
+## Cibles transversales révisées
+
+| Requête | Statut | Justification |
+| --- | --- | --- |
+| `combien vaut ma maison` | P1 → **P0** | Suggestions riches : *en ligne gratuit*, *simulation*, *sur le marché*, *aujourd'hui* |
+| `estimer ma maison en ligne gratuitement` | **à ajouter** | Modificateurs récurrents : *en ligne*, *gratuit*, *sans inscription*. `/outils/vendre` y répond déjà, le titre doit le dire |
+| `avis de valeur immobilier` | confirmé P0 | Première suggestion sur « avis de valeur ». Landing bien nommée |
+| `avis de valeur immobilier exemple` | **à ajouter** | Suggestion présente, angle de contenu |
+| `estimation maison {commune}` | P0 → **abandon** | Pas de demande mesurable |
+
+## Concurrents locaux repérés
+
+Cités spontanément par l'autocomplétion, donc cherchés nommément :
+
+- **Kaiser Immobilier** (Barjols)
+- **Nestenn** (Brignoles)
+- **Agence Bleu Immobilier** (Cotignac)
+
+À noter : `agence immobilière brignoles les mieux notés` est une suggestion
+Google. Une requête pilotée par les avis — elle renvoie directement à l'écart 2
+de l'audit ci-dessus (fiche Google sans avis).
+
+## Limite de la méthode et complément
+
+L'autocomplétion donne le classement relatif, pas les volumes. Pour obtenir des
+chiffres : le **Keyword Planner de Google Ads**, gratuit avec un simple compte,
+avec filtre géographique. Sans campagne active il n'affiche que des fourchettes
+larges, suffisantes pour distinguer un ordre de grandeur.
+
+Ce que cette méthode ne couvre pas, et que couvrirait un outil payant type
+Semrush : difficulté des requêtes, positions des concurrents, analyse de
+backlinks, suivi historique. Jugé non nécessaire au périmètre actuel — à
+réévaluer si l'extension Aubagne / Étoile est engagée.
