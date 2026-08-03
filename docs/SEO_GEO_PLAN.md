@@ -313,3 +313,119 @@ Après les pages Barjols, Cotignac et Lorgues, la priorité la plus cohérente e
 1. **Enrichir Brignoles ou Pontevès** pour consolider Provence Verte ; ou
 2. **Créer un article vendeur fort** pour soutenir toutes les pages locales ; ou
 3. **Observer les premiers signaux de tracking** avant de produire l’extension Aubagne / Étoile.
+
+---
+
+# Audit d'écart — 3 août 2026
+
+> Constats relevés sur le site en production et sur la fiche Google Business.
+> **Sujet volontairement mis en attente** : à reprendre comme projet dédié, ce
+> n'est pas la priorité actuelle. Rien n'a été modifié sur le site.
+>
+> Méthode : lecture du sitemap public, de `data/communes.json`, du JSON-LD servi
+> en production et de la fiche Google Business. **Sans accès à la Search
+> Console** — impossible donc de savoir sur quelles requêtes le site apparaît
+> déjà, ni à quelle position. Cette donnée changerait probablement les
+> priorités ci-dessous.
+
+## Point de départ mesuré
+
+Sur `conseiller immobilier provence verte` : 1re page, 3e résultat.
+
+## Écart 1 — Dix communes sur quinze sont invisibles
+
+`data/communes.json` déclare **15 communes**. Le sitemap n'en expose que **5** :
+Barjols, Cotignac, Lorgues, Brignoles, Pontevès.
+
+Les autres (Varages, Tavernes, Rians, Montmeyan, Vinon-sur-Verdon, Quinson,
+Fox-Amphoux, Ginasservis, Saint-Julien-le-Montagnier, La Verdière,
+Esparron-de-Verdon) répondent en HTTP 200 mais ne figurent dans aucun sitemap
+et retombent sur le `generateMetadata` générique — sans le contenu éditorial
+prévu par `LOCAL_PAGES`.
+
+**Saint-Maximin-la-Sainte-Baume est classée P1 dans le présent plan mais absente
+du sitemap.** Deux slugs répondent par ailleurs en 200 — `/marche/saint-maximin`
+et `/marche/saint-maximin-la-sainte-baume` — ce qui pose une question de contenu
+dupliqué à trancher avant d'enrichir la page.
+
+C'est le gisement le plus direct : des pages à moitié construites, sur des
+communes peu concurrentielles.
+
+## Écart 2 — La fiche Google Business est le maillon faible
+
+Sur les requêtes locales, le pack Maps capte l'essentiel des clics avant les
+résultats classiques. Or la fiche « Alexandre Lopez IAD France » (Pontevès,
+Place ID `ChIJr7Z_oQi_HAkR0Zgulp06NTc`) présente deux manques :
+
+- **zéro avis**, face à des conseillers iad du même secteur à 24 et 35 avis ;
+- **aucun lien vers le site** — le champ est vide.
+
+Le nombre d'avis est un facteur de premier plan du classement local. L'outil
+`avis.alexandrelopez.fr`, livré le 3 août, adresse précisément ce point. Le lien
+manquant, lui, se corrige en deux minutes depuis le tableau de bord Google.
+
+Ces deux actions relèvent d'Alexandre, pas du code, et pèsent probablement plus
+que l'ensemble des optimisations techniques listées ici.
+
+## Écart 3 — Pas de balisage d'entité locale
+
+Le JSON-LD servi en production expose `FAQPage`, `Question`, `Answer` et
+`PostalAddress`. Il **manque un type `RealEstateAgent` ou `LocalBusiness`**
+déclarant l'entité, sa zone d'intervention et ses coordonnées.
+
+Conséquence double :
+
+- en SEO classique, perte de résultats enrichis ;
+- en GEO, les moteurs génératifs s'appuient sur des entités structurées pour
+  identifier qui fait quoi et où. Sans ce balisage, le site reste du texte parmi
+  d'autres. C'est le point le plus directement lié à l'objectif GEO du plan.
+
+## Vocabulaire : « conseiller » ou « agent immobilier »
+
+`agent immobilier` se recherche nettement plus que `conseiller immobilier`.
+Mais le titre est réglementé par la loi Hoguet et ne correspond pas au statut de
+mandataire indépendant — les mentions légales du site indiquent bien « agent
+commercial de la SAS I@D France ». La charte iad 2025 le proscrit également.
+
+**Il n'est pas nécessaire de revendiquer le titre pour se positionner dessus.**
+Le classement sur `agent immobilier + commune` tient à la pertinence locale
+(fiche Google, avis, proximité, page dédiée), pas à la présence exacte du terme
+dans la balise titre.
+
+Piste éditoriale légitime : un article **« Agent immobilier ou conseiller iad :
+quelle différence ? »**. Il capte la requête à fort volume, explique honnêtement
+la distinction, et sert de page de conversion — sans s'attribuer un titre qui
+n'est pas le bon.
+
+## Territoire : Provence Verte comme marque, communes comme requêtes
+
+Le label « Provence Verte & Verdon » est un territoire touristique peu tapé tel
+quel. Les requêtes réelles sont `maison à vendre Barjols`, `estimation
+appartement Brignoles`, `immobilier Haut-Var`, `prix immobilier Var`.
+
+Le blog cible déjà correctement le Var (`prix-immobilier-var-2026`,
+`dpe-f-g-var-vendre-2026`, `vivre-cotignac-guide-haut-var`). Le décalage porte
+sur les pages **structurelles** — accueil et pages communes — toutes cadrées
+Provence Verte & Verdon.
+
+Orientation : conserver Provence Verte & Verdon comme positionnement de marque,
+et laisser les pages communes porter les requêtes réelles. **Le nom de la
+commune est le mot-clé**, pas le label régional.
+
+## Ordre d'attaque proposé
+
+| # | Action | Qui | Effort |
+| --- | --- | --- | --- |
+| 1 | Ajouter le lien du site sur la fiche Google Business | Alexandre | 2 min |
+| 2 | Diffuser l'outil d'avis auprès des clients | Alexandre | continu |
+| 3 | Trancher le doublon de slug Saint-Maximin, puis enrichir la page | Code | faible |
+| 4 | Compléter les 10 communes manquantes et les ajouter au sitemap | Code + rédaction | moyen |
+| 5 | Ajouter le balisage `RealEstateAgent` avec zone d'intervention | Code | faible |
+| 6 | Écrire l'article agent / conseiller | Rédaction | moyen |
+
+## Préalable avant de rouvrir le sujet
+
+Ouvrir l'accès à la **Search Console**. Sans elle, on ignore les requêtes sur
+lesquelles le site apparaît déjà et leurs positions. Une page bloquée en 2e page
+sur une requête à fort volume vaudrait mieux que dix nouvelles pages — et
+l'ordre ci-dessus s'en trouverait modifié.

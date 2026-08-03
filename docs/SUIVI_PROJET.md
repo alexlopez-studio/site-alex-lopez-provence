@@ -2116,6 +2116,7 @@ des republications). Sans sync récurrente → tout reste `cold` → aucun vende
 - A verifier : erreurs locales Radar sur `/api/radar/listings` si les tables Supabase `listings` / `listing_events` ne sont pas presentes.
 - A faire avant production : reactiver/verifier la garde auth admin actuellement facilitee pour la navigation locale.
 - A maintenir : tenir `docs/START.md`, `docs/MEMOIRE_SESSION.md`, `docs/SUIVI_PROJET.md` et `docs/ROUTES.md` alignes avec les routes canoniques `/app/*`.
+- En attente (projet ulterieur, non prioritaire) : audit d'ecart SEO/GEO du 03/08/2026, consigne en fin de `docs/SEO_GEO_PLAN.md`. Trois ecarts mesures — 10 communes sur 15 hors sitemap, fiche Google Business sans avis ni lien site, absence de balisage `RealEstateAgent`. Prealable a rouvrir le sujet : acces Search Console.
 
 ## Journal de Bord
 
