@@ -17,6 +17,7 @@ export function Header() {
   const NAV_LINKS = [
     { label: t('navSell'), href: '/vendre' },
     { label: t('navBuy'), href: '/acheter' },
+    { label: t('navGuide'), href: '/guide-vendeur' },
     { label: t('navAudit'), href: '/audit' },
     { label: t('navBlog'), href: '/blog' },
     { label: t('navApproach'), href: '/a-propos' },

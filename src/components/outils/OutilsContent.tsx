@@ -6,6 +6,7 @@ import {
   ArrowRight,
   BadgeCheck,
   BarChart3,
+  BookOpen,
   CheckCircle2,
   Clock3,
   Home,
@@ -32,6 +33,17 @@ const tools = [
     deliverables: ['Fourchette de valeur', 'Prix médian estimé', 'Stratégie de prix'],
     cta: 'Lancer l’estimation',
     badge: 'Disponible maintenant',
+  },
+  {
+    href: '/guide-vendeur',
+    icon: BookOpen,
+    title: 'Guide du Vendeur Particulier',
+    duration: '41 pages',
+    desc: 'Le manuel complet pour valoriser, sécuriser et réussir votre vente entre particuliers (format imprimable A4 & conseils d’expert).',
+    bestFor: 'Vous vendez seul ou vous préparez votre mise en vente en Provence.',
+    deliverables: ['8 modules opérationnels', 'Checklists imprimables A4', 'Scripts de négociation'],
+    cta: 'Consulter le guide',
+    badge: 'Nouveau · Édition Prestige',
   },
 ]
 
