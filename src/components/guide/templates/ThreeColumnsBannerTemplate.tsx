@@ -7,14 +7,21 @@ export interface ThreeColumnsBannerTemplateProps {
   title?: string
   subtitle?: string
   columns?: { number: string; title: string; text: string }[]
+  threeColumns?: { number: string; title: string; text: string }[]
   bannerText?: string
+  bannerBox?: { title?: string; text: string }
 }
 
 export function ThreeColumnsBannerTemplate({
   pageNumber = 17,
   title = 'places to research',
   subtitle = 'OÙ ET COMMENT ÉTUDIER LES VRAIS PRIX DU MARCHÉ EN PROVENCE ?',
-  columns = [
+  columns,
+  threeColumns,
+  bannerText,
+  bannerBox,
+}: ThreeColumnsBannerTemplateProps) {
+  const actualColumns = threeColumns ?? columns ?? [
     {
       number: '01',
       title: 'Base DVF (Demandes de Valeurs Foncières)',
@@ -30,9 +37,9 @@ export function ThreeColumnsBannerTemplate({
       title: 'Avis de Valeur Conseiller',
       text: 'Sollicitez un avis comparatif circonstancié pour apprécier les critères qualitatifs (vue, calme, état).',
     },
-  ],
-  bannerText = 'Une estimation n’est pas une formule mathématique théorique : c’est l’analyse croisée des transactions réelles et de la concurrence active.',
-}: ThreeColumnsBannerTemplateProps) {
+  ]
+
+  const actualBannerText = bannerBox?.text ?? bannerText ?? 'Une estimation n’est pas une formule mathématique théorique : c’est l’analyse croisée des transactions réelles et de la concurrence active.'
   return (
     <div className="a4-sheet relative flex h-full w-full flex-col justify-between overflow-hidden bg-white p-8 sm:p-12 text-[#0F172A] shadow-sm">
       {/* En-Tête Centré */}
@@ -47,7 +54,7 @@ export function ThreeColumnsBannerTemplate({
 
       {/* 3 Colonnes Numérotées */}
       <div className="grid grid-cols-3 gap-6 my-auto items-start">
-        {columns.map((col) => (
+        {actualColumns.map((col) => (
           <div key={col.number} className="flex flex-col items-center text-center">
             <span className="font-sans italic font-black text-3xl sm:text-4xl text-[#0077B6] mb-3">
               {col.number}
@@ -66,7 +73,7 @@ export function ThreeColumnsBannerTemplate({
       {/* Bandeau Inférieur de Marque */}
       <div className="mt-8 bg-[#0F172A] text-white p-6 rounded-xl text-center shadow-lg border-l-4 border-[#00B4EC]">
         <p className="text-xs sm:text-sm font-medium leading-relaxed max-w-xl mx-auto">
-          {bannerText}
+          {actualBannerText}
         </p>
       </div>
 

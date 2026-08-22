@@ -4,6 +4,8 @@ import React from 'react'
 import { Phone, Mail, Globe, MapPin, Award } from 'lucide-react'
 
 export interface BackcoverTemplateProps {
+  pageNumber?: number
+  quote?: string
   agentName?: string
   agentRole?: string
   agentPhone?: string
@@ -19,6 +21,7 @@ export function BackcoverTemplate({
   agentEmail = 'alex@alexlopez-provence.fr',
   agentWebsite = 'alexlopez-provence.fr',
   agentTerritory = 'Provence Verte & Verdon · Var',
+  quote,
 }: BackcoverTemplateProps) {
   return (
     <div className="a4-sheet relative flex h-full w-full flex-col justify-between overflow-hidden bg-[#0F172A] p-12 sm:p-16 text-white shadow-sm">
@@ -44,7 +47,8 @@ export function BackcoverTemplate({
         </div>
 
         <blockquote className="font-sans text-base sm:text-lg font-light leading-relaxed text-slate-200 italic px-4">
-          « Une vente immobilière réussie est avant tout une alliance de transparence, de rigueur juridique et d’une connaissance intime de notre terroir provençal. »
+          {quote ??
+            '« Une vente immobilière réussie est avant tout une alliance de transparence, de rigueur juridique et d’une connaissance intime de notre terroir provençal. »'}
         </blockquote>
 
         <div className="h-[2px] w-24 bg-[#00B4EC] mx-auto" />

@@ -9,6 +9,7 @@ export interface StagingComparisonVsTemplateProps {
   paragraphs?: string[]
   leftImage?: { url: string; label: string }
   rightImage?: { url: string; label: string }
+  beforeAfter?: { beforeLabel: string; beforeImg: string; afterLabel: string; afterImg: string }
 }
 
 export function StagingComparisonVsTemplate({
@@ -19,15 +20,23 @@ export function StagingComparisonVsTemplate({
     'Le home staging ne consiste pas à masquer les défauts, mais à révéler le plein potentiel des volumes et de la lumière naturelle.',
     'Un logement désencombré et harmonisé permet aux acquéreurs de se projeter instantanément avec leur propre mobilier, sans être distraits par votre quotidien.',
   ],
-  leftImage = {
-    url: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80',
-    label: 'AVANT : ESPACE CHARGÉ & SOMBRE',
-  },
-  rightImage = {
-    url: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=800&q=80',
-    label: 'APRÈS : LUMINEUX & ÉPURÉ',
-  },
+  leftImage,
+  rightImage,
+  beforeAfter,
 }: StagingComparisonVsTemplateProps) {
+  const actualLeftImage = beforeAfter
+    ? { url: beforeAfter.beforeImg, label: beforeAfter.beforeLabel }
+    : (leftImage ?? {
+        url: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80',
+        label: 'AVANT : ESPACE CHARGÉ & SOMBRE',
+      })
+
+  const actualRightImage = beforeAfter
+    ? { url: beforeAfter.afterImg, label: beforeAfter.afterLabel }
+    : (rightImage ?? {
+        url: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=800&q=80',
+        label: 'APRÈS : LUMINEUX & ÉPURÉ',
+      })
   return (
     <div className="a4-sheet relative flex h-full w-full flex-col justify-between overflow-hidden bg-white p-8 sm:p-12 text-[#0F172A] shadow-sm">
       {/* En-Tête Centré */}
@@ -51,12 +60,12 @@ export function StagingComparisonVsTemplate({
         {/* Photo Gauche */}
         <div className="relative h-64 sm:h-72 rounded-xl overflow-hidden bg-[#F8FAFC] shadow-md">
           <img
-            src={leftImage.url}
-            alt={leftImage.label}
+            src={actualLeftImage.url}
+            alt={actualLeftImage.label}
             className="h-full w-full object-cover grayscale-[20%]"
           />
           <div className="absolute bottom-3 left-3 right-3 bg-[#0F172A]/85 backdrop-blur-xs text-white py-1.5 px-3 rounded-md text-center text-[10px] font-bold uppercase tracking-wider">
-            {leftImage.label}
+            {actualLeftImage.label}
           </div>
         </div>
 
@@ -68,12 +77,12 @@ export function StagingComparisonVsTemplate({
         {/* Photo Droite */}
         <div className="relative h-64 sm:h-72 rounded-xl overflow-hidden bg-[#F8FAFC] shadow-md">
           <img
-            src={rightImage.url}
-            alt={rightImage.label}
+            src={actualRightImage.url}
+            alt={actualRightImage.label}
             className="h-full w-full object-cover"
           />
           <div className="absolute bottom-3 left-3 right-3 bg-[#0077B6]/90 backdrop-blur-xs text-white py-1.5 px-3 rounded-md text-center text-[10px] font-bold uppercase tracking-wider">
-            {rightImage.label}
+            {actualRightImage.label}
           </div>
         </div>
       </div>

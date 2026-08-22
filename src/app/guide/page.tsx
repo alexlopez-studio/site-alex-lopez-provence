@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { GuideLandingPage } from '@/components/guide/GuideLandingPage'
+import { GuideLeadLandingPage } from '@/components/guide/GuideLeadLandingPage'
 
 export const metadata: Metadata = {
   title: 'Guide du Vendeur Particulier — Alexandre Lopez iad Provence Verte & Verdon',
@@ -14,5 +14,6 @@ export const metadata: Metadata = {
 }
 
 export default function GuidePage() {
-  return <GuideLandingPage />
+  return <GuideLeadLandingPage />
 }
+

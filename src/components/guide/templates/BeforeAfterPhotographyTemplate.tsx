@@ -9,6 +9,7 @@ export interface BeforeAfterPhotographyTemplateProps {
   paragraphs?: string[]
   beforeImage?: { url: string; label: string }
   afterImage?: { url: string; label: string }
+  beforeAfter?: { beforeLabel: string; beforeImg: string; afterLabel: string; afterImg: string }
 }
 
 export function BeforeAfterPhotographyTemplate({
@@ -19,15 +20,23 @@ export function BeforeAfterPhotographyTemplate({
     'Une photo prise au smartphone avec des contre-jours ou un objectif déformant peut faire perdre jusqu’à 30% d’acquéreurs qualifiés dès la première semaine de diffusion.',
     'À l’inverse, un reportage photographique avec grand-angle calibré, traitement HDR de la lumière et mise en valeur des volumes provençaux déclenche l’effet coup de cœur.',
   ],
-  beforeImage = {
-    url: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80',
-    label: 'PHOTO SMARTPHONE CLASSIQUE',
-  },
-  afterImage = {
-    url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
-    label: 'REPORTAGE PRO HDR & GRAND ANGLE',
-  },
+  beforeImage,
+  afterImage,
+  beforeAfter,
 }: BeforeAfterPhotographyTemplateProps) {
+  const actualBeforeImage = beforeAfter
+    ? { url: beforeAfter.beforeImg, label: beforeAfter.beforeLabel }
+    : (beforeImage ?? {
+        url: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80',
+        label: 'PHOTO SMARTPHONE CLASSIQUE',
+      })
+
+  const actualAfterImage = beforeAfter
+    ? { url: beforeAfter.afterImg, label: beforeAfter.afterLabel }
+    : (afterImage ?? {
+        url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
+        label: 'REPORTAGE PRO HDR & GRAND ANGLE',
+      })
   return (
     <div className="a4-sheet relative flex h-full w-full flex-col justify-between overflow-hidden bg-white p-8 sm:p-12 text-[#0F172A] shadow-sm">
       {/* En-Tête Centré */}
@@ -51,24 +60,24 @@ export function BeforeAfterPhotographyTemplate({
         {/* Photo Avant */}
         <div className="relative h-64 sm:h-72 rounded-xl overflow-hidden bg-[#F8FAFC] shadow-md">
           <img
-            src={beforeImage.url}
-            alt={beforeImage.label}
+            src={actualBeforeImage.url}
+            alt={actualBeforeImage.label}
             className="h-full w-full object-cover grayscale-[30%]"
           />
           <div className="absolute bottom-3 left-3 right-3 bg-[#0F172A]/85 backdrop-blur-xs text-white py-1.5 px-3 rounded-md text-center text-[10px] font-bold uppercase tracking-wider">
-            {beforeImage.label}
+            {actualBeforeImage.label}
           </div>
         </div>
 
         {/* Photo Après */}
         <div className="relative h-64 sm:h-72 rounded-xl overflow-hidden bg-[#F8FAFC] shadow-md border-2 border-[#0077B6]">
           <img
-            src={afterImage.url}
-            alt={afterImage.label}
+            src={actualAfterImage.url}
+            alt={actualAfterImage.label}
             className="h-full w-full object-cover"
           />
           <div className="absolute bottom-3 left-3 right-3 bg-[#0077B6]/95 backdrop-blur-xs text-white py-1.5 px-3 rounded-md text-center text-[10px] font-bold uppercase tracking-wider">
-            {afterImage.label}
+            {actualAfterImage.label}
           </div>
         </div>
       </div>
