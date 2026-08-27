@@ -61,8 +61,8 @@ export const GUIDE_PAGES: GuidePageData[] = [
     moduleTitle: 'Couverture',
     layoutType: 'cover_bedroom',
     title: 'Selling Your Own Home',
-    subtitle: 'your step-by-step guide to selling your own home in provence',
-    heroImage: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1400&q=85',
+    subtitle: 'Le guide complet pour réussir votre vente en Provence Verte & Verdon',
+    heroImage: '/images/provence-bastide-lavande.jpg',
   },
 
   // ─── PAGE 2 : TESTIMONIAL FULL PHOTO ───

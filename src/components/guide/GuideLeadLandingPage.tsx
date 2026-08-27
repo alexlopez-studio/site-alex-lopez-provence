@@ -33,6 +33,7 @@ import { InteractiveBeforeAfterSlider } from './InteractiveBeforeAfterSlider'
 import { AnimatedCounter } from './AnimatedCounter'
 import { SpotlightCard } from './SpotlightCard'
 import { SmartStickyCtaBar } from './SmartStickyCtaBar'
+import { HeroVideoBackground } from './HeroVideoBackground'
 
 const PHONE_RAW = '+33613180168'
 const PHONE_DISPLAY = '06 13 18 01 68'
@@ -236,10 +237,13 @@ export function GuideLeadLandingPage() {
 
       <main>
         {/* ─── 1. HERO SECTION (VISIBLE SANS DÉFILER / ABOVE THE FOLD) ─── */}
-        <section className="relative overflow-hidden bg-gradient-to-b from-surface via-white to-white pt-10 pb-16 sm:pt-16 sm:pb-24 border-b border-border/60">
+        <section className="relative overflow-hidden bg-gradient-to-b from-surface/80 via-white/80 to-white pt-10 pb-16 sm:pt-16 sm:pb-24 border-b border-border/60">
+          {/* ─── ARRIÈRE-PLAN VIDÉO IMMOBILIÈRE CINÉMATIQUE ─── */}
+          <HeroVideoBackground overlayOpacity="bg-gradient-to-r from-white/95 via-white/85 to-white/40" />
+
           {/* Halos décoratifs subtils */}
-          <div className="pointer-events-none absolute top-0 right-1/4 h-96 w-96 rounded-full bg-brand-light/50 blur-3xl -z-10" />
-          <div className="pointer-events-none absolute bottom-0 left-10 h-80 w-80 rounded-full bg-surface-alt/70 blur-3xl -z-10" />
+          <div className="pointer-events-none absolute top-0 right-1/4 h-96 w-96 rounded-full bg-brand-light/30 blur-3xl -z-10" />
+          <div className="pointer-events-none absolute bottom-0 left-10 h-80 w-80 rounded-full bg-surface-alt/40 blur-3xl -z-10" />
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <div className="grid gap-12 lg:grid-cols-[1.15fr_0.85fr] items-center">

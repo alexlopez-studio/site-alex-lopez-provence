@@ -284,7 +284,12 @@ export function AppChrome({
   const isToolsMiniApp = pathname === '/outils' || pathname.startsWith('/outils/') || pathname.startsWith('/resultats/')
   const isAdminArea = pathname.startsWith('/admin') || pathname.startsWith('/dashboard') || pathname.startsWith('/app')
   const isClientPortalArea = pathname.startsWith('/espace-client')
-  const isGuideArea = pathname.startsWith('/guide-vendeur')
+  const isGuideArea =
+    pathname.startsWith('/guide-vendeur') ||
+    pathname.startsWith('/guide-organique') ||
+    pathname.startsWith('/vendre-organique') ||
+    pathname.startsWith('/vendre-sans-agence') ||
+    pathname === '/guide'
 
   useEffect(function () {
     normalizeAdvisorName(document.body)

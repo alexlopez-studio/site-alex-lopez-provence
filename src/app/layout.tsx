@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import type { CSSProperties } from 'react'
-import { Inter, Allura } from 'next/font/google'
+import { Inter, Allura, Playfair_Display, Source_Sans_3, Montserrat } from 'next/font/google'
 import Script from 'next/script'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages } from 'next-intl/server'
@@ -13,11 +13,34 @@ import { LinkClickTracker } from '@/components/analytics/LinkClickTracker'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { LOCALE_META, type Locale } from '@/i18n/config'
 
+const montserrat = Montserrat({
+  subsets: ['latin'],
+  variable: '--font-montserrat',
+  display: 'swap',
+  weight: ['300', '400', '500', '600', '700', '800', '900'],
+  style: ['normal', 'italic'],
+})
+
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
   display: 'swap',
   weight: ['300', '400', '500', '600', '700', '800'],
+})
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-playfair',
+  display: 'swap',
+  weight: ['400', '500', '600', '700', '800'],
+  style: ['normal', 'italic'],
+})
+
+const sourceSans = Source_Sans_3({
+  subsets: ['latin'],
+  variable: '--font-source-sans',
+  display: 'swap',
+  weight: ['300', '400', '500', '600', '700'],
 })
 
 /**
@@ -73,7 +96,10 @@ export default async function RootLayout({
   const htmlLang = LOCALE_META[locale]?.htmlLang || 'fr-FR'
 
   return (
-    <html lang={htmlLang} className={inter.variable + ' ' + buffalo.variable}>
+    <html
+      lang={htmlLang}
+      className={`${inter.variable} ${montserrat.variable} ${buffalo.variable} ${playfair.variable} ${sourceSans.variable}`}
+    >
       <head>
         <script dangerouslySetInnerHTML={gtmScript} />
       </head>

@@ -11,57 +11,74 @@ export interface CoverTemplateProps {
 }
 
 export function CoverTemplate({
-  title = 'Selling Your Own Home',
-  subtitle = 'Le guide complet étape par étape pour réussir votre vente en Provence Verte & Verdon',
-  heroImage = 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1400&q=85',
+  title = 'SELLING YOUR OWN HOME',
+  subtitle = 'Le guide complet étape par étape pour réussir votre vente en Provence',
+  heroImage = '/images/provence-bastide-lavande.jpg',
   edition = 'ÉDITION PROPRIÉTAIRE · MÉTHODE & OUTILS',
-  region = 'ALEXANDRE LOPEZ · CONSEILLER IMMOBILIER IAD FRANCE',
+  region = 'ALEXANDRE LOPEZ · CONSEILLER IMMOBILIER IAD FRANCE · PROVENCE VERTE & VERDON',
 }: CoverTemplateProps) {
   return (
-    <div className="a4-sheet relative flex h-full w-full flex-col justify-between overflow-hidden bg-white text-[#0F172A] shadow-sm p-0">
-      {/* En-Tête Haute Définition avec Signature de Marque */}
-      <div className="pt-10 sm:pt-12 px-10 sm:px-14 pb-6 bg-white z-10 flex items-end justify-between border-b border-slate-100">
-        <div>
-          <span className="inline-block bg-[#E0F0FA] text-[#0077B6] font-bold text-[11px] uppercase tracking-[0.2em] px-3.5 py-1 rounded-full mb-3">
-            GUIDE IMMOBILIER PRIVÉ
-          </span>
-          <h1 className="font-sans text-4xl sm:text-5xl md:text-[52px] font-black tracking-tight text-[#0F172A] leading-[1.05]">
-            {title}
-          </h1>
-        </div>
-
-        {/* Signature Script Emblématique */}
-        <div className="hidden sm:flex flex-col items-end leading-none pb-1">
-          <span className="font-script text-3xl text-[#0F172A]">Alexandre Lopez</span>
-          <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#0077B6] mt-1">
-            iad France · Provence
-          </span>
-        </div>
-      </div>
-
-      {/* Visuel Principal Provence & Cartouche de Présentation */}
-      <div className="relative flex-1 w-full overflow-hidden bg-[#F8FAFC]">
+    <div className="a4-sheet relative flex h-full w-full flex-col justify-between overflow-hidden bg-[#0B132B] text-white shadow-2xl p-0 select-none aspect-[1/1.414]">
+      {/* ─── FOND VISUEL PLEINE PAGE HAUTE DÉFINITION ─── */}
+      <div className="absolute inset-0 z-0">
         <img
           src={heroImage}
           alt={title}
           className="h-full w-full object-cover object-center"
         />
+        {/* Voile de dégradé cinématique haut & bas pour lisibilité */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0B132B]/75 via-black/20 to-[#0B132B]/85" />
+      </div>
 
-        {/* Cartouche d'Accroche Flottant aux Couleurs de la Marque */}
-        <div className="absolute bottom-10 right-10 bg-white/95 backdrop-blur-md px-7 py-5 shadow-2xl border-l-4 border-[#0077B6] max-w-md text-left z-10 rounded-r-xl">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#0077B6] mb-1">
-            MÉTHODOLOGIE CONSEILLER
-          </p>
-          <p className="text-xs sm:text-sm font-semibold leading-snug tracking-normal text-[#0F172A]">
+      {/* ─── EN-TÊTE HAUT DE COUVERTURE CENTRÉ ─── */}
+      <div className="relative z-10 pt-10 sm:pt-14 px-8 sm:px-12 text-center">
+        {/* Surtitre Thématique */}
+        <p className="text-[10px] sm:text-xs uppercase font-bold tracking-[0.32em] text-[#FDFBF7]/90 drop-shadow-md mb-3">
+          IMMOBILIER & ART DE VIVRE EN PROVENCE
+        </p>
+
+        {/* Titre Monumental Serif Agrandit & Centré */}
+        <h1 className="font-serif text-3xl sm:text-5xl md:text-[54px] font-black tracking-tight text-[#FDFBF7] uppercase leading-[1.04] drop-shadow-[0_4px_24px_rgba(0,0,0,0.7)] max-w-xl mx-auto">
+          {title}
+        </h1>
+
+        {/* Signature Manuscrite Allura Centrée */}
+        <div className="mt-3 flex items-center justify-center">
+          <span className="font-script text-3xl sm:text-4xl text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
+            Alexandre Lopez
+          </span>
+        </div>
+      </div>
+
+      {/* ─── CARTOUCHE FLOTTANT BLANC AUX ANGLES ARRONDIS ─── */}
+      <div className="relative z-10 px-8 sm:px-14 my-auto">
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-6 sm:p-7 text-center shadow-[0_24px_50px_rgba(0,0,0,0.35)] border border-white/70 ring-1 ring-black/5 max-w-md mx-auto">
+          {/* Filet d'accentuation supérieur */}
+          <div className="w-10 h-[2px] bg-[#0077B6] mx-auto mb-3 rounded-full" />
+
+          {/* Sous-titre de la méthode */}
+          <p className="font-serif text-sm sm:text-base font-bold text-[#0F172A] leading-snug tracking-tight">
             {subtitle}
+          </p>
+
+          {/* Filet d'accentuation inférieur */}
+          <div className="w-10 h-[2px] bg-[#0077B6] mx-auto mt-3 mb-2.5 rounded-full" />
+
+          {/* Badge Méthode */}
+          <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.18em] text-[#0077B6] font-extrabold m-0">
+            41 FICHES MÉTHODIQUES · DONNÉES DVF RÉELLES
           </p>
         </div>
       </div>
 
-      {/* Pied de Page Officiel iad France */}
-      <div className="bg-[#0F172A] text-white px-10 sm:px-14 py-4 flex items-center justify-between text-[10px] uppercase tracking-widest z-10">
-        <span className="font-semibold text-white/90">{region}</span>
-        <span className="text-[#00B4EC] font-bold">{edition}</span>
+      {/* ─── PIED DE PAGE ÉDITORIAL PRESTIGE ─── */}
+      <div className="relative z-10 pb-8 sm:pb-10 px-8 sm:px-12 text-center space-y-1">
+        <p className="text-[9px] sm:text-[10px] uppercase font-bold tracking-[0.24em] text-white/95 drop-shadow-md">
+          {region}
+        </p>
+        <p className="text-[8px] sm:text-[9px] uppercase font-semibold tracking-[0.22em] text-[#00B4EC] drop-shadow-sm">
+          {edition}
+        </p>
       </div>
     </div>
   )

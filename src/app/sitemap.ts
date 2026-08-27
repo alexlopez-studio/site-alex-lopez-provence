@@ -10,6 +10,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/avis-de-valeur-immobilier',
     '/vendre',
     '/vendre-sans-agence',
+    '/guide-organique',
+    '/vendre-organique',
     '/guide',
     '/guide-vendeur',
     '/acheter',

@@ -7,15 +7,27 @@
 /* ─── Design Tokens — Charte iad avec liberté créative Alex Lopez ─── */
 @theme {
   /* Brand — Bleu officiel iad PANTONE 2995 C */
-  --color-brand:         #00b4ec;
+  --color-brand:         #00B4EC;
   --color-brand-hover:   #008EC3;
   --color-brand-light:   #CDF7FF;
   --color-brand-dark:    #006390;
 
-  /* Corail iad PANTONE 2348 C */
-  --color-coral:         #ea584a;
-  --color-coral-hover:   #d94535;
-  --color-coral-light:   #fde9e6;
+  /* Corail officiel iad PANTONE 2348 C */
+  --color-coral:         #EA584A;
+  --color-coral-hover:   #D94535;
+  --color-coral-light:   #FDE9E6;
+
+  /* Déclinaisons officielles de Bleu iad (Page 17) */
+  --color-iad-blue-50:   #E9FCFF;
+  --color-iad-blue-100:  #CDF7FF;
+  --color-iad-blue-200:  #95EBFF;
+  --color-iad-blue-300:  #5DDEFF;
+  --color-iad-blue-400:  #25CFFF;
+  --color-iad-blue-600:  #00A1D8;
+  --color-iad-blue-700:  #008EC3;
+  --color-iad-blue-800:  #007DAF;
+  --color-iad-blue-900:  #006B9A;
+  --color-iad-blue-950:  #006390;
 
   /* Neutrals */
   --color-foreground:    #000000;
@@ -34,9 +46,12 @@
   --color-error-light:   #FEE2E2;
 
   /* Fonts */
-  --font-sans:   var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-serif:  var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-script: var(--font-buffalo), "Brush Script MT", cursive;
+  --font-sans:       var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-montserrat: var(--font-montserrat), Montserrat, ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-serif:      var(--font-playfair), "Playfair Display", Georgia, serif;
+  --font-playfair:   var(--font-playfair), "Playfair Display", Georgia, serif;
+  --font-source:     var(--font-source-sans), "Source Sans 3", ui-sans-serif, sans-serif;
+  --font-script:     var(--font-buffalo), "Brush Script MT", cursive;
 
   /* ─── Shadcn / UI semantic tokens ───────────────────────── */
   --color-background:         #FFFFFF;
