@@ -85,7 +85,7 @@ export function classifyTrackedLink(args: {
     return { name: 'contact_click', params: { ...baseParams, cta_destination: 'contact' } }
   }
 
-  if (url.pathname.startsWith('/marche/')) {
+  if (url.pathname.startsWith('/immobilier/')) {
     return { name: 'local_page_click', params: { ...baseParams, cta_destination: 'local_market_page' } }
   }
 

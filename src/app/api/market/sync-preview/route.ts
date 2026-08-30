@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { previewListings } from '@/lib/stream-estate'
@@ -24,6 +25,9 @@ function readPropertyTypes(body: Record<string, unknown> | null | undefined): nu
 }
 
 export async function POST(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const body = await req.json()
     const zipcode = body?.zipcode

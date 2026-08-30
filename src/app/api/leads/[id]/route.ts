@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 /**
  * GET    /api/leads/[id]       — Détail d'un lead avec prospect + events
  * PATCH  /api/leads/[id]       — Mise à jour statut / ajout note
@@ -62,6 +63,9 @@ export async function GET(
     _req: NextRequest,
     context: RouteContext,
 ): Promise<NextResponse> {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
     const { id } = await context.params
 
     let lead = null
@@ -91,6 +95,9 @@ export async function PATCH(
     req: NextRequest,
     context: RouteContext,
 ): Promise<NextResponse> {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
     const { id } = await context.params
 
     let body: unknown

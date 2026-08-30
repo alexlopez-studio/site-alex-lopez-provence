@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { departmentFromInsee } from '@/lib/dvf'
@@ -6,6 +7,9 @@ type Db = { from: (table: string) => any }
 const db = supabaseAdmin as unknown as Db
 
 export async function GET(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { searchParams } = new URL(req.url)
     const active = searchParams.get('active')
@@ -32,6 +36,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const body = await req.json()
     const inseeCode = String(body.insee_code ?? '').trim()

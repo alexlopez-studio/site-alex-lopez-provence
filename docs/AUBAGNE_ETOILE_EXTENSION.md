@@ -80,18 +80,18 @@ Résultats observés :
 
 | Secteur | Route potentielle | Angle | Pourquoi |
 | --- | --- | --- | --- |
-| Aubagne | `/marche/aubagne` | estimation maison / quartiers / accès collines | volume et intention vendeur, mais forte concurrence |
-| La Destrousse | `/marche/la-destrousse` | maison familiale / accès autoroute / calme | commune claire, marché maison, requêtes ciblées |
-| Roquevaire | `/marche/roquevaire` | maisons avec terrain / vallée / accès Aubagne | cohérent avec Pays d’Aubagne / Étoile |
-| Auriol | `/marche/auriol` | maison avec terrain / village / Sainte-Baume | bonne cohérence résidentielle |
+| Aubagne | `/immobilier/aubagne` | estimation maison / quartiers / accès collines | volume et intention vendeur, mais forte concurrence |
+| La Destrousse | `/immobilier/la-destrousse` | maison familiale / accès autoroute / calme | commune claire, marché maison, requêtes ciblées |
+| Roquevaire | `/immobilier/roquevaire` | maisons avec terrain / vallée / accès Aubagne | cohérent avec Pays d’Aubagne / Étoile |
+| Auriol | `/immobilier/auriol` | maison avec terrain / village / Sainte-Baume | bonne cohérence résidentielle |
 
 ### P2 — à réserver
 
 | Secteur | Route potentielle | Angle | Réserve |
 | --- | --- | --- | --- |
-| Marseille 11e | `/marche/marseille-11e` | maisons Est marseillais / anciens noyaux villageois | très concurrentiel, nécessite forte expertise locale |
-| Marseille 12e | `/marche/marseille-12e` | maisons / quartiers résidentiels / accès collines | fort potentiel mais risque de dilution |
-| La Treille | `/marche/la-treille` | maison, village, Pagnol, rareté | micro-zone plus intéressante qu’un arrondissement entier |
+| Marseille 11e | `/immobilier/marseille-11e` | maisons Est marseillais / anciens noyaux villageois | très concurrentiel, nécessite forte expertise locale |
+| Marseille 12e | `/immobilier/marseille-12e` | maisons / quartiers résidentiels / accès collines | fort potentiel mais risque de dilution |
+| La Treille | `/immobilier/la-treille` | maison, village, Pagnol, rareté | micro-zone plus intéressante qu’un arrondissement entier |
 | Les Camoins / Éoures | pages ou sections | maison, calme, collines | à traiter seulement si preuve / réseau local |
 
 ## Intentions SEO à suivre
@@ -153,7 +153,7 @@ Utiliser un wording plus crédible :
 
 ### Page hub éventuelle
 
-Route : `/marche/pays-aubagne-etoile`
+Route : `/immobilier/pays-aubagne-etoile`
 
 Rôle : cadrer l’extension sans la mettre au même niveau que Provence Verte.
 
@@ -169,10 +169,10 @@ Sections :
 
 Prioriser seulement si le tracking ou les opportunités justifient la production :
 
-1. `/marche/aubagne`
-2. `/marche/la-destrousse`
-3. `/marche/roquevaire`
-4. `/marche/auriol`
+1. `/immobilier/aubagne`
+2. `/immobilier/la-destrousse`
+3. `/immobilier/roquevaire`
+4. `/immobilier/auriol`
 
 Chaque page doit inclure :
 
@@ -198,7 +198,7 @@ Lancer une première page seulement si au moins une condition est remplie :
 
 ## Garde-fous SEO / marque
 
-- Ne pas modifier le H1 de la page `/marche` pour inclure Aubagne / Marseille Est.
+- Ne pas modifier le H1 de la page `/immobilier` pour inclure Aubagne / Marseille Est.
 - Ne pas mettre Aubagne au même niveau que Barjols / Cotignac / Lorgues dans le discours principal.
 - Ne pas ajouter toutes les communes au sitemap tant qu’elles ne sont pas enrichies.
 - Ne pas créer de pages locales pauvres uniquement pour indexation.
@@ -225,8 +225,8 @@ Pendant 30 à 60 jours :
 
 Si signal positif :
 
-- créer une page hub `/marche/pays-aubagne-etoile`, ou
-- créer directement `/marche/aubagne` si le signal est clairement sur Aubagne.
+- créer une page hub `/immobilier/pays-aubagne-etoile`, ou
+- créer directement `/immobilier/aubagne` si le signal est clairement sur Aubagne.
 
 ### Étape 4 — Extension contrôlée
 

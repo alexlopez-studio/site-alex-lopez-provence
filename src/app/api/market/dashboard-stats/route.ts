@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
@@ -6,6 +7,9 @@ import { supabaseAdmin } from '@/lib/supabase'
  * KPI réels du centre de contrôle Mandat OS (boucle mandat).
  */
 export async function GET() {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const countOf = async (build: () => PromiseLike<{ count: number | null }>) => {
       const { count } = await build()

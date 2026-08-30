@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import type { Json } from '@/types/supabase'
@@ -100,6 +101,9 @@ async function readRows(opportunityId: string) {
 }
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { id } = await params
     const rows = await readRows(id)
@@ -111,6 +115,9 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 }
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { id } = await params
     const body = await request.json()

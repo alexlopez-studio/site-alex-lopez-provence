@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { purgeMarketPropertiesByIds } from '@/lib/market/property-cleanup'
@@ -10,6 +11,9 @@ import { propertyThumbnailUrl } from '@/lib/market/property-thumbnail'
  * Retourne la liste des biens filtrée.
  */
 export async function GET(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { searchParams } = new URL(req.url)
     const zipcode = searchParams.get('zipcode')
@@ -158,6 +162,9 @@ export async function GET(req: NextRequest) {
  * Purge explicitement les biens dont le code postal n'est surveillé par aucune zone.
  */
 export async function DELETE(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { searchParams } = new URL(req.url)
     const scope = searchParams.get('scope')

@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 /**
  * GET /api/market/buyers — Liste tous les acheteurs (buyer_criteria)
  * POST /api/market/buyers — Crée un nouvel acheteur
@@ -50,6 +51,9 @@ function parseText(value: unknown): string | null {
 }
 
 export async function GET(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { searchParams } = new URL(req.url)
     const search = searchParams.get('search')?.trim()
@@ -97,6 +101,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const body = await req.json()
     const { type_bien, communes, budget_max, surface_min, pieces_min, criteres, active } = body

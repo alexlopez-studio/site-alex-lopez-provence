@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { fetchListings, StreamEstateRequestLimitError } from '@/lib/stream-estate'
@@ -194,6 +195,9 @@ async function getOrCreateZone({ zipcode, inseeCode, name, city }: ZoneLookup): 
  * Body : { zipcode: string, max_items?: number }
  */
 export async function POST(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const body = await req.json()
     const zipcode = body?.zipcode

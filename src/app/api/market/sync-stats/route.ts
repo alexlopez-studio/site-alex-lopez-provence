@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { getStreamEstateBudgetSnapshot } from '@/lib/stream-estate-budget'
@@ -50,6 +51,9 @@ async function fetchSyncRuns(): Promise<SyncRunStat[]> {
  * Agrège les statistiques de consommation Stream Estate et la fraîcheur par zone.
  */
 export async function GET() {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const now = new Date()
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()

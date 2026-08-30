@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import type { Database } from '@/types/supabase'
@@ -17,6 +18,9 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { id } = await params
 
@@ -59,6 +63,9 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { id } = await params
     const body = await req.json()
@@ -111,6 +118,9 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { id } = await params
 

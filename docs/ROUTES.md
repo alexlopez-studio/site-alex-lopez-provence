@@ -76,8 +76,8 @@ Routes historiques conservees en redirection/rewrite :
 
 | Route | Description |
 |-------|-------------|
-| `/marche` | Index des communes (liste + recherche) |
-| `/marche/[commune]` | Page SEO par commune (FAQ schema.org, maillage) |
+| `/immobilier` | Index des communes (liste + recherche) |
+| `/immobilier/[commune]` | Page SEO par commune (FAQ schema.org, maillage) |
 
 ### Blog
 

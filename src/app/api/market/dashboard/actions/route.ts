@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
@@ -5,6 +6,9 @@ const SOURCES = new Set(['opportunity', 'buyer', 'opportunity_event', 'client_ev
 const OPERATIONS = new Set(['complete', 'postpone'])
 
 export async function PATCH(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const body = await req.json()
     const actionId = parseText(body.action_id)

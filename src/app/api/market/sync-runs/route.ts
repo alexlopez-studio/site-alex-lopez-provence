@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
@@ -6,6 +7,9 @@ import { supabaseAdmin } from '@/lib/supabase'
  * Liste paginée des synchronisations avec info zone.
  */
 export async function GET(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { searchParams } = new URL(req.url)
     const page = Math.max(1, Number(searchParams.get('page')) || 1)

@@ -286,10 +286,8 @@ export function AppChrome({
   const isClientPortalArea = pathname.startsWith('/espace-client')
   const isGuideArea =
     pathname.startsWith('/guide-vendeur') ||
-    pathname.startsWith('/guide-organique') ||
-    pathname.startsWith('/vendre-organique') ||
     pathname.startsWith('/vendre-sans-agence') ||
-    pathname === '/guide'
+    pathname.startsWith('/vendez-pro')
 
   useEffect(function () {
     normalizeAdvisorName(document.body)

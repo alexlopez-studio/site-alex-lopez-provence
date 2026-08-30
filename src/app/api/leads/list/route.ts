@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
@@ -18,6 +19,9 @@ import { supabaseAdmin } from '@/lib/supabase'
  *   - sort_dir  : asc|desc (défaut: desc)
  */
 export async function GET(req: NextRequest): Promise<NextResponse> {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
     const { searchParams } = new URL(req.url)
     const statusFilter = searchParams.get('status')       // "nouveau,contacte"
     const toolFilter = searchParams.get('tool')           // "vendre,acheter"

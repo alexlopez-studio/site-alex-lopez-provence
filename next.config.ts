@@ -7,6 +7,13 @@ const nextConfig: NextConfig = {
   // output: 'export' intentionnellement absent — on a besoin des API routes et du ISR
   async redirects() {
     return [
+      // --- Consolidation SEO : une seule landing pour le guide vendeur ---
+      { source: '/guide', destination: '/vendre-sans-agence', permanent: true },
+      { source: '/guide-organique', destination: '/vendre-sans-agence', permanent: true },
+      { source: '/vendre-organique', destination: '/vendre-sans-agence', permanent: true },
+      // --- Migration des pages communes : /marche -> /immobilier ---
+      { source: '/marche', destination: '/immobilier', permanent: true },
+      { source: '/marche/:commune', destination: '/immobilier/:commune', permanent: true },
       {
         source: '/outils/vendre',
         destination: 'https://www.iadfrance.fr/conseiller-immobilier/alexandre.lopez/estimation',

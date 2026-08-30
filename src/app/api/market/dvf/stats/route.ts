@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { DVF_DATASET_API_URL, DVF_DATASET_URL } from '@/lib/dvf'
@@ -28,6 +29,9 @@ function round(value: number | null, digits = 0): number | null {
 }
 
 export async function GET(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { searchParams } = new URL(req.url)
     const inseeCode = searchParams.get('insee_code')?.trim()

@@ -82,6 +82,20 @@
   --color-sidebar-accent-foreground: #18181b;
   --color-sidebar-border:        #e4e4e7;
   --color-sidebar-ring:          #00b4ec;
+
+  /* ── Échelle typographique du concept vendeur ────────────────────────────
+     Ces valeurs viennent de src/components/concept/concept.css, où elles
+     étaient définies sous des noms Tailwind existants (leading-tight,
+     tracking-wider…) mais avec d'autres valeurs. La collision était contenue
+     par le scope `.concept-scope` ; en sortir aurait fait passer les ~213
+     usages du reste du site à des valeurs qu'ils n'attendent pas.
+
+     On les publie donc sous des noms propres, utilisables partout sans
+     toucher aux défauts Tailwind. */
+  --leading-display:     0.95;   /* titres hero, très serrés */
+  --tracking-display:    -0.02em;
+  --tracking-label:      0.05em;
+  --tracking-eyebrow:    0.2em;  /* surtitres en capitales */
 }
 
 .dark {

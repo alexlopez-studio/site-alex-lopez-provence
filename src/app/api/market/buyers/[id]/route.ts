@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 /**
  * GET /api/market/buyers/[id] — Détail d'un acheteur
  * PUT /api/market/buyers/[id] — Modifier un acheteur
@@ -38,6 +39,9 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { id } = await params
 
@@ -95,6 +99,9 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { id } = await params
     const body = await req.json()
@@ -203,6 +210,9 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { id } = await params
 

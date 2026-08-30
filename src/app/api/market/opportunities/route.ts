@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { createLead } from '@/lib/leads-repo'
@@ -182,6 +183,9 @@ function titleFromLead(snapshot: Awaited<ReturnType<typeof getLeadSnapshot>>) {
  * Liste les opportunités.
  */
 export async function GET(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { searchParams } = new URL(req.url)
     const stage = searchParams.get('stage')
@@ -266,6 +270,9 @@ export async function GET(req: NextRequest) {
  * Crée une nouvelle opportunité.
  */
 export async function POST(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const body = asRecord(await req.json())
 

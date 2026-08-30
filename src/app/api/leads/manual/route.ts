@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { createLead } from '@/lib/leads-repo'
@@ -26,6 +27,9 @@ const VALID_SOURCES = new Set([
 ])
 
 export async function POST(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const body = asRecord(await req.json())
     const sellerName = asText(body.seller_name) ?? asText(body.name)

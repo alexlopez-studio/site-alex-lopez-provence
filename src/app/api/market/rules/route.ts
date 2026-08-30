@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
@@ -6,6 +7,9 @@ import { supabaseAdmin } from '@/lib/supabase'
  * Liste toutes les règles de gestion.
  */
 export async function GET(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { searchParams } = new URL(req.url)
     const active = searchParams.get('active')
@@ -60,6 +64,9 @@ export async function GET(req: NextRequest) {
  * Crée une nouvelle règle de gestion.
  */
 export async function POST(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const body = await req.json()
 

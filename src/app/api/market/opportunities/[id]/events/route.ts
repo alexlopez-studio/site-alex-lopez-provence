@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import type { Database, OpportunityEventType } from '@/types/supabase'
@@ -38,6 +39,9 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { id } = await params
     const body = await req.json()

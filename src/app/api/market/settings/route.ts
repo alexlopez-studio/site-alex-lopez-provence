@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { setSetting } from '@/lib/settings'
@@ -8,6 +9,9 @@ import type { Json } from '@/types/supabase'
  * Retourne tous les paramètres sous forme d'objet { [key]: value }.
  */
 export async function GET() {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { data, error } = await supabaseAdmin
       .from('app_settings')
@@ -32,6 +36,9 @@ export async function GET() {
  * Met à jour un ou plusieurs paramètres : { "mandatfinder_pipeline_enabled": false }
  */
 export async function PATCH(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const body = await req.json()
 

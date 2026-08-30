@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { asRecord, asText } from '@/lib/leads-crm'
@@ -18,6 +19,9 @@ function formatTitle(lead: {
 }
 
 export async function POST(_req: Request, context: RouteContext) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { id } = await context.params
 

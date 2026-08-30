@@ -334,7 +334,7 @@ export default function GuideViewer() {
           {/* Boutons d'Action (Landing Page / Imprimer / Partager) */}
           <div className="flex items-center gap-2">
             <Link
-              href="/guide"
+              href="/vendre-sans-agence"
               className="inline-flex items-center gap-1.5 rounded-full border border-[#0077B6]/30 bg-[#E0F0FA] px-3.5 py-1.5 text-xs font-bold text-[#0077B6] hover:bg-[#0077B6] hover:text-white transition-all shadow-xs"
             >
               <Sparkles className="h-3.5 w-3.5" />

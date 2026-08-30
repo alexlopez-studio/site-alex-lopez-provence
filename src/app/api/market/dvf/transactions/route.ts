@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
@@ -7,6 +8,9 @@ const db = supabaseAdmin as unknown as Db
 const VALID_SORT_FIELDS = new Set(['mutation_date', 'value', 'price_per_m2', 'built_surface', 'land_surface'])
 
 export async function GET(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { searchParams } = new URL(req.url)
     const inseeCode = searchParams.get('insee_code')?.trim()

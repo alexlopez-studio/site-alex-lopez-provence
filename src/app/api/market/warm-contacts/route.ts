@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import type { Database, WarmContactStatus } from '@/types/supabase'
@@ -11,6 +12,9 @@ const VALID_STATUS: WarmContactStatus[] = ['a_contacter', 'contacte', 'relance',
  * Liste les contacts de la Liste Chaude (filtres : status, search).
  */
 export async function GET(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { searchParams } = new URL(req.url)
     const status = searchParams.get('status')
@@ -57,6 +61,9 @@ export async function GET(req: NextRequest) {
  * Crée un contact.
  */
 export async function POST(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const body = await req.json()
 

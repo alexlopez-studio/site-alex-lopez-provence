@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
@@ -7,6 +8,9 @@ import { supabaseAdmin } from '@/lib/supabase'
  * leads téléchargés (créés), leads mis à jour, items facturés, coût estimé.
  */
 export async function GET(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const days = Math.min(90, Math.max(1, Number(new URL(req.url).searchParams.get('days')) || 14))
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()

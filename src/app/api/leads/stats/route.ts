@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
@@ -16,6 +17,9 @@ import { supabaseAdmin } from '@/lib/supabase'
  *   - ceMois       : leads créés ce mois
  */
 export async function GET(_req: NextRequest): Promise<NextResponse> {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
     try {
         const now = new Date()
         const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()

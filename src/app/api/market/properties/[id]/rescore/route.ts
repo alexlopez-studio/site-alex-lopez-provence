@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { rescoreAndPersist } from '@/lib/market/mandate-score-persist'
 import { supabaseAdmin } from '@/lib/supabase'
@@ -12,6 +13,9 @@ export async function POST(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   const { id } = await params
   await rescoreAndPersist(id)
 

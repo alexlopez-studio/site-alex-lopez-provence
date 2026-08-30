@@ -31,7 +31,7 @@ Les événements client sont envoyés via `gtag` si `NEXT_PUBLIC_GA_MEASUREMENT_
 | `contact_click` | clic vers `/contact` | `source_path`, `target_path`, `cta_label` |
 | `phone_click` | clic téléphone | `source_path`, `cta_label` |
 | `appointment_click` | clic vers Cal.com | `source_path`, `cta_label` |
-| `local_page_click` | clic vers une page `/marche/[commune]` | `source_path`, `target_path`, `cta_label` |
+| `local_page_click` | clic vers une page `/immobilier/[commune]` | `source_path`, `target_path`, `cta_label` |
 
 ## Événements serveur
 
@@ -56,8 +56,8 @@ Les logs serveur ne contiennent pas d’email, de téléphone, de nom, d’adres
 
 ### Conversion
 
-- clics depuis `/marche/[commune]` vers `/avis-de-valeur-immobilier` ;
-- clics depuis `/marche/[commune]` vers `/outils/vendre` ;
+- clics depuis `/immobilier/[commune]` vers `/avis-de-valeur-immobilier` ;
+- clics depuis `/immobilier/[commune]` vers `/outils/vendre` ;
 - clics depuis `/avis-de-valeur-immobilier` vers `/outils/vendre` ;
 - soumissions `lead_submit` ;
 - appels / rendez-vous si tracking activé.

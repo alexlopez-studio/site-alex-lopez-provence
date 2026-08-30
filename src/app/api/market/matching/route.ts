@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 /**
  * GET /api/market/matching — Récupère les résultats de matching
  * POST /api/market/matching — Exécute le matching pour un acheteur ou un bien
@@ -22,6 +23,9 @@ import { runMatchingForBuyer, runMatchingForProperty } from '@/lib/market/matchi
  * GET /api/market/matching
  */
 export async function GET(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { searchParams } = new URL(req.url)
     const buyerLeadId = searchParams.get('buyer_lead_id')
@@ -69,6 +73,9 @@ export async function GET(req: NextRequest) {
  * Exécute un matching (pour un acheteur ou pour un bien)
  */
 export async function POST(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const body = await req.json()
     const { buyer_lead_id, property_id, source } = body

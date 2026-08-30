@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
@@ -19,6 +20,9 @@ function isComparableType(a: unknown, b: unknown) {
 }
 
 export async function GET(_req: Request, context: RouteContext) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { id } = await context.params
     const { data: lead, error: leadError } = await supabaseAdmin

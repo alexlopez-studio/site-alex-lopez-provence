@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 /**
  * GET /api/market/matching/buyers
  * Retourne la liste des acheteurs (buyer_criteria) actifs
@@ -7,6 +8,9 @@ import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
 export async function GET() {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { data: buyers, error } = await supabaseAdmin
       .from('buyer_criteria')

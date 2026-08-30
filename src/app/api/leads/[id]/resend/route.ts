@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 /**
  * POST /api/leads/[id]/resend — Renvoie le magic link email au prospect
  */
@@ -18,6 +19,9 @@ export async function POST(
     _req: NextRequest,
     context: RouteContext,
 ): Promise<NextResponse> {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
     const { id } = await context.params
 
     // Récupérer le lead avec le prospect

@@ -3,14 +3,14 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, MapPin } from 'lucide-react'
 import { env } from '@/lib/env'
+import { TERRITORY_COMMUNES } from '@/data/local-pages'
 
 export const metadata: Metadata = {
   title: 'Zone d’intervention — Provence Verte & Verdon',
   description: 'Alexandre Lopez accompagne vos projets immobiliers en Provence Verte & Verdon, de Brignoles aux portes du Verdon.',
-  alternates: { canonical: (env.app.siteUrl || 'https://alexandrelopez.fr') + '/marche' },
+  alternates: { canonical: (env.app.siteUrl || 'https://alexandrelopez.fr') + '/immobilier' },
 }
 
-const COMMUNES = ['Brignoles', 'Saint-Maximin', 'Barjols', 'Cotignac', 'Aups', 'Salernes', 'Vinon-sur-Verdon', 'Rians', 'Le Val', 'Carcès', 'Montmeyan', 'Fox-Amphoux', 'Tourtour', 'Sillans-la-Cascade', 'Villecroze', 'Tavernes']
 
 export default function MarchePage() {
   return (
@@ -31,9 +31,8 @@ export default function MarchePage() {
             <p className="max-w-md text-sm leading-relaxed text-muted">Ces pages locales seront enrichies progressivement avec des repères de marché et des conseils adaptés à chaque commune.</p>
           </div>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-            {COMMUNES.map(function (commune) {
-              const slug = commune.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-')
-              return <Link key={commune} href={'/marche/' + slug} className="rounded-2xl bg-[#f4f7f8] p-5 text-sm font-semibold text-foreground transition-all hover:-translate-y-1 hover:text-brand hover:shadow-md">{commune}</Link>
+            {TERRITORY_COMMUNES.map(function (commune) {
+              return <Link key={commune.slug} href={'/immobilier/' + commune.slug} className="rounded-2xl bg-[#f4f7f8] p-5 text-sm font-semibold text-foreground transition-all hover:-translate-y-1 hover:text-brand hover:shadow-md">{commune.name}</Link>
             })}
           </div>
           <div className="mt-12 text-center"><Link href="/outils" className="inline-flex items-center gap-2 rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-hover">Préparer mon projet <ArrowRight size={16} /></Link></div>

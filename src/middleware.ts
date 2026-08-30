@@ -33,8 +33,13 @@ export async function middleware(req: NextRequest) {
   return response
 }
 
-// Middleware désactivé temporairement — matcher vide = aucune route interceptée
-// Pour réactiver : remettre ['/admin/:path*', '/dashboard/:path*', '/app/:path*']
+// Réactivé le 29/08/2026. Il avait été neutralisé (matcher vide) le 17/06 dans
+// 98d6df9, ce qui laissait /admin, /dashboard et /app accessibles sans session.
+//
+// Attention : le matcher ne couvre PAS /api/*. Les routes API qui utilisent le
+// client service-role (supabaseAdmin) court-circuitent les RLS et restent donc
+// ouvertes tant qu'elles ne portent pas leur propre garde — voir
+// src/lib/market/client-admin.ts.
 export const config = {
-  matcher: [],
+  matcher: ['/admin/:path*', '/dashboard/:path*', '/app/:path*'],
 }

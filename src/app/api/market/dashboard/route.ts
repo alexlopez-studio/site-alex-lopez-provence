@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import type { Database } from '@/types/supabase'
@@ -75,6 +76,9 @@ const SELLER_CLOSED_STAGES = new Set(['Mandat signé', 'Perdu / Écarté'])
 const BUYER_CLOSED_STAGES = new Set(['Achat conclu', 'Pause / Perdu'])
 
 export async function GET() {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const [
       opportunitiesResult,

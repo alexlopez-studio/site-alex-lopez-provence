@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import type { Database } from '@/types/supabase'
@@ -9,6 +10,9 @@ type NotificationsUpdate = Database['public']['Tables']['notifications']['Update
  * Liste les notifications, triées par date de création décroissante.
  */
 export async function GET(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { searchParams } = new URL(req.url)
     const status = searchParams.get('status')
@@ -57,6 +61,9 @@ export async function GET(req: NextRequest) {
  * Body : { ids: string[], status: string }
  */
 export async function PATCH(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const body = await req.json()
     const status = body.status

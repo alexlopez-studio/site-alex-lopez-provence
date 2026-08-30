@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 /**
  * POST /api/market/matching/migrate
  * Exécute la migration 004 pour créer les tables de matching
@@ -102,6 +103,9 @@ ALTER TABLE match_results ENABLE ROW LEVEL SECURITY;
 `
 
 export async function POST() {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const { error } = await supabaseAdmin.rpc('exec_sql' as never, { sql_text: MIGRATION_SQL } as never)
 

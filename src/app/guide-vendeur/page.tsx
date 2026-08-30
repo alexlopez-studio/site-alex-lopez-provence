@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   description:
     'Le guide complet en 41 pages pour valoriser, sécuriser et réussir la vente de votre bien immobilier entre particuliers en Provence. Format imprimable A4 et conseils d’expert.',
   alternates: { canonical: '/guide-vendeur' },
+  // Lecteur du guide (contenu post-conversion) : hors index pour ne pas
+  // concurrencer sa propre landing /vendre-sans-agence.
+  robots: { index: false, follow: true },
   openGraph: {
     title: 'Guide du Vendeur Particulier — Alexandre Lopez',
     description:

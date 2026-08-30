@@ -1,3 +1,4 @@
+import { rejectIfNoAdmin } from '@/lib/market/client-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { parseImport, normalizePhone, type ParsedContact } from '@/lib/warm-list/parse'
@@ -14,6 +15,9 @@ type WarmContactInsert = Database['public']['Tables']['warm_contacts']['Insert']
  * contacts avec source = 'vcard' | 'csv'.
  */
 export async function POST(req: NextRequest) {
+  const denied = await rejectIfNoAdmin()
+  if (denied) return denied
+
   try {
     const body = await req.json()
     const filename: string = typeof body.filename === 'string' ? body.filename : 'import'
