@@ -1,0 +1,410 @@
+/*
+ * Design system du site public — refonte 2026-09, §13.
+ *
+ * Valeurs reprises de `src/components/concept/concept.css`, page gelée. Si
+ * `/vendez-pro` devait un jour évoluer, unifier les deux à ce moment-là — pas
+ * avant. La duplication est assumée : la page étalon n'évolue pas, il n'y a
+ * donc pas de dérive possible.
+ *
+ * Ce module est destiné aux PAGES NOUVELLES uniquement : home dérivée, pages
+ * communes, landing du guide, articles. `concept.css` reste inchangé, octet
+ * pour octet, et n'importe rien d'ici.
+ *
+ * Tout est scopé sous `.site-scope`, comme `concept.css` l'est sous
+ * `.concept-scope`. Deux raisons : ne pas entrer en collision avec les tokens
+ * shadcn/Tailwind de `globals.css` (`--card`, `--muted`, `--radius`…) que
+ * consomme Mandat OS, et rendre l'adhésion explicite — une page entre dans le
+ * design system en s'enveloppant dans la classe, jamais par accident.
+ *
+ * Référence : docs/refonte/DESIGN_VENDEZ_PRO.md §2 (tokens) et §7.2 (règle de
+ * déclinaison).
+ */
+
+.site-scope {
+  /* — Couleurs (§2.1) ————————————————————————————————— */
+  --background: #ffffff;
+  --foreground: #000000;
+  --brand: #00b4ec;
+  --brand-deep: #006390;
+  --brand-light: #25cfff;
+  --corail: #ea584a;
+  --surface: #f4f4f5;
+  --surface-card: #ffffff;
+  --ink: #000000;
+  --ink-soft: #717784;
+  --ghost: #d1d5db;
+  --hairline: #e5e7eb;
+  --on-brand: #ffffff;
+
+  /* — Rayons (§2.3) ——————————————————————————————————— */
+  --radius-card: 1.5rem;
+  --radius-card-lg: 2rem;
+  --radius-field: 0.75rem;
+  --radius-pill: 62.5rem;
+
+  /* — Rythme des sections (§7.2) —————————————————————— */
+  --section-gap: 0.75rem;
+  --section-pad-y: 5rem;
+  --section-pad-x: 1.5rem;
+  --section-pad-x-lg: 2.5rem;
+
+  /* — Courbes et durées (§2.3) ———————————————————————— */
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-base: 0.3s;
+
+  font-family: var(--font-montserrat, "Montserrat", system-ui, sans-serif);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+}
+
+.site-scope *,
+.site-scope *::before,
+.site-scope *::after {
+  box-sizing: border-box;
+}
+
+/*
+ * Deux graisses seulement (§2.2) : 500 partout, 800 réservé à la gélule.
+ * Tout ce qui est grand est serré ; tout ce qui est petit est en majuscules
+ * et très espacé.
+ */
+.site-scope :where(h1, h2, h3, h4, p, li, a, button, span) {
+  font-weight: 500;
+}
+
+.site-title {
+  font-size: clamp(2.25rem, 5vw, 3rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.site-title-hero {
+  font-size: clamp(2.25rem, 7.5vw, 6.2rem);
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.site-body {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* — Section : bande arrondie, l'un des trois fonds (§7.2) ——————————— */
+
+.site-section {
+  border-radius: var(--radius-card-lg);
+  margin-top: var(--section-gap);
+  padding: var(--section-pad-y) var(--section-pad-x);
+}
+@media (min-width: 640px) {
+  .site-section {
+    padding-left: var(--section-pad-x-lg);
+    padding-right: var(--section-pad-x-lg);
+  }
+}
+.site-section.deep {
+  background: var(--brand-deep);
+  color: #fff;
+}
+.site-section.surface {
+  background: var(--surface);
+  color: var(--ink);
+}
+.site-section.light {
+  background: var(--background);
+  color: var(--ink);
+}
+.site-section-inner {
+  max-width: 80rem;
+  margin: 0 auto;
+}
+
+/* — Eyebrow (§3.1) ——————————————————————————————————————— */
+
+.site-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  line-height: 1;
+}
+.site-eyebrow .dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: var(--radius-pill);
+}
+.site-eyebrow.dark { color: var(--ink-soft); }
+.site-eyebrow.dark .dot { background: var(--brand); }
+.site-eyebrow.light { color: rgba(255, 255, 255, 0.7); }
+.site-eyebrow.light .dot { background: var(--brand-light); }
+
+/* — Bouton pilule (§3.2) ————————————————————————————————— */
+
+.site-btn-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: var(--radius-pill);
+  padding: 0.875rem 1.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: background var(--duration-base), color var(--duration-base), transform 0.2s;
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+}
+.site-btn-pill.light {
+  background: #fff;
+  color: var(--brand-deep);
+}
+.site-btn-pill.solid {
+  background: var(--brand);
+  color: #fff;
+}
+@media (hover: hover) {
+  .site-btn-pill.light:hover {
+    background: var(--brand-light);
+    color: #fff;
+  }
+  .site-btn-pill.solid:hover { background: var(--brand-deep); }
+}
+.site-btn-pill svg {
+  width: 1rem;
+  height: 1rem;
+  transition: transform var(--duration-base);
+}
+@media (hover: hover) {
+  .site-btn-pill:hover svg { transform: translateX(0.25rem); }
+}
+
+/* — Gélule corail (§3.3) : seule occurrence de la graisse 800 ————— */
+
+.site-gelule {
+  background: var(--corail);
+  color: #fff;
+  font-weight: 800;
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: normal;
+  border-radius: var(--radius-pill);
+  padding: 1rem 2.25rem;
+  font-size: 1.25rem;
+  box-shadow: 0 15px 30px -5px rgba(234, 88, 74, 0.4);
+  transition: transform var(--duration-base) var(--ease-bounce), box-shadow var(--duration-base);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+}
+@media (hover: hover) {
+  .site-gelule:hover {
+    transform: scale(1.05);
+    box-shadow: 0 20px 40px -5px rgba(234, 88, 74, 0.6);
+  }
+}
+
+/* — Bouton fléché circulaire (§3.4) ——————————————————————— */
+
+.site-btn-arrow {
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-pill);
+  width: 3rem;
+  height: 3rem;
+  border: none;
+  cursor: pointer;
+}
+@media (min-width: 640px) {
+  .site-btn-arrow { width: 3.5rem; height: 3.5rem; }
+}
+.site-btn-arrow.outline {
+  border: 1px solid var(--hairline);
+  color: var(--ink);
+  background: transparent;
+  transition: border-color var(--duration-base);
+}
+.site-btn-arrow.solid {
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  color: #fff;
+  transition: background var(--duration-base);
+}
+@media (hover: hover) {
+  .site-btn-arrow.outline:hover { border-color: var(--ink); }
+  .site-btn-arrow.solid:hover { background: var(--brand-deep); }
+}
+
+/* — Carte en verre (§3.5) ———————————————————————————————— */
+
+.site-glass-card {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: var(--radius-card);
+}
+/* Variante posée sur fond clair : le verre blanc y serait invisible. */
+.site-glass-card.dark {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(17, 24, 39, 0.6);
+  color: #fff;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* — Grille de statistiques (§4, section 6) ——————————————— */
+
+.site-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem 2rem;
+  margin-top: 4rem;
+  padding: 0;
+  list-style: none;
+}
+@media (min-width: 1024px) {
+  .site-stats-grid { grid-template-columns: repeat(4, 1fr); }
+}
+.site-stat-value {
+  font-size: 3rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+@media (min-width: 640px) {
+  .site-stat-value { font-size: 3.75rem; }
+}
+.site-stat-label {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+}
+.site-stats-grid.light .site-stat-label { color: rgba(255, 255, 255, 0.7); }
+.site-stats-grid.dark .site-stat-label { color: var(--ink-soft); }
+
+/* — Grille et carte de témoignage (§4, section 7) ————————— */
+
+.site-card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+  margin-top: 3.5rem;
+  padding: 0;
+  list-style: none;
+}
+@media (min-width: 768px) {
+  .site-card-grid { grid-template-columns: repeat(3, 1fr); }
+}
+.site-testimonial-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  border-radius: var(--radius-card);
+  padding: 1.75rem;
+  transition: transform var(--duration-base);
+}
+.site-testimonial-card.dark {
+  background: var(--surface);
+  color: var(--ink);
+}
+.site-testimonial-card.light {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+@media (hover: hover) {
+  .site-testimonial-card:hover { transform: translateY(-0.5rem); }
+}
+.site-testimonial-mark {
+  font-size: 3rem;
+  line-height: 1;
+  color: var(--brand-light);
+}
+.site-testimonial-author {
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  font-size: 0.875rem;
+}
+.site-testimonial-card.dark .site-testimonial-author { border-top: 1px solid var(--hairline); }
+.site-testimonial-card.light .site-testimonial-author { border-top: 1px solid rgba(255, 255, 255, 0.15); }
+.site-testimonial-role { color: var(--ink-soft); }
+.site-testimonial-card.light .site-testimonial-role { color: rgba(255, 255, 255, 0.6); }
+
+/* — Ligne de programme (§4, section 4) ———————————————————— */
+
+.site-program-row {
+  border-top: 1px solid var(--hairline);
+  padding: 1.75rem 0;
+  transition: background var(--duration-base);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  text-decoration: none;
+  color: inherit;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+}
+.site-program-row:last-child { border-bottom: 1px solid var(--hairline); }
+.site-program-index {
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+  letter-spacing: 0.05em;
+}
+.site-program-body { flex: 1; }
+.site-program-arrow {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--hairline);
+  display: grid;
+  place-items: center;
+  color: var(--ink);
+  transition: transform var(--duration-base), opacity var(--duration-base);
+  flex-shrink: 0;
+}
+@media (hover: hover) {
+  .site-program-row:hover { background: rgba(255, 255, 255, 0.6); }
+  .site-program-row:hover .site-program-arrow { transform: translateX(0.25rem); }
+}
+.site-program-row.light { border-top-color: rgba(255, 255, 255, 0.15); }
+.site-program-row.light:last-child { border-bottom-color: rgba(255, 255, 255, 0.15); }
+.site-program-row.light .site-program-index { color: rgba(255, 255, 255, 0.7); }
+.site-program-row.light .site-program-arrow {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+@media (hover: hover) {
+  .site-program-row.light:hover { background: rgba(255, 255, 255, 0.08); }
+}
+
+/* — Bandeau d'appel à l'action de pied de page (§4, section 8) ————— */
+
+.site-footer-cta {
+  padding-bottom: 3.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+@media (min-width: 640px) {
+  .site-footer-cta {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+}
+.site-footer-cta.light { border-bottom: 1px solid rgba(255, 255, 255, 0.15); }
+.site-footer-cta.dark { border-bottom: 1px solid var(--hairline); }
