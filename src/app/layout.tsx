@@ -57,18 +57,23 @@ const buffalo = Allura({
 })
 
 export const metadata: Metadata = {
+  // Vocabulaire du site fixe par docs/REFONTE_2026-09.md §3 : « agent immobilier »
+  // et « estimation ». Le titre est une surface de recherche, il nomme donc la
+  // requete du visiteur ; la description dit ce qu'Alexandre fait plutot que de
+  // se designer. Ciblage « Provence & Côte d'Azur », adosse aux secteurs nommes.
+  // L'estimation n'apparait pas en appel a l'action (§4) : la sortie est le guide.
   title: {
-    template: '%s | Alexandre Lopez — Conseiller en immobilier iad',
-    default: 'Alexandre Lopez — Conseiller en immobilier iad · Provence Verte & Verdon',
+    template: '%s | Alexandre Lopez',
+    default: 'Alexandre Lopez — Agent immobilier en Provence & Côte d’Azur',
   },
   description:
-    'Conseiller en immobilier iad en Provence Verte et Verdon. Avis de valeur de votre bien offert, vente et achat dans le Var. Contactez-moi au 06 13 18 01 68.',
+    'Je vends des maisons en Provence et sur la Côte d’Azur — Haut-Var, Provence Verte, pays d’Aix, littoral varois. Le guide pour vendre sans agence est gratuit.',
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? 'https://alexandrelopez.fr'
   ),
   openGraph: {
     type: 'website',
-    siteName: 'Alexandre Lopez — Conseiller en immobilier iad · Provence Verte & Verdon',
+    siteName: 'Alexandre Lopez — Immobilier en Provence & Côte d’Azur',
   },
   robots: { index: true, follow: true },
 }
