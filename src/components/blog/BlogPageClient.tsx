@@ -169,7 +169,7 @@ export default function BlogPageClient({ posts }: { posts: BlogPost[] }) {
       </section>
 
       <section className="bg-[#f4f7f8] px-6 py-20">
-        <div className="mx-auto max-w-7xl"><div className="mx-auto max-w-[760px] rounded-[2rem] bg-gradient-to-br from-brand to-brand-hover p-10 text-center text-white shadow-xl md:p-14"><h2 className="mb-4 text-[clamp(30px,4vw,48px)] font-bold tracking-[-0.04em]">Un projet immobilier en Provence Verte & Verdon ?</h2><p className="mx-auto mb-10 max-w-[520px] text-[16px] leading-[1.7] text-white/85">Utilisez les outils ou contactez-moi pour obtenir un premier repère personnalisé.</p><div className="flex flex-wrap justify-center gap-4"><Button asChild variant="primary" size="lg"><Link href="/outils">Utiliser les outils</Link></Button><Button asChild variant="outline" size="lg"><Link href="/contact">Me contacter</Link></Button></div></div></div>
+        <div className="mx-auto max-w-7xl"><div className="mx-auto max-w-[760px] rounded-[2rem] bg-gradient-to-br from-brand to-brand-hover p-10 text-center text-white shadow-xl md:p-14"><h2 className="mb-4 text-[clamp(30px,4vw,48px)] font-bold tracking-[-0.04em]">Un projet immobilier en Provence Verte & Verdon ?</h2><p className="mx-auto mb-10 max-w-[520px] text-[16px] leading-[1.7] text-white/85">Utilisez les outils ou contactez-moi pour obtenir un premier repère personnalisé.</p><div className="flex flex-wrap justify-center gap-4"><Button asChild variant="primary" size="lg"><Link href="/vendre-sans-agence">Télécharger le guide</Link></Button></div></div></div>
       </section>
     </>
   )

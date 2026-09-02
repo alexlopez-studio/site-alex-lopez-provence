@@ -19,6 +19,12 @@ Flux attendu :
 - pousser vers `origin/preview` uniquement apres verification et demande explicite ;
 - laisser les sujets design/UX purs a Codex quand ils ne sont pas necessaires a la fonctionnalite.
 
+Refonte du site public (septembre 2026) :
+
+- `docs/REFONTE_2026-09.md` : perimetre, suppressions, ordre des travaux. Source unique.
+- `docs/refonte/DESIGN_VENDEZ_PRO.md` : reference design unique du site public.
+- `docs/refonte/PLAN_DU_SITE.md` : le plan du site valide.
+
 Lire aussi :
 
 - `docs/WORKFLOW_BRANCHES.md`

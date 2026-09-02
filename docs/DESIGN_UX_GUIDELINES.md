@@ -1,5 +1,21 @@
 # Consignes design & UX — Codex
 
+> ## ⚠️ PRIORITÉ — mise à jour du 2 septembre 2026
+>
+> **Pour le SITE PUBLIC, la référence unique est `docs/refonte/DESIGN_VENDEZ_PRO.md`.**
+> La page `/vendez-pro` est gelée telle quelle et sert d'étalon. On n'y ajoute rien, on n'en retire
+> rien, et **aucun élément de la charte iad n'est importé dans le site**.
+>
+> `docs/BRAND.md` ne s'applique plus au site : il reste la référence pour les supports iad —
+> rapports d'estimation, flyers, réseaux sociaux, Canva.
+>
+> Les règles ci-dessous qui contredisent ce cadre sont **caduques pour le site public** :
+> « palette claire sans section sombre » (le site alterne trois fonds dont un bleu profond),
+> « CTA final en `bg-brand-light` », et les consignes de vocabulaire (voir
+> `docs/REFONTE_2026-09.md` §3 : le site dit « agent immobilier » et « estimation »).
+>
+> Elles restent valables pour l'admin Mandat OS et l'espace client.
+
 ## Role
 
 Codex agit comme designer produit et ingenieur front-end. Son objectif est de rendre le logiciel clair, rapide a comprendre, agreable a utiliser et coherent avec le positionnement premium d'Alex Lopez Provence.

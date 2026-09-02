@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight, BarChart3, CheckCircle2, Globe2, Home, Languages, MapPin, ShieldCheck } from 'lucide-react'
-import { env, ESTIMATION_URL } from '@/lib/env'
+import { env } from '@/lib/env'
 
 import { notFound } from 'next/navigation'
 
@@ -25,8 +25,7 @@ function buildJsonLd(page: LocalPage) {
         '@type': 'BreadcrumbList',
         itemListElement: [
           { '@type': 'ListItem', position: 1, name: 'Accueil', item: siteUrl },
-          { '@type': 'ListItem', position: 2, name: 'Marché immobilier', item: siteUrl + '/immobilier' },
-          { '@type': 'ListItem', position: 3, name: page.name, item: url },
+          { '@type': 'ListItem', position: 2, name: page.name, item: url },
         ],
       },
       {
@@ -95,8 +94,8 @@ export default async function CommunePage({ params }: PageProps) {
             <h1 className="text-4xl font-bold leading-tight tracking-[-0.05em] text-foreground md:text-6xl lg:text-7xl">Immobilier à {page.name}</h1>
             <p className="mx-auto mt-6 max-w-3xl text-lg leading-relaxed text-muted">{page.intro}</p>
             <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
-              <Link href="/avis-de-valeur-immobilier" className="inline-flex items-center justify-center gap-2 rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-hover">Demander un avis de valeur <ArrowRight size={16} /></Link>
-              <Link href={ESTIMATION_URL} className="inline-flex items-center justify-center rounded-full border-2 border-brand px-6 py-3 text-sm font-semibold text-brand transition-colors hover:bg-brand hover:text-white">Estimer mon bien</Link>
+              <Link href="/vendre-sans-agence" className="inline-flex items-center justify-center gap-2 rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-hover">Télécharger le guide <ArrowRight size={16} /></Link>
+              <Link href="/vendre-sans-agence" className="inline-flex items-center justify-center rounded-full border-2 border-brand px-6 py-3 text-sm font-semibold text-brand transition-colors hover:bg-brand hover:text-white">Télécharger le guide</Link>
             </div>
           </div>
         </section>
@@ -153,8 +152,8 @@ export default async function CommunePage({ params }: PageProps) {
               <h2 className="text-3xl font-bold leading-tight tracking-[-0.04em] text-foreground md:text-5xl">Obtenir une estimation fiable à {page.name}.</h2>
               <p className="mt-6 text-lg leading-relaxed text-muted">Un avis de valeur doit expliquer la fourchette, pas seulement donner un chiffre. Je croise les ventes comparables, les caractéristiques du bien, les points forts, les points de vigilance et votre calendrier de vente.</p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Link href="/avis-de-valeur-immobilier" className="inline-flex items-center justify-center gap-2 rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-hover">Comprendre l’avis de valeur <ArrowRight size={16} /></Link>
-                <Link href="/contact" className="inline-flex items-center justify-center rounded-full border-2 border-brand px-6 py-3 text-sm font-semibold text-brand transition-colors hover:bg-brand hover:text-white">Me contacter</Link>
+                <Link href="/vendre-sans-agence" className="inline-flex items-center justify-center gap-2 rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-hover">Télécharger le guide <ArrowRight size={16} /></Link>
+                <Link href="/vendre-sans-agence" className="inline-flex items-center justify-center rounded-full border-2 border-brand px-6 py-3 text-sm font-semibold text-brand transition-colors hover:bg-brand hover:text-white">Télécharger le guide</Link>
               </div>
             </div>
             <div className="rounded-[2rem] bg-[#f4f7f8] p-8 shadow-sm">
@@ -186,8 +185,8 @@ export default async function CommunePage({ params }: PageProps) {
             <h2 className="text-3xl font-bold leading-tight tracking-[-0.04em] md:text-5xl">Vous vendez à {page.name} ? Commencez par un avis de valeur clair.</h2>
             <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-white/88">L’objectif : fixer une stratégie réaliste, comprendre les comparables et éviter les erreurs de prix avant la mise en vente.</p>
             <div className="mt-9 flex flex-col justify-center gap-4 sm:flex-row">
-              <Link href={ESTIMATION_URL} className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-4 text-sm font-bold text-brand transition-colors hover:bg-[#f4f7f8]">Estimer mon bien <ArrowRight size={16} /></Link>
-              <Link href="/avis-de-valeur-immobilier" className="inline-flex items-center justify-center rounded-full border-2 border-white px-8 py-4 text-sm font-bold text-white transition-colors hover:bg-white hover:text-brand">Voir la méthode</Link>
+              <Link href="/vendre-sans-agence" className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-4 text-sm font-bold text-brand transition-colors hover:bg-[#f4f7f8]">Télécharger le guide <ArrowRight size={16} /></Link>
+              <Link href="/vendre-sans-agence" className="inline-flex items-center justify-center rounded-full border-2 border-white px-8 py-4 text-sm font-bold text-white transition-colors hover:bg-white hover:text-brand">Télécharger le guide</Link>
             </div>
           </div>
         </section>
@@ -234,8 +233,8 @@ async function GenericCommunePage({ commune }: { commune: string }) {
           <h1 className="text-4xl font-bold leading-tight tracking-[-0.05em] text-foreground md:text-6xl lg:text-7xl">Immobilier à {label}</h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted">Cette page locale sera enrichie progressivement. En attendant, vous pouvez demander un premier avis de valeur pour préparer votre projet de vente à {label}.</p>
           <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
-            <Link href="/avis-de-valeur-immobilier" className="inline-flex items-center justify-center gap-2 rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-hover">Demander un avis de valeur <ArrowRight size={16} /></Link>
-            <Link href="/contact" className="inline-flex items-center justify-center rounded-full border-2 border-brand px-6 py-3 text-sm font-semibold text-brand transition-colors hover:bg-brand hover:text-white">Me contacter</Link>
+            <Link href="/vendre-sans-agence" className="inline-flex items-center justify-center gap-2 rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-hover">Télécharger le guide <ArrowRight size={16} /></Link>
+            <Link href="/vendre-sans-agence" className="inline-flex items-center justify-center rounded-full border-2 border-brand px-6 py-3 text-sm font-semibold text-brand transition-colors hover:bg-brand hover:text-white">Télécharger le guide</Link>
           </div>
         </div>
       </section>

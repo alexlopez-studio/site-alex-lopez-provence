@@ -5,22 +5,19 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ESTIMATION_URL } from '@/lib/env'
 import { LocaleSwitcher } from './LocaleSwitcher'
 
 export function Header() {
   const t = useTranslations('header')
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
-  const estimationUrl = ESTIMATION_URL
 
+  // Refonte 2026-09 : le site public tient en 6 pages. /vendre, /acheter,
+  // /audit et /a-propos sont supprimees et redirigees. /guide-vendeur n'est pas
+  // liee ici : c'est la livraison du guide, elle s'atteint par l'email envoye
+  // apres le formulaire, pas depuis la navigation.
   const NAV_LINKS = [
-    { label: t('navSell'), href: '/vendre' },
-    { label: t('navBuy'), href: '/acheter' },
-    { label: t('navGuide'), href: '/guide-vendeur' },
-    { label: t('navAudit'), href: '/audit' },
     { label: t('navBlog'), href: '/blog' },
-    { label: t('navApproach'), href: '/a-propos' },
   ]
 
   useEffect(function () {
@@ -66,8 +63,8 @@ export function Header() {
         <div className="hidden lg:flex items-center gap-4 shrink-0">
           <LocaleSwitcher />
           <Button asChild size="sm" variant="primary">
-            <Link href={estimationUrl}>
-              {t('ctaEstimate')}
+            <Link href="/vendre-sans-agence">
+              {t('ctaGuide')}
             </Link>
           </Button>
         </div>
@@ -99,9 +96,9 @@ export function Header() {
             <div className="pt-4 border-t border-border mt-4">
               <Button asChild size="default" variant="primary" className="w-full">
                 <Link
-                  href={estimationUrl}
+                  href="/vendre-sans-agence"
                   onClick={function () { setMenuOpen(false) }}>
-                  {t('ctaEstimate')}
+                  {t('ctaGuide')}
                 </Link>
               </Button>
             </div>

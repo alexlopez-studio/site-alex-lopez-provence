@@ -16,28 +16,23 @@ const STATIC_CONTENT_UPDATED_AT = new Date('2026-08-29')
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = env.app.siteUrl || 'https://alexandrelopez.fr'
 
+  // Refonte 2026-09 : le site public tient en 6 pages, toutes listees ici.
+  //
   // Pages exclues volontairement :
-  // - /guide, /guide-organique, /vendre-organique : redirigées (301) vers /vendre-sans-agence
-  // - /guide-vendeur : lecteur du guide, en noindex
-  // - /vendez-pro : en noindex
-  // - /outils/vendre : redirigée vers le site iad
+  // - /vendre, /acheter, /audit, /a-propos, /contact, /avis,
+  //   /avis-de-valeur-immobilier, /immobilier (hub) : supprimees, redirigees en 301
+  // - /guide, /guide-organique, /vendre-organique : redirigees (301) vers /vendre-sans-agence
+  // - /guide-vendeur : livraison du guide, atteinte par l'email, en noindex
+  // - /outils, /outils/acheter, /outils/audit, /resultats/[token] : en ligne mais
+  //   invisibles — jamais liees, desindexees, hors sitemap
+  // - /outils/vendre : redirigee vers le site iad
+  // - /vendez-pro : en noindex tant qu'elle n'a pas remplace l'accueil
   const staticRoutes = [
     '',
-    '/avis-de-valeur-immobilier',
-    '/vendre',
     '/vendre-sans-agence',
-    '/acheter',
-    '/audit',
-    '/outils',
-    '/outils/acheter',
-    '/outils/audit',
     '/blog',
-    '/a-propos',
-    '/contact',
     '/mentions-legales',
     '/politique-confidentialite',
-    '/immobilier',
-    '/avis',
   ]
 
   // Les pages communes sont générées depuis la même source que les pages
@@ -58,8 +53,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   function priorityFor(route: string) {
     if (route === '') return 1
-    if (route === '/avis-de-valeur-immobilier') return 0.95
-    if (route.startsWith('/outils')) return 0.9
+    if (route === '/vendre-sans-agence') return 0.95
     if (route.startsWith('/immobilier/')) return 0.85
     return 0.8
   }

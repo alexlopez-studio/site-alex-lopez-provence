@@ -12,8 +12,22 @@ const nextConfig: NextConfig = {
       { source: '/guide-organique', destination: '/vendre-sans-agence', permanent: true },
       { source: '/vendre-organique', destination: '/vendre-sans-agence', permanent: true },
       // --- Migration des pages communes : /marche -> /immobilier ---
-      { source: '/marche', destination: '/immobilier', permanent: true },
+      // /marche pointait vers le hub /immobilier, supprime avec la refonte : on
+      // renvoie desormais vers l'accueil. Les pages communes, elles, restent.
+      { source: '/marche', destination: '/', permanent: true },
       { source: '/marche/:commune', destination: '/immobilier/:commune', permanent: true },
+      // --- Refonte 2026-09 : le site public passe a 6 pages ---
+      // Regle sans exception : jamais de suppression sans sa 301.
+      // Vers la landing du guide, sortie de conversion unique du site.
+      { source: '/vendre', destination: '/vendre-sans-agence', permanent: true },
+      { source: '/avis-de-valeur-immobilier', destination: '/vendre-sans-agence', permanent: true },
+      { source: '/audit', destination: '/vendre-sans-agence', permanent: true },
+      // Vers l'accueil.
+      { source: '/acheter', destination: '/', permanent: true },
+      { source: '/a-propos', destination: '/', permanent: true },
+      { source: '/avis', destination: '/', permanent: true },
+      { source: '/contact', destination: '/', permanent: true },
+      { source: '/immobilier', destination: '/', permanent: true },
       {
         source: '/outils/vendre',
         destination: 'https://www.iadfrance.fr/conseiller-immobilier/alexandre.lopez/estimation',

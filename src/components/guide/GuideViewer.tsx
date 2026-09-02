@@ -260,11 +260,11 @@ export default function GuideViewer() {
           {/* Logo / Retour site */}
           <div className="flex items-center gap-4">
             <Link
-              href="/outils"
+              href="/"
               className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#8C827A] hover:text-[#111111] transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
-              <span>Outils</span>
+              <span>Accueil</span>
             </Link>
             <div className="h-4 w-[1px] bg-[#E5E0D8] hidden sm:block" />
             <div>

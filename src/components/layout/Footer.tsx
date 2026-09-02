@@ -50,13 +50,8 @@ export async function Footer() {
                 Navigation
               </p>
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <Link href="/vendre" className="text-white/75 hover:text-white transition-colors">Vendre</Link>
-                <Link href="/acheter" className="text-white/75 hover:text-white transition-colors">Acheter</Link>
-                <Link href="/audit" className="text-white/75 hover:text-white transition-colors">Audit</Link>
-                <Link href="/guide-vendeur" className="text-white/90 hover:text-white transition-colors font-medium">Guide Vendeur</Link>
+                <Link href="/vendre-sans-agence" className="text-white/90 hover:text-white transition-colors font-medium">Le guide</Link>
                 <Link href="/blog" className="text-white/75 hover:text-white transition-colors">Blog</Link>
-                <Link href="/outils" className="text-white/75 hover:text-white transition-colors">Outils</Link>
-                <Link href="/contact" className="text-white/75 hover:text-white transition-colors">Contact</Link>
               </div>
             </div>
             <div className="flex items-end justify-start sm:justify-end">

@@ -6,7 +6,13 @@ Avant de modifier l'interface, lire :
 
 - `docs/WORKFLOW_BRANCHES.md`
 - `docs/DESIGN_UX_GUIDELINES.md`
-- `docs/BRAND.md`
+
+Pour le SITE PUBLIC, la reference design unique est `docs/refonte/DESIGN_VENDEZ_PRO.md`
+et le perimetre est fixe par `docs/REFONTE_2026-09.md`. La page `/vendez-pro` est gelee :
+aucun element de la charte iad n'est importe dans le site.
+
+`docs/BRAND.md` ne s'applique plus au site : il reste la reference pour les supports iad
+(rapports d'estimation, flyers, reseaux sociaux, Canva).
 
 Branche de travail :
 
