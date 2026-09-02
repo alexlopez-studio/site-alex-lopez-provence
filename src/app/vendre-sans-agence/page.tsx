@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Guide Stratégique du Vendeur Particulier — 41 Pages de Méthodes & Checklists A4',
     description:
-      'Le manuel pratique rédigé par Alexandre Lopez pour vendre au juste prix sans stress en Provence Verte & Verdon : données DVF, qualification bancaire et sécurité juridique.',
+      'Le manuel pratique rédigé par Alexandre Lopez pour vendre au juste prix sans stress en Provence & Côte d’Azur : données DVF, qualification bancaire et sécurité juridique.',
     type: 'article',
   },
 }

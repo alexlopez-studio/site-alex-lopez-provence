@@ -67,7 +67,7 @@ export const metadata: Metadata = {
     default: 'Alexandre Lopez — Agent immobilier en Provence & Côte d’Azur',
   },
   description:
-    'Je vends des maisons en Provence et sur la Côte d’Azur — Haut-Var, Provence Verte, pays d’Aix, littoral varois. Le guide pour vendre sans agence est gratuit.',
+    'Je vends des maisons en Provence et sur la Côte d’Azur. Le guide pour vendre sans agence est gratuit.',
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? 'https://alexandrelopez.fr'
   ),

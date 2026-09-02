@@ -27,7 +27,6 @@
   --brand: #00b4ec;
   --brand-deep: #006390;
   --brand-light: #25cfff;
-  --corail: #ea584a;
   --surface: #f4f4f5;
   --surface-card: #ffffff;
   --ink: #000000;
@@ -185,10 +184,10 @@
   .site-btn-pill:hover svg { transform: translateX(0.25rem); }
 }
 
-/* — Gélule corail (§3.3) : seule occurrence de la graisse 800 ————— */
+/* — Gélule d'action (§3.3) : seule occurrence de la graisse 800 ————— */
 
 .site-gelule {
-  background: var(--corail);
+  background: var(--brand-deep);
   color: #fff;
   font-weight: 800;
   font-style: italic;
@@ -197,8 +196,8 @@
   border-radius: var(--radius-pill);
   padding: 1rem 2.25rem;
   font-size: 1.25rem;
-  box-shadow: 0 15px 30px -5px rgba(234, 88, 74, 0.4);
-  transition: transform var(--duration-base) var(--ease-bounce), box-shadow var(--duration-base);
+  box-shadow: 0 15px 30px -5px rgba(0, 99, 144, 0.4);
+  transition: transform var(--duration-base) var(--ease-bounce), box-shadow var(--duration-base), background var(--duration-base);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -209,7 +208,8 @@
 @media (hover: hover) {
   .site-gelule:hover {
     transform: scale(1.05);
-    box-shadow: 0 20px 40px -5px rgba(234, 88, 74, 0.6);
+    background: var(--brand);
+    box-shadow: 0 20px 40px -5px rgba(0, 180, 236, 0.5);
   }
 }
 

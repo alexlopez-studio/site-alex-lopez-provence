@@ -1,14 +1,14 @@
-# Cahier de Design Complet — Page « Vendez Comme Un Pro » (`/vendez-pro`)
+# Guide de Référence Design — Le Master Design du Site Public
 
-> **Référence source :** [`src/components/concept/ConceptVendeurPage.tsx`](file:///Users/AlexandreLopez/Documents/GitHub/site-alex-lopez-provence/src/components/concept/ConceptVendeurPage.tsx) & [`src/components/concept/concept.css`](file:///Users/AlexandreLopez/Documents/GitHub/site-alex-lopez-provence/src/components/concept/concept.css)  
-> **Route URL locale :** [http://localhost:3000/vendez-pro](http://localhost:3000/vendez-pro)  
-> **Rôle stratégique :** Landing page haute conversion d'acquisition vendeur particulier (PAP) vers téléchargement du guide stratégique et prise de mandat exclusif.
+> **Statut : RÉFÉRENCE MAÎTRESSE UNIQUE DU SITE PUBLIC.**  
+> Fait autorité pour toutes les pages publiques (Accueil, Communes, Guide).  
+> Version : 2.0 (Validée Septembre 2026 — Design Maître & Zéro Corail).
 
 ---
 
-## 1. Philosophie & Parti Pris Visuel
+## 1. Philosophie & Principes Directeurs
 
-La page `/vendez-pro` est la **maquette étalon et le socle de référence visuel** du site. Elle tranche radicalement avec les sites d'agences immobilières conventionnels en adoptant une approche **éditoriale haut de gamme, cinématique et épurée** inspirée des meilleures interfaces SaaS et médias de luxe contemporains.
+Ce document constitue la **référence esthétique et technique absolue** de l'ensemble du site internet. Il tranche radicalement avec les sites d'agences immobilières conventionnels en adoptant une approche **éditoriale haut de gamme, cinématique et épurée** inspirée des meilleures interfaces SaaS et médias de luxe contemporains.
 
 ### Les 3 principes fondateurs :
 1. **L'aspect « Cartes empilées » (*Stacked Cards*) :** La page ne défile pas comme un ruban continu mais comme une suite de cartes autonomes à angles très arrondis (`border-radius: 2rem`), posées dans un cadre périphérique avec une marge visible.
@@ -23,10 +23,10 @@ La page `/vendez-pro` est la **maquette étalon et le socle de référence visue
 
 | Token CSS | Code HEX | Usage exclusif sur la page |
 |---|---|---|
-| `--brand-deep` | `#006390` | **Couleur maîtresse.** Fond des sections fortes (Hero, Trust, Statistiques, Footer) et du menu burger. |
-| `--brand` | `#00B4EC` | **Bleu primaire iad.** Pastilles des sur-titres clairs, boutons pleins (`.btn-pill.solid`), accent-color des cases RGPD. |
+| `--brand-deep` | `#006390` | **Couleur maîtresse.** Fond des sections fortes (Hero, Trust, Statistiques, Footer), du menu burger et de la gélule CTA principale. |
+| `--brand` | `#00B4EC` | **Bleu primaire iad.** Pastilles des sur-titres clairs, boutons pleins (`.btn-pill.solid`), accent-color des cases RGPD, survol de la gélule CTA. |
 | `--brand-light` | `#25CFFF` | **Bleu azur.** Survols interactifs, focus des champs de formulaire, pastille sur fond sombre, guillemets des avis. |
-| `--corail` | `#EA584A` | **Accent signature iad.** Réservé à l'unique gélule d'appel à l'action (« Contactez-moi ! ») et aux messages d'erreur. |
+| *(Corail retiré)* | *Supprimé* | **Politique Zéro Corail.** La couleur corail iad `#EA584A` a été totalement bannie du site public pour une identité visuelle épurée et souveraine. |
 | `--surface` | `#F4F4F5` | Fond des sections secondaires (Pain points, Sommaire) et fond neutre des cartes. |
 | `--background` | `#FFFFFF` | Fond des sections claires de respiration (Approche, Avis) et des modales. |
 | `--ink` | `#000000` | Texte principal sombre, icônes et boutons flèches solides. |
@@ -100,12 +100,12 @@ Bouton d'action galbé en pilule, majuscules, padding `0.875rem 1.75rem`, avec i
 - **`.btn-pill.solid` :** Fond bleu officiel `--brand`, texte blanc, hover bleu profond `--brand-deep`.
 - **`.btn-pill.light` :** Fond blanc pur, texte bleu profond `--brand-deep`, hover azur `--brand-light`.
 
-### 3. La Gélule Corail (`.iad-gelule`)
-Le composant signature iad :
-- Couleur de fond : Corail vif `#EA584A`.
+### 3. La Gélule d'Action (`.iad-gelule`)
+Le composant d'appel à l'action d'impact (Zéro Corail) :
+- Couleur de fond : Bleu profond de marque `--brand-deep` (`#006390`).
 - Typographie : Montserrat 800 italique, casse normale, taille `1.25rem`.
-- Ombre portée diffuse : `0 15px 30px -5px rgba(234, 88, 74, 0.4)`.
-- Animation au survol : grossissement `scale(1.05)` avec rebond élastique `cubic-bezier(0.34, 1.56, 0.64, 1)` et intensification de l'ombre à `0 20px 40px -5px rgba(234, 88, 74, 0.6)`.
+- Ombre portée diffuse : `0 15px 30px -5px rgba(0, 99, 144, 0.4)`.
+- Animation au survol : grossissement `scale(1.05)`, bascule en bleu vif `--brand` (`#00B4EC`) avec rebond élastique `cubic-bezier(0.34, 1.56, 0.64, 1)` et halo lumineux `0 20px 40px -5px rgba(0, 180, 236, 0.5)`.
 
 ### 4. Le Bouton Fléché Circulaire (`.btn-arrow`)
 Bouton rond de 3.5rem (56px) centré sur une flèche directionnelle SVG.
@@ -313,3 +313,40 @@ La page annonce **45+ familles accompagnées**, **100% d'avis positifs**, **30 j
 et sur la carte du hero **4,9/5 sur 150+ avis**. Cette page devient la page d'accueil du site : ces
 chiffres doivent être vérifiables avant mise en ligne, la page `/avis` étant vide à ce jour.
 C'est le seul point de contenu à revoir — il ne concerne pas le design.
+
+---
+
+## 8. Moteur d'Animation et de Physique d'« Untitled » (Obligatoire sur tout le site)
+
+> [!IMPORTANT]
+> **Le fichier prototype `Downloads/untitled/index.html` est l'étalon absolu de la physique et des animations.**  
+> Aucune page du site public ne doit être livrée en HTML statique sans son moteur d'animations physiques. Chaque page doit partager les mêmes comportements interactifs, fluides et vivants :
+
+### 8.1 Les 5 Piliers du Moteur Physique d'Untitled
+
+1. **Le Smooth Scroll Lenis (`new Lenis({ smoothWheel: true })`) :**
+   - Défilement inertiel doux synchronisé sur la boucle principale `requestAnimationFrame`.
+   - Les liens d'ancrage internes `#...` défilent via `lenis.scrollTo(target, { offset: -20 })`.
+
+2. **Le Moteur à Ressorts (*Spring Engine*) :**
+   - Moteur custom de calcul physique calculé par sous-étapes numériques (`sdt = dt / 2`) pour éviter toute instabilité :  
+     `vel += (-tension * (val - target) - friction * vel) * sdt; val += vel * sdt;`
+   - Supporte les translations (`x`, `y`), l'échelle (`scale`), la rotation (`rotate`) et l'opacité (`opacity`).
+   - Fournit `setSpring(obj, prop, target, tension, friction)` et `setSpringImmediate(obj, prop, val)`.
+
+3. **Les Révélations d'Apparition au Scroll (*Inview Reveals*) :**
+   - Tout élément interactif (carte, statistique, bloc de texte, carte témoignage, portrait) porte la classe `.inview-node` et un attribut `data-inview` :  
+     `data-inview="y:35,scale:0.96,opacity:0,delay:100,t:170,f:26"`
+   - À l'entrée dans le viewport (`IntersectionObserver`, `threshold: 0.1`), un ressort physique anime l'élément vers sa position finale (`y: 0, scale: 1, opacity: 1`).
+
+4. **Les Révélations Textuelles sous Masque (*Clip-Mask Reveals*) :**
+   - Les titres majeurs (H1, H2) sont encapsulés dans un conteneur masqué `.clip-mask` (overflow hidden) avec un élément intérieur `.inner`.
+   - L'élément intérieur passe de `translateY(115%)` à `translateY(0%)` avec un easing `easeOutExpo` staggéré sur chaque ligne.
+
+5. **La Physique de Survol Desktop (*Desktop Hover Physics*) :**
+   - `.hover-scale-card` : Zoom élastique doux à `scale(1.03)` au survol, retour à `scale(1)`.
+   - `.hover-lift` : Élévation verticale `translateY(-8px)` avec tension 300 / friction 22.
+   - `.btn-pill` : Déplacement latéral de la flèche SVG de `5px` au survol (`x: 5, tension: 320, friction: 20`).
+   - `.btn-arrow` : Grossissement de l'icône à `scale(1.15)`.
+   - `.hover-arrow-row` : Flèche glissant de `8px` avec montée d'opacité.
+

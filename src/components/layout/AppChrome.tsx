@@ -343,6 +343,10 @@ export function AppChrome({
     }
   }, [pathname])
 
+  if (pathname === '/vendez-pro' || pathname === '/' || pathname.startsWith('/immobilier/')) {
+    return <>{children}</>
+  }
+
   if (isToolsMiniApp || isAdminArea || isClientPortalArea || isGuideArea) {
     return (
       <PageTransition>

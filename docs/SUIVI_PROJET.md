@@ -1,6 +1,29 @@
 # Suivi Projet - Site public Alexandre Lopez
 
-## État actuel - 12/07/2026
+## État actuel - 03/09/2026
+
+### Refonte Master Design, Pages Communes & Alignement Physique d'Untitled
+
+- **Promotion du Master Design :** `docs/refonte/DESIGN_VENDEZ_PRO.md` formalisé comme Référence Maîtresse Unique du site public.
+- **Restauration de la suite d'animations physiques d'« Untitled » :**
+  - Moteur à ressorts (*Spring Engine* sous-étapes numériques `dt/2`, tension/friction).
+  - Smooth scroll Lenis synchronisé dans la boucle `requestAnimationFrame`.
+  - Luxury Intro Loader (`#loader`) avec wordmark ascendant et barre de progression fluide.
+  - Révélations sous masque `.clip-mask .inner` et reveals au scroll `.inview-node` avec attributs `data-inview`.
+  - Micro-interactions de survol desktop (`.hover-scale-card`, `.hover-lift`, `.btn-pill`).
+- **Politique Zéro Corail :** Retrait complet de `#EA584A` dans les tokens et composants au profit du bleu profond `--brand-deep: #006390` et azur `--brand: #00B4EC`.
+- **Page d'Accueil (`/`) :** `ConceptVendeurPage` montée en tant qu'accueil officielle avec SEO et JSON-LD structurés.
+- **Moteur d'animation partagé :** Création de `src/components/concept/ConceptMotionProvider.tsx` pour animer toutes les pages du site sur la physique d'Untitled.
+- **Refonte des Pages Communes (`/immobilier/[commune]`) :**
+  - Câblage sur le gabarit *Stacked Cards* (Hero bleu profond, Marché DVF gris, Valeur locale blanc, Conseiller local, FAQ et maillage territorial).
+  - Intégration complète de la 3e commune pilote (**Tavernes**) aux côtés de Barjols et Cotignac dans `src/data/local-pages.ts`.
+  - Intégration de l'Intro Loader d'Untitled et de ~50 nœuds physiques par page commune.
+- **Clarification Territoire :** Expression souveraine du ciblage **« Provence & Côte d'Azur »** et éradication de l'ancienne formule réductrice « Provence Verte & Verdon ».
+- **Validation :** `npx tsc --noEmit` sort à 0 erreur, serveur dev Turbopack 200 OK sur toutes les pages.
+
+---
+
+## État antérieur - 12/07/2026
 
 Le repo `site-alex-lopez-provence` devient la base dédiée au site public et aux contenus marketing.
 

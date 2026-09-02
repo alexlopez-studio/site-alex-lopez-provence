@@ -12,10 +12,7 @@
   --color-brand-light:   #CDF7FF;
   --color-brand-dark:    #006390;
 
-  /* Corail officiel iad PANTONE 2348 C */
-  --color-coral:         #EA584A;
-  --color-coral-hover:   #D94535;
-  --color-coral-light:   #FDE9E6;
+
 
   /* Déclinaisons officielles de Bleu iad (Page 17) */
   --color-iad-blue-50:   #E9FCFF;
@@ -212,7 +209,7 @@ body {
   justify-content: center;
   gap: 0.5rem;
   padding: 0.875rem 1.875rem;
-  background: var(--color-coral);
+  background: var(--color-brand-dark);
   color: #FFFFFF;
   font-family: var(--font-sans);
   font-weight: 800;
@@ -223,12 +220,12 @@ body {
   transform: rotate(-10deg);
   transition: transform 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
   white-space: nowrap;
-  box-shadow: 0 6px 16px -8px rgba(234, 88, 74, 0.4);
+  box-shadow: 0 6px 16px -8px rgba(0, 99, 144, 0.4);
 }
 .iad-pill-cta:hover {
-  background: var(--color-coral-hover);
+  background: var(--color-brand);
   transform: rotate(-10deg) translateY(-2px);
-  box-shadow: 0 12px 24px -12px rgba(234, 88, 74, 0.55);
+  box-shadow: 0 12px 24px -12px rgba(0, 180, 236, 0.55);
 }
 
 /* ─── Sidebar width CSS variable (must be a root-level var for peer selectors) ─── */
