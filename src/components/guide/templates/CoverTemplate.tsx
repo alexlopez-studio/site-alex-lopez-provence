@@ -11,11 +11,11 @@ export interface CoverTemplateProps {
 }
 
 export function CoverTemplate({
-  title = 'SELLING YOUR OWN HOME',
-  subtitle = 'Le guide complet étape par étape pour réussir votre vente en Provence',
-  heroImage = '/images/provence-bastide-lavande.jpg',
-  edition = 'ÉDITION PROPRIÉTAIRE · MÉTHODE & OUTILS',
-  region = 'ALEXANDRE LOPEZ · CONSEILLER IMMOBILIER IAD FRANCE · PROVENCE VERTE & VERDON',
+  title = 'PARTICULIER, COMMENT VENDRE VOTRE BIEN ?',
+  subtitle = 'Le guide complet pour réussir votre vente entre particuliers en Provence & Côte d’Azur',
+  heroImage = '/images/guide/provence-cote-dazur-cover.jpg',
+  edition = 'ÉDITION PROPRIÉTAIRE · MÉTHODE & OUTILS 2026',
+  region = 'ALEXANDRE LOPEZ · CONSEILLER IMMOBILIER IAD FRANCE · PROVENCE & CÔTE D’AZUR',
 }: CoverTemplateProps) {
   return (
     <div className="a4-sheet relative flex h-full w-full flex-col justify-between overflow-hidden bg-[#0B132B] text-white shadow-2xl p-0 select-none aspect-[1/1.414]">

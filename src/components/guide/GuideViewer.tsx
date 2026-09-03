@@ -20,6 +20,7 @@ import {
   AlignCenter,
 } from 'lucide-react'
 import { GUIDE_PAGES, GUIDE_MODULES } from './GuidePagesData'
+import { GUIDE_PAGES_V1, GUIDE_MODULES_V1 } from './GuidePagesDataV1'
 import { NURTURING_EMAILS, type NurturingEmail } from './NurturingEmailsData'
 import { A4PageRenderer } from './A4PageRenderer'
 import {
@@ -201,6 +202,7 @@ const TEMPLATE_CATALOG = [
 ]
 
 export default function GuideViewer() {
+  const [guideVersion, setGuideVersion] = useState<'v2' | 'v1'>('v2')
   const [viewMode, setViewMode] = useState<ViewMode>('a4_sheets')
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('cover')
   const [currentPageIndex, setCurrentPageIndex] = useState<number>(0)
@@ -209,11 +211,14 @@ export default function GuideViewer() {
   const [copiedLink, setCopiedLink] = useState<boolean>(false)
   const [searchQuery, setSearchQuery] = useState<string>('')
 
-  const activePage = GUIDE_PAGES[currentPageIndex] || GUIDE_PAGES[0]
+  const currentPages = guideVersion === 'v2' ? GUIDE_PAGES : GUIDE_PAGES_V1
+  const currentModules = guideVersion === 'v2' ? GUIDE_MODULES : GUIDE_MODULES_V1
+
+  const activePage = currentPages[currentPageIndex] || currentPages[0]
   const activeTemplate = TEMPLATE_CATALOG.find((t) => t.id === selectedTemplateId) || TEMPLATE_CATALOG[0]
 
   // Filtrage des pages pour le mode recherche / module
-  const filteredPages = GUIDE_PAGES.filter((p) => {
+  const filteredPages = currentPages.filter((p) => {
     if (selectedModule !== null && p.moduleNumber !== selectedModule) return false
     if (searchQuery.trim() !== '') {
       const q = searchQuery.toLowerCase()
@@ -272,8 +277,38 @@ export default function GuideViewer() {
                 GUIDE VENDEUR PARTICULIER
               </div>
               <div className="text-[9px] text-[#8C827A] tracking-wider uppercase hidden md:block">
-                Alexandre Lopez · Édition Propriétaire (41 Pages)
+                Alexandre Lopez · {guideVersion === 'v2' ? 'Version 2 (En cours)' : 'Archive v1 (Originale)'} ({currentPages.length} Pages)
               </div>
+            </div>
+
+            {/* Commutateur de version pour comparaison V2 vs V1 */}
+            <div className="flex items-center rounded-lg border border-[#006390]/25 bg-[#006390]/5 p-0.5 text-[11px]">
+              <button
+                onClick={() => {
+                  setGuideVersion('v2')
+                  setCurrentPageIndex(0)
+                }}
+                className={`px-2.5 py-0.5 rounded font-semibold transition-all ${
+                  guideVersion === 'v2'
+                    ? 'bg-[#006390] text-white shadow-xs'
+                    : 'text-[#006390] hover:bg-[#006390]/10'
+                }`}
+              >
+                V2 (Nouvelle)
+              </button>
+              <button
+                onClick={() => {
+                  setGuideVersion('v1')
+                  setCurrentPageIndex(0)
+                }}
+                className={`px-2.5 py-0.5 rounded font-semibold transition-all ${
+                  guideVersion === 'v1'
+                    ? 'bg-zinc-800 text-white shadow-xs'
+                    : 'text-zinc-600 hover:bg-zinc-200/60'
+                }`}
+              >
+                V1 (Archive)
+              </button>
             </div>
           </div>
 
@@ -334,7 +369,7 @@ export default function GuideViewer() {
           {/* Boutons d'Action (Landing Page / Imprimer / Partager) */}
           <div className="flex items-center gap-2">
             <Link
-              href="/vendre-sans-agence"
+              href="/guide-vendeur"
               className="inline-flex items-center gap-1.5 rounded-full border border-[#0077B6]/30 bg-[#E0F0FA] px-3.5 py-1.5 text-xs font-bold text-[#0077B6] hover:bg-[#0077B6] hover:text-white transition-all shadow-xs"
             >
               <Sparkles className="h-3.5 w-3.5" />
@@ -385,9 +420,9 @@ export default function GuideViewer() {
                       : 'bg-white text-[#595959] border border-[#E5E0D8]'
                   }`}
                 >
-                  Tous (41)
+                  Tous ({currentPages.length})
                 </button>
-                {GUIDE_MODULES.map((m) => (
+                {currentModules.map((m) => (
                   <button
                     key={m.number}
                     onClick={() => setSelectedModule(m.number)}
@@ -532,7 +567,7 @@ export default function GuideViewer() {
               </div>
 
               <div className="max-h-[600px] overflow-y-auto pr-1 space-y-1.5 text-xs">
-                {GUIDE_PAGES.map((page, idx) => (
+                {currentPages.map((page, idx) => (
                   <button
                     key={page.pageNumber}
                     onClick={() => setCurrentPageIndex(idx)}
@@ -568,11 +603,11 @@ export default function GuideViewer() {
                   <ChevronLeft className="h-4 w-4" /> Page Précédente
                 </button>
                 <span className="font-mono text-xs text-[#8C827A]">
-                  Page {currentPageIndex + 1} sur {GUIDE_PAGES.length}
+                  Page {currentPageIndex + 1} sur {currentPages.length}
                 </span>
                 <button
-                  disabled={currentPageIndex === GUIDE_PAGES.length - 1}
-                  onClick={() => setCurrentPageIndex((prev) => Math.min(GUIDE_PAGES.length - 1, prev + 1))}
+                  disabled={currentPageIndex === currentPages.length - 1}
+                  onClick={() => setCurrentPageIndex((prev) => Math.min(currentPages.length - 1, prev + 1))}
                   className="flex items-center gap-1 font-semibold uppercase tracking-wider text-[#111111] disabled:opacity-30"
                 >
                   Page Suivante <ChevronRight className="h-4 w-4" />

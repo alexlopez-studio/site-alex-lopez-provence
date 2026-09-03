@@ -11,6 +11,10 @@ Pour le SITE PUBLIC, la reference design unique est `docs/refonte/DESIGN_VENDEZ_
 et le perimetre est fixe par `docs/REFONTE_2026-09.md`. La page `/vendez-pro` est gelee :
 aucun element de la charte iad n'est importe dans le site.
 
+Pour la LANDING PAGE GUIDE (`/guide-vendeur`) et le VISUALISEUR DU LIVRE (`/guide-vendeur/consulter`),
+la reference strategique, le sommaire officiel et les decisions validees sont graves dans :
+- `docs/GUIDE_VENDEUR_STRATEGIE_ET_SPECIFICATIONS.md`
+
 `docs/BRAND.md` ne s'applique plus au site : il reste la reference pour les supports iad
 (rapports d'estimation, flyers, reseaux sociaux, Canva).
 

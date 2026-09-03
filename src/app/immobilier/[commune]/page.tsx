@@ -128,7 +128,7 @@ export default async function CommunePage({ params }: PageProps) {
                 </svg>
                 <span className="text-base font-medium uppercase tracking-wider">Alex. Lopez | iad</span>
               </Link>
-              <Link href="/vendre-sans-agence" className="btn-pill light">
+              <Link href="/guide-vendeur" className="btn-pill light">
                 Télécharger le guide
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M5 12h14M13 6l6 6-6 6" />
@@ -589,7 +589,7 @@ export default async function CommunePage({ params }: PageProps) {
                     alignItems: 'center',
                   }}
                 >
-                  <Link href="/vendre-sans-agence" className="iad-gelule">
+                  <Link href="/guide-vendeur" className="iad-gelule">
                     Télécharger le guide gratuit
                   </Link>
                   <a
@@ -874,7 +874,7 @@ export default async function CommunePage({ params }: PageProps) {
                     }}
                   >
                     <li>
-                      <Link href="/vendre-sans-agence" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none' }}>
+                      <Link href="/guide-vendeur" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none' }}>
                         Le Guide du Vendeur (41 pages)
                       </Link>
                     </li>
@@ -952,7 +952,7 @@ function GenericCommunePage({ commune }: { commune: string }) {
                 </svg>
                 <span className="text-base font-medium uppercase tracking-wider">Alex. Lopez | iad</span>
               </Link>
-              <Link href="/vendre-sans-agence" className="btn-pill light">
+              <Link href="/guide-vendeur" className="btn-pill light">
                 Télécharger le guide
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M5 12h14M13 6l6 6-6 6" />
@@ -1003,7 +1003,7 @@ function GenericCommunePage({ commune }: { commune: string }) {
                 data-inview="y:20,opacity:0,delay:220,t:160,f:24"
                 style={{ marginTop: '2.5rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}
               >
-                <Link href="/vendre-sans-agence" className="iad-gelule">
+                <Link href="/guide-vendeur" className="iad-gelule">
                   Recevoir le guide complet
                 </Link>
                 <Link href="/" className="btn-pill light">

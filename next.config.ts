@@ -8,9 +8,10 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       // --- Consolidation SEO : une seule landing pour le guide vendeur ---
-      { source: '/guide', destination: '/vendre-sans-agence', permanent: true },
-      { source: '/guide-organique', destination: '/vendre-sans-agence', permanent: true },
-      { source: '/vendre-organique', destination: '/vendre-sans-agence', permanent: true },
+      { source: '/vendre-sans-agence', destination: '/guide-vendeur', permanent: true },
+      { source: '/guide', destination: '/guide-vendeur', permanent: true },
+      { source: '/guide-organique', destination: '/guide-vendeur', permanent: true },
+      { source: '/vendre-organique', destination: '/guide-vendeur', permanent: true },
       // --- Migration des pages communes : /marche -> /immobilier ---
       // /marche pointait vers le hub /immobilier, supprime avec la refonte : on
       // renvoie desormais vers l'accueil. Les pages communes, elles, restent.
@@ -19,9 +20,9 @@ const nextConfig: NextConfig = {
       // --- Refonte 2026-09 : le site public passe a 6 pages ---
       // Regle sans exception : jamais de suppression sans sa 301.
       // Vers la landing du guide, sortie de conversion unique du site.
-      { source: '/vendre', destination: '/vendre-sans-agence', permanent: true },
-      { source: '/avis-de-valeur-immobilier', destination: '/vendre-sans-agence', permanent: true },
-      { source: '/audit', destination: '/vendre-sans-agence', permanent: true },
+      { source: '/vendre', destination: '/guide-vendeur', permanent: true },
+      { source: '/avis-de-valeur-immobilier', destination: '/guide-vendeur', permanent: true },
+      { source: '/audit', destination: '/guide-vendeur', permanent: true },
       // Vers l'accueil.
       { source: '/acheter', destination: '/', permanent: true },
       { source: '/a-propos', destination: '/', permanent: true },

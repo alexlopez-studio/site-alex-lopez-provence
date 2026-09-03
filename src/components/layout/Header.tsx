@@ -63,7 +63,7 @@ export function Header() {
         <div className="hidden lg:flex items-center gap-4 shrink-0">
           <LocaleSwitcher />
           <Button asChild size="sm" variant="primary">
-            <Link href="/vendre-sans-agence">
+            <Link href="/guide-vendeur">
               {t('ctaGuide')}
             </Link>
           </Button>
@@ -96,7 +96,7 @@ export function Header() {
             <div className="pt-4 border-t border-border mt-4">
               <Button asChild size="default" variant="primary" className="w-full">
                 <Link
-                  href="/vendre-sans-agence"
+                  href="/guide-vendeur"
                   onClick={function () { setMenuOpen(false) }}>
                   {t('ctaGuide')}
                 </Link>

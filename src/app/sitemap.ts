@@ -21,15 +21,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Pages exclues volontairement :
   // - /vendre, /acheter, /audit, /a-propos, /contact, /avis,
   //   /avis-de-valeur-immobilier, /immobilier (hub) : supprimees, redirigees en 301
-  // - /guide, /guide-organique, /vendre-organique : redirigees (301) vers /vendre-sans-agence
-  // - /guide-vendeur : livraison du guide, atteinte par l'email, en noindex
+  // - /guide, /guide-organique, /vendre-organique, /vendre-sans-agence : redirigees (301) vers /guide-vendeur
+  // - /guide-vendeur/consulter : consultation du guide, atteinte apres telechargement, en noindex
   // - /outils, /outils/acheter, /outils/audit, /resultats/[token] : en ligne mais
   //   invisibles — jamais liees, desindexees, hors sitemap
   // - /outils/vendre : redirigee vers le site iad
   // - /vendez-pro : en noindex tant qu'elle n'a pas remplace l'accueil
   const staticRoutes = [
     '',
-    '/vendre-sans-agence',
+    '/guide-vendeur',
+    '/bio',
     '/blog',
     '/mentions-legales',
     '/politique-confidentialite',
@@ -53,7 +54,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   function priorityFor(route: string) {
     if (route === '') return 1
-    if (route === '/vendre-sans-agence') return 0.95
+    if (route === '/guide-vendeur') return 0.95
     if (route.startsWith('/immobilier/')) return 0.85
     return 0.8
   }

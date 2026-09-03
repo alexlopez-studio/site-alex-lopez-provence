@@ -1,22 +1,19 @@
 import type { Metadata } from 'next'
-import GuideViewer from '@/components/guide/GuideViewer'
+import { GuideProLandingPage } from '@/components/guide/GuideProLandingPage'
 
 export const metadata: Metadata = {
-  title: 'Guide Stratégique du Vendeur Particulier — Alexandre Lopez',
+  title: 'Particulier, comment vendre votre bien ? — Le guide pratique en Provence & Côte d’Azur',
   description:
-    'Le guide complet en 41 pages pour valoriser, sécuriser et réussir la vente de votre bien immobilier entre particuliers en Provence. Format imprimable A4 et conseils d’expert.',
+    'Le guide pratique complet pour valoriser, comprendre les acquéreurs et sécuriser votre vente immobilière en Provence & Côte d’Azur : repères de prix DVF, mise en valeur et conformité notariée avec Alexandre Lopez.',
   alternates: { canonical: '/guide-vendeur' },
-  // Lecteur du guide (contenu post-conversion) : hors index pour ne pas
-  // concurrencer sa propre landing /vendre-sans-agence.
-  robots: { index: false, follow: true },
   openGraph: {
-    title: 'Guide du Vendeur Particulier — Alexandre Lopez',
+    title: 'Particulier, comment vendre votre bien ? — Le guide pratique en Provence & Côte d’Azur',
     description:
-      'Méthode complète, checklists opérationnelles et analyse juridique pour réussir votre vente immobilière en Provence.',
+      'Un ensemble de repères clairs et bienveillants rédigé par Alexandre Lopez pour vendre au juste prix en Provence & Côte d’Azur.',
     type: 'article',
   },
 }
 
 export default function GuideVendeurPage() {
-  return <GuideViewer />
+  return <GuideProLandingPage />
 }

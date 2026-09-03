@@ -49,7 +49,7 @@ export async function Footer() {
                 Navigation
               </p>
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <Link href="/vendre-sans-agence" className="text-white/90 hover:text-white transition-colors font-medium">Le guide</Link>
+                <Link href="/guide-vendeur" className="text-white/90 hover:text-white transition-colors font-medium">Le guide</Link>
                 <Link href="/blog" className="text-white/75 hover:text-white transition-colors">Blog</Link>
               </div>
             </div>

@@ -43,7 +43,7 @@ export interface GuidePageData {
   checklistItems?: { id: string; label: string; note?: string }[]
 }
 
-export const GUIDE_MODULES = [
+export const GUIDE_MODULES_V1 = [
   { number: 1, title: 'Préparation du Bien', pages: '7 - 12' },
   { number: 2, title: 'Stratégie de Prix', pages: '13 - 17' },
   { number: 3, title: 'Marketing & Photographie', pages: '18 - 23' },
@@ -53,16 +53,16 @@ export const GUIDE_MODULES = [
   { number: 7, title: 'Délégation & Sérénité', pages: '36 - 41' },
 ]
 
-export const GUIDE_PAGES: GuidePageData[] = [
-  // ─── PAGE 1 : COVER (Particulier, Comment Vendre Votre Bien ?) ───
+export const GUIDE_PAGES_V1: GuidePageData[] = [
+  // ─── PAGE 1 : COVER (Selling Your Own Home) ───
   {
     pageNumber: 1,
     moduleNumber: 0,
     moduleTitle: 'Couverture',
     layoutType: 'cover_bedroom',
-    title: 'Particulier, Comment Vendre Votre Bien ?',
-    subtitle: 'Le guide complet pour réussir votre vente entre particuliers en Provence & Côte d’Azur',
-    heroImage: '/images/guide/provence-cote-dazur-cover.jpg',
+    title: 'Selling Your Own Home',
+    subtitle: 'Le guide complet pour réussir votre vente en Provence Verte & Verdon',
+    heroImage: '/images/provence-bastide-lavande.jpg',
   },
 
   // ─── PAGE 2 : TESTIMONIAL FULL PHOTO ───

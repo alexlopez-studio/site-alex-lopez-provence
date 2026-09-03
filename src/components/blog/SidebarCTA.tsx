@@ -21,7 +21,7 @@ export default function SidebarCTA() {
         contre votre prenom et votre email.
       </p>
       <Link
-        href="/vendre-sans-agence"
+        href="/guide-vendeur"
         className="block w-full rounded-full bg-brand py-3.5 text-center text-[15px] font-semibold text-white transition-colors hover:bg-brand-hover"
       >
         Télécharger le guide

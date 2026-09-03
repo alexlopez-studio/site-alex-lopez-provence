@@ -343,7 +343,14 @@ export function AppChrome({
     }
   }, [pathname])
 
-  if (pathname === '/vendez-pro' || pathname === '/' || pathname.startsWith('/immobilier/')) {
+  if (
+    pathname === '/vendez-pro' ||
+    pathname === '/' ||
+    pathname === '/guide-vendeur' ||
+    pathname === '/bio' ||
+    pathname === '/vendre-sans-agence' ||
+    pathname.startsWith('/immobilier/')
+  ) {
     return <>{children}</>
   }
 

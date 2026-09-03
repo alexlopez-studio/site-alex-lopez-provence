@@ -223,6 +223,23 @@
   will-change: transform, opacity;
 }
 
+/*
+ * Filet de securite des reveals.
+ *
+ * Les .inview-node et .clip-mask .inner partent invisibles : c'est le moteur
+ * (ConceptMotionProvider) qui les revele au scroll. Si l'utilisateur a demande
+ * moins d'animation, on n'a plus de moteur pour les afficher — sans cette regle
+ * toute la page reste blanche sous le hero.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .concept-scope .inview-node,
+  .concept-scope .clip-mask .inner {
+    opacity: 1 !important;
+    transform: none !important;
+    will-change: auto;
+  }
+}
+
 /* Luxury Intro Loader */
 .concept-scope #loader {
   position: fixed;
