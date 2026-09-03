@@ -46,6 +46,7 @@
 ### C. Le Diagnostic des 3 Réalités du Terrain (`#realites`)
 * **Titre de section :** *« Ce qui fait échouer ou ralentir une vente entre particuliers : 3 difficultés qui coûtent du temps, de l’énergie et de l’argent »*.
 3 cartes au format direct, aéré, sans tiroir coulissant ni accordéon :
+
 1. **La mauvaise fixation du prix (La Fixation du Prix) :**
    * *L’estimation au feeling :* Se fier aux prix affichés en vitrine plutôt qu’aux actes notariés réellement signés.
    * *Le premier mois gaspillé :* Zéro appel sérieux lors des 30 premiers jours, pourtant cruciaux pour créer l’engouement.
@@ -59,7 +60,12 @@
    * *Le défilé de promeneurs :* Visiteurs sans budget vérifié, ni accord bancaire, ni projet mûr.
    * *Visites mal exécutées :* S’épuiser à bloquer ses week-ends pour des visites sans issue.
 
-### D. Passerelle, Sommaire & Formulaire Final
+### D. La Section « Mon Engagement »
+* **Titre :** *« Une démarche d’écoute et de partage libre »*.
+* **Posture souveraine pour le vendeur :** Le guide donne les moyens de réussir seul, mais **aussi de comprendre les rouages et spécificités du métier si le vendeur fait appel à une agence**, afin de poser les bonnes questions et d'évaluer facilement la réelle efficacité des agents immobiliers.
+* **Philosophie :** Le don sans contrepartie agressive comme fondation de la confiance.
+
+### E. Passerelle, Sommaire & Formulaire Final
 * Passerelle engageante : *« Envie de surmonter chacune de ces difficultés ? Découvrez les méthodes détaillées dans votre livret offert »*.
 * Sommaire interactif présentant les grands modules du guide.
 * Formulaire express de téléchargement final (Prénom + Email).
@@ -122,6 +128,15 @@ Conçue comme une alternative *Quiet Luxury* propriétaire à Linktree :
   * **DVF (app.dvf.etalab.gouv.fr) :** Comment explorer les vraies ventes signées dans son voisinage.
   * **Cadastre.gouv.fr & Géoportail :** Limites parcellaires réelles, servitudes et zonages PLU.
 * Pourquoi les simulateurs d’estimation en ligne automatisés se trompent de 10% à 20% sur les biens en Provence.
+* **Le Point d'Étape Régulier Toutes les 3 Semaines (Rituel d'audit cyclique) :**
+  * Instaurer un point d'étape régulier toutes les 3 semaines tout au long de la commercialisation pour analyser l'évolution des métriques.
+  * L'audit systématique des statistiques portails : ratio consultations / mises en favoris / prises de contact.
+  * La grille d'arbitrage lucide : *Beaucoup de vues mais 0 contact = Décalage de prix ; Peu de vues = Première photo / titre à retravailler ; Visites sans offre = Décalage entre promesse et visite sur place*.
+* **La Stratégie de Baisse de Prix & Les Erreurs Fatales à Bannir :**
+  * *L'erreur de la micro-baisse symbolique (1 000 € à 3 000 €) :* Invisible pour les algorithmes, ne franchit aucun palier de recherche et montre l'hésitation du vendeur.
+  * *L'erreur de la baisse panique trop brutale et trop rapide (-15% en 15 jours) :* Inquiète les acquéreurs (suspicion de vice caché) et attire les offres prédatrices.
+  * *L'erreur du compte-gouttes :* Baisser tous les 10 jours de 5 000 €, ce qui brûle l'annonce et pousse les acheteurs à attendre la prochaine démarque.
+  * *Le réajustement chirurgical par palier :* Cibler le seuil psychologique de filtrage (ex: de 410 k€ à 395 k€) pour relancer les notifications automatiques aux acheteurs en veille.
 
 ---
 

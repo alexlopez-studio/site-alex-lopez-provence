@@ -13,18 +13,19 @@ const GUIDE_CHAPTERS = [
   {
     id: 1,
     num: '01',
-    shortTitle: 'Le Juste Prix & DVF',
-    subBadge: 'Ventes notariées & Marché',
-    title: 'La fixation du juste prix d’après les ventes réelles',
-    badge: 'Chapitre 01 · Prix & Marché',
-    toolName: 'La méthode d’analyse DVF pas-à-pas',
-    toolDesc: 'Comment consulter et pondérer les actes de vente officiels enregistrés dans votre rue sur les 18 derniers mois.',
-    readTime: '4 min de lecture',
+    shortTitle: 'Prix, DVF & Arbitrage',
+    subBadge: 'Prix DVF & Bilan régulier',
+    title: 'La fixation du juste prix DVF & le point régulier toutes les 3 semaines',
+    badge: 'Chapitre 01 · Prix & Arbitrage',
+    toolName: 'La matrice de suivi régulier & le protocole de baisse de prix',
+    toolDesc: 'Comment instaurer un point d’étape régulier toutes les 3 semaines pour auditer vos statistiques d’annonces, interpréter les tendances et réajuster votre prix sans commettre les erreurs qui grillent un bien.',
+    readTime: '5 min de lecture',
     image: '/images/guide/solution-01-prix-juste.jpg',
     points: [
-      'Accéder aux vrais prix d’actes notariés signés dans votre quartier plutôt qu’aux prétentions des vitrines.',
-      'Pondérer les atouts objectifs : calculer la juste plus-value d’un calme absolu, d’une vue ou d’une piscine.',
-      'Créer une dynamique saine dès le lancement pour obtenir des offres sérieuses sans dévaluation.',
+      'Accéder aux vrais prix d’actes notariés signés dans votre rue (DVF) plutôt qu’aux prétentions affichées en vitrine.',
+      'Le point d’étape régulier toutes les 3 semaines : instaurer un rituel d’analyse des statistiques (vues, favoris, appels) pour mesurer en continu la réponse du marché.',
+      'Les erreurs fatales de la baisse de prix : éviter la baisse trop faible (-2 000 €) invisible pour les alertes acquéreurs, ou la baisse panique trop brutale d’un coup qui attire les offres prédatrices.',
+      'Franchir les seuils psychologiques de recherche des portails pour relancer l’algorithme et réveiller les acheteurs en veille.',
     ],
   },
   {
@@ -1071,6 +1072,9 @@ export function GuideProLandingPage() {
                       J’ai rédigé ce livret pour donner à chaque propriétaire les moyens de comprendre son marché, d’éviter les déconvenues et de mener son projet en toute connaissance de cause.
                     </p>
                     <p>
+                      Même si vous choisissez de confier votre bien à une agence ou à un intermédiaire, ce guide vous sera précieux : il vous permet de comprendre les rouages et les spécificités du métier, de poser les bonnes questions et d’évaluer bien plus facilement la réelle efficacité des actions menées par les agents immobiliers.
+                    </p>
+                    <p>
                       Ce guide est un cadeau libre : il vous appartient. Si ces pages vous permettent de concrétiser votre vente sereinement et en toute autonomie, mon objectif est pleinement atteint. Et si un jour vous souhaitez un avis extérieur, une estimation affinée ou un accompagnement sur le terrain, vous saurez que ma porte vous est ouverte, en toute simplicité.
                     </p>
                   </div>
@@ -1134,7 +1138,7 @@ export function GuideProLandingPage() {
                   },
                   {
                     q: 'Pourquoi partager ce guide et ces conseils en libre accès ?',
-                    a: 'Parce que je crois qu’un professionnel gagne d’abord la confiance par la preuve et le conseil utile. Si ce livret et mes partages vous permettent de réussir votre vente en toute autonomie, mon objectif est pleinement atteint. Et si un jour vous souhaitez un avis extérieur ou un accompagnement sur le terrain, vous saurez à qui vous adresser.',
+                    a: 'Parce que je crois qu’un professionnel gagne d’abord la confiance par la preuve et le conseil utile. Que vous vendiez par vous-même ou que vous fassiez appel à une agence, ce livret vous donne toutes les clés pour comprendre les rouages du métier, poser les bonnes questions et évaluer précisément l’action des professionnels. Et si un jour vous souhaitez un avis extérieur ou un accompagnement sur le terrain, vous saurez à qui vous adresser.',
                   },
                 ].map((faq, index) => {
                   const isOpen = openFaq === index
