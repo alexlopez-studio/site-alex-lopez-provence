@@ -12,53 +12,43 @@ export interface TestimonialTemplateProps {
 }
 
 export function TestimonialTemplate({
-  pageNumber = 2,
   heroImage = 'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?auto=format&fit=crop&w=1400&q=85',
   stars = 5,
-  quote = '« Faire appel à un conseiller méthodique et disponible a transformé notre vente en un parcours serein, sécurisé et parfaitement maîtrisé au meilleur prix. »',
-  author = 'FAMILLE DUPONT — VENTE À COTIGNAC (PROVENCE VERTE)',
+  quote = '« Vendre notre maison n’était pas une simple transaction, c’était quinze ans de souvenirs de famille. Ce qui a tout changé, c’est d’avoir suivi une méthode rigoureuse et factuelle : cela nous a permis de préserver notre valeur, d’éviter les pièges et de signer au juste prix en totale sérénité. »',
+  author = 'M. & MME CHAUVIN · PROPRIÉTAIRES EN PROVENCE',
 }: TestimonialTemplateProps) {
   return (
-    <div className="a4-sheet relative flex h-full w-full flex-col justify-end overflow-hidden bg-[#0F172A] text-white shadow-sm p-0">
-      {/* Photo Plein Format avec Voile Feutré */}
+    <div className="a4-sheet relative flex h-full w-full flex-col justify-end overflow-hidden bg-[#001D2D] text-white shadow-2xl p-10 sm:p-14 md:p-16 select-none aspect-[1/1.414]">
+      {/* ─── Fond Photo Plein Format (Full Bleed) ─── */}
       <img
         src={heroImage}
         alt="Témoignage Client"
-        className="absolute inset-0 h-full w-full object-cover object-center"
+        className="absolute inset-0 h-full w-full object-cover object-center pointer-events-none"
       />
 
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/95 via-[#0F172A]/55 to-[#0F172A]/20" />
+      {/* ─── Voile Doux Dégradé pour Lisibilité Inférieure ─── */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none" />
 
-      {/* Bloc de Témoignage Central */}
-      <div className="relative z-10 mx-auto w-full max-w-xl px-8 pb-16 sm:pb-20 text-center text-white">
-        {/* 5 Étoiles Dorées / Cyan Lumineux */}
-        <div className="flex items-center justify-center gap-2 mb-4">
+      {/* ─── CITATION CENTRALE BASSE (STYLE ORIGINAL BOOKLET) ─── */}
+      <div className="relative z-10 max-w-xl mx-auto text-center pb-8 sm:pb-12">
+        {/* 5 Étoiles Dorées */}
+        <div className="flex items-center justify-center gap-1.5 mb-4">
           {[...Array(stars)].map((_, i) => (
-            <Star key={i} className="h-6 w-6 sm:h-7 sm:w-7 fill-[#00B4EC] text-[#00B4EC]" />
+            <Star key={i} className="h-5 w-5 fill-amber-400 text-amber-400" />
           ))}
         </div>
 
-        {/* Filet Supérieur */}
-        <div className="h-[2px] w-full max-w-md mx-auto bg-white/80 mb-6" />
-
-        {/* Citation Client */}
-        <blockquote className="font-sans text-base sm:text-lg md:text-xl font-normal leading-relaxed text-white tracking-normal px-4 mb-6">
+        {/* Texte de la citation */}
+        <blockquote className="font-serif text-base sm:text-lg md:text-[21px] font-normal leading-relaxed text-zinc-100 mb-5 italic drop-shadow-sm">
           {quote}
         </blockquote>
 
-        {/* Filet Inférieur */}
-        <div className="h-[2px] w-full max-w-md mx-auto bg-white/80 mb-6" />
+        <div className="w-12 h-px bg-white/40 mx-auto mb-3" />
 
-        {/* Auteur du Témoignage */}
-        <p className="font-sans text-xs sm:text-sm font-black italic uppercase tracking-[0.2em] text-[#00B4EC]">
+        {/* Auteur en majuscules discrètes */}
+        <p className="text-[11px] uppercase font-bold tracking-[0.2em] text-zinc-300">
           {author}
         </p>
-      </div>
-
-      {/* Pied de Page Discret */}
-      <div className="absolute bottom-6 left-8 right-8 flex justify-between text-[10px] text-white/70 uppercase tracking-widest z-10">
-        <span>ALEXANDRE LOPEZ · EXPÉRIENCE CLIENT</span>
-        <span>P. {String(pageNumber).padStart(2, '0')}</span>
       </div>
     </div>
   )

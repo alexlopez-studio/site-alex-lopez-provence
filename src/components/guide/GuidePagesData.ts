@@ -44,12 +44,12 @@ export interface GuidePageData {
 }
 
 export const GUIDE_MODULES = [
-  { number: 1, title: 'Préparation du Bien', pages: '7 - 12' },
-  { number: 2, title: 'Stratégie de Prix', pages: '13 - 17' },
-  { number: 3, title: 'Marketing & Photographie', pages: '18 - 23' },
-  { number: 4, title: 'Qualification & Visites', pages: '24 - 27' },
-  { number: 5, title: 'Négociation & Offres', pages: '28 - 31' },
-  { number: 6, title: 'Du Dossier au Notaire', pages: '32 - 35' },
+  { number: 1, title: 'Penser son Projet (Vente ➔ Achat)', pages: '7 - 11' },
+  { number: 2, title: 'Dossier Juridique & Technique', pages: '12 - 16' },
+  { number: 3, title: 'L’Estimation au Juste Prix', pages: '17 - 21' },
+  { number: 4, title: 'Valorisation, Diffusion & IA', pages: '22 - 27' },
+  { number: 5, title: 'Qualification & Visites', pages: '28 - 31' },
+  { number: 6, title: 'Négociation, Offres & Notaire', pages: '32 - 35' },
   { number: 7, title: 'Délégation & Sérénité', pages: '36 - 41' },
 ]
 
@@ -65,46 +65,45 @@ export const GUIDE_PAGES: GuidePageData[] = [
     heroImage: '/images/guide/provence-cote-dazur-cover.jpg',
   },
 
-  // ─── PAGE 2 : TESTIMONIAL FULL PHOTO ───
+  // ─── PAGE 2 : TÉMOIGNAGE D'OUVERTURE (Pleine Page Sérénité) ───
   {
     pageNumber: 2,
     moduleNumber: 0,
     moduleTitle: 'Témoignage',
     layoutType: 'testimonial_dark_card',
-    title: 'Témoignage Client',
+    title: 'Témoignage d’Ouverture',
     heroImage: 'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?auto=format&fit=crop&w=1400&q=85',
     quoteCard: {
       stars: 5,
-      text: '« Faire appel à un professionnel méthodique a transformé une vente stressante en un parcours fluide et parfaitement maîtrisé au juste prix. »',
-      author: 'FAMILLE DUPONT — PROPRIÉTAIRES EN PROVENCE',
+      text: '« Vendre notre maison n’était pas une simple transaction, c’était quinze ans de souvenirs de famille. Ce qui a tout changé, c’est d’avoir suivi une méthode rigoureuse et factuelle : cela nous a permis de préserver notre valeur, d’éviter les pièges et de signer au juste prix en totale sérénité. »',
+      author: 'M. & MME CHAUVIN — PROPRIÉTAIRES EN PROVENCE',
     },
   },
 
-  // ─── PAGE 3 : WELCOME + IPHONE MOCKUP ───
+  // ─── PAGE 3 : L’ÉDITO D'AUTORITÉ D'ALEXANDRE LOPEZ ───
   {
     pageNumber: 3,
     moduleNumber: 0,
     moduleTitle: 'Introduction',
     layoutType: 'welcome_phone',
-    title: 'welcome',
-    subtitle: 'I am excited to guide you through this journey!',
+    title: 'Édito d’Autorité',
+    subtitle: 'Pourquoi j’ai choisi de vous transmettre l’intégralité de mes méthodes',
     paragraphs: [
-      'De nombreux propriétaires choisissent l’aventure de la vente directe de particulier à particulier. Dans le monde de l’immobilier, vendre soi-même présente des avantages indéniables. Avec une préparation méticuleuse et une bonne stratégie, cette expérience peut être très gratifiante.',
-      'Pour une personne expérimentée dans la valorisation et la négociation, cela fait pleinement sens. En revanche, pour un propriétaire pressé par le temps, naviguer entre estimation, marketing, conformité juridique et filtrage bancaire peut s’avérer complexe sans accompagnement.',
-      'Les annonces entre particuliers sont fréquentes sur les portails. Mais vendre seul n’est pas anodin : les statistiques montrent que plus des deux tiers des vendeurs sans méthode finissent par renoncer face à l’usure des visites non qualifiées.',
-      'Beaucoup de professionnels gardent leurs méthodes secrètes. Ce n’est pas ma vision. Dans ce guide, je partage avec vous l’ensemble des protocoles que j’applique au quotidien pour préparer, valoriser et vendre au juste prix en Provence.',
-      'Et si au cours de cette aventure vous souhaitez vous décharger de la charge mentale pour déléguer à un partenaire de confiance, n’hésitez jamais à me joindre.',
+      'Votre maison n’est pas un bien de consommation courante. C’est le fruit d’années d’efforts, un lieu de vie chargé d’émotion et, très souvent, l’actif le plus précieux de votre patrimoine familial. Pourtant, chaque année en France, 70% des propriétaires qui tentent de vendre seuls sans protocole finissent par abandonner ou brader leur bien.',
+      'Ce n’est pas un manque d’enthousiasme : c’est le piège de l’improvisation. Entre l’estimation au feeling, l’usure de l’annonce sur les portails, le défilé de curieux non solvables et l’extrême complexité juridique, une vente immobilière exige une rigueur méthodique absolue.',
+      'Beaucoup de professionnels gardent jalousement leurs secrets. Ce n’est pas ma vision. Je crois qu’un propriétaire éclairé prend de bien meilleures décisions. Dans ce livret, je partage avec vous, en toute transparence et sans filtre, les protocoles exacts que j’applique sur le terrain en Provence & Côte d’Azur.',
+      'Mon seul contrat d’exigence avec vous : accordez à ces pages 45 minutes de lecture attentive. C’est l’investissement le plus rentable de votre projet pour aborder votre vente avec lucidité, maîtrise et souveraineté.',
     ],
     heroImage: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=900&q=85',
   },
 
-  // ─── PAGE 4 : ASK YOURSELF... (3 QUESTIONS) ───
+  // ─── PAGE 4 : AUTO-ÉVALUATION (3 QUESTIONS ESSENTIELLES) ───
   {
     pageNumber: 4,
     moduleNumber: 0,
     moduleTitle: 'Auto-Évaluation',
     layoutType: 'ask_yourself_badge',
-    badgeText: 'ASK YOURSELF...',
+    badgeText: 'AUTO-ÉVALUATION',
     title: 'Posez-vous ces 3 questions essentielles',
     subtitle: 'AVANT D’ALLER PLUS LOIN ET DE VOUS LANCER DANS CETTE AVENTURE, PRENEZ QUELQUES MINUTES POUR RÉPONDRE EN TOUTE FRANCHISE.',
     numberedItems: [
@@ -125,204 +124,212 @@ export const GUIDE_PAGES: GuidePageData[] = [
       },
     ],
     footerConditions: {
-      yesText: 'Si vous avez répondu OUI à chacune de ces 3 questions : parfait ! Passez directement à l’ÉTAPE 1.',
-      noText: 'Si vous avez répondu NON à l’une de ces questions : prenez le temps d’étudier attentivement les 4 statistiques de la page suivante.',
+      yesText: 'Si vous avez répondu OUI à chacune de ces 3 questions : parfait ! Passez directement au CHAPITRE 1.',
+      noText: 'Si vous avez répondu NON à l’une de ces questions : prenez le temps d’étudier attentivement les 4 repères de la page suivante.',
     },
+    heroImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
   },
 
-  // ─── PAGE 5 : CONSIDER THIS (4 STATISTICS) ───
+  // ─── PAGE 5 : REPÈRES DU MARCHÉ (4 STATISTIQUES RÉELLES) ───
   {
     pageNumber: 5,
     moduleNumber: 0,
     moduleTitle: 'Statistiques',
     layoutType: 'consider_this_badge',
-    badgeText: 'CONSIDER THIS',
+    badgeText: 'REPÈRES DE MARCHÉ',
     title: '4 Réalités Chiffrées du Marché PAP',
     subtitle: 'SI VOUS HÉSITEZ ENCORE, ANALYSEZ CES 4 DONNÉES CLÉS CONSTATÉES SUR LE MARCHÉ IMMOBILIER :',
     numberedItems: [
       {
         number: '01',
         title: 'Un écart moyen de prix constaté de 6% à 9%',
-        text: 'Les études notariales montrent qu’un bien vendu en direct subit souvent une négociation plus agressive faute de concurrence organisée et d’arguments comparatifs factuels.',
+        text: 'Les études notariales et analyses de terrain démontrent qu’un bien vendu en direct sans concurrence organisée subit une négociation plus agressive faute d’arguments comparatifs factuels.',
       },
       {
         number: '02',
-        title: 'Un délai de vente moyen rallongé de 19 jours',
-        text: 'Sans diffusion multi-portails professionnelle ni vivier d’acheteurs pré-qualifiés, la mise en relation prend mécaniquement plus de temps.',
+        title: 'L’usure de l’annonce : le piège des 30 premiers jours',
+        text: 'Sur les portails de diffusion, l’attractivité maximale se joue le premier mois. Un bien mal positionné qui stagne perd son effet de nouveauté et attire des propositions d’achat très décotées.',
       },
       {
         number: '03',
-        title: 'Le casse-tête juridique : 1ère cause d’abandon',
-        text: 'La constitution du dossier Loi ALUR, les diagnostics DPE et la sécurisation des clauses suspensives de prêt représentent le principal motif de découragement des vendeurs.',
+        title: 'Le dossier juridique et technique : 1ère cause de retard',
+        text: 'DPE, assainissement collectif ou autonome, conformité d’urbanisme, servitudes : la rigueur documentaire représente le motif principal d’échec ou de blocage lors du compromis notarié.',
       },
       {
         number: '04',
-        title: '70% des vendeurs particuliers finissent par déléguer',
-        text: 'Face à l’usure des visites non qualifiées et des rétractations bancaires, plus des deux tiers des propriétaires choisissent de confier leur bien à un conseiller de confiance.',
+        title: '70% des vendeurs sans méthode finissent par déléguer',
+        text: 'Face à l’usure des visites non qualifiées, aux curieux du dimanche et aux désistements de prêt tardifs, plus de deux tiers des propriétaires se tournent finalement vers un accompagnement.',
       },
     ],
     footerNote:
-      'Vendre seul peut être une expérience gratifiante si vous appliquez une méthode stricte. L’objectif de ce guide est de vous donner toutes les cartes pour réussir en toute sérénité.',
+      'Vendre son bien immobilier sans intermédiaire en Provence peut être une démarche gratifiante si vous appliquez une méthode rigoureuse. Vous conservez la maîtrise directe de votre calendrier et préservez votre capital financier.\n\nEn revanche, l’absence de filtre acheteur, les erreurs d’estimation initiale et la négociation affective conduisent trop souvent au blocage ou à des décotes lourdes. Ce guide a été conçu pour vous apporter tous les outils d’un professionnel.',
+    heroImage: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80',
   },
 
-  // ─── PAGE 6 : PROS & CONS ───
+  // ─── PAGE 6 : ATOUTS & EXIGENCES (PROS & CONS) ───
   {
     pageNumber: 6,
     moduleNumber: 0,
     moduleTitle: 'Avantages & Inconvénients',
     layoutType: 'pros_and_cons_2col',
     title: 'Pros & Cons',
-    subtitle: 'DE LA VENTE IMMOBILIÈRE ENTRE PARTICULIERS',
+    subtitle: 'OF SELLING ON YOUR OWN HOME',
     prosCons: {
       pros: [
         'Économie théorique des honoraires d’agence, préservant ainsi une marge financière sur le papier.',
         'Contrôle total sur l’ensemble du processus : calendrier des visites, choix des horaires et des supports.',
-        'Vous êtes le meilleur connaisseur de votre lieu : vous connaissez chaque recoin, chaque saison et chaque détail de votre maison.',
-        'Satisfaction personnelle d’avoir mené à bien une transaction patrimoniale majeure par vous-même.',
+        'Vous êtes le meilleur connaisseur intime de votre lieu : son histoire, chaque saison et son art de vivre.',
+        'Satisfaction personnelle et fierté légitime d’avoir mené à bien une transaction patrimoniale majeure par vous-même.',
       ],
       cons: [
-        'Exposition à des acheteurs non solvables qui n’ont pas fait valider leur capacité d’emprunt bancaire.',
+        'Exposition à des acheteurs non solvables qui n’ont pas fait valider formellement leur capacité d’emprunt bancaire.',
         'Charge mentale élevée : gestion des appels à toute heure, annulations de dernière minute et week-ends bloqués.',
-        'Difficulté à rester neutre lors de la négociation face à des critiques touchant votre lieu de vie.',
-        'Risque de « brûler l’annonce » sur les portails si le prix initial est mal positionné dès les premiers jours.',
+        'Difficulté naturelle à garder une neutralité affective lors de la négociation face à des critiques touchant votre foyer.',
+        'Risque majeur de « brûler l’annonce » sur les portails si le prix de lancement est déconnecté de la réalité DVF.',
+      ],
+    },
+    heroImage: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80',
+  },
+
+  // ─── PAGE 7 : CHAPITRE 01 DIVIDER (Penser son Projet dans sa Globalité) ───
+  {
+    pageNumber: 7,
+    moduleNumber: 1,
+    moduleTitle: 'Penser son Projet',
+    layoutType: 'stage_divider',
+    stageNumber: 'CHAPITRE 01',
+    title: 'Penser son Projet dans sa Globalité',
+    subtitle: 'La réussite d’une vente commence par la maîtrise sereine de l’après.',
+    paragraphs: [
+      'Vendre une maison en Provence n’est presque jamais un acte isolé. C’est le pivot central d’une nouvelle trajectoire de vie : acquisition d’un nouveau bien, installation en village, retraite ou rapprochement familial.',
+      'Aborder la mise en vente sans avoir synchronisé les calendriers et le capital financier avec votre future acquisition est la première cause de stress, de double déménagement et de décisions prises dans l’urgence.',
+    ],
+    heroImage: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1400&q=85',
+  },
+
+  // ─── PAGE 8 : LE DILEMME FONDAMENTAL (Vendre ou Acheter d'abord ?) ───
+  {
+    pageNumber: 8,
+    moduleNumber: 1,
+    moduleTitle: 'Penser son Projet',
+    layoutType: 'two_column_photo_top',
+    title: 'VENDRE OU ACHETER D’ABORD ?',
+    subtitle: 'ARBITRER ENTRE SÉCURITÉ FINANCIÈRE ET SÉRÉNITÉ DU RELOGEMENT',
+    heroImage: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&q=80',
+    twoColumnsText: {
+      col1: [
+        'ACHETER AVANT DE VENDRE : Le mirage du coup de cœur. Cette option nécessite un prêt relais dont les taux d’intérêt pèsent lourdement sur le budget familial.',
+        'La banque accorde 12 à 24 mois maximum. Au fil des mois sans acheteur, la pression psychologique devient intenable, obligeant souvent à brader son bien dans l’urgence pour solder le crédit.',
+      ],
+      col2: [
+        'VENDRE AVANT D’ACHETER : La sécurité financière absolue. Vous connaissez votre budget d’acquisition au centime près et négociez votre futur bien en position de force, sans clause suspensive de vente.',
+        'L’appréhension du « où vais-je habiter entre les deux ? » se désamorce très simplement grâce aux deux dispositifs juridiques présentés en page suivante.',
       ],
     },
   },
 
-  // ─── PAGE 7 : STAGE ONE DIVIDER (Preparation of Your Home) ───
-  {
-    pageNumber: 7,
-    moduleNumber: 1,
-    moduleTitle: 'Préparation du Bien',
-    layoutType: 'stage_divider',
-    stageNumber: 'STAGE ONE',
-    title: 'Preparation of Your Home',
-    subtitle: 'La préparation méticuleuse est la clé de voûte de toute transaction réussie.',
-    paragraphs: [
-      'La clé d’une vente réussie réside dans la préparation en amont. Si votre bien n’est pas parfaitement prêt, il risque de stagner sur le marché et de subir une décote évitable.',
-      'Dans cette première section, nous allons aborder chaque point de contrôle pour transformer votre logement en un coup de cœur évident dès la première visite.',
-    ],
-    heroImage: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=1400&q=85',
-  },
-
-  // ─── PAGE 8 : HOME PREPARATION (Split Photo / Text) ───
-  {
-    pageNumber: 8,
-    moduleNumber: 1,
-    moduleTitle: 'Préparation du Bien',
-    layoutType: 'split_half_photo',
-    title: 'HOME PREPARATION',
-    subtitle: 'LA MÉTHODE EN 20 POINTS DE VÉRIFICATION',
-    paragraphs: [
-      'Nous avons développé un protocole très précis pour valoriser votre logement rapidement et au meilleur prix.',
-      '20 points de contrôle peuvent sembler exigeants, mais ils constituent le socle qui vous évitera toute mauvaise surprise ou négociation agressive de l’acheteur.',
-      'Ne laissez rien au hasard : suivez cette méthodologie étape par étape.',
-    ],
-    heroImage: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=1000&q=85',
-  },
-
-  // ─── PAGE 9 : PREPARING YOUR HOME (Checklist 1) ───
+  // ─── PAGE 9 : SYNCHRONISATION DES CALENDRIERS (Vente Longue & Occupation) ───
   {
     pageNumber: 9,
     moduleNumber: 1,
-    moduleTitle: 'Préparation du Bien',
+    moduleTitle: 'Penser son Projet',
     layoutType: 'black_badges_list',
-    title: 'Preparing your home',
-    subtitle: 'ACTIONS PRIORITAIRES POUR SÉCURISER LA VALEUR',
+    title: 'Synchronisation des Calendriers',
+    subtitle: 'LES LEVIERS JURIDIQUES POUR ÉVITER LE DOUBLE DÉMÉNAGEMENT',
     itemsWithBadges: [
       {
-        badge: 'MAKE REPAIRS',
-        text: 'Réparez les petits défauts accumulés avec le temps : portes qui grincent, poignées instables, plinthes décollées, robinets qui fuient et fissures légères d’enduit. Tout défaut visible induit un sentiment de négligence chez l’acheteur.',
+        badge: 'LA VENTE LONGUE (4 À 6 MOIS)',
+        text: 'Négociez dès l’offre un délai prolongé entre le compromis et l’acte authentique (au lieu des 3 mois habituels). Cela vous offre le temps nécessaire pour visiter, faire une offre et synchroniser votre futur achat.',
       },
       {
-        badge: 'FINISH PROJECTS',
-        text: 'Terminez tous les projets en suspens : cette peinture de couloir inachevée, le luminaire non posé ou la plinthe de cuisine manquante. Un chantier inachevé déclenche systématiquement une demande de décote disproportionnée.',
+        badge: 'CONVENTION D’OCCUPATION',
+        text: 'Insérez une convention d’occupation précaire dans l’acte authentique : vous touchez l’intégralité des fonds de la vente le jour J tout en restant dans les lieux 2 à 4 semaines moyennant indemnité séquestrée.',
       },
       {
-        badge: 'CREATE CURB APPEAL',
-        text: 'L’extérieur fait la première impression : tondez la pelouse, désherbez l’allée, taillez les haies et nettoyez les abords du portail. L’acheteur commence à juger le bien avant même d’être descendu de sa voiture.',
+        badge: 'CLAUSE SUSPENSIVE D’ACHAT',
+        text: 'En cas de chaîne de transactions, le notaire peut encadrer la date limite de libération des lieux pour faire coïncider les deux actes le même jour dans la même étude notariale.',
       },
       {
-        badge: 'CREATE A WELCOMING ENTRYWAY',
-        text: 'L’entrée doit être aérée et lumineuse : installez un paillasson neuf, videz les patères de manteaux et dégagez la vue directe vers la pièce de vie principale.',
+        badge: 'ÉVITER LE GARDE-MEUBLE',
+        text: 'Une planification rigoureuse dès le premier jour de mise en vente permet d’éviter les coûts et la fatigue d’un déménagement temporaire et la location d’un box de stockage.',
       },
     ],
+    heroImage: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=1200&q=80',
   },
 
-  // ─── PAGE 10 : PREPARING YOUR HOME (Checklist 2 + Bottom Photo) ───
+  // ─── PAGE 10 : CALCUL DU CAPITAL NET VENDEUR RÉINVESTISSABLE ───
   {
     pageNumber: 10,
     moduleNumber: 1,
-    moduleTitle: 'Préparation du Bien',
-    layoutType: 'black_badges_bottom_photo',
-    title: 'Preparing your home',
-    subtitle: 'DÉPERSONNALISATION & PURIFICATION DES ESPACES',
-    itemsWithBadges: [
+    moduleTitle: 'Penser son Projet',
+    layoutType: 'three_column_black_banner',
+    title: 'Le Capital Net Réinvestissable',
+    subtitle: 'CALCULER VOTRE CAPACITÉ DE RÉINVESTISSEMENT AU CENTIME PRÈS',
+    threeColumns: [
       {
-        badge: 'REMOVE PERSONAL ITEMS',
-        text: 'Retirez les photos de famille, diplômes et magnets sur le réfrigérateur. L’acheteur doit pouvoir s’imaginer chez lui, et non avoir l’impression de s’introduire dans l’intimité d’un tiers.',
+        number: '01',
+        title: 'CAPITAL RESTANT DÛ',
+        text: 'Le solde de votre prêt immobilier en cours auprès de votre banque, augmenté des éventuelles indemnités de remboursement anticipé (IRA, légalement plafonnées à 3% du capital ou 6 mois d’intérêts).',
       },
       {
-        badge: 'FIX PET ISSUES',
-        text: 'Faites disparaître les gamelles, litières et coussins d’animaux avant les visites. Aérez abondamment pour éliminer toute odeur perceptible.',
+        number: '02',
+        title: 'MAINLEVÉE D’HYPOTHÈQUE',
+        text: 'Si votre bien est garanti par une hypothèque ou un PPD, prévoyez environ 0,3% à 0,5% du montant initial du crédit pour radier l’inscription au service de publicité foncière.',
       },
       {
-        badge: 'WASH THE EXTERIOR',
-        text: 'Nettoyez la terrasse au jet haute pression, lavez les baies vitrées pour maximiser l’entrée de lumière et dégagez les volets.',
-      },
-      {
-        badge: 'GET A HOME INSPECTION',
-        text: 'Anticipez la réalisation du Dossier de Diagnostic Technique (DPE, électricité, amiante) pour ne pas être pris de court lors d’une offre.',
+        number: '03',
+        title: 'IMPÔT SUR LA PLUS-VALUE',
+        text: 'Si le bien vendu n’est pas votre résidence principale, l’impôt sur la plus-value et les prélèvements sociaux sont directement calculés et retenus à la source par le notaire le jour de la signature finale.',
       },
     ],
-    heroImage: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80',
+    bannerBox: {
+      title: 'LA FORMULE DU CAPITAL RÉINVESTISSABLE RÉEL',
+      text: 'Prix de vente acte − Remboursement crédit − Mainlevée − Coûts diagnostics − Fiscalité = Votre apport cash réel. Sur votre future acquisition, n’oubliez jamais d’anticiper environ 7% à 8% de frais d’acte notarié.',
+    },
+    heroImage: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=80',
   },
 
-  // ─── PAGE 11 : EXTÉRIEURS & FINITIONS (Side Photo) ───
+  // ─── PAGE 11 : CADRAGE FISCAL OBLIGATOIRE (RP vs Secondaire) ───
   {
     pageNumber: 11,
     moduleNumber: 1,
-    moduleTitle: 'Préparation du Bien',
-    layoutType: 'black_badges_side_photo',
-    title: 'Détails & Extérieurs',
-    subtitle: 'LES POINTS QUI CRÉENT LE SENTIMENT DE QUALITÉ',
+    moduleTitle: 'Penser son Projet',
+    layoutType: 'black_badges_bottom_photo',
+    title: 'Cadrage Fiscal : RP vs Secondaire',
+    subtitle: 'ANTICIPER LA PLUS-VALUE POUR ÉVITER LES MAUVAISES SURPRISES',
     itemsWithBadges: [
       {
-        badge: 'FIX FENCING',
-        text: 'Réparez les clôtures affaissées, portillons déboîtés ou grillages détendus pour délimiter nettement votre propriété.',
+        badge: 'RÉSIDENCE PRINCIPALE',
+        text: 'Exonération totale à 100% d’impôt sur le revenu et de prélèvements sociaux. Condition : occupation effective au moment de la vente (délai normal d’inoccupation admis généralement fixé à 1 an max).',
       },
       {
-        badge: 'ROOF REPAIRS',
-        text: 'Vérifiez la toiture : remplacez les tuiles ébréchées et nettoyez les gouttières encombrées par les feuilles mortes.',
+        badge: 'RÉSIDENCE SECONDAIRE',
+        text: 'Taxation globale de 36,2% (19% IR + 17,2% prélèvements sociaux). L’exonération totale d’IR n’intervient qu’après 22 ans de détention, et 30 ans pour les prélèvements sociaux.',
       },
       {
-        badge: 'FIX CRACKS',
-        text: 'Rebouchez les micro-fissures d’enduit sur les murets extérieurs et terrasses pour rassurer sur l’étanchéité.',
+        badge: 'DÉDUCTION DES TRAVAUX',
+        text: 'Vous pouvez majorer le prix d’achat du montant des travaux réels réalisés par des entreprises qualifiées (factures avec fourniture et pose), ou appliquer le forfait fiscal de 15% après 5 ans de détention.',
       },
       {
-        badge: 'TOUCH UP ANY SCUFF MARKS',
-        text: 'Passez un coup de peinture propre sur les chambranles de portes et angles de murs abîmés par les passages quotidiens.',
-      },
-      {
-        badge: 'CONDUCT A SMELL TEST',
-        text: 'Faites tester l’odeur de votre maison par un ami objectif 30 minutes après avoir aéré les pièces.',
+        badge: 'SIMULATION NOTARIÉE PRÉALABLE',
+        text: 'Règle d’or : demandez à votre notaire de calculer le montant exact de la plus-value AVANT de fixer votre prix pour ne pas découvrir une retenue de 30 000 € à 60 000 € le jour de la signature.',
       },
     ],
-    heroImage: 'https://images.unsplash.com/photo-1545083036-b175dd155a1d?auto=format&fit=crop&w=800&q=85',
+    heroImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
   },
 
-  // ─── PAGE 12 : STAGING YOUR HOME (Comparison VS) ───
+  // ─── PAGE 12 : LA MISE EN VALEUR DES VOLUMES ───
   {
     pageNumber: 12,
     moduleNumber: 1,
     moduleTitle: 'Préparation du Bien',
     layoutType: 'staging_vs_comparison',
-    title: 'staging your home',
+    title: 'La mise en valeur des volumes',
     subtitle: 'L’IMPACT DU HOME STAGING SUR LE COUP DE CŒUR',
     beforeAfter: {
-      beforeLabel: 'PROFESSIONAL STAGING',
+      beforeLabel: 'MISE EN VALEUR ÉPURÉE',
       beforeImg: 'https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&w=800&q=80',
-      afterLabel: 'ZERO STAGING (ENCOMBRÉ)',
+      afterLabel: 'ESPACE SURCHARGÉ',
       afterImg: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80',
     },
     paragraphs: [
@@ -332,14 +339,14 @@ export const GUIDE_PAGES: GuidePageData[] = [
     ],
   },
 
-  // ─── PAGE 13 : STAGE TWO DIVIDER (Pricing Your Home) ───
+  // ─── PAGE 13 : ÉTAPE 2 DIVIDER (Fixer votre prix) ───
   {
     pageNumber: 13,
     moduleNumber: 2,
     moduleTitle: 'Stratégie de Prix',
     layoutType: 'stage_divider',
-    stageNumber: 'STAGE TWO',
-    title: 'Pricing Your Home',
+    stageNumber: 'ÉTAPE 2',
+    title: 'Fixer votre prix',
     subtitle: 'La fixation du prix est la décision la plus stratégique de votre projet.',
     paragraphs: [
       'Si vous souhaitez vendre seul avec succès, vous devez fixer un prix d’une justesse mathématique absolue.',
@@ -349,13 +356,13 @@ export const GUIDE_PAGES: GuidePageData[] = [
     heroImage: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1400&q=85',
   },
 
-  // ─── PAGE 14 : THE PROCESS OF PRICING (Photo Top + 2 Col) ───
+  // ─── PAGE 14 : LA DYNAMIQUE DE PRIX (Photo Top + 2 Col) ───
   {
     pageNumber: 14,
     moduleNumber: 2,
     moduleTitle: 'Stratégie de Prix',
     layoutType: 'two_column_photo_top',
-    title: 'THE PROCESS OF PRICING',
+    title: 'La dynamique de prix',
     subtitle: 'COMMENT LE MARCHÉ RÉAGIT À VOTRE VALEUR AFFICHÉE',
     heroImage: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1200&q=80',
     twoColumnsText: {
@@ -370,7 +377,7 @@ export const GUIDE_PAGES: GuidePageData[] = [
     },
   },
 
-  // ─── PAGE 15 : PRICING ANALYSIS & CONSIDERATIONS ───
+  // ─── PAGE 15 : ANALYSE FACTUELLE & CRITÈRES CLÉS ───
   {
     pageNumber: 15,
     moduleNumber: 2,
@@ -380,73 +387,85 @@ export const GUIDE_PAGES: GuidePageData[] = [
     subtitle: 'LES VARIABLES QUI DÉTERMINENT LA VALEUR RÉELLE',
     itemsWithBadges: [
       {
-        badge: 'ANALYSIS',
-        text: 'Pour mener votre analyse comparative, concentrez-vous exclusivement sur les biens réellement vendus (base des notaires DVF) dans un périmètre proche, et non sur les annonces en cours.',
+        badge: 'ANALYSE FACTUELLE (DVF)',
+        text: 'Concentrez-vous exclusivement sur les ventes réelles enregistrées par les notaires (DVF) dans un périmètre strict de moins de 1 km sur les 18 derniers mois, et jamais sur les prix affichés en vitrine.',
       },
       {
-        badge: 'CONSIDER',
-        text: 'Votre maison a-t-elle le même nombre de chambres ? Plus ou moins de terrain ? Des rénovations majeures au cours des 5 dernières années ? Le quartier est-il recherché par les familles ?',
+        badge: 'CARACTÉRISTIQUES DU BÂTI',
+        text: 'Surface Carrez utile, plain-pied vs étages, exposition sud, luminosité naturelle, état de la toiture, conformité de l’assainissement (tout-à-l’égout ou fosse) et note DPE (l’impact direct des classes F/G).',
+      },
+      {
+        badge: 'AGRÉMENTS & CADRE DE VIE',
+        text: 'Calme absolu sans vis-à-vis, vue dégagée sur les collines ou le Luberon, taille et topographie du terrain, présence d’une piscine aux normes et proximité immédiate des commodités de village.',
+      },
+      {
+        badge: 'CONCURRENCE DIRECTE ACTIVE',
+        text: 'Analysez les biens comparables en vente actuellement dans votre secteur. Vos futurs acquéreurs les visiteront le même week-end que le vôtre et compareront chaque écart de prestation.',
       },
     ],
+    bannerBox: {
+      title: 'LE CONSEIL D’ARBITRAGE D’ALEXANDRE LOPEZ',
+      text: 'Un acheteur ne paie pas le potentiel que vous imaginez, mais l’état réel qu’il constate le jour de la visite. Chaque défaut visible ou incertitude technique est converti en offre décotée.',
+    },
     heroImage: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&q=80',
   },
 
-  // ─── PAGE 16 : CMA VS. APPRAISAL ───
+  // ─── PAGE 16 : LES 4 SOURCES DE PRIX (DVF, SIMULATEURS, PRO, EXPERTISE) ───
   {
     pageNumber: 16,
     moduleNumber: 2,
     moduleTitle: 'Stratégie de Prix',
     layoutType: 'cma_vs_appraisal',
-    title: 'CMA VS. APPRAISAL',
-    subtitle: 'QUELLE DIFFÉRENCE ENTRE ANALYSE COMPARATIVE ET EXPERTISE ?',
+    title: 'Les 4 Sources de Prix',
+    subtitle: 'CE QU’ELLES VALENT RÉELLEMENT SUR LE MARCHÉ PROVENÇAL',
     paragraphs: [
-      'L’Analyse Comparative de Marché (CMA) et l’expertise vénale sont deux méthodes professionnelles qui répondent à des objectifs complémentaires.',
-      'Le conseiller immobilier réalise une CMA pour déterminer le prix optimal auquel le bien trouvera preneur dans le contexte concurrentiel actuel.',
-      'L’expert ou le service bancaire évalue quant à lui la valeur intrinsèque pour sécuriser l’hypothèque du prêt de l’acquéreur.',
-      'Si le prix convenu dépasse largement la valeur d’expertise, la banque peut refuser le financement de votre acheteur.',
+      '1. Les bases notariales DVF (Demande de Valeur Foncière) : L’unique source factuelle des ventes authentiques réellement enregistrées par l’administration fiscale. C’est le socle objectif incontestable pour connaître les prix nets signés.',
+      '2. Les simulateurs d’estimation en ligne : Basés sur des algorithmes statistiques génériques, ils ignorent la vue, le calme, l’exposition et l’état réel du bâti. En Provence, leur marge d’erreur oscille souvent entre 10% et 20%.',
+      '3. L’avis de valeur d’un professionnel du secteur : Il croise les actes DVF récents avec les critères qualitatifs de terrain et la concurrence active pour définir le prix d’attractivité maximal.',
+      '4. L’expertise judiciaire ou vénale agréée : Réalisée par un expert assermenté, elle est obligatoire lors de successions complexes ou pour sécuriser le prêt hypothécaire d’un acquéreur auprès de son comité bancaire.',
     ],
     heroImage: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=80',
   },
 
-  // ─── PAGE 17 : PLACES TO RESEARCH YOUR HOMES VALUE ───
+  // ─── PAGE 17 : LES 3 SIGNAUX DU MARCHÉ & LE PIÈGE DU M² ───
   {
     pageNumber: 17,
     moduleNumber: 2,
     moduleTitle: 'Stratégie de Prix',
     layoutType: 'three_column_black_banner',
-    title: 'places to research',
-    subtitle: 'YOUR HOME’S TRUE VALUE',
+    title: 'Les 3 Signaux du Marché',
+    subtitle: 'COMMENT DÉCODER LA RÉALITÉ SANS VOUS LAISSER PIÉGER',
     threeColumns: [
       {
         number: '01',
-        title: 'SOLD LISTINGS',
-        text: 'Consultez les ventes notariées réelles (DVF). C’est le seul indicateur factuel qui prouve ce que les acheteurs ont effectivement payé.',
+        title: 'VENTES CONCLUES (DVF)',
+        text: 'Les actes authentiques signés des 6 à 12 derniers mois. C’est la seule preuve juridique de ce que les acheteurs ont effectivement accepté de débourser.',
       },
       {
         number: '02',
-        title: 'PENDING LISTINGS',
-        text: 'Les biens sous compromis de vente vous indiquent ce qui a séduit le marché récemment et à quel rythme les transactions se concluent.',
+        title: 'CONCURRENCE ACTIVE',
+        text: 'Les annonces en ligne aujourd’hui. Attention : ce sont des prix demandés par des vendeurs, pas des prix vendus. C’est votre concurrence directe ce week-end.',
       },
       {
         number: '03',
-        title: 'ACTIVE LISTINGS',
-        text: 'Ce sont vos concurrents directs ce week-end. Les acheteurs visiteront ces biens en même temps que le vôtre.',
+        title: 'ANNONCES EN SOUFFRANCE',
+        text: 'Les biens en ligne depuis plus de 90 jours ou avec baisses de prix répétées. C’est le signal limpide que le marché rejette leur positionnement initial.',
       },
     ],
     bannerBox: {
-      title: 'SQUARE-FOOT & SURFACE COST COMPARISONS',
-      text: 'Ne vous fiez pas aveuglément à un prix au m² moyen. Une terrasse avec vue panoramique, un DPE A/B ou un garage fermé modifient sensiblement la valeur finale.',
+      title: 'LE PIÈGE DU PRIX AU M² EN PROVENCE',
+      text: 'Appliquer un prix au m² moyen sur une maison est un leurre : la qualité du terrain, la vue dégagée, l’absence de vis-à-vis, la piscine, l’assainissement et la note DPE créent des écarts de valeur pouvant dépasser 30% à surface habitable identique.',
     },
   },
 
-  // ─── PAGE 18 : STAGE THREE DIVIDER (Marketing Your Home) ───
+  // ─── PAGE 18 : ÉTAPE 3 DIVIDER (Faire connaître votre bien) ───
   {
     pageNumber: 18,
     moduleNumber: 3,
     moduleTitle: 'Marketing & Visibilité',
     layoutType: 'stage_divider',
-    stageNumber: 'STAGE THREE',
-    title: 'Marketing Your Home',
+    stageNumber: 'ÉTAPE 3',
+    title: 'Faire connaître votre bien',
     subtitle: 'La visibilité ciblée transforme un simple bien en objet de désir.',
     paragraphs: [
       'Vous avez préparé votre logement et calibré votre prix. Il est temps de toucher le marché avec puissance.',
@@ -455,23 +474,23 @@ export const GUIDE_PAGES: GuidePageData[] = [
     heroImage: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1400&q=85',
   },
 
-  // ─── PAGE 19 : THE VALUE OF PHOTOGRAPHY ───
+  // ─── PAGE 19 : LA FORCE DE LA PHOTOGRAPHIE ───
   {
     pageNumber: 19,
     moduleNumber: 3,
     moduleTitle: 'Marketing & Visibilité',
     layoutType: 'photography_before_after',
-    title: 'THE VALUE OF PHOTOGRAPHY',
+    title: 'La force de la photographie',
     subtitle: 'L’IMPACT DES PRISES DE VUE SUR LE CLIC ET L’OFFRE',
     paragraphs: [
       'La première impression d’un acheteur est TOUJOURS visuelle. Vous ne devez pas lésiner sur ce point capital.',
       'Privilégiez les photos en grand angle raisonné, à hauteur de regard, avec une lumière naturelle abondante (ouvrez tous les volets et stores).',
-      'Le shooting doit avoir lieu un jour de beau temps, idéalement en début de matinée ou en fin d’après-midi lors de la Golden Hour.',
+      'Le shooting doit avoir lieu un jour de grand ciel bleu, idéalement en début de matinée ou en fin d’après-midi lors de la Golden Hour.',
     ],
     beforeAfter: {
-      beforeLabel: 'BEFORE (PHOTO SMARTPHONE)',
+      beforeLabel: 'PHOTO SMARTPHONE AMATEUR',
       beforeImg: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=600&q=80',
-      afterLabel: 'AFTER (PHOTOGRAPHIE ÉDITORIALE)',
+      afterLabel: 'PRISE DE VUE PROFESSIONNELLE',
       afterImg: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80',
     },
   },
@@ -555,14 +574,14 @@ export const GUIDE_PAGES: GuidePageData[] = [
     heroImage: 'https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&w=1000&q=85',
   },
 
-  // ─── STAGE FOUR (Qualification & Visites) ───
+  // ─── ÉTAPE 4 (Qualification & Visites) ───
   {
     pageNumber: 24,
     moduleNumber: 4,
     moduleTitle: 'Qualification & Visites',
     layoutType: 'stage_divider',
-    stageNumber: 'STAGE FOUR',
-    title: 'Showings & Buyer Qualification',
+    stageNumber: 'ÉTAPE 4',
+    title: 'Visites & Qualification',
     subtitle: 'Filtrer les curieux pour consacrer votre énergie aux vrais acheteurs.',
     paragraphs: [
       'Faire visiter sa maison à des inconnus demande méthode et sécurité.',
@@ -635,14 +654,14 @@ export const GUIDE_PAGES: GuidePageData[] = [
     heroImage: 'https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=1200&q=80',
   },
 
-  // ─── STAGE FIVE (Négociation & Notaire) ───
+  // ─── ÉTAPE 5 (Négociation & Offres) ───
   {
     pageNumber: 28,
     moduleNumber: 5,
     moduleTitle: 'Négociation & Offres',
     layoutType: 'stage_divider',
-    stageNumber: 'STAGE FIVE',
-    title: 'Offers & Negotiations',
+    stageNumber: 'ÉTAPE 5',
+    title: 'Offres & Négociation',
     subtitle: 'Défendre la vraie valeur de votre bien sans céder à l’émotion.',
     paragraphs: [
       'Recevoir une offre d’achat est le moment le plus intense d’une vente.',
@@ -716,15 +735,16 @@ export const GUIDE_PAGES: GuidePageData[] = [
     moduleTitle: 'Du Dossier au Notaire',
     layoutType: 'two_column_photo_top',
     title: 'LE RÔLE DU NOTAIRE & LE COMPROMIS',
-    subtitle: 'DEUX NOTAIRES VALENT MIEUX QU’UN',
+    subtitle: 'SÉCURITÉ JURIDIQUE & ANTICIPATION DES PIÈCES',
     heroImage: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=1200&q=80',
     twoColumnsText: {
       col1: [
-        'Vendeur et acheteur peuvent chacun faire intervenir leur propre notaire sans surcoût (les honoraires légaux sont partagés équitablement).',
-        'Votre notaire défend vos intérêts patrimoniaux et vérifie le respect des clauses du compromis.',
+        'Vendeur et acheteur peuvent chacun faire intervenir leur propre notaire : cela ne vous coûte rien de plus, les émoluments réglementés étant partagés entre les deux études.',
+        'Votre notaire défend exclusivement vos intérêts patrimoniaux, calcule l’éventuelle plus-value (si résidence secondaire) et verrouille la rédaction des conditions suspensives.',
       ],
       col2: [
-        'Transmettez l’ensemble des pièces (titre de propriété, diagnostics, PV d’AG) dès l’accord sur le prix pour rédiger le compromis sans délai.',
+        'Préparez votre dossier en amont : titre de propriété complet, taxe foncière, factures décennales de travaux et conformités d’urbanisme (DAACT mairie).',
+        'Le DDT complet (DPE, amiante, plomb, électricité, termites, attestation OLD et contrôle SPANC) doit être annexé dès le compromis pour faire courir le délai de rétractation sans nullité.',
       ],
     },
   },
@@ -887,7 +907,7 @@ export const GUIDE_PAGES: GuidePageData[] = [
       },
       {
         badge: 'ALEXANDRE LOPEZ',
-        text: 'Conseiller immobilier référent en Provence Verte & Verdon · 06 13 18 01 68.',
+        text: 'Conseiller immobilier référent en Provence & Côte d’Azur · 06 13 18 01 68.',
       },
     ],
   },
@@ -897,7 +917,7 @@ export const GUIDE_PAGES: GuidePageData[] = [
     moduleTitle: 'Quatrième de Couverture',
     layoutType: 'backcover_dark',
     title: 'ALEXANDRE LOPEZ',
-    subtitle: 'Conseiller en Immobilier & Stratégie Patrimoniale · Provence Verte & Verdon',
+    subtitle: 'Conseiller en Immobilier & Stratégie Patrimoniale · Provence & Côte d’Azur',
     quoteCard: {
       stars: 5,
       text: '« Une vente immobilière réussie n’est pas le fruit du hasard. C’est la rencontre d’une stratégie précise, d’une valorisation sans concession et d’un respect absolu de votre patrimoine. »',

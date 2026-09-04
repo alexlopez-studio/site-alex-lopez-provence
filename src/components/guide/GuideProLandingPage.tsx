@@ -414,11 +414,10 @@ export function GuideProLandingPage() {
           {/* ─── CAPSULE FLOTTANTE EN VERRE POLI (FROSTED GLASS ÉPURÉ & STABLE) ─── */}
           <aside
             aria-label="Navigation rapide et téléchargement"
-            className={`fixed top-3.5 sm:top-5 left-1/2 -translate-x-1/2 z-50 transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] no-print ${
-              showStickyHeader
+            className={`fixed top-3.5 sm:top-5 left-1/2 -translate-x-1/2 z-50 transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] no-print ${showStickyHeader
                 ? 'translate-y-0 opacity-100 pointer-events-auto'
                 : '-translate-y-12 opacity-0 pointer-events-none'
-            }`}
+              }`}
             style={{
               width: 'min(94vw, 760px)',
             }}
@@ -843,17 +842,15 @@ export function GuideProLandingPage() {
                         key={chap.num}
                         type="button"
                         onClick={() => setActiveStudioTab(idx)}
-                        className={`p-4 sm:p-5 rounded-2xl text-left transition-all duration-200 cursor-pointer flex items-center justify-between border-2 ${
-                          isActive
+                        className={`p-4 sm:p-5 rounded-2xl text-left transition-all duration-200 cursor-pointer flex items-center justify-between border-2 ${isActive
                             ? 'bg-[#004d73] text-white border-[#25cfff] shadow-xl translate-x-1'
                             : 'bg-white text-zinc-900 border-zinc-200/85 hover:border-[#006390]/40 hover:bg-zinc-50/90 shadow-sm'
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center gap-3.5 sm:gap-4">
                           <span
-                            className={`text-sm sm:text-base font-bold w-7 text-center shrink-0 ${
-                              isActive ? 'text-[#25cfff]' : 'text-zinc-400'
-                            }`}
+                            className={`text-sm sm:text-base font-bold w-7 text-center shrink-0 ${isActive ? 'text-[#25cfff]' : 'text-zinc-400'
+                              }`}
                           >
                             {chap.num}
                           </span>
@@ -862,11 +859,10 @@ export function GuideProLandingPage() {
                               {chap.shortTitle}
                             </div>
                             <span
-                              className={`inline-block mt-1 text-[10px] px-2.5 py-0.5 rounded-full font-semibold ${
-                                isActive
+                              className={`inline-block mt-1 text-[10px] px-2.5 py-0.5 rounded-full font-semibold ${isActive
                                   ? 'bg-white text-[#004d73] shadow-xs'
                                   : 'bg-zinc-100 text-zinc-700'
-                              }`}
+                                }`}
                             >
                               {chap.subBadge}
                             </span>
@@ -874,11 +870,10 @@ export function GuideProLandingPage() {
                         </div>
 
                         <div
-                          className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold transition-transform ${
-                            isActive
+                          className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold transition-transform ${isActive
                               ? 'bg-white text-[#004d73] translate-x-0.5 shadow-xs'
                               : 'text-zinc-400'
-                          }`}
+                            }`}
                         >
                           →
                         </div>
@@ -1156,9 +1151,8 @@ export function GuideProLandingPage() {
                           {faq.q}
                         </span>
                         <span
-                          className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-sm font-bold transition-transform duration-200 ${
-                            isOpen ? 'bg-[#006390] text-white rotate-45' : 'bg-zinc-100 text-zinc-600'
-                          }`}
+                          className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-sm font-bold transition-transform duration-200 ${isOpen ? 'bg-[#006390] text-white rotate-45' : 'bg-zinc-100 text-zinc-600'
+                            }`}
                         >
                           +
                         </span>

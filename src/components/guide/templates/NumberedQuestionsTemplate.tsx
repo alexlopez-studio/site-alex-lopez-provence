@@ -6,18 +6,19 @@ export interface NumberedQuestionsTemplateProps {
   pageNumber?: number
   badgeText?: string
   subtitle?: string
+  moduleTitle?: string
   numberedItems?: { number: string; title?: string; text: string }[]
   footerConditions?: { yesText: string; noText: string }
+  heroImage?: string
 }
 
 export function NumberedQuestionsTemplate({
-  pageNumber = 4,
   badgeText = 'ASK YOURSELF...',
-  subtitle = 'AVANT D’ALLER PLUS LOIN DANS CETTE AVENTURE, PRENEZ QUELQUES MINUTES POUR RÉPONDRE EN TOUTE FRANCHISE À CES 3 QUESTIONS CLÉS.',
+  subtitle = 'AVANT D’ALLER PLUS LOIN ET DE VOUS LANCER DANS CETTE AVENTURE, PRENEZ QUELQUES MINUTES POUR RÉPONDRE EN TOUTE FRANCHISE À CES 3 QUESTIONS :',
   numberedItems = [
     {
       number: '01',
-      text: 'Avez-vous la disponibilité mentale et le temps nécessaire pour gérer 40 à 60 heures de travail effectif (appels impromptus, visites le week-end et formalités juridiques du plus important actif de votre vie) ?',
+      text: 'Avez-vous la disponibilité mentale et le temps nécessaire pour gérer 40 à 60 heures de travail effectif (appels impromptus à toute heure, visites le week-end et formalités juridiques du plus important actif de votre vie) ?',
     },
     {
       number: '02',
@@ -29,55 +30,45 @@ export function NumberedQuestionsTemplate({
     },
   ],
   footerConditions = {
-    yesText: 'Si vous avez répondu OUI à chacune de ces 3 questions : parfait ! Passez directement à l’ÉTAPE 1.',
+    yesText: 'Si vous avez répondu OUI à chacune de ces 3 questions : parfait ! Passez directement au Chapitre 01.',
     noText: 'Si vous avez répondu NON à l’une de ces questions : prenez le temps d’étudier attentivement les 4 données clés de la page suivante.',
   },
 }: NumberedQuestionsTemplateProps) {
   return (
-    <div className="a4-sheet relative flex h-full w-full flex-col justify-between overflow-hidden bg-white px-12 py-12 sm:px-16 sm:py-14 text-[#0F172A] shadow-sm">
-      {/* ─── 1. EN-TÊTE AVEC BADGE BLEU MÉDITERRANÉE ─── */}
+    <div className="a4-sheet relative flex h-full w-full flex-col justify-between overflow-hidden bg-white px-8 sm:px-12 md:px-16 pt-10 sm:pt-14 md:pt-16 pb-12 sm:pb-16 text-zinc-900 shadow-2xl select-none aspect-[1/1.414]">
+      {/* ─── 1. BADGE NOIR "ASK YOURSELF..." & SOUS-TITRE (STYLE EXACT LIVRET) ─── */}
       <div className="shrink-0">
-        <div className="inline-block bg-[#0077B6] text-white px-7 py-3 sm:px-8 sm:py-3.5 text-2xl sm:text-3xl md:text-[34px] font-black uppercase tracking-wider leading-none rounded-lg shadow-md mb-4">
+        <div className="inline-block bg-black text-white text-xs sm:text-sm md:text-[15px] font-black tracking-widest uppercase px-5 py-2 mb-4">
           {badgeText}
         </div>
-        <p className="font-sans text-xs sm:text-[13px] font-bold tracking-[0.16em] uppercase text-[#64748B] leading-relaxed max-w-xl">
+        <p className="text-[11px] sm:text-[12px] md:text-[13.5px] font-bold tracking-wider uppercase text-zinc-800 max-w-2xl leading-relaxed">
           {subtitle}
         </p>
       </div>
 
-      {/* ─── 2. SECTION CENTRALE : 3 QUESTIONS AVEC CHIFFRES BLEU MÉDITERRANÉE & LIGNES NETTES ─── */}
-      <div className="flex-1 flex flex-col justify-evenly py-6 sm:py-8 w-full max-w-2xl">
-        {/* Ligne Supérieure */}
-        <div className="w-full h-[1.5px] bg-[#E2E8F0]" />
-
+      {/* ─── 2. LES 3 QUESTIONS AVEC NUMÉRO ET FILET HORIZONTAL (STYLE ORIGINAL) ─── */}
+      <div className="flex-1 flex flex-col justify-around py-6 sm:py-8">
         {numberedItems.map((item, idx) => (
-          <React.Fragment key={item.number || idx}>
-            <div className="flex items-center gap-8 sm:gap-10 py-5 sm:py-7">
-              {/* Chiffre 01, 02, 03 en Bleu Méditerranée */}
-              <span className="font-sans italic font-black text-4xl sm:text-5xl md:text-[54px] text-[#0077B6] shrink-0 w-16 sm:w-20 text-center leading-none">
+          <div key={item.number || idx} className="space-y-3">
+            <div className="flex items-end gap-4">
+              <span className="font-serif italic font-bold text-3xl sm:text-4xl md:text-[44px] text-black leading-none">
                 {item.number}
               </span>
-
-              {/* Texte de la question */}
-              <div className="flex-1">
-                <p className="font-sans text-xs sm:text-[13px] md:text-sm leading-relaxed text-[#1E293B] font-normal">
-                  {item.text || item.title}
-                </p>
-              </div>
+              <div className="h-px bg-zinc-300 flex-1 mb-2" />
             </div>
-
-            {/* Ligne Séparatrice */}
-            <div className="w-full h-[1.5px] bg-[#E2E8F0]" />
-          </React.Fragment>
+            <p className="text-sm sm:text-[15px] md:text-[16.5px] leading-relaxed md:leading-[1.65] text-zinc-800 font-normal">
+              {item.text}
+            </p>
+          </div>
         ))}
       </div>
 
-      {/* ─── 3. TEXTE CONDITIONNEL DU BAS ─── */}
-      <div className="shrink-0 space-y-2.5 pt-2 text-xs sm:text-[13px] text-[#334155] leading-relaxed">
-        <p className="font-semibold text-[#0077B6]">
+      {/* ─── 3. CONDITIONS DE SORTIE EN BAS DE PAGE (STYLE ORIGINAL) ─── */}
+      <div className="shrink-0 pt-6 border-t border-zinc-200 space-y-2 text-xs sm:text-[13px] md:text-[14px] leading-relaxed text-zinc-650">
+        <p className="font-medium">
           {footerConditions.yesText}
         </p>
-        <p className="font-normal text-[#64748B]">
+        <p className="font-semibold text-zinc-900">
           {footerConditions.noText}
         </p>
       </div>

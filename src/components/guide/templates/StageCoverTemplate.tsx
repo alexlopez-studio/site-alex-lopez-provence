@@ -12,44 +12,52 @@ export interface StageCoverTemplateProps {
 }
 
 export function StageCoverTemplate({
-  pageNumber = 7,
   stageNumber = 'STAGE ONE',
-  title = 'Preparation of Your Home',
+  title = 'Penser son Projet dans sa Globalité',
+  subtitle,
   paragraphs = [
-    'La clé d’une vente réussie réside dans la préparation en amont. Si votre bien n’est pas parfaitement prêt, il risque de stagner sur le marché et de subir une décote évitable.',
-    'Dans cette première section, nous allons aborder chaque point de contrôle pour transformer votre logement en un coup de cœur évident dès la première visite.',
+    'Vendre une maison en Provence n’est presque jamais un acte isolé. C’est le pivot central d’une nouvelle trajectoire de vie : acquisition d’un nouveau bien, installation en village, retraite ou rapprochement familial.',
+    'Aborder la mise en vente sans avoir synchronisé les calendriers et le capital financier avec votre future acquisition est la première cause de stress, de double déménagement et de décisions prises dans l’urgence.',
+    'Prenez le temps d’anticiper chaque paramètre pour aborder cette étape en position de force.',
   ],
-  heroImage = 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=1400&q=85',
+  heroImage = 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1400&q=85',
 }: StageCoverTemplateProps) {
   return (
-    <div className="a4-sheet relative flex h-full w-full flex-col justify-start overflow-hidden bg-[#0F172A] text-white shadow-sm p-0">
-      {/* Photo Plein Format avec Voile Teinté Anthracite / Bleu Nuit */}
+    <div className="a4-sheet relative flex h-full w-full flex-col justify-start overflow-hidden bg-zinc-900 text-white shadow-2xl p-10 sm:p-14 md:p-16 select-none aspect-[1/1.414]">
+      {/* ─── Fond Photo Plein Format (Full Bleed) ─── */}
       <img
         src={heroImage}
         alt={title}
-        className="absolute inset-0 h-full w-full object-cover object-center brightness-[75%] contrast-[105%]"
+        className="absolute inset-0 h-full w-full object-cover object-center pointer-events-none"
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0F172A]/85 via-[#0F172A]/45 to-[#0F172A]/90" />
 
-      {/* Contenu de l'Étape avec Badge Bleu Méditerranée */}
-      <div className="relative z-10 max-w-xl p-10 sm:p-14 pt-14 sm:pt-16">
-        <div className="inline-block bg-[#0077B6] text-white px-5 py-2 text-xs sm:text-sm font-black uppercase tracking-wider mb-6 rounded-md shadow-lg">
+      {/* ─── Voile Sombre pour Lisibilité Supérieure ─── */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/55 to-black/30 pointer-events-none" />
+
+      {/* ─── CONTENU HAUT GAUCHE (STYLE EXACT LIVRET STAGE ONE) ─── */}
+      <div className="relative z-10 max-w-lg pt-4">
+        {/* Badge Noir */}
+        <div className="inline-block bg-black text-white text-xs font-black tracking-widest uppercase px-3.5 py-1 mb-4">
           {stageNumber}
         </div>
-        <h1 className="font-sans text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-white leading-tight mb-6">
+
+        {/* Titre Blanc Imposant */}
+        <h1 className="font-sans text-3xl sm:text-4xl md:text-[42px] font-black tracking-tight text-white leading-tight mb-4 drop-shadow-md">
           {title}
         </h1>
-        <div className="space-y-4 text-sm sm:text-base leading-relaxed text-white/95 font-normal">
+
+        {subtitle && (
+          <p className="text-xs sm:text-sm font-semibold text-zinc-200 uppercase tracking-wider mb-6">
+            {subtitle}
+          </p>
+        )}
+
+        {/* Paragraphes de Cadrage Blancs */}
+        <div className="space-y-4 text-xs sm:text-[13px] leading-relaxed text-zinc-100 max-w-md font-normal drop-shadow-xs">
           {paragraphs.map((p, idx) => (
             <p key={idx}>{p}</p>
           ))}
         </div>
-      </div>
-
-      {/* Pied de Page Officiel */}
-      <div className="absolute bottom-8 left-10 right-10 flex justify-between text-[10px] text-white/70 uppercase tracking-widest z-10 border-t border-white/15 pt-3">
-        <span className="font-semibold text-white/90">ALEXANDRE LOPEZ · CONSEILLER IAD PROVENCE VERTE & VERDON</span>
-        <span className="text-[#00B4EC] font-bold">P. {String(pageNumber).padStart(2, '0')}</span>
       </div>
     </div>
   )

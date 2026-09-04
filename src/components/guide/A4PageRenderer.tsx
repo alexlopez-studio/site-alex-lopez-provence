@@ -77,6 +77,8 @@ export function A4PageRenderer({
           subtitle={page.subtitle}
           numberedItems={page.numberedItems}
           footerConditions={page.footerConditions}
+          moduleTitle={page.moduleTitle}
+          heroImage={page.heroImage}
         />
       )
 
@@ -88,6 +90,8 @@ export function A4PageRenderer({
           subtitle={page.subtitle}
           numberedItems={page.numberedItems}
           footerNote={page.footerNote}
+          moduleTitle={page.moduleTitle}
+          heroImage={page.heroImage}
         />
       )
 
@@ -99,6 +103,8 @@ export function A4PageRenderer({
           subtitle={page.subtitle}
           pros={page.prosCons?.pros}
           cons={page.prosCons?.cons}
+          moduleTitle={page.moduleTitle}
+          heroImage={page.heroImage}
         />
       )
 
@@ -108,6 +114,7 @@ export function A4PageRenderer({
           pageNumber={page.pageNumber}
           stageNumber={page.stageNumber}
           title={page.title}
+          subtitle={page.subtitle}
           paragraphs={page.paragraphs}
           heroImage={page.heroImage}
         />
@@ -121,6 +128,7 @@ export function A4PageRenderer({
           subtitle={page.subtitle}
           paragraphs={page.paragraphs}
           heroImage={page.heroImage}
+          moduleTitle={page.moduleTitle}
         />
       )
 
@@ -131,6 +139,8 @@ export function A4PageRenderer({
           title={page.title}
           subtitle={page.subtitle}
           itemsWithBadges={page.itemsWithBadges}
+          heroImage={page.heroImage}
+          moduleTitle={page.moduleTitle}
         />
       )
 
@@ -141,7 +151,9 @@ export function A4PageRenderer({
           title={page.title}
           subtitle={page.subtitle}
           itemsWithBadges={page.itemsWithBadges}
+          adviceBox={page.bannerBox}
           heroImage={page.heroImage}
+          moduleTitle={page.moduleTitle}
         />
       )
 
@@ -153,6 +165,7 @@ export function A4PageRenderer({
           subtitle={page.subtitle}
           itemsWithBadges={page.itemsWithBadges}
           heroImage={page.heroImage}
+          moduleTitle={page.moduleTitle}
         />
       )
 
@@ -175,6 +188,7 @@ export function A4PageRenderer({
           subtitle={page.subtitle}
           heroImage={page.heroImage}
           twoColumnsText={page.twoColumnsText}
+          moduleTitle={page.moduleTitle}
         />
       )
 
@@ -185,7 +199,9 @@ export function A4PageRenderer({
           title={page.title}
           subtitle={page.subtitle}
           paragraphs={page.paragraphs}
+          adviceBox={page.bannerBox}
           heroImage={page.heroImage}
+          moduleTitle={page.moduleTitle}
         />
       )
 
@@ -197,6 +213,8 @@ export function A4PageRenderer({
           subtitle={page.subtitle}
           threeColumns={page.threeColumns}
           bannerBox={page.bannerBox}
+          moduleTitle={page.moduleTitle}
+          heroImage={page.heroImage}
         />
       )
 

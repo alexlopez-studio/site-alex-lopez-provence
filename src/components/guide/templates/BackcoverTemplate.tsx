@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Phone, Mail, Globe, MapPin, Award } from 'lucide-react'
+import { Phone, Mail, Globe, MapPin, ShieldCheck } from 'lucide-react'
 
 export interface BackcoverTemplateProps {
   pageNumber?: number
@@ -15,85 +15,79 @@ export interface BackcoverTemplateProps {
 }
 
 export function BackcoverTemplate({
+  pageNumber = 32,
   agentName = 'Alexandre Lopez',
   agentRole = 'Conseiller en Immobilier · Réseau iad France',
   agentPhone = '06 13 18 01 68',
   agentEmail = 'alex@alexlopez-provence.fr',
   agentWebsite = 'alexlopez-provence.fr',
-  agentTerritory = 'Provence Verte & Verdon · Var',
-  quote,
+  agentTerritory = 'Cotignac, Haut-Var & Provence Verte',
+  quote = '« Une vente immobilière réussie est avant tout une alliance de transparence, de rigueur technique et d’une connaissance intime de notre terroir provençal. »',
 }: BackcoverTemplateProps) {
   return (
-    <div className="a4-sheet relative flex h-full w-full flex-col justify-between overflow-hidden bg-[#0F172A] p-12 sm:p-16 text-white shadow-sm">
-      {/* ─── EN-TÊTE HAUT DE COUVERTURE ARRIÈRE ─── */}
-      <div className="text-center pt-6">
-        <span className="inline-block bg-[#0077B6] text-white text-[11px] font-extrabold uppercase tracking-[0.25em] px-4 py-1.5 rounded-full mb-6 shadow-md">
-          ÉDITION PROPRIÉTAIRE · GUIDE OFFICIEL
+    <div className="a4-sheet relative flex h-full w-full flex-col justify-between overflow-hidden bg-[#001D2D] text-white shadow-2xl p-8 sm:p-11 md:p-12 select-none aspect-[1/1.414]">
+      {/* ─── 1. FOLIO SUPÉRIEUR ─── */}
+      <div className="border-b border-white/15 pb-3 flex items-center justify-between text-[9px] uppercase tracking-[0.25em] font-semibold text-white/70">
+        <span className="text-[#7DD3FC] font-bold">
+          Édition Propriétaire · Provence
         </span>
-        <h1 className="font-script text-5xl sm:text-6xl md:text-7xl text-white mb-2 leading-none">
-          {agentName}
-        </h1>
-        <p className="font-sans text-xs sm:text-sm font-bold uppercase tracking-[0.2em] text-[#00B4EC]">
-          {agentRole}
-        </p>
+        <span>
+          Guide Pratique du Vendeur
+        </span>
       </div>
 
-      {/* ─── BLOC CENTRAL : CITATION D'ENGAGEMENT ─── */}
-      <div className="my-auto max-w-lg mx-auto text-center space-y-6">
-        <div className="flex justify-center">
-          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-[#0077B6] to-[#00B4EC] flex items-center justify-center text-white shadow-xl">
-            <Award className="h-8 w-8" />
-          </div>
+      {/* ─── 2. BLOC CENTRAL : AUTEUR & CITATION D'ENGAGEMENT ─── */}
+      <div className="max-w-lg mx-auto my-auto text-center py-6">
+        <div className="inline-flex items-center gap-2 border border-[#7DD3FC]/30 bg-[#7DD3FC]/10 px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-[0.2em] text-[#7DD3FC] mb-4">
+          <ShieldCheck className="h-3.5 w-3.5 text-[#7DD3FC]" />
+          <span>Accompagnement & Expertise Locale</span>
         </div>
 
-        <blockquote className="font-sans text-base sm:text-lg font-light leading-relaxed text-slate-200 italic px-4">
-          {quote ??
-            '« Une vente immobilière réussie est avant tout une alliance de transparence, de rigueur juridique et d’une connaissance intime de notre terroir provençal. »'}
-        </blockquote>
+        <h1 className="font-sans text-2xl sm:text-3xl font-bold tracking-tight text-white mb-1.5">
+          {agentName}
+        </h1>
+        <p className="text-xs font-semibold text-[#7DD3FC] uppercase tracking-wider mb-6">
+          {agentRole}
+        </p>
 
-        <div className="h-[2px] w-24 bg-[#00B4EC] mx-auto" />
+        <div className="w-12 h-px bg-[#7DD3FC]/50 mx-auto mb-6" />
+
+        <blockquote className="font-serif text-sm sm:text-base md:text-lg font-normal leading-relaxed text-zinc-200 italic mb-4">
+          {quote}
+        </blockquote>
       </div>
 
-      {/* ─── CARTOUCHE DE CONTACT DIRECT ET DE RÉSEAU ─── */}
-      <div className="space-y-6">
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/15 max-w-md mx-auto space-y-3.5 text-xs sm:text-sm text-slate-200">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-[#0077B6] flex items-center justify-center text-white shrink-0">
-              <Phone className="h-4 w-4" />
-            </div>
-            <span className="font-bold text-white text-base tracking-wide">{agentPhone}</span>
+      {/* ─── 3. CARTOUCHE DE CONTACT & RÉSEAU ─── */}
+      <div className="space-y-4">
+        <div className="bg-white/5 border border-white/10 rounded-lg p-4 max-w-md mx-auto grid grid-cols-2 gap-3 text-[11px] text-zinc-200">
+          <div className="flex items-center gap-2.5">
+            <Phone className="h-4 w-4 text-[#7DD3FC] shrink-0" />
+            <span className="font-semibold text-white">{agentPhone}</span>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center text-white shrink-0">
-              <Mail className="h-4 w-4" />
-            </div>
-            <span>{agentEmail}</span>
+          <div className="flex items-center gap-2.5">
+            <Mail className="h-4 w-4 text-[#7DD3FC] shrink-0" />
+            <span className="truncate">{agentEmail}</span>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center text-white shrink-0">
-              <Globe className="h-4 w-4" />
-            </div>
+          <div className="flex items-center gap-2.5">
+            <Globe className="h-4 w-4 text-[#7DD3FC] shrink-0" />
             <span>{agentWebsite}</span>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center text-white shrink-0">
-              <MapPin className="h-4 w-4 text-[#00B4EC]" />
-            </div>
-            <span className="text-slate-300">{agentTerritory}</span>
+          <div className="flex items-center gap-2.5">
+            <MapPin className="h-4 w-4 text-[#7DD3FC] shrink-0" />
+            <span className="truncate">{agentTerritory}</span>
           </div>
         </div>
 
-        {/* Logo et Mentions Légales iad */}
-        <div className="flex items-center justify-between text-[10px] text-slate-400 uppercase tracking-widest border-t border-white/10 pt-4">
-          <div className="flex items-center gap-2">
-            <span className="font-serif italic font-black text-xl text-white">iad</span>
-            <span className="text-[9px] font-bold text-slate-300">FRANCE</span>
-          </div>
-          <span>© ALEXANDRE LOPEZ · TOUS DROITS RÉSERVÉS</span>
-          <span>P. 41</span>
+        {/* Mentions Légales & Signature */}
+        <div className="border-t border-white/15 pt-3 flex items-center justify-between text-[9px] uppercase tracking-wider text-white/50">
+          <span>Réseau iad France · RSAC Draguignan</span>
+          <span>© Alexandre Lopez · Tous droits réservés</span>
+          <span className="font-bold text-white">
+            Page {String(pageNumber).padStart(2, '0')}
+          </span>
         </div>
       </div>
     </div>

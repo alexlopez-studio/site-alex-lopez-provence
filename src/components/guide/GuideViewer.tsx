@@ -45,159 +45,241 @@ import {
 
 type ViewMode = 'a4_sheets' | 'templates_studio' | 'interactive_reader' | 'nurturing_hub'
 
-const TEMPLATE_CATALOG = [
+export interface TemplateCatalogItem {
+  id: string
+  name: string
+  layoutCode: string
+  category: 'Couvertures' | 'Éditorial' | 'Grilles & Checklists' | 'Comparatifs' | 'Méthode & Chiffres'
+  archetype: string
+  alignment: string
+  alignIcon: React.ComponentType<{ className?: string }>
+  description: string
+  structure: string
+  usedInPages: string
+  component: React.ReactElement
+}
+
+const TEMPLATE_CATALOG: TemplateCatalogItem[] = [
   {
     id: 'cover',
-    name: '01 · Couverture Principale',
+    name: 'Couverture Principale Prestige',
+    layoutCode: 'LAYOUT A1',
+    category: 'Couvertures',
     archetype: 'CoverTemplate',
     alignment: 'Aligné à Gauche',
     alignIcon: AlignLeft,
-    description: 'Grand visuel de chambre apaisante + Titre Left + Cartouche bas droit.',
+    description: 'Couverture pleine page monographe, titrage officiel et attributions claires.',
+    structure: 'Pleine page photo architecturale + Titrage majuscule d’autorité + Signature et millésime',
+    usedInPages: 'Page 01',
     component: <CoverTemplate />,
   },
   {
-    id: 'testimonial',
-    name: '02 · Témoignage Client Full Photo',
-    archetype: 'TestimonialTemplate',
+    id: 'stage_cover',
+    name: 'Garde d’Ouverture de Chapitre',
+    layoutCode: 'LAYOUT A2',
+    category: 'Couvertures',
+    archetype: 'StageCoverTemplate',
+    alignment: 'Aligné à Gauche',
+    alignIcon: AlignLeft,
+    description: 'Séparateur de chapitre en Bleu Nuit avec cadrage stratégique et photo feutrée.',
+    structure: 'Bleu Nuit `#001D2D` + Titre du chapitre + Voile photo provençale + Paragraphes de cadrage',
+    usedInPages: 'Pages 07, 13, 19, 23, 28, 32, 36',
+    component: <StageCoverTemplate />,
+  },
+  {
+    id: 'backcover',
+    name: 'Quatrième de Couverture Prestige',
+    layoutCode: 'LAYOUT A3',
+    category: 'Couvertures',
+    archetype: 'BackcoverTemplate',
     alignment: '100% Centré',
     alignIcon: AlignCenter,
-    description: 'Photo plein format + Carte sombre centrale translucide + 5 étoiles blanches.',
-    component: <TestimonialTemplate />,
+    description: 'Clôture de livre en Bleu Nuit, citation, coordonnées directes et mentions légales.',
+    structure: 'Bleu Nuit + Cartouche contacts directs + Mentions officielles iad France',
+    usedInPages: 'Page 41 (Dernière page)',
+    component: <BackcoverTemplate />,
   },
   {
     id: 'welcome',
-    name: '03 · Welcome & iPhone Mockup',
+    name: 'Édito d’Autorité & Portrait',
+    layoutCode: 'LAYOUT B1',
+    category: 'Éditorial',
     archetype: 'WelcomePhoneTemplate',
     alignment: 'Aligné à Gauche',
     alignIcon: AlignLeft,
-    description: 'Titre minuscule "welcome", bio & coordonnées + Mockup iPhone réaliste.',
+    description: 'Lettre de l’auteur, bio & coordonnées + Portrait cadré d’Alexandre Lopez.',
+    structure: 'Lettre éditoriale 4 paragraphes + Portrait cadré + Signature et coordonnées officielles',
+    usedInPages: 'Page 03',
     component: <WelcomePhoneTemplate />,
   },
   {
+    id: 'testimonial',
+    name: 'Témoignage Propriétaire Sérénité',
+    layoutCode: 'LAYOUT B2',
+    category: 'Éditorial',
+    archetype: 'TestimonialTemplate',
+    alignment: '100% Centré',
+    alignIcon: AlignCenter,
+    description: 'Photo de bastide pleine page + Étoiles dorées et citation en typographie serif.',
+    structure: 'Pleine page paysage + 5 étoiles dorées feutrées + Citation serif et attribution client',
+    usedInPages: 'Page 02',
+    component: <TestimonialTemplate />,
+  },
+  {
+    id: 'checklist_bottom_photo',
+    name: 'Photo Pleine Page & 4 Points Typographiques',
+    layoutCode: 'LAYOUT C1',
+    category: 'Grilles & Checklists',
+    archetype: 'ChecklistPhotoBottomTemplate',
+    alignment: 'Aligné à Gauche',
+    alignIcon: AlignLeft,
+    description: 'Photo d’exception pleine page (full bleed) + 4 points en pure typographie avec filets fins.',
+    structure: 'Fond photo pleine page + Voile feutré Quiet Luxury + Grille 2x2 typographique pure + Citation conseil',
+    usedInPages: 'Pages 11, 15, 22, 27, 31',
+    component: <ChecklistPhotoBottomTemplate />,
+  },
+  {
+    id: 'checklist_badges',
+    name: 'Photo Pleine Page & Dispositifs Juridiques',
+    layoutCode: 'LAYOUT C2',
+    category: 'Grilles & Checklists',
+    archetype: 'ChecklistBadgesTemplate',
+    alignment: 'Aligné à Gauche',
+    alignIcon: AlignLeft,
+    description: 'Photo pleine page + 4 dispositifs juridiques présentés en pure typographie aérée sans cards.',
+    structure: 'Fond photo pleine page + Voile feutré + 4 lignes typographiques avec tags + Conseil',
+    usedInPages: 'Page 09',
+    component: <ChecklistBadgesTemplate />,
+  },
+  {
+    id: 'checklist_side_photo',
+    name: 'Photo Pleine Page & Points de Contrôle',
+    layoutCode: 'LAYOUT C3',
+    category: 'Grilles & Checklists',
+    archetype: 'ChecklistPhotoSideTemplate',
+    alignment: 'Aligné à Gauche',
+    alignIcon: AlignLeft,
+    description: 'Photo pleine page + 5 points de contrôle méthodiques en typographie pure sans cards.',
+    structure: 'Fond photo pleine page + Voile feutré + 5 lignes typographiques + Conseil',
+    usedInPages: 'Page 12',
+    component: <ChecklistPhotoSideTemplate />,
+  },
+  {
+    id: 'split_photo',
+    name: 'Photo Pleine Page & Protocole Préparation',
+    layoutCode: 'LAYOUT C4',
+    category: 'Grilles & Checklists',
+    archetype: 'SplitPhotoTextTemplate',
+    alignment: 'Aligné à Gauche',
+    alignIcon: AlignLeft,
+    description: 'Photo d’exception pleine page + 3 paragraphes éditoriaux aérés sans cartes.',
+    structure: 'Fond photo pleine page + Voile feutré + Paragraphes éditoriaux + Conseil',
+    usedInPages: 'Page 08',
+    component: <SplitPhotoTextTemplate />,
+  },
+  {
+    id: 'article_top_photo',
+    name: 'Photo Pleine Page & Deux Options A vs B',
+    layoutCode: 'LAYOUT D1',
+    category: 'Comparatifs',
+    archetype: 'ArticleTwoColumnsPhotoTopTemplate',
+    alignment: 'Titre Centré',
+    alignIcon: AlignCenter,
+    description: 'Photo pleine page + Deux options comparatives face-à-face en pure typographie.',
+    structure: 'Fond photo pleine page + Voile feutré + 2 options face-à-face sans cartes + Recommandation',
+    usedInPages: 'Pages 08, 14',
+    component: <ArticleTwoColumnsPhotoTopTemplate />,
+  },
+  {
+    id: 'pros_cons',
+    name: 'Photo Pleine Page & Atouts vs Exigences',
+    layoutCode: 'LAYOUT D2',
+    category: 'Comparatifs',
+    archetype: 'ProsAndConsTemplate',
+    alignment: 'Titres Centrés',
+    alignIcon: AlignCenter,
+    description: 'Photo pleine page + Bilan objectif 2 colonnes sans aucune carte avec filets fins.',
+    structure: 'Fond photo pleine page + Voile feutré + 2 colonnes typographiques (+/−) + Arbitrage',
+    usedInPages: 'Page 06',
+    component: <ProsAndConsTemplate />,
+  },
+  {
+    id: 'staging_vs',
+    name: 'Home Staging Avant / Après',
+    layoutCode: 'LAYOUT D3',
+    category: 'Comparatifs',
+    archetype: 'StagingComparisonVsTemplate',
+    alignment: 'Comparatif Centré',
+    alignIcon: AlignCenter,
+    description: 'Analyse éditoriale + Double photo comparative côte à côte avant / après valorisation.',
+    structure: '2 blocs de diagnostic + Double photo comparative architecturale avant/après',
+    usedInPages: 'Page 25',
+    component: <StagingComparisonVsTemplate />,
+  },
+  {
+    id: 'photography_before_after',
+    name: 'Photographie Pro vs Amateur',
+    layoutCode: 'LAYOUT D4',
+    category: 'Comparatifs',
+    archetype: 'BeforeAfterPhotographyTemplate',
+    alignment: 'Titre Centré',
+    alignIcon: AlignCenter,
+    description: 'Impact chiffré des visuels + 2 photos comparatives grand-angle HDR vs smartphone.',
+    structure: '2 constats chiffrés + 2 photos architecturales haute définition en vis-à-vis',
+    usedInPages: 'Page 24',
+    component: <BeforeAfterPhotographyTemplate />,
+  },
+  {
     id: 'ask_yourself',
-    name: '04 · Ask Yourself... (3 Questions)',
+    name: 'Auto-Évaluation (3 Questions & Décision)',
+    layoutCode: 'LAYOUT E1',
+    category: 'Méthode & Chiffres',
     archetype: 'NumberedQuestionsTemplate',
     alignment: 'Aligné à Gauche',
     alignIcon: AlignLeft,
-    description: 'Badge noir rectangulaire + Chiffres 01/02/03 + Filets + Cadre conditionnel.',
+    description: '3 questions clés numérotées + Doubles cadres d’arbitrage Oui/Non + Photo en pied.',
+    structure: '3 questions d’audit numérotées + Doubles blocs conditionnels d’orientation + Photo en pied',
+    usedInPages: 'Page 04',
     component: <NumberedQuestionsTemplate />,
   },
   {
     id: 'consider_this',
-    name: '05 · Consider This (4 Statistiques)',
+    name: 'Repères de Marché (4 Statistiques DVF)',
+    layoutCode: 'LAYOUT E2',
+    category: 'Méthode & Chiffres',
     archetype: 'NumberedStatsTemplate',
     alignment: 'Aligné à Gauche',
     alignIcon: AlignLeft,
-    description: 'Badge noir + Chiffres 01/02/03/04 + Filets horizontaux fins + Encart récapitulatif.',
+    description: 'Grille 2x2 des réalités de marché DVF + Encart d’analyse experte + Photo en pied.',
+    structure: '4 repères chiffrés 01 à 04 en grille 2x2 + Note d’analyse d’Alexandre + Photo en pied',
+    usedInPages: 'Page 05',
     component: <NumberedStatsTemplate />,
   },
   {
-    id: 'pros_cons',
-    name: '06 · Pros & Cons (2 Colonnes)',
-    archetype: 'ProsAndConsTemplate',
-    alignment: 'Titres & En-têtes Centrés',
-    alignIcon: AlignCenter,
-    description: 'Titre centré "Pros & Cons" + 2 colonnes équilibrées séparées par filet vertical.',
-    component: <ProsAndConsTemplate />,
-  },
-  {
-    id: 'stage_cover',
-    name: '07 · Page de Garde de Chapitre',
-    archetype: 'StageCoverTemplate',
-    alignment: 'Aligné à Gauche',
-    alignIcon: AlignLeft,
-    description: 'Photo d’ambiance sombre + Badge STAGE ONE/TWO/THREE + Grand titre blanc.',
-    component: <StageCoverTemplate />,
-  },
-  {
-    id: 'split_photo',
-    name: '08 · Split 50/50 Photo Verticale',
-    archetype: 'SplitPhotoTextTemplate',
-    alignment: 'Aligné à Gauche',
-    alignIcon: AlignLeft,
-    description: 'Photo verticale 44% à gauche + Titre majuscule & Corps de texte à droite.',
-    component: <SplitPhotoTextTemplate />,
-  },
-  {
-    id: 'checklist_badges',
-    name: '09 · Checklist Badges Noirs',
-    archetype: 'ChecklistBadgesTemplate',
-    alignment: 'Aligné à Gauche',
-    alignIcon: AlignLeft,
-    description: 'Titre "Preparing your home" + Badges rectangulaires noirs (MAKE REPAIRS, etc.).',
-    component: <ChecklistBadgesTemplate />,
-  },
-  {
-    id: 'checklist_bottom_photo',
-    name: '10 · Badges Noirs + Photo Panoramique Bas',
-    archetype: 'ChecklistPhotoBottomTemplate',
-    alignment: 'Aligné à Gauche',
-    alignIcon: AlignLeft,
-    description: 'Badges en haut + Grande photo d’intérieur horizontale en bas.',
-    component: <ChecklistPhotoBottomTemplate />,
-  },
-  {
-    id: 'checklist_side_photo',
-    name: '11 · Badges Noirs + Photo Latérale',
-    archetype: 'ChecklistPhotoSideTemplate',
-    alignment: 'Aligné à Gauche',
-    alignIcon: AlignLeft,
-    description: 'Badges et textes à gauche + Photo verticale d’ambiance à droite.',
-    component: <ChecklistPhotoSideTemplate />,
-  },
-  {
-    id: 'staging_vs',
-    name: '12 · Comparatif Staging VS',
-    archetype: 'StagingComparisonVsTemplate',
-    alignment: 'Titre & Comparatif Centrés',
-    alignIcon: AlignCenter,
-    description: 'Titre centré "staging your home" + Double photo côte à côte avec badge VS.',
-    component: <StagingComparisonVsTemplate />,
-  },
-  {
-    id: 'article_top_photo',
-    name: '13 · Article Photo Haut + 2 Colonnes',
-    archetype: 'ArticleTwoColumnsPhotoTopTemplate',
-    alignment: 'Titre Centré',
-    alignIcon: AlignCenter,
-    description: 'Photo panoramique en haut + Titre centré + 2 colonnes de texte.',
-    component: <ArticleTwoColumnsPhotoTopTemplate />,
-  },
-  {
-    id: 'cma_article',
-    name: '14 · CMA vs Expertise + Photo Bas',
-    archetype: 'ArticlePhotoBottomTemplate',
-    alignment: 'Titre Centré',
-    alignIcon: AlignCenter,
-    description: 'Titre centré "CMA VS. APPRAISAL" + 4 paragraphes + Photo panoramique en bas.',
-    component: <ArticlePhotoBottomTemplate />,
-  },
-  {
     id: 'three_columns_banner',
-    name: '15 · 3 Colonnes & Bandeau Noir Bas',
+    name: '3 Piliers Stèles + Bandeau Formule',
+    layoutCode: 'LAYOUT E3',
+    category: 'Méthode & Chiffres',
     archetype: 'ThreeColumnsBannerTemplate',
     alignment: 'Titre Centré',
     alignIcon: AlignCenter,
-    description: 'Titre centré "places to research" + 3 colonnes numérotées + Bandeau noir plein.',
+    description: '3 colonnes numérotées + Formule financière en cartouche Bleu Nuit + Photo en bas.',
+    structure: '3 colonnes / stèles numérotées + Cartouche formule notariée en Bleu Nuit + Photo en pied',
+    usedInPages: 'Pages 10, 17',
     component: <ThreeColumnsBannerTemplate />,
   },
   {
-    id: 'photography_before_after',
-    name: '16 · Photographie Avant / Après',
-    archetype: 'BeforeAfterPhotographyTemplate',
+    id: 'cma_article',
+    name: 'Article Méthodologique (4 Points & CMA)',
+    layoutCode: 'LAYOUT E4',
+    category: 'Méthode & Chiffres',
+    archetype: 'ArticlePhotoBottomTemplate',
     alignment: 'Titre Centré',
     alignIcon: AlignCenter,
-    description: 'Titre centré "THE VALUE OF PHOTOGRAPHY" + 2 photos comparatives (Owner vs Pro).',
-    component: <BeforeAfterPhotographyTemplate />,
-  },
-  {
-    id: 'backcover',
-    name: '17 · Quatrième de Couverture Dark',
-    archetype: 'BackcoverTemplate',
-    alignment: '100% Centré',
-    alignIcon: AlignCenter,
-    description: 'Fond noir profond + Titre Alexandre Lopez + Citation + Cartouche coordonnées.',
-    component: <BackcoverTemplate />,
+    description: '4 points d’analyse comparative (CMA vs Expertise) + Encart d’arbitrage + Photo en bas.',
+    structure: '4 points d’analyse numérotés 01 à 04 + Encart conseil d’expert + Photo en pied',
+    usedInPages: 'Page 16',
+    component: <ArticlePhotoBottomTemplate />,
   },
 ]
 
@@ -205,6 +287,7 @@ export default function GuideViewer() {
   const [guideVersion, setGuideVersion] = useState<'v2' | 'v1'>('v2')
   const [viewMode, setViewMode] = useState<ViewMode>('a4_sheets')
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('cover')
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [currentPageIndex, setCurrentPageIndex] = useState<number>(0)
   const [selectedModule, setSelectedModule] = useState<number | null>(null)
   const [copiedEmailId, setCopiedEmailId] = useState<number | null>(null)
@@ -460,82 +543,144 @@ export default function GuideViewer() {
             {/* Colonne Gauche : Liste des Gabarits Types */}
             <aside className="no-print lg:col-span-4 rounded-sm border border-[#E5E0D8] bg-[#FAF8F5] p-5 shadow-2xs space-y-4">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8C827A]">
-                  DESIGN SYSTEM · 17 GABARITS TYPES
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#006390]">
+                  DESIGN SYSTEM ÉDITORIAL · 17 GABARITS
                 </span>
                 <h3 className="font-serif text-lg font-normal text-[#111111] mt-1">
-                  Catalogue des Composants
+                  Familles de Layouts A4
                 </h3>
                 <p className="text-xs text-[#666666] mt-1 leading-relaxed">
-                  Sélectionnez un gabarit pour inspecter son rendu isolé, ses règles d’alignement et sa typographie.
+                  Sélectionnez un gabarit pour inspecter sa structure, son ratio texte/photo et ses pages de déploiement.
                 </p>
               </div>
 
-              <div className="max-h-[640px] overflow-y-auto pr-1 space-y-2">
-                {TEMPLATE_CATALOG.map((tpl) => {
-                  const Icon = tpl.alignIcon
-                  const isSelected = selectedTemplateId === tpl.id
-                  return (
-                    <button
-                      key={tpl.id}
-                      onClick={() => setSelectedTemplateId(tpl.id)}
-                      className={`flex w-full flex-col rounded-sm p-3 text-left transition-all border ${
-                        isSelected
-                          ? 'bg-[#111111] text-white border-[#111111] shadow-xs'
-                          : 'bg-white text-[#222222] border-[#E5E0D8] hover:border-[#111111]'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold">{tpl.name}</span>
-                        <span
-                          className={`inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                            isSelected
-                              ? 'bg-white/20 text-white'
-                              : 'bg-[#F2EDE4] text-[#555555]'
-                          }`}
-                        >
-                          <Icon className="h-3 w-3" />
-                          {tpl.alignment}
-                        </span>
-                      </div>
-                      <span
-                        className={`text-[10px] font-mono mt-1 ${
-                          isSelected ? 'text-white/70' : 'text-[#8C827A]'
+              {/* Filtres par Famille de Layout */}
+              <div className="flex flex-wrap gap-1 pt-1 border-t border-[#E5E0D8]">
+                <button
+                  onClick={() => setSelectedCategory(null)}
+                  className={`text-[10px] font-semibold px-2 py-1 rounded-full transition-colors ${
+                    selectedCategory === null
+                      ? 'bg-[#001D2D] text-white'
+                      : 'bg-white text-zinc-600 border border-zinc-200 hover:border-zinc-400'
+                  }`}
+                >
+                  Tous (17)
+                </button>
+                {(['Couvertures', 'Éditorial', 'Grilles & Checklists', 'Comparatifs', 'Méthode & Chiffres'] as const).map(
+                  (cat) => {
+                    const count = TEMPLATE_CATALOG.filter((t) => t.category === cat).length
+                    const isSelected = selectedCategory === cat
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => setSelectedCategory(cat)}
+                        className={`text-[10px] font-semibold px-2 py-1 rounded-full transition-colors ${
+                          isSelected
+                            ? 'bg-[#006390] text-white'
+                            : 'bg-white text-zinc-600 border border-zinc-200 hover:border-zinc-400'
                         }`}
                       >
-                        &lt;{tpl.archetype} /&gt;
-                      </span>
-                    </button>
-                  )
-                })}
+                        {cat} ({count})
+                      </button>
+                    )
+                  }
+                )}
+              </div>
+
+              {/* Liste des Gabarits Filtrés */}
+              <div className="max-h-[600px] overflow-y-auto pr-1 space-y-2">
+                {TEMPLATE_CATALOG.filter((tpl) => !selectedCategory || tpl.category === selectedCategory).map(
+                  (tpl) => {
+                    const isSelected = selectedTemplateId === tpl.id
+                    return (
+                      <button
+                        key={tpl.id}
+                        onClick={() => setSelectedTemplateId(tpl.id)}
+                        className={`flex w-full flex-col rounded-md p-3 text-left transition-all border ${
+                          isSelected
+                            ? 'bg-[#001D2D] text-white border-[#001D2D] shadow-sm'
+                            : 'bg-white text-zinc-800 border-zinc-200 hover:border-zinc-400'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span
+                            className={`text-[9px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded ${
+                              isSelected
+                                ? 'bg-[#7DD3FC] text-[#001D2D]'
+                                : 'bg-[#006390]/10 text-[#006390]'
+                            }`}
+                          >
+                            {tpl.layoutCode}
+                          </span>
+                          <span
+                            className={`text-[9.5px] font-medium ${
+                              isSelected ? 'text-zinc-300' : 'text-zinc-500'
+                            }`}
+                          >
+                            {tpl.category}
+                          </span>
+                        </div>
+                        <span className="text-xs font-bold leading-snug">{tpl.name}</span>
+                        <div
+                          className={`text-[10px] mt-1.5 flex items-center justify-between ${
+                            isSelected ? 'text-zinc-300' : 'text-zinc-500'
+                          }`}
+                        >
+                          <span className="truncate max-w-[180px]">{tpl.usedInPages}</span>
+                          <span className="font-mono text-[9px]">&lt;{tpl.archetype}&gt;</span>
+                        </div>
+                      </button>
+                    )
+                  }
+                )}
               </div>
             </aside>
 
-            {/* Colonne Droite : Inspection & Rendu du Gabarit */}
+            {/* Colonne Droite : Fiche d'Inspection & Rendu A4 Isolé */}
             <main className="lg:col-span-8 space-y-4">
-              <div className="no-print rounded-sm border border-[#E5E0D8] bg-[#FAF8F5] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-black">
-                      {activeTemplate.name}
+              <div className="no-print rounded-lg border border-zinc-200 bg-white p-4 sm:p-5 shadow-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-100">
+                  <div className="flex items-center gap-2.5">
+                    <span className="bg-[#001D2D] text-white text-[10px] font-bold tracking-wider px-2 py-1 rounded">
+                      {activeTemplate.layoutCode}
                     </span>
-                    <span className="text-[10px] font-mono bg-black text-white px-2 py-0.5 rounded-xs">
+                    <h2 className="text-sm sm:text-base font-bold text-zinc-900">
+                      {activeTemplate.name}
+                    </h2>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-semibold text-[#006390] bg-[#006390]/10 px-2.5 py-0.5 rounded-full">
+                      {activeTemplate.category}
+                    </span>
+                    <span className="text-[10px] font-mono text-zinc-500 border border-zinc-200 px-2 py-0.5 rounded">
                       &lt;{activeTemplate.archetype} /&gt;
                     </span>
                   </div>
-                  <p className="text-xs text-[#555555] mt-1">
-                    {activeTemplate.description}
-                  </p>
                 </div>
 
-                <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-sm bg-white border border-[#E5E0D8] shrink-0">
-                  <activeTemplate.alignIcon className="h-3.5 w-3.5 text-black" />
-                  <span>{activeTemplate.alignment}</span>
+                {/* Métadonnées du Layout */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 text-xs">
+                  <div>
+                    <span className="text-[9.5px] font-bold uppercase tracking-wider text-zinc-400 block mb-0.5">
+                      Architecture & Géométrie
+                    </span>
+                    <p className="text-zinc-700 font-medium leading-relaxed">
+                      {activeTemplate.structure}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-[9.5px] font-bold uppercase tracking-wider text-[#006390] block mb-0.5">
+                      Déploiement dans le livre
+                    </span>
+                    <p className="text-zinc-700 font-medium leading-relaxed">
+                      {activeTemplate.usedInPages}
+                    </p>
+                  </div>
                 </div>
               </div>
 
               {/* Rendu A4 Isolé */}
-              <div className="a4-page mx-auto w-full aspect-[210/297] shadow-xl rounded-sm overflow-hidden border border-black/10">
+              <div className="a4-page mx-auto w-full aspect-[210/297] shadow-xl rounded-sm overflow-hidden border border-zinc-200">
                 {activeTemplate.component}
               </div>
             </main>
